@@ -1,8 +1,8 @@
-# Cron Agent Contract (Portable)
+# Cron Agent Contract (Portable Principles; POSIX Examples)
 
-This file is a **portable contract** you can use for any OpenClaw cron worker (especially `sessionTarget="isolated"` + `payload.kind="agentTurn"`).
+This file is a portable contract you can use for any OpenClaw cron/background worker (especially `sessionTarget="isolated"` + `payload.kind="agentTurn"`).
 
-The goal: make scheduled jobs **reliable**, **low-noise**, and **safe-by-default**.
+Goal: make scheduled jobs **reliable**, **low-noise**, and **safe-by-default**.
 
 ## 0) Core principles
 
@@ -17,34 +17,35 @@ The goal: make scheduled jobs **reliable**, **low-noise**, and **safe-by-default
 - Cron jobs must not delete data, patch persistent config, or mutate control-plane settings unless explicitly authorized.
 
 4) **Silent on success**
-- Default output should be exactly `NO_REPLY`.
+- If your runtime supports the OpenClaw sentinel `NO_REPLY`, output exactly `NO_REPLY` on success.
+- Otherwise: print nothing on success.
 - Only emit a short alert when something is wrong.
 
 ## 1) Payload design rules
 
 - Keep the cron payload message **short**.
 - Avoid multi-line shell with nested quotes.
-- Avoid command substitution (`$(...)`), heredocs (`<<EOF`), and complex pipelines.
+- Avoid command substitution (`$(...)` and backticks), heredocs (`<<EOF`), and complex pipelines.
+- Avoid tool-driven exact-string file edits (they're brittle when whitespace/newlines drift). Prefer scripts-first, anchor-based patching.
 
-If you need parsing, branching, JSON, or retries → **use a script**.
+If you need parsing, branching, JSON, retries, or file patching -> **use a script**.
 
-## 2) Portable path rules (don’t hardcode `/root/...`)
+## 2) Portable path rules (don't hardcode `/root/...`)
 
 People install OpenClaw on different OSes and with different home/workspace locations.
 
-- **Do not hardcode absolute paths** tied to your machine.
+- Do not hardcode absolute paths tied to your machine.
 - Prefer:
   - paths relative to the repo (best)
-  - `$HOME` / `%USERPROFILE%` only when you truly need user-home paths
-  - a config/env variable you document (e.g., `FINLIFE_DB_URL`, `WORKDIR`, etc.)
+  - environment variables you document (for example `WORKDIR`, `OPENCLAW_STATE_DIR`, `FINLIFE_DB_URL`)
 
 If you must use an absolute path, make it a **single well-known variable** and document it.
 
-## 3) Recommended execution patterns
+## 3) Recommended execution patterns (POSIX examples)
 
-### Pattern A — One command calling a script (best)
+### Pattern A - One command calling a script (best)
 
-- Put the logic in: `tools/<job_name>.py` (or `scripts/<job_name>.py`) inside the repo.
+- Put logic in: `tools/<job_name>.py` (or `tools/<job_name>.sh`) inside the repo.
 - Cron runs:
 
 ```bash
@@ -55,20 +56,19 @@ Your script should:
 - validate inputs
 - `chdir` to the correct directory if needed
 - run subprocess calls with argv arrays (no shell)
-- print `NO_REPLY` on success
+- print `NO_REPLY` (or nothing) on success
 
-### Pattern B — Minimal shell wrapper (only if needed)
+### Pattern B - Minimal shell wrapper (only if needed)
 
 ```bash
-bash -lc 'cd /path/to/repo && python3 tools/<job_name>.py'
+bash -lc 'cd <REPO_DIR> && python3 tools/<job_name>.py'
 ```
 
-Keep it short. If quoting gets tricky, you already crossed the line → move logic into the script.
+Keep it short. If quoting gets tricky, you already crossed the line -> move logic into the script.
 
-## 4) Output contract
+## 4) Failure output contract
 
-- **Success:** output exactly `NO_REPLY`
-- **Failure:** <= 6 bullets:
+- Failure: keep it short (<= 6 bullets)
   - what failed
   - where (file/command)
   - next action

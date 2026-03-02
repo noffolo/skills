@@ -29,6 +29,22 @@ This breaks because the inner `['openclaw', ...]` terminates the outer single-qu
 - scripts-first (put the logic in `tools/*.py`)
 - or wrap the `-c` string in **double quotes** if you need single quotes inside
 
+## 3.5) Markdown backticks in CLI args (command substitution)
+Backticks (`) are **not** just formatting in a shell — they trigger command substitution.
+
+**Bad (fragile):**
+- ``--pattern "`‣` / `∙` / `·`"``
+
+This can explode as:
+- `sh: 1: ‣: not found`
+
+**Better:**
+- Never paste Markdown code formatting into commands.
+- If you need to search literal glyphs/odd strings:
+  - scripts-first (argv list; no shell)
+  - or write the pattern to a file and use `--pattern-file`
+  - or add a dedicated helper subcommand (e.g. `grep-md-bullets`) so cron never needs backticks in argv.
+
 ## 4) Heredocs in generated shell
 
 **Bad (fragile):**
@@ -75,3 +91,32 @@ Not everyone uses the same Python toolchain.
 
 - Scheduled jobs should be silent by default: `NO_REPLY`.
 - If failure: <= 6 bullets, include *what failed* + *next action*.
+
+## 10) Tool `edit` exact-match footgun
+
+Symptom:
+- `Could not find the exact text ... The old text must match exactly including all whitespace and newlines.`
+
+Why it happens:
+- Exact-string replacement is brittle under unattended automation (format drift, newline differences, prior edits).
+
+Safer replacement:
+- **Don’t use tool `edit` for cron-driven file updates.**
+- Use scripts-first patching anchored by headings/markers/substrings (idempotent).
+- If you must do a direct replace, **read the file first** and copy the exact old text (including whitespace) into the replace input.
+
+## 11) Secret leakage in debug output
+Footgun:
+- dumping config files / printing API keys or gateway tokens into logs.
+
+Safer replacement:
+- Redact secrets by default.
+- When inspecting config, report only whether a key is present (`envref|literal|missing`), never the value.
+
+## 12) Config schema mismatch when copying blocks
+Footgun:
+- copying a config object from one plugin into another plugin’s config unchanged.
+
+Safer replacement:
+- Filter to the destination plugin’s allowed keys (often a minimal `{apiKey, model}` style object).
+- Validate by starting the gateway once (or `openclaw doctor`) before relying on the config in cron.
