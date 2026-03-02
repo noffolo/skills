@@ -3,11 +3,16 @@
   "slug": "predictclash",
   "displayName": "Predict Clash",
   "latest": {
-    "version": "1.6.0",
-    "publishedAt": 1772254209002,
-    "commit": "https://github.com/openclaw/skills/commit/0e4fcd77203fe37b3cc641acc45b91ea0ac9492e"
+    "version": "1.7.0",
+    "publishedAt": 1772413301771,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.6.0",
+      "publishedAt": 1772254209002,
+      "commit": "https://github.com/openclaw/skills/commit/0e4fcd77203fe37b3cc641acc45b91ea0ac9492e"
+    },
     {
       "version": "1.2.0",
       "publishedAt": 1772243908945,
