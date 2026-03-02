@@ -34,8 +34,12 @@ import platform
 import requests
 from playwright.async_api import async_playwright
 from hcaptcha_challenger import AgentConfig, AgentV
+from output_manager import OutputManager
 
 USER_DATA_DIR = os.path.expanduser("~/.suno/chrome_gui_profile")
+
+# 全局输出管理器（模块加载时用默认 verbose 模式，main() 中会重新设置）
+out = OutputManager(log_prefix="suno_create", verbose=True)
 
 # ====== 确保 hcaptcha-challenger 支持 Suno 自定义 hCaptcha 域名 ======
 # Suno 使用 hcaptcha-assets-prod.suno.com 而非标准 newassets.hcaptcha.com
@@ -52,9 +56,9 @@ try:
 
     RoboticArm.__init__ = _patched_init
 
-    print("   ✅ hCaptcha 域名兼容 patch 已应用", flush=True)
+    out.print("   ✅ hCaptcha 域名兼容 patch 已应用")
 except Exception as e:
-    print(f"   ⚠️ hCaptcha patch 跳过: {e}", flush=True)
+    out.print(f"   ⚠️ hCaptcha patch 跳过: {e}")
 # ====== Patch 结束 ======
 
 DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "output_mp3")
@@ -78,38 +82,38 @@ def _setup_virtual_display():
         from pyvirtualdisplay import Display
         display = Display(visible=0, size=(1380, 900))
         display.start()
-        print("   ✅ Xvfb 虚拟显示已启动 (1380x900)", flush=True)
+        out.print("   ✅ Xvfb 虚拟显示已启动 (1380x900)")
         return display
     except ImportError:
-        print("   ❌ 未安装 PyVirtualDisplay!", flush=True)
-        print("   💡 安装方法: sudo apt install -y xvfb && pip install PyVirtualDisplay", flush=True)
+        out.print("   ❌ 未安装 PyVirtualDisplay!")
+        out.print("   💡 安装方法: sudo apt install -y xvfb && pip install PyVirtualDisplay")
         return None
     except Exception as e:
-        print(f"   ❌ Xvfb 启动失败: {e}", flush=True)
-        print("   💡 请确保已安装 xvfb: sudo apt install -y xvfb", flush=True)
+        out.print(f"   ❌ Xvfb 启动失败: {e}")
+        out.print("   💡 请确保已安装 xvfb: sudo apt install -y xvfb")
         return None
 # ====== Headless Linux 支持结束 ======
 
 
-def download_mp3(audio_url, title, clip_id, output_dir):
+def download_mp3(audio_url, title, clip_id, output_dir, out=out):
     """下载 MP3 文件"""
     os.makedirs(output_dir, exist_ok=True)
     safe_title = re.sub(r'[^\w\u4e00-\u9fff\-]', '_', title)
     filename = f"{safe_title}_{clip_id[:8]}.mp3"
     filepath = os.path.join(output_dir, filename)
 
-    print(f"   📥 下载: {filename}", flush=True)
+    out.print(f"   📥 下载: {filename}")
     resp = requests.get(audio_url, stream=True, timeout=120)
     resp.raise_for_status()
     with open(filepath, "wb") as f:
         for chunk in resp.iter_content(chunk_size=8192):
             f.write(chunk)
     size_mb = os.path.getsize(filepath) / 1024 / 1024
-    print(f"   ✅ 已保存: {filepath} ({size_mb:.1f} MB)", flush=True)
+    out.print(f"   ✅ 已保存: {filepath} ({size_mb:.1f} MB)")
     return filepath
 
 
-async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemini_key: str):
+async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemini_key: str, out=out):
     """
     完整的歌曲创建流程（含 hCaptcha 自动解决）
     支持 Linux 无 GUI 环境（自动启动 Xvfb 虚拟显示）
@@ -127,15 +131,15 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
     # ====== 检测并启动虚拟显示 ======
     virtual_display = None
     if _is_headless_linux():
-        print("\n🖥️ 检测到 Linux 无 GUI 环境，启动 Xvfb 虚拟显示...", flush=True)
+        out.print("\n🖥️ 检测到 Linux 无 GUI 环境，启动 Xvfb 虚拟显示...")
         virtual_display = _setup_virtual_display()
         if virtual_display is None:
-            print("❌ 无法启动虚拟显示，无法在无 GUI 环境下运行", flush=True)
+            out.print("❌ 无法启动虚拟显示，无法在无 GUI 环境下运行")
             return None
 
     try:
         async with async_playwright() as p:
-            print("\n🚀 启动 Chrome (headless=False, Xvfb={})...".format(
+            out.print("\n🚀 启动 Chrome (headless=False, Xvfb={})...".format(
                 "已启用" if virtual_display else "不需要"
             ), flush=True)
             context = await p.chromium.launch_persistent_context(
@@ -171,33 +175,33 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                                 cid = c.get("id")
                                 if cid and cid not in new_clip_ids:
                                     new_clip_ids.append(cid)
-                            print(f"\n   📡 生成任务已提交！{len(clips)} 首歌曲", flush=True)
+                            out.print(f"\n   📡 生成任务已提交！{len(clips)} 首歌曲")
                             for c in clips:
-                                print(f"      ID: {c.get('id')}, Status: {c.get('status')}", flush=True)
+                                out.print(f"      ID: {c.get('id')}, Status: {c.get('status')}")
                     except:
                         pass
 
             page.on("response", on_response)
 
             # ========== 步骤 1: 打开创建页面 ==========
-            print("\n📌 步骤 1: 打开创建页面...", flush=True)
+            out.print("\n📌 步骤 1: 打开创建页面...")
             await page.goto("https://suno.com/create", wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(5000)
 
             if "sign-in" in page.url:
-                print("❌ 未登录！请先运行 suno_login.py", flush=True)
+                out.print("❌ 未登录！请先运行 suno_login.py")
                 await context.close()
                 return None
 
-            print(f"   ✅ 已登录", flush=True)
+            out.print(f"   ✅ 已登录")
 
             # ========== 步骤 2: 切换到 Custom 模式 ==========
-            print("📌 步骤 2: 切换到 Custom 模式...", flush=True)
+            out.print("📌 步骤 2: 切换到 Custom 模式...")
             custom_switched = False
             
             # 先截图看当前页面状态
             await page.screenshot(path="/tmp/suno_debug_before_custom.png")
-            print("   📸 已保存切换前截图: /tmp/suno_debug_before_custom.png", flush=True)
+            out.print("   📸 已保存切换前截图: /tmp/suno_debug_before_custom.png")
             
             # 多种选择器尝试切换 Custom 模式
             custom_selectors = [
@@ -216,7 +220,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     if await btn.is_visible(timeout=3000):
                         await btn.click()
                         custom_switched = True
-                        print(f"   ✅ 已点击 Custom 按钮 (via {sel})", flush=True)
+                        out.print(f"   ✅ 已点击 Custom 按钮 (via {sel})")
                         await page.wait_for_timeout(2000)
                         break
                 except Exception:
@@ -224,7 +228,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
 
             if not custom_switched:
                 # 尝试用 JS 搜索所有包含 "Custom" 文字的可点击元素
-                print("   ⚠️ 常规选择器未找到，尝试 JS 搜索...", flush=True)
+                out.print("   ⚠️ 常规选择器未找到，尝试 JS 搜索...")
                 js_clicked = await page.evaluate("""() => {
                     const all = document.querySelectorAll('button, [role=tab], [role=button], [role=switch], label, a, div[class*=tab], div[class*=toggle]');
                     for (const el of all) {
@@ -239,10 +243,10 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                 }""")
                 if js_clicked.get('found'):
                     custom_switched = True
-                    print(f"   ✅ 通过 JS 点击了 Custom ({js_clicked.get('tag')}.{js_clicked.get('cls', '')[:30]})", flush=True)
+                    out.print(f"   ✅ 通过 JS 点击了 Custom ({js_clicked.get('tag')}.{js_clicked.get('cls', '')[:30]})")
                     await page.wait_for_timeout(2000)
                 else:
-                    print("   ⚠️ 未找到 Custom 按钮！当前可能是 Song Description 模式", flush=True)
+                    out.print("   ⚠️ 未找到 Custom 按钮！当前可能是 Song Description 模式")
                     # 打印所有可见按钮帮助诊断
                     buttons_info = await page.evaluate("""() => {
                         const btns = document.querySelectorAll('button, [role=tab], [role=button]');
@@ -252,18 +256,18 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                             cls: b.className.substring(0, 60)
                         }));
                     }""")
-                    print(f"   📋 页面上可见的按钮/tab:", flush=True)
+                    out.print(f"   📋 页面上可见的按钮/tab:")
                     for bi in buttons_info[:15]:
-                        print(f"      [{bi['tag']}] '{bi['text']}' class='{bi['cls']}'", flush=True)
+                        out.print(f"      [{bi['tag']}] '{bi['text']}' class='{bi['cls']}'")
             
             # 截图看切换后状态
             await page.wait_for_timeout(1000)
             await page.screenshot(path="/tmp/suno_debug_after_custom.png")
-            print("   📸 已保存切换后截图: /tmp/suno_debug_after_custom.png", flush=True)
+            out.print("   📸 已保存切换后截图: /tmp/suno_debug_after_custom.png")
 
             # 等待 Custom 模式的 UI 完全加载
             # Custom 模式应该有 "Lyrics" 相关的 textarea，而非 Song Description
-            print("   ⏳ 等待 Custom 模式 UI 加载...", flush=True)
+            out.print("   ⏳ 等待 Custom 模式 UI 加载...")
             lyrics_textarea_found = False
             for wait_i in range(15):  # 最多等 30 秒
                 await page.wait_for_timeout(2000)
@@ -281,9 +285,9 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                 
                 if len(visible_tas) >= 2:
                     # Custom 模式通常有 2 个以上 textarea（歌词 + 风格）
-                    print(f"   ✅ Custom UI 已加载 (发现 {len(visible_tas)} 个可见 textarea, 耗时 {(wait_i+1)*2}s)", flush=True)
+                    out.print(f"   ✅ Custom UI 已加载 (发现 {len(visible_tas)} 个可见 textarea, 耗时 {(wait_i+1)*2}s)")
                     for idx, t in enumerate(visible_tas):
-                        print(f"      textarea[{idx}]: h={t['height']} placeholder='{t['placeholder'][:50]}'", flush=True)
+                        out.print(f"      textarea[{idx}]: h={t['height']} placeholder='{t['placeholder'][:50]}'")
                     lyrics_textarea_found = True
                     break
                 elif len(visible_tas) == 1:
@@ -291,37 +295,37 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     ph = visible_tas[0].get('placeholder', '')
                     # 如果 placeholder 包含歌词相关的词，说明已经是 Custom 模式
                     if any(kw in ph.lower() for kw in ['lyric', 'verse', 'write your']):
-                        print(f"   ✅ Custom UI 已加载 (1个歌词 textarea, placeholder='{ph[:50]}', 耗时 {(wait_i+1)*2}s)", flush=True)
+                        out.print(f"   ✅ Custom UI 已加载 (1个歌词 textarea, placeholder='{ph[:50]}', 耗时 {(wait_i+1)*2}s)")
                         lyrics_textarea_found = True
                         break
                     else:
-                        print(f"   ⏳ [{(wait_i+1)*2}s] 只有1个 textarea (placeholder='{ph[:40]}')，可能还在 Description 模式", flush=True)
+                        out.print(f"   ⏳ [{(wait_i+1)*2}s] 只有1个 textarea (placeholder='{ph[:40]}')，可能还在 Description 模式")
                         # 再尝试点一次 Custom
                         if wait_i == 3:  # 第 8 秒时再试一次
-                            print("   🔄 再次尝试点击 Custom...", flush=True)
+                            out.print("   🔄 再次尝试点击 Custom...")
                             for sel in custom_selectors:
                                 try:
                                     btn = page.locator(sel).first
                                     if await btn.is_visible(timeout=1000):
                                         await btn.click()
-                                        print(f"   ✅ 再次点击 Custom (via {sel})", flush=True)
+                                        out.print(f"   ✅ 再次点击 Custom (via {sel})")
                                         break
                                 except Exception:
                                     continue
                 else:
-                    print(f"   ⏳ [{(wait_i+1)*2}s] 等待 textarea 出现... (当前: {len(visible_tas)}个)", flush=True)
+                    out.print(f"   ⏳ [{(wait_i+1)*2}s] 等待 textarea 出现... (当前: {len(visible_tas)}个)")
             
             if not lyrics_textarea_found:
-                print("   ⚠️ 等待 textarea 超时！截图诊断...", flush=True)
+                out.print("   ⚠️ 等待 textarea 超时！截图诊断...")
                 await page.screenshot(path="/tmp/suno_debug_no_textarea.png")
                 try:
                     html_snippet = await page.evaluate("document.body.innerHTML.substring(0, 2000)")
-                    print(f"   📄 页面 HTML 片段: {html_snippet[:500]}", flush=True)
+                    out.print(f"   📄 页面 HTML 片段: {html_snippet[:500]}")
                 except Exception:
                     pass
 
             # ========== 步骤 3: 填写歌词 ==========
-            print("📌 步骤 3: 填写歌词...", flush=True)
+            out.print("📌 步骤 3: 填写歌词...")
             try:
                 # 先收集页面上所有 textarea 的详细信息（包括它所在的 section 标题）
                 all_ta_info = await page.evaluate("""() => {
@@ -355,9 +359,9 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                         };
                     });
                 }""")
-                print(f"   📋 页面上共 {len(all_ta_info)} 个 textarea:", flush=True)
+                out.print(f"   📋 页面上共 {len(all_ta_info)} 个 textarea:")
                 for info in all_ta_info:
-                    print(f"      [{info['index']}] {info['width']}x{info['height']} section='{info['sectionTitle']}' placeholder='{info['placeholder'][:60]}' visible={info['visible']}", flush=True)
+                    out.print(f"      [{info['index']}] {info['width']}x{info['height']} section='{info['sectionTitle']}' placeholder='{info['placeholder'][:60]}' visible={info['visible']}")
 
                 textareas = page.locator("textarea")
                 lyrics_input = None
@@ -368,7 +372,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     if info['visible'] and info['sectionTitle'] == 'Lyrics':
                         lyrics_input = textareas.nth(info['index'])
                         lyrics_ta_index = info['index']
-                        print(f"   🔍 通过 section 标题 'Lyrics' 找到歌词 textarea[{info['index']}]", flush=True)
+                        out.print(f"   🔍 通过 section 标题 'Lyrics' 找到歌词 textarea[{info['index']}]")
                         break
 
                 # ===== 策略 2: 精确匹配 placeholder 中的关键词 =====
@@ -389,14 +393,14 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                                     if kw in info['placeholder']:
                                         lyrics_ta_index = info['index']
                                         break
-                                print(f"   🔍 通过 placeholder 关键词 '{kw}' 找到歌词文本框 (placeholder='{ph[:60]}')", flush=True)
+                                out.print(f"   🔍 通过 placeholder 关键词 '{kw}' 找到歌词文本框 (placeholder='{ph[:60]}')")
                                 break
                         except Exception:
                             continue
 
                 # ===== 策略 3: 用 JS 直接通过 DOM 层级关系精确查找 Lyrics section 下的 textarea =====
                 if not lyrics_input:
-                    print("   🔍 尝试通过 JS DOM 层级精确查找 Lyrics textarea...", flush=True)
+                    out.print("   🔍 尝试通过 JS DOM 层级精确查找 Lyrics textarea...")
                     js_lyrics_idx = await page.evaluate("""() => {
                         // 找到页面上所有包含 "Lyrics" 文字的元素
                         const allElements = document.querySelectorAll('*');
@@ -428,27 +432,27 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     if js_lyrics_idx >= 0:
                         lyrics_input = textareas.nth(js_lyrics_idx)
                         lyrics_ta_index = js_lyrics_idx
-                        print(f"   🔍 通过 JS DOM 定位到 Lyrics textarea[{js_lyrics_idx}]", flush=True)
+                        out.print(f"   🔍 通过 JS DOM 定位到 Lyrics textarea[{js_lyrics_idx}]")
 
                 # ===== 策略 4: 排除 Styles section 的 textarea，选剩下的最高的 =====
                 if not lyrics_input:
-                    print("   🔍 尝试排除法定位歌词框...", flush=True)
+                    out.print("   🔍 尝试排除法定位歌词框...")
                     visible_tas = [t for t in all_ta_info if t['visible'] and t['height'] > 50]
                     non_style = [t for t in visible_tas if t['sectionTitle'] != 'Styles' and t['sectionTitle'] != 'Style']
                     if non_style:
                         best = max(non_style, key=lambda t: t['height'])
                         lyrics_input = textareas.nth(best['index'])
                         lyrics_ta_index = best['index']
-                        print(f"   🔍 排除法选择 textarea[{best['index']}] (section='{best['sectionTitle']}', h={best['height']})", flush=True)
+                        out.print(f"   🔍 排除法选择 textarea[{best['index']}] (section='{best['sectionTitle']}', h={best['height']})")
                     elif visible_tas:
                         best = visible_tas[0]
                         lyrics_input = textareas.nth(best['index'])
                         lyrics_ta_index = best['index']
-                        print(f"   ⚠️ 排除法无结果，使用第一个可见 textarea[{best['index']}]", flush=True)
+                        out.print(f"   ⚠️ 排除法无结果，使用第一个可见 textarea[{best['index']}]")
 
                 if not lyrics_input:
                     await page.screenshot(path="/tmp/suno_debug_no_lyrics_textarea.png")
-                    print("   ❌ 无法找到歌词文本框！截图已保存到 /tmp/suno_debug_no_lyrics_textarea.png", flush=True)
+                    out.print("   ❌ 无法找到歌词文本框！截图已保存到 /tmp/suno_debug_no_lyrics_textarea.png")
                     await context.close()
                     return None
 
@@ -465,10 +469,10 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                 # 验证是否填写成功
                 filled_value = await lyrics_input.input_value()
                 if filled_value and len(filled_value) > 5:
-                    print(f"   ✅ fill() 成功，已填写 {len(filled_value)} 字", flush=True)
+                    out.print(f"   ✅ fill() 成功，已填写 {len(filled_value)} 字")
                 else:
                     # 方法 2: 使用 React 兼容的 nativeInputValueSetter
-                    print(f"   ⚠️ fill() 结果不完整 (got {len(filled_value) if filled_value else 0} chars)，尝试 JS 写入...", flush=True)
+                    out.print(f"   ⚠️ fill() 结果不完整 (got {len(filled_value) if filled_value else 0} chars)，尝试 JS 写入...")
                     await page.evaluate("""({text, idx}) => {
                         const tas = document.querySelectorAll('textarea');
                         const target = idx >= 0 && idx < tas.length ? tas[idx] : null;
@@ -495,7 +499,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     # 方法 3: 如果 JS 写入后仍然为空，使用 type() 模拟逐字输入
                     filled_value2 = await lyrics_input.input_value()
                     if not filled_value2 or len(filled_value2) < 5:
-                        print("   ⚠️ JS 写入也未生效，使用 keyboard.type() 逐字输入...", flush=True)
+                        out.print("   ⚠️ JS 写入也未生效，使用 keyboard.type() 逐字输入...")
                         await lyrics_input.click()
                         await page.wait_for_timeout(300)
                         # 全选并删除
@@ -508,13 +512,13 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
 
                 # 最终验证
                 final_value = await lyrics_input.input_value()
-                print(f"   📝 歌词框最终内容: '{final_value[:60]}{'...' if len(final_value)>60 else ''}' ({len(final_value)} 字)", flush=True)
+                out.print(f"   📝 歌词框最终内容: '{final_value[:60]}{'...' if len(final_value)>60 else ''}' ({len(final_value)} 字)")
 
                 # 截图验证歌词填写结果
                 await page.screenshot(path="/tmp/suno_debug_after_lyrics.png")
-                print(f"   📸 已保存歌词填写后截图: /tmp/suno_debug_after_lyrics.png", flush=True)
+                out.print(f"   📸 已保存歌词填写后截图: /tmp/suno_debug_after_lyrics.png")
             except Exception as e:
-                print(f"   ❌ 填写歌词失败: {e}", flush=True)
+                out.print(f"   ❌ 填写歌词失败: {e}")
                 import traceback
                 traceback.print_exc()
                 await page.screenshot(path="/tmp/suno_debug_lyrics_error.png")
@@ -522,7 +526,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                 return None
 
             # ========== 步骤 4: 填写风格标签 ==========
-            print("📌 步骤 4: 填写风格标签...", flush=True)
+            out.print("📌 步骤 4: 填写风格标签...")
             try:
                 style_input = None
                 style_ta_index = -1
@@ -532,7 +536,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     if info['visible'] and info['sectionTitle'] in ('Styles', 'Style'):
                         style_input = textareas.nth(info['index'])
                         style_ta_index = info['index']
-                        print(f"   🔍 通过 section 标题 '{info['sectionTitle']}' 找到风格 textarea[{info['index']}]", flush=True)
+                        out.print(f"   🔍 通过 section 标题 '{info['sectionTitle']}' 找到风格 textarea[{info['index']}]")
                         break
 
                 # ===== 策略 2: 通过 placeholder 关键词 =====
@@ -547,7 +551,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                             el = page.locator(f'textarea[placeholder*="{kw}"]').first
                             if await el.is_visible(timeout=1500):
                                 style_input = el
-                                print(f"   🔍 通过关键词 '{kw}' 找到风格输入框", flush=True)
+                                out.print(f"   🔍 通过关键词 '{kw}' 找到风格输入框")
                                 break
                         except Exception:
                             continue
@@ -558,7 +562,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                         if info['visible'] and info['height'] > 20 and info['index'] != lyrics_ta_index:
                             style_input = textareas.nth(info['index'])
                             style_ta_index = info['index']
-                            print(f"   🔍 排除歌词框后选择 textarea[{info['index']}] 作为风格输入框", flush=True)
+                            out.print(f"   🔍 排除歌词框后选择 textarea[{info['index']}] 作为风格输入框")
                             break
 
                 if style_input:
@@ -571,18 +575,18 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                     # 验证
                     style_val = await style_input.input_value()
                     if style_val:
-                        print(f"   ✅ 已填写风格: {style}", flush=True)
+                        out.print(f"   ✅ 已填写风格: {style}")
                     else:
-                        print(f"   ⚠️ fill() 可能未生效，尝试 type()...", flush=True)
+                        out.print(f"   ⚠️ fill() 可能未生效，尝试 type()...")
                         await style_input.click()
                         await style_input.type(style, delay=10)
                 else:
-                    print("   ⚠️ 未找到风格输入框", flush=True)
+                    out.print("   ⚠️ 未找到风格输入框")
             except Exception as e:
-                print(f"   ⚠️ 填写风格失败: {e}", flush=True)
+                out.print(f"   ⚠️ 填写风格失败: {e}")
 
             # ========== 步骤 5: 填写标题 ==========
-            print("📌 步骤 5: 填写标题...", flush=True)
+            out.print("📌 步骤 5: 填写标题...")
             try:
                 # 标题输入框可能被折叠/隐藏，先尝试展开
                 try:
@@ -613,7 +617,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                             await page.wait_for_timeout(200)
                             await el.fill(title)
                             title_filled = True
-                            print(f"   ✅ 已填写标题: {title}", flush=True)
+                            out.print(f"   ✅ 已填写标题: {title}")
                             break
                     except Exception:
                         continue
@@ -636,26 +640,26 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                         }
                         return false;
                     }""", title)
-                    print(f"   ✅ 已通过 JS 填写标题: {title}", flush=True)
+                    out.print(f"   ✅ 已通过 JS 填写标题: {title}")
             except Exception as e:
-                print(f"   ⚠️ 填写标题失败（非关键）: {e}", flush=True)
+                out.print(f"   ⚠️ 填写标题失败（非关键）: {e}")
 
             await page.wait_for_timeout(1000)
 
             # ========== 创建前总览截图 ==========
             await page.screenshot(path="/tmp/suno_step_before_create.png")
-            print("   📸 已保存创建前总览截图: /tmp/suno_step_before_create.png", flush=True)
+            out.print("   📸 已保存创建前总览截图: /tmp/suno_step_before_create.png")
 
             # ========== 步骤 6: 初始化 hCaptcha 解决器 ==========
-            print("📌 步骤 6: 初始化 hCaptcha 解决器...", flush=True)
+            out.print("📌 步骤 6: 初始化 hCaptcha 解决器...")
             agent = AgentV(page=page, agent_config=agent_config)
-            print("   ✅ hcaptcha-challenger 已就绪", flush=True)
+            out.print("   ✅ hcaptcha-challenger 已就绪")
 
             # ========== 步骤 7: 点击 Create 按钮 ==========
-            print("📌 步骤 7: 点击 Create...", flush=True)
+            out.print("📌 步骤 7: 点击 Create...")
             all_create_btns = page.locator("button").filter(has_text="Create")
             count = await all_create_btns.count()
-            print(f"   找到 {count} 个 Create 按钮", flush=True)
+            out.print(f"   找到 {count} 个 Create 按钮")
 
             target_btn = None
             for idx in range(count):
@@ -663,27 +667,27 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                 text = (await btn.text_content()).strip()
                 box = await btn.bounding_box()
                 if box:
-                    print(f"   [{idx}] '{text[:30]}' at x={box['x']:.0f}, y={box['y']:.0f}, w={box['width']:.0f}", flush=True)
+                    out.print(f"   [{idx}] '{text[:30]}' at x={box['x']:.0f}, y={box['y']:.0f}, w={box['width']:.0f}")
                     if box["width"] > 50 and box["y"] > 200:
                         target_btn = btn
 
             if target_btn:
                 await target_btn.click()
-                print("   ✅ 已点击 Create", flush=True)
+                out.print("   ✅ 已点击 Create")
             elif count > 0:
                 await all_create_btns.last.click()
-                print("   ✅ 已点击最后一个 Create", flush=True)
+                out.print("   ✅ 已点击最后一个 Create")
             else:
-                print("   ❌ 没找到 Create 按钮", flush=True)
+                out.print("   ❌ 没找到 Create 按钮")
                 await context.close()
                 return None
 
             # ========== 步骤 8: 自动解决 hCaptcha ==========
-            print("\n🔒 步骤 8: 等待并解决 hCaptcha...", flush=True)
-            print("   （hcaptcha-challenger 将使用 Gemini API 识别图片）", flush=True)
+            out.print("\n🔒 步骤 8: 等待并解决 hCaptcha...")
+            out.print("   （hcaptcha-challenger 将使用 Gemini API 识别图片）")
 
             # 步骤 8a: 等待 hCaptcha checkbox iframe 出现
-            print("   🔍 等待 hCaptcha checkbox 出现...", flush=True)
+            out.print("   🔍 等待 hCaptcha checkbox 出现...")
             checkbox_clicked = False
             for wait_i in range(15):  # 最多等 30 秒
                 await page.wait_for_timeout(2000)
@@ -698,9 +702,9 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                 }""")
                 captcha_frames = [f for f in frames_info if '/captcha/v1/' in f.get('src', '') and f.get('visible')]
                 if captcha_frames:
-                    print(f"   ✅ [{(wait_i+1)*2}s] 发现 {len(captcha_frames)} 个 hCaptcha frame", flush=True)
+                    out.print(f"   ✅ [{(wait_i+1)*2}s] 发现 {len(captcha_frames)} 个 hCaptcha frame")
                     for cf in captcha_frames:
-                        print(f"      {cf['src'][:80]} ({cf['width']}x{cf['height']})", flush=True)
+                        out.print(f"      {cf['src'][:80]} ({cf['width']}x{cf['height']})")
 
                     # 找到 checkbox iframe 并点击
                     for frame in page.frames:
@@ -710,21 +714,21 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                                 if await checkbox.is_visible(timeout=3000):
                                     await checkbox.click()
                                     checkbox_clicked = True
-                                    print("   ✅ 已点击 hCaptcha checkbox", flush=True)
+                                    out.print("   ✅ 已点击 hCaptcha checkbox")
                                     await page.wait_for_timeout(3000)
                                     break
                             except Exception as e:
-                                print(f"   ⚠️ 点击 checkbox 失败: {e}", flush=True)
+                                out.print(f"   ⚠️ 点击 checkbox 失败: {e}")
                     break
                 else:
                     # 可能 hCaptcha 不需要（某些情况下 Suno 不弹验证码）
                     if new_clip_ids:
-                        print(f"   ✅ 无需验证码，generate API 已返回", flush=True)
+                        out.print(f"   ✅ 无需验证码，generate API 已返回")
                         break
-                    print(f"   ⏳ [{(wait_i+1)*2}s] 等待 hCaptcha...", flush=True)
+                    out.print(f"   ⏳ [{(wait_i+1)*2}s] 等待 hCaptcha...")
 
             if not checkbox_clicked and not new_clip_ids:
-                print("   ⚠️ 未检测到 hCaptcha checkbox，尝试继续...", flush=True)
+                out.print("   ⚠️ 未检测到 hCaptcha checkbox，尝试继续...")
                 # 截图诊断
                 await page.screenshot(path="/tmp/suno_no_captcha.png")
 
@@ -732,42 +736,42 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
             if checkbox_clicked:
                 try:
                     signal = await agent.wait_for_challenge()
-                    print(f"   🔒 hCaptcha 结果: {signal}", flush=True)
+                    out.print(f"   🔒 hCaptcha 结果: {signal}")
                     if "SUCCESS" in str(signal):
-                        print("   ✅ hCaptcha 已解决！", flush=True)
+                        out.print("   ✅ hCaptcha 已解决！")
                     else:
-                        print(f"   ⚠️ hCaptcha 结果: {signal}（可能需要重试）", flush=True)
+                        out.print(f"   ⚠️ hCaptcha 结果: {signal}（可能需要重试）")
                 except Exception as e:
-                    print(f"   ⚠️ hCaptcha 处理异常: {e}", flush=True)
-                    print("   ℹ️ 继续等待，可能验证码已自动通过...", flush=True)
+                    out.print(f"   ⚠️ hCaptcha 处理异常: {e}")
+                    out.print("   ℹ️ 继续等待，可能验证码已自动通过...")
             elif not new_clip_ids:
                 # 没有 checkbox 也没有 clip，尝试直接调用 wait_for_challenge
                 try:
                     signal = await agent.wait_for_challenge()
-                    print(f"   🔒 hCaptcha 结果: {signal}", flush=True)
+                    out.print(f"   🔒 hCaptcha 结果: {signal}")
                 except Exception as e:
-                    print(f"   ⚠️ {e}", flush=True)
+                    out.print(f"   ⚠️ {e}")
 
             # ========== 步骤 9: 等待歌曲生成 ==========
-            print("\n⏳ 步骤 9: 等待歌曲生成任务提交...", flush=True)
+            out.print("\n⏳ 步骤 9: 等待歌曲生成任务提交...")
 
             # 如果 hCaptcha 通过后 generate API 还没被调用，等一会
             for i in range(12):
                 await page.wait_for_timeout(5000)
                 elapsed = (i + 1) * 5
                 if new_clip_ids:
-                    print(f"   ✅ [{elapsed}s] 捕获到 {len(new_clip_ids)} 个新 clip!", flush=True)
+                    out.print(f"   ✅ [{elapsed}s] 捕获到 {len(new_clip_ids)} 个新 clip!")
                     break
-                print(f"   ⏳ [{elapsed}s] 等待 generate API 响应...", flush=True)
+                out.print(f"   ⏳ [{elapsed}s] 等待 generate API 响应...")
 
             if not new_clip_ids:
-                print("   ❌ 未捕获到新的 clip（generate API 可能未被调用）", flush=True)
+                out.print("   ❌ 未捕获到新的 clip（generate API 可能未被调用）")
                 await page.screenshot(path="/tmp/suno_no_new_clips.png")
                 await context.close()
                 return None
 
             # ========== 步骤 10: 通过 API 轮询歌曲状态 ==========
-            print(f"\n📡 步骤 10: 轮询 clip 状态: {new_clip_ids}", flush=True)
+            out.print(f"\n📡 步骤 10: 轮询 clip 状态: {new_clip_ids}")
 
             # 获取 token
             token = await page.evaluate("""async () => {
@@ -778,7 +782,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
             }""")
 
             if not token:
-                print("   ⚠️ 无法获取 token", flush=True)
+                out.print("   ⚠️ 无法获取 token")
                 await context.close()
                 return None
 
@@ -822,18 +826,18 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                             audio_url = item.get("audio_url", "")
 
                             if status == "complete" and audio_url and cid not in completed:
-                                print(f"   ✅ [{elapsed}s] {cid}: 完成!", flush=True)
+                                out.print(f"   ✅ [{elapsed}s] {cid}: 完成!")
                                 completed[cid] = item
                             elif status == "error":
-                                print(f"   ❌ [{elapsed}s] {cid}: 生成失败", flush=True)
+                                out.print(f"   ❌ [{elapsed}s] {cid}: 生成失败")
                                 err = item.get("metadata", {}).get("error_message", "")
                                 if err:
-                                    print(f"      错误: {err}", flush=True)
+                                    out.print(f"      错误: {err}")
                                 completed[cid] = item
                             elif cid not in completed:
-                                print(f"   ⏳ [{elapsed}s] {cid}: {status}", flush=True)
+                                out.print(f"   ⏳ [{elapsed}s] {cid}: {status}")
                 except Exception as e:
-                    print(f"   ⚠️ [{elapsed}s] 查询失败: {e}", flush=True)
+                    out.print(f"   ⚠️ [{elapsed}s] 查询失败: {e}")
 
                 if len(completed) >= len(new_clip_ids):
                     break
@@ -841,7 +845,7 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
             # ========== 步骤 11: 下载 ==========
             downloaded = []
             if completed:
-                print(f"\n📥 步骤 11: 下载歌曲...", flush=True)
+                out.print(f"\n📥 步骤 11: 下载歌曲...")
                 for cid, clip in completed.items():
                     audio_url = clip.get("audio_url", "")
                     if audio_url:
@@ -850,18 +854,18 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
                             filepath = download_mp3(audio_url, clip_title, cid, output_dir)
                             downloaded.append(filepath)
                         except Exception as e:
-                            print(f"   ❌ 下载失败: {e}", flush=True)
+                            out.print(f"   ❌ 下载失败: {e}")
 
             await context.close()
 
             if downloaded:
-                print(f"\n{'='*60}", flush=True)
-                print(f"🎉 完成！已下载 {len(downloaded)} 首歌曲：", flush=True)
+                out.print(f"\n{'='*60}")
+                out.print(f"🎉 完成！已下载 {len(downloaded)} 首歌曲：")
                 for f in downloaded:
-                    print(f"   📁 {f}", flush=True)
-                print(f"{'='*60}", flush=True)
+                    out.print(f"   📁 {f}")
+                out.print(f"{'='*60}")
             else:
-                print("\n❌ 没有歌曲被下载", flush=True)
+                out.print("\n❌ 没有歌曲被下载")
 
             return downloaded
 
@@ -869,10 +873,11 @@ async def create_song(lyrics: str, style: str, title: str, output_dir: str, gemi
         # ====== 清理虚拟显示 ======
         if virtual_display:
             virtual_display.stop()
-            print("🖥️ Xvfb 虚拟显示已关闭", flush=True)
+            out.print("🖥️ Xvfb 虚拟显示已关闭")
 
 
 def main():
+    global out
     parser = argparse.ArgumentParser(description="Suno 歌曲创建工具 - Headless Linux 版（含 hCaptcha 自动解决）")
     parser.add_argument("--lyrics", type=str, help="歌词内容")
     parser.add_argument("--lyrics-file", type=str, help="歌词文件路径")
@@ -882,7 +887,12 @@ def main():
     parser.add_argument("--output-dir", type=str, default=DOWNLOAD_DIR, help="下载目录")
     parser.add_argument("--gemini-key", type=str, default=os.environ.get("GEMINI_API_KEY", ""),
                         help="Gemini API Key（或设置 GEMINI_API_KEY 环境变量）")
+    parser.add_argument("--verbose", "-v", action="store_true", default=False,
+                        help="详细输出模式（实时打印所有中间步骤，默认只输出最终摘要）")
     args = parser.parse_args()
+
+    # 初始化输出管理器
+    out = OutputManager(log_prefix="suno_create", verbose=args.verbose)
 
     # 读取歌词
     if args.lyrics_file:
@@ -914,16 +924,39 @@ def main():
 
     # 显示环境信息
     is_headless = _is_headless_linux()
-    print("=" * 60, flush=True)
-    print("🎵 Suno 歌曲创建工具 (Headless Linux 版)", flush=True)
-    print(f"   标题: {args.title}", flush=True)
-    print(f"   风格: {args.style}", flush=True)
-    print(f"   歌词: {lyrics[:60]}{'...' if len(lyrics)>60 else ''}", flush=True)
-    print(f"   Gemini Key: {'已设置' if gemini_key else '未设置'}", flush=True)
-    print(f"   环境: {'Linux 无 GUI (将使用 Xvfb)' if is_headless else platform.system() + ' (有 GUI)'}", flush=True)
-    print("=" * 60, flush=True)
+    out.print("=" * 60)
+    out.print("🎵 Suno 歌曲创建工具 (Headless Linux 版)")
+    out.print(f"   标题: {args.title}")
+    out.print(f"   风格: {args.style}")
+    out.print(f"   歌词: {lyrics[:60]}{'...' if len(lyrics)>60 else ''}")
+    out.print(f"   Gemini Key: {'已设置' if gemini_key else '未设置'}")
+    out.print(f"   环境: {'Linux 无 GUI (将使用 Xvfb)' if is_headless else platform.system() + ' (有 GUI)'}")
+    out.print("=" * 60)
 
-    result = asyncio.run(create_song(lyrics, args.style, args.title, args.output_dir, gemini_key))
+    result = asyncio.run(create_song(lyrics, args.style, args.title, args.output_dir, gemini_key, out=out))
+
+    # 输出最终摘要（这是唯一一次写入 stdout 的内容）
+    if result:
+        out.summary(
+            success=True,
+            title="🎵 歌曲创建完成",
+            details={
+                "标题": args.title,
+                "风格": args.style,
+                "状态": f"已下载 {len(result)} 首歌曲",
+                "文件": result,
+            },
+        )
+    else:
+        out.summary(
+            success=False,
+            title="🎵 歌曲创建失败",
+            details={
+                "标题": args.title,
+                "提示": "请查看日志文件获取详细错误信息",
+            },
+        )
+    out.close()
     sys.exit(0 if result else 1)
 
 

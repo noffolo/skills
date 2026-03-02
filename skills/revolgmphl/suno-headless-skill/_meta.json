@@ -3,9 +3,15 @@
   "slug": "suno-headless-skill",
   "displayName": "revol-suno-headless-skill",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1771479028390,
-    "commit": "https://github.com/openclaw/skills/commit/365ba65a63814ca389ed2ea9d1722bf69d5a4368"
+    "version": "1.0.6",
+    "publishedAt": 1772346080457,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1771479028390,
+      "commit": "https://github.com/openclaw/skills/commit/365ba65a63814ca389ed2ea9d1722bf69d5a4368"
+    }
+  ]
 }

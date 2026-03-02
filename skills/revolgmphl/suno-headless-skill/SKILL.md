@@ -83,11 +83,17 @@ playwright install
 >
 > **步骤 3**: 上传完成后告诉我，我来导入。
 
-用户上传文件后，执行导入（默认读取 `/root/suno_cookie/suno_cookies.json`）：
+用户上传文件后，执行导入。脚本会自动检测 `/root/suno_cookie/suno_cookies.json` 是否存在，存在则自动导入，无需额外指定参数：
 
 ```bash
 cd {baseDir}/suno-headless
-python3 suno_login.py --import-cookies
+python3 suno_login.py
+```
+
+也可以显式指定 Cookie 文件路径：
+
+```bash
+python3 suno_login.py --import-cookies /path/to/cookies.json
 ```
 
 ### 2.2 方式 B: 邮箱密码登录
@@ -212,6 +218,9 @@ python3 suno_create_song.py \
 | `--title` | 歌曲标题 | ❌ | `My Song` |
 | `--output-dir` | MP3 下载目录 | ❌ | `{baseDir}/output_mp3` |
 | `--gemini-key` | Gemini API Key（也可通过环境变量或 ~/.suno/.env） | ❌ | 自动读取 |
+| `--verbose` / `-v` | 详细输出模式（实时打印所有中间步骤） | ❌ | 关闭（默认只输出最终摘要） |
+
+> **📋 输出行为说明**：默认情况下，所有脚本（`suno_create_song.py`、`suno_login.py`、`export_cookies.py`）只在完成时输出一条简洁的摘要，中间步骤的详细日志写入 `{baseDir}/suno-headless/logs/` 目录。如需实时查看所有中间步骤，请添加 `--verbose` 或 `-v` 参数。
 
 ### 3.6 音乐风格标签参考
 
@@ -243,9 +252,9 @@ bash {baseDir}/suno-headless/check_env.sh
 # 2. 如果未登录，使用 Cookie 导入方式登录（推荐）
 #    步骤 1: 在本地电脑运行 export_cookies.py 导出 Cookie
 #    步骤 2: scp <Cookie文件> user@server:/root/suno_cookie/suno_cookies.json
-#    步骤 3: 服务器上导入（默认读取 /root/suno_cookie/suno_cookies.json）
+#    步骤 3: 服务器上运行登录脚本（自动检测默认路径并导入）
 cd {baseDir}/suno-headless
-python3 suno_login.py --import-cookies
+python3 suno_login.py
 
 # 或者使用邮箱密码方式（可能触发 Google 安全验证）
 # python3 suno_login.py --email "user@gmail.com" --password "password123"
@@ -326,6 +335,7 @@ suno-headless/
 ├── suno_login.py          # 登录工具（Google OAuth / Cookie 导入 + Xvfb）
 ├── suno_create_song.py    # 歌曲创建+下载工具（Xvfb 支持）
 ├── export_cookies.py      # Cookie 导出工具（在本地电脑上运行）
+├── output_manager.py      # 输出管理器（控制日志和摘要）
 ├── patch_hcaptcha.py      # hCaptcha 域名兼容补丁
 ├── check_env.sh           # 环境检查脚本（含 Xvfb/Chrome 检查）
 ├── requirements.txt       # Python 依赖（含 PyVirtualDisplay）

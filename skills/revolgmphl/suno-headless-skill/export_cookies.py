@@ -33,12 +33,16 @@ import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
+from output_manager import OutputManager
+
+# 全局输出管理器（模块加载时用默认 verbose 模式，main() 中会重新设置）
+out = OutputManager(log_prefix="suno_export", verbose=True)
 
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
-    print("❌ 缺少 playwright 库，请先安装：", flush=True)
-    print("   pip install playwright && playwright install", flush=True)
+    out.print("❌ 缺少 playwright 库，请先安装：")
+    out.print("   pip install playwright && playwright install")
     sys.exit(1)
 
 
@@ -46,28 +50,28 @@ DEFAULT_OUTPUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", 
 DEFAULT_TIMEOUT = 180  # 3 分钟
 
 
-def export_cookies(output_file: str, timeout: int):
+def export_cookies(output_file: str, timeout: int, out=out):
     """
     打开浏览器让用户手动登录 Suno，登录成功后导出 Cookie
     """
-    print("=" * 60, flush=True)
-    print("🍪 Suno Cookie 导出工具", flush=True)
-    print("=" * 60, flush=True)
-    print("", flush=True)
-    print("📋 操作步骤：", flush=True)
-    print("   1. 马上会弹出一个 Chrome 浏览器窗口", flush=True)
-    print("   2. 在浏览器中登录你的 Suno 账号（任何方式都行）", flush=True)
-    print("   3. 登录成功后脚本会自动检测并导出 Cookie", flush=True)
-    print(f"   4. Cookie 将保存到: {output_file}", flush=True)
-    print(f"   5. 超时时间: {timeout} 秒", flush=True)
-    print("", flush=True)
+    out.print("=" * 60)
+    out.print("🍪 Suno Cookie 导出工具")
+    out.print("=" * 60)
+    out.print("")
+    out.print("📋 操作步骤：")
+    out.print("   1. 马上会弹出一个 Chrome 浏览器窗口")
+    out.print("   2. 在浏览器中登录你的 Suno 账号（任何方式都行）")
+    out.print("   3. 登录成功后脚本会自动检测并导出 Cookie")
+    out.print(f"   4. Cookie 将保存到: {output_file}")
+    out.print(f"   5. 超时时间: {timeout} 秒")
+    out.print("")
 
     # 使用临时的 user_data_dir，避免污染用户已有的浏览器 profile
     temp_dir = os.path.join(os.path.expanduser("~"), ".suno", "export_temp_profile")
     os.makedirs(temp_dir, exist_ok=True)
 
     with sync_playwright() as pw:
-        print("🌐 启动 Chrome 浏览器...", flush=True)
+        out.print("🌐 启动 Chrome 浏览器...")
 
         # 尝试使用系统 Chrome，失败则用 Playwright 自带的 Chromium
         context = None
@@ -91,12 +95,12 @@ def export_cookies(output_file: str, timeout: int):
                     **launch_opts,
                 )
                 browser_name = channel or "chromium"
-                print(f"   ✅ 已启动 ({browser_name})", flush=True)
+                out.print(f"   ✅ 已启动 ({browser_name})")
                 break
             except Exception as e:
                 if channel:
                     continue
-                print(f"   ❌ 无法启动浏览器: {e}", flush=True)
+                out.print(f"   ❌ 无法启动浏览器: {e}")
                 sys.exit(1)
 
         # 注入反检测
@@ -108,19 +112,19 @@ def export_cookies(output_file: str, timeout: int):
         page = context.pages[0] if context.pages else context.new_page()
 
         # 打开 Suno 登录页
-        print("\n📌 打开 Suno 登录页面...", flush=True)
+        out.print("\n📌 打开 Suno 登录页面...")
         page.goto("https://suno.com/sign-in", wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(2000)
 
         # 检查是否已经登录
         parsed = urlparse(page.url)
         if "sign-in" not in parsed.path and "suno.com" in parsed.netloc:
-            print("   ✅ 检测到已登录状态！", flush=True)
+            out.print("   ✅ 检测到已登录状态！")
         else:
-            print("\n⏳ 请在浏览器中手动登录 Suno.com...", flush=True)
-            print("   （支持 Google 登录、邮箱登录、任何方式）", flush=True)
-            print("   （登录成功后脚本会自动检测）", flush=True)
-            print("", flush=True)
+            out.print("\n⏳ 请在浏览器中手动登录 Suno.com...")
+            out.print("   （支持 Google 登录、邮箱登录、任何方式）")
+            out.print("   （登录成功后脚本会自动检测）")
+            out.print("")
 
             # 等待用户手动登录
             logged_in = False
@@ -132,7 +136,7 @@ def export_cookies(output_file: str, timeout: int):
 
                 # 每 10 秒打印一次状态
                 if elapsed - last_print >= 10:
-                    print(f"   ⏳ [{elapsed}s/{timeout}s] 等待登录... 当前页面: {page.url[:80]}", flush=True)
+                    out.print(f"   ⏳ [{elapsed}s/{timeout}s] 等待登录... 当前页面: {page.url[:80]}")
                     last_print = elapsed
 
                 try:
@@ -143,7 +147,7 @@ def export_cookies(output_file: str, timeout: int):
                     if "suno.com" in parsed.netloc and "sign-in" not in parsed.path:
                         # 额外等待一下确保 Cookie 完全写入
                         page.wait_for_timeout(3000)
-                        print(f"\n   🎉 检测到登录成功！当前页面: {current_url[:80]}", flush=True)
+                        out.print(f"\n   🎉 检测到登录成功！当前页面: {current_url[:80]}")
                         logged_in = True
                         break
                 except Exception:
@@ -152,12 +156,12 @@ def export_cookies(output_file: str, timeout: int):
                 page.wait_for_timeout(2000)
 
             if not logged_in:
-                print(f"\n   ❌ 等待超时（{timeout}秒）！请重试", flush=True)
+                out.print(f"\n   ❌ 等待超时（{timeout}秒）！请重试")
                 context.close()
                 sys.exit(1)
 
         # 等待页面完全加载，确保所有 Cookie 已设置
-        print("\n📌 等待页面完全加载...", flush=True)
+        out.print("\n📌 等待页面完全加载...")
         page.wait_for_timeout(5000)
 
         # 额外访问一下 create 页面确保获取到所有需要的 Cookie
@@ -168,11 +172,11 @@ def export_cookies(output_file: str, timeout: int):
             pass
 
         # 导出 Cookie
-        print("📌 导出 Cookie...", flush=True)
+        out.print("📌 导出 Cookie...")
         cookies = context.cookies()
 
         if not cookies:
-            print("   ❌ 未获取到任何 Cookie！", flush=True)
+            out.print("   ❌ 未获取到任何 Cookie！")
             context.close()
             sys.exit(1)
 
@@ -199,37 +203,37 @@ def export_cookies(output_file: str, timeout: int):
         with open(slim_output, "w", encoding="utf-8") as f:
             json.dump(suno_cookies, f, indent=2, ensure_ascii=False)
 
-        print(f"\n{'=' * 60}", flush=True)
-        print(f"🎉 Cookie 导出成功！", flush=True)
-        print(f"", flush=True)
-        print(f"   📁 完整版（推荐）: {full_output}", flush=True)
-        print(f"      共 {len(cookies)} 条 Cookie", flush=True)
-        print(f"      大小: {os.path.getsize(full_output) / 1024:.1f} KB", flush=True)
-        print(f"", flush=True)
-        print(f"   📁 精简版: {slim_output}", flush=True)
-        print(f"      共 {len(suno_cookies)} 条 Suno 相关 Cookie", flush=True)
-        print(f"", flush=True)
-        print(f"📋 下一步：把 Cookie 文件上传到云服务器，然后导入：", flush=True)
-        print(f"", flush=True)
-        print(f"   # 1. 上传到服务器", flush=True)
-        print(f"   scp {full_output} user@your-server:/root/suno_cookie/suno_cookies.json", flush=True)
-        print(f"", flush=True)
-        print(f"   # 2. 在服务器上导入（默认读取 /root/suno_cookie/suno_cookies.json）", flush=True)
-        print(f"   cd /path/to/suno-headless", flush=True)
-        print(f"   python3 suno_login.py --import-cookies", flush=True)
-        print(f"", flush=True)
-        print(f"   # 3. 验证登录状态", flush=True)
-        print(f"   python3 suno_login.py --check-only", flush=True)
-        print(f"{'=' * 60}", flush=True)
+        out.print(f"\n{'=' * 60}")
+        out.print(f"🎉 Cookie 导出成功！")
+        out.print(f"")
+        out.print(f"   📁 完整版（推荐）: {full_output}")
+        out.print(f"      共 {len(cookies)} 条 Cookie")
+        out.print(f"      大小: {os.path.getsize(full_output) / 1024:.1f} KB")
+        out.print(f"")
+        out.print(f"   📁 精简版: {slim_output}")
+        out.print(f"      共 {len(suno_cookies)} 条 Suno 相关 Cookie")
+        out.print(f"")
+        out.print(f"📋 下一步：把 Cookie 文件上传到云服务器，然后导入：")
+        out.print(f"")
+        out.print(f"   # 1. 上传到服务器")
+        out.print(f"   scp {full_output} user@your-server:/root/suno_cookie/suno_cookies.json")
+        out.print(f"")
+        out.print(f"   # 2. 在服务器上导入（自动检测默认路径 /root/suno_cookie/suno_cookies.json）")
+        out.print(f"   cd /path/to/suno-headless")
+        out.print(f"   python3 suno_login.py")
+        out.print(f"")
+        out.print(f"   # 3. 验证登录状态")
+        out.print(f"   python3 suno_login.py --check-only")
+        out.print(f"{'=' * 60}")
 
         # 打印 Cookie 概要
-        print(f"\n📊 Cookie 概要:", flush=True)
+        out.print(f"\n📊 Cookie 概要:")
         domains = {}
         for c in cookies:
             d = c.get("domain", "unknown")
             domains[d] = domains.get(d, 0) + 1
         for d, cnt in sorted(domains.items(), key=lambda x: -x[1]):
-            print(f"   {d}: {cnt} 条", flush=True)
+            out.print(f"   {d}: {cnt} 条")
 
         context.close()
 
@@ -240,10 +244,11 @@ def export_cookies(output_file: str, timeout: int):
     except Exception:
         pass
 
-    print(f"\n✅ 完成！浏览器已关闭。", flush=True)
+    out.print(f"\n✅ 完成！浏览器已关闭。")
 
 
 def main():
+    global out
     parser = argparse.ArgumentParser(
         description="Suno Cookie 导出工具 — 在本地电脑上运行，导出 Cookie 供云服务器使用",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -270,9 +275,15 @@ def main():
                         help=f"Cookie 输出文件路径（默认: {DEFAULT_OUTPUT}）")
     parser.add_argument("--timeout", "-t", type=int, default=DEFAULT_TIMEOUT,
                         help=f"等待登录的超时时间/秒（默认: {DEFAULT_TIMEOUT}）")
+    parser.add_argument("--verbose", "-v", action="store_true", default=False,
+                        help="详细输出模式（实时打印所有中间步骤，默认只输出最终摘要）")
 
     args = parser.parse_args()
-    export_cookies(args.output, args.timeout)
+
+    # 初始化输出管理器
+    out = OutputManager(log_prefix="suno_export", verbose=args.verbose)
+
+    export_cookies(args.output, args.timeout, out=out)
 
 
 if __name__ == "__main__":
