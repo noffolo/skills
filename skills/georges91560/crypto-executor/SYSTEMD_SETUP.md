@@ -31,6 +31,8 @@ Auto-start on boot · Auto-restart on crash · Centralized logs · Easy control
   pip install websocket-client --break-system-packages
   # Why: enables sub-100ms WebSocket streams
   # Without it: bot falls back to REST 1s (still works, but slower)
+  # On VPS/standard server: prefer virtualenv instead:
+  # python3 -m venv venv && source venv/bin/activate && pip install websocket-client
   ```
 
 ---
@@ -58,19 +60,9 @@ User=your_username
 Group=your_username
 WorkingDirectory=/workspace/skills/crypto-executor
 
-# Credentials — use EnvironmentFile (more secure, see Security section below)
-# OR set directly here for quick setup:
-Environment="BINANCE_API_KEY=your_binance_api_key_here"
-Environment="BINANCE_API_SECRET=your_binance_api_secret_here"
-Environment="TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here"
-Environment="TELEGRAM_CHAT_ID=your_telegram_chat_id_here"
-
-# Risk Management (Recommended — conservative defaults)
-Environment="MAX_POSITION_SIZE_PCT=12"
-Environment="DAILY_LOSS_LIMIT_PCT=2"
-Environment="WEEKLY_LOSS_LIMIT_PCT=5"
-Environment="DRAWDOWN_PAUSE_PCT=7"
-Environment="DRAWDOWN_KILL_PCT=10"
+# Credentials — loaded from secure file (see Security section below)
+# Create /etc/crypto-executor/credentials.env first (chmod 600, root-owned)
+EnvironmentFile=/etc/crypto-executor/credentials.env
 
 # Execution
 ExecStart=/usr/bin/python3 /workspace/skills/crypto-executor/executor.py
@@ -103,10 +95,8 @@ WantedBy=multi-user.target
 - `User=your_username` → Your Linux username (e.g., `ubuntu`)
 - `Group=your_username` → Usually same as User
 - `WorkingDirectory=` → Full path to bot folder
-- `BINANCE_API_KEY=...` → Your real Binance API key
-- `BINANCE_API_SECRET=...` → Your real Binance secret
-- `TELEGRAM_BOT_TOKEN=...` → Your Telegram bot token (optional)
-- `TELEGRAM_CHAT_ID=...` → Your Telegram chat ID (optional)
+
+**⚠️ Credentials:** Do NOT put API keys directly in this file. Use `EnvironmentFile=` (see Security section below) — credentials stay in a root-owned chmod 600 file and are never exposed in `systemctl status` or `ps aux`.
 
 **Save:** Ctrl+X, Y, Enter
 

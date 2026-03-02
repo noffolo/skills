@@ -11,19 +11,24 @@ metadata:
   openclaw:
     emoji: "⚡"
     requires:
-      bins: ["python3"]
+      bins:
+        - python3
       env:
-        required:
-          - BINANCE_API_KEY
-          - BINANCE_API_SECRET
-        optional:
-          - TELEGRAM_BOT_TOKEN
-          - TELEGRAM_CHAT_ID
+        - BINANCE_API_KEY
+        - BINANCE_API_SECRET
+      optional_env:
+        - TELEGRAM_BOT_TOKEN
+        - TELEGRAM_CHAT_ID
+    install: "pip install websocket-client --break-system-packages"
+    install_notes: "On shared hosting (Hostinger, cPanel): --break-system-packages is required. On standard servers/VPS: prefer virtualenv → python3 -m venv venv && source venv/bin/activate && pip install websocket-client"
+    primaryEnv: BINANCE_API_KEY
     external_dependencies:
       - name: crypto-sniper-oracle
         source: https://github.com/georges91560/crypto-sniper-oracle
-        purpose: Market data analysis via subprocess
-        security: Must be audited before use
+        path: /workspace/skills/crypto-sniper-oracle/crypto_oracle.py
+        optional: true
+        purpose: Order book imbalance and VWAP signals via subprocess
+        security: Audit code before installation — executes as subprocess
     network_behavior:
       makes_requests: true
       endpoints_allowed:
@@ -61,7 +66,7 @@ metadata:
 
 ## ⚠️ EXTERNAL DEPENDENCY
 
-**crypto-sniper-oracle** (required for market data analysis)
+**crypto-sniper-oracle** (optional — enriches signals with OBI/VWAP data)
 
 - **Source:** https://github.com/georges91560/crypto-sniper-oracle
 - **Purpose:** Provides order book imbalance, VWAP, and microstructure analysis
@@ -96,9 +101,12 @@ python3 /workspace/skills/crypto-executor/executor.py
 # ❌ Not installed → full install (run once):
 mkdir -p /workspace/skills/crypto-executor /workspace/reports/daily /workspace/config_history
 cd /workspace/skills
-git clone https://github.com/georges91560/Crypto_Executor.git crypto-executor-repo
-cp crypto-executor-repo/executor.py /workspace/skills/crypto-executor/executor.py
+git clone https://github.com/georges91560/crypto-executor.git crypto-executor-repo
+# SECURITY: pin a specific commit instead of HEAD — verify tag on GitHub first
+# git checkout <commit-hash-or-tag>
+cp crypto-executor-repo/executor.py /workspace/skills/crypto-executor/executor.py  # filename is lowercase
 pip install websocket-client --break-system-packages
+# On VPS/standard server: prefer → python3 -m venv venv && source venv/bin/activate && pip install websocket-client
 
 # Verify before launch
 python3 -c "
@@ -114,7 +122,7 @@ print('READY — run executor.py' if all(checks.values()) else 'FIX ABOVE FIRST'
 "
 ```
 
-**Full step-by-step guide with explanations:** `{baseDir}/CONFIGURATION.md`
+**Full step-by-step guide with explanations:** `CONFIGURATION.md`
 
 ---
 
@@ -124,7 +132,8 @@ print('READY — run executor.py' if all(checks.values()) else 'FIX ABOVE FIRST'
 
 ```python
 # With websocket-client installed (recommended):
-pip install websocket-client
+pip install websocket-client --break-system-packages
+# On VPS/standard server: prefer → python3 -m venv venv && source venv/bin/activate && pip install websocket-client
 # → Sub-100ms updates via wss://stream.binance.com:9443/ws/
 # → Auto-reconnect on disconnect
 # → Ping keepalive every 20s

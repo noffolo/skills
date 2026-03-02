@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Crypto Executor v2.0 - COMPLETE & OPTIMIZED
+Crypto Executor v2.3 - PRODUCTION READY
 Professional Trading Engine with Advanced Risk Management
 
 Features:
@@ -16,7 +16,7 @@ Features:
 - Performance analytics
 
 Author: Georges Andronescu (Wesley Armando)
-Version: 2.0.0 - COMPLETE
+Version: 2.3.0 - PRODUCTION READY
 """
 
 import sys
@@ -1442,11 +1442,11 @@ Strategy Performance (last 50 trades):
 
 
 # ==========================================
-# COMPLETE TRADING ENGINE v2.2 (BUGFIXED)
+# COMPLETE TRADING ENGINE v2.3 (PRODUCTION READY)
 # ==========================================
 
 class CompleteTradingEngine:
-    """Complete trading engine with ADAPTIVE features v2.2 — ALL BUGS FIXED"""
+    """Complete trading engine with ADAPTIVE features v2.3 — PRODUCTION READY"""
     
     def __init__(self):
         self.binance = BinanceClient(BINANCE_API_KEY, BINANCE_API_SECRET)
@@ -1498,7 +1498,7 @@ class CompleteTradingEngine:
         
         self.active = True
         
-        startup_msg = f"""🚀 *CRYPTO EXECUTOR v2.2 BUGFIXED*
+        startup_msg = f"""🚀 *CRYPTO EXECUTOR v2.3 PRODUCTION READY*
 
 {project['title']}
 
@@ -1537,7 +1537,7 @@ Current Strategy Mix:
         """Main trading loop with adaptive features."""
         print("="*60)
         print("CRYPTO EXECUTOR v2.3 - PRODUCTION READY")
-        print("Fixes: All v2.2 + LOT_SIZE + OCO Monitor + Kelly + Seuils + Sharpe")
+        print("Fixes: Signature|CB L2|StatArb|Shutdown|LOT_SIZE|OCO Monitor|Kelly|Seuils|Sharpe")
         print("="*60)
         
         while self.active:

@@ -1,9 +1,9 @@
-# Crypto Executor v2.0 - COMPLETE ⚡
+# Crypto Executor v2.3 - PRODUCTION READY ⚡
 
 **Professional autonomous trading bot with advanced risk management**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/georges91560/crypto-executor)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/georges91560/crypto-executor)
 [![Python](https://img.shields.io/badge/python-3.7+-blue.svg)](https://python.org)
 
 Kelly Criterion · Trailing Stops · Circuit Breakers · Daily Reports · WebSocket Real-Time
@@ -23,7 +23,7 @@ This is the **COMPLETE version** with ALL advanced features:
 ✅ **Parallel scanning** (10x faster)  
 ✅ **Performance analytics** (win rate, Sharpe ratio)  
 
-**1011 lines of production-ready code.**
+**1722 lines of production-ready code.**
 
 ---
 
@@ -54,14 +54,16 @@ This is the **COMPLETE version** with ALL advanced features:
 ### **Installation**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/crypto-executor.git
+git clone https://github.com/georges91560/crypto-executor.git
 cd crypto-executor
+# SECURITY: pin a specific commit/tag instead of running HEAD
+# git checkout <commit-hash-or-tag>  # verify on GitHub before running
 ```
 
 
 **Dependencies:**
 - Python standard library (no pip packages)
-- **crypto-sniper-oracle** (external repository for market data analysis)
+- **crypto-sniper-oracle** (optional — enriches signals with OBI/VWAP data)
 
 **⚠️ Security Note:**  
 crypto-sniper-oracle is executed via subprocess. Review its code before installation: https://github.com/georges91560/crypto-sniper-oracle
@@ -88,8 +90,8 @@ export DRAWDOWN_KILL_PCT="10"
 **Requirements:**
 - ✅ Binance API credentials (Spot Trading enabled, Withdrawals DISABLED)
 - ✅ USDC balance on Binance
-- ✅ crypto-sniper-oracle dependency (install from GitHub)
-- ⚠️ Telegram bot (OPTIONAL - for alerts only)
+- ⚠️ crypto-sniper-oracle (OPTIONAL — enriches OBI/VWAP signals, install from GitHub)
+- ⚠️ Telegram bot (OPTIONAL - for trade alerts only, not required to run)
 
 
 ---
@@ -103,8 +105,8 @@ python3 executor.py
 **Output:**
 ```
 ============================================================
-CRYPTO EXECUTOR v2.0 - COMPLETE
-Full Features: Kelly + Trailing + Reports + Circuit Breakers
+CRYPTO EXECUTOR v2.3 - PRODUCTION READY
+Fixes: Signature|CB L2|StatArb|Shutdown|LOT_SIZE|OCO Monitor|Kelly|Seuils|Sharpe
 ============================================================
 [OK] Credentials validated
 [START] Complete Trading - All Features
@@ -273,7 +275,7 @@ Win Rate: 91.7%
 5. If price hits TP/SL, detect in next check (up to 5min lag)
 ```
 
-**OCO approach (v2.0):**
+**OCO approach (v2.3):**
 ```
 1. Buy BTCUSDT at $45,000
 2. Create OCO order:
@@ -286,7 +288,7 @@ Win Rate: 91.7%
 
 **Protection window:**
 - v1.0: Up to 5 minutes unprotected ❌
-- v2.0: <1 second protected ✅
+- v2.3: <1 second protected ✅
 
 ---
 
@@ -553,9 +555,3 @@ MIT License - See [LICENSE](LICENSE)
 
 - GitHub: [@georges91560](https://github.com/georges91560)
 - Repository: [crypto-executor](https://github.com/georges91560/crypto-executor)
-
----
-
-**Complete features. Maximum safety. Optimal profits. ⚡💰**
-
-**This is the PRODUCTION-READY version with everything you need.**
