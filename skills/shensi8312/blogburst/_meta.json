@@ -1,13 +1,18 @@
 {
   "owner": "shensi8312",
   "slug": "blogburst",
-  "displayName": "Blogburst",
+  "displayName": "BlogBurst - AI Social Media Agent",
   "latest": {
-    "version": "1.2.0",
-    "publishedAt": 1770698658522,
-    "commit": "https://github.com/openclaw/skills/commit/5ffb54e6d6a11b25823d741bcc8bdfdecea95e63"
+    "version": "2.0.0",
+    "publishedAt": 1772515979581,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.2.0",
+      "publishedAt": 1770698658522,
+      "commit": "https://github.com/openclaw/skills/commit/5ffb54e6d6a11b25823d741bcc8bdfdecea95e63"
+    },
     {
       "version": "1.0.5",
       "publishedAt": 1770188542338,

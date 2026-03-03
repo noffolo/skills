@@ -1,59 +1,58 @@
 ---
-name: BlogBurst
-description: AI content creation & distribution. Brainstorm titles, generate blog posts, and create optimized content for 9 platforms (Twitter, LinkedIn, Bluesky, Telegram, Discord, Reddit, TikTok, YouTube, Threads).
+name: BlogBurst - AI Social Media Agent
+description: Autonomous AI marketing agent. Chat naturally to generate content, manage auto-pilot, check analytics, and post to 9 platforms (Twitter/X, LinkedIn, Bluesky, Telegram, Discord, Reddit, TikTok, YouTube, Threads). One command to automate your entire social media.
 homepage: https://blogburst.ai
 metadata:
-  {"openclaw": {"emoji": "📝", "requires": {"env": ["BLOGBURST_API_KEY"]}, "primaryEnv": "BLOGBURST_API_KEY"}}
+  {"openclaw": {"emoji": "🚀", "requires": {"env": ["BLOGBURST_API_KEY"]}, "primaryEnv": "BLOGBURST_API_KEY"}}
 ---
 
-# BlogBurst - AI Content Creation & Distribution
+# BlogBurst - AI Social Media Marketing Agent
 
-BlogBurst helps you go from idea to published content across 9 social platforms. The typical workflow is:
+Your autonomous AI marketing agent. Talk naturally — it generates content, publishes to 9 platforms, runs auto-pilot daily posting, tracks analytics, and learns what works.
 
-1. **Brainstorm** a title with AI chat
-2. **Generate** a full blog post from the title
-3. **Create** platform-optimized posts for Twitter, LinkedIn, TikTok, etc.
-
-You can also repurpose existing articles by URL.
+**One message to do anything:**
+- "Post about my product launch on Twitter and LinkedIn"
+- "Turn on auto-pilot, 3 posts per day"
+- "How did my posts perform this week?"
+- "Repurpose this article: https://myblog.com/post"
 
 ## Setup
 
-1. Sign up at [blogburst.ai](https://blogburst.ai)
-2. Go to Dashboard > API Keys to generate a key
+1. Sign up free at [blogburst.ai](https://blogburst.ai)
+2. Dashboard > Settings > API Keys > Create key
 3. Set environment variable:
 ```bash
 export BLOGBURST_API_KEY="your-key"
 ```
 
-All API requests use the header: `X-API-Key: $BLOGBURST_API_KEY`
-
+All requests use: `X-API-Key: $BLOGBURST_API_KEY`
 Base URL: `https://api.blogburst.ai/api/v1`
 
 ---
 
-## API 1: Brainstorm Titles
+## API 1: Agent Chat (Recommended — does everything)
 
-Chat with AI to develop a compelling title for your content.
+Chat with your AI marketing agent. It can generate content, check analytics, manage auto-pilot, view trending topics, and more — all through natural conversation. The agent has tools and will execute actions automatically.
 
-**Endpoint**: `POST /chat/title`
+**Endpoint**: `POST /assistant/agent-chat-v2`
 
 **Request**:
 ```json
 {
   "messages": [
-    {"role": "user", "content": "I want to write about AI in healthcare"}
+    {"role": "user", "content": "Generate a Twitter post about my product"}
   ],
   "language": "en"
 }
 ```
 
-This is a multi-turn conversation. Send the full message history each time:
+Multi-turn conversation — send the full message history each time:
 ```json
 {
   "messages": [
-    {"role": "user", "content": "I want to write about AI in healthcare"},
-    {"role": "assistant", "content": "Great topic! What aspect interests you most?"},
-    {"role": "user", "content": "AI helping doctors diagnose diseases faster"}
+    {"role": "user", "content": "Generate a Twitter post about my product"},
+    {"role": "assistant", "content": "Here's your Twitter post..."},
+    {"role": "user", "content": "Now make one for LinkedIn too"}
   ],
   "language": "en"
 }
@@ -62,78 +61,58 @@ This is a multi-turn conversation. Send the full message history each time:
 **Response**:
 ```json
 {
-  "success": true,
-  "reply": "Here are some title ideas based on AI-assisted diagnosis...",
-  "suggested_titles": [
-    "How AI Detects What Doctors Miss in 5 Seconds",
-    "Medical AI: From Assistant to Lifesaver",
-    "When AI Becomes Your First Doctor"
-  ],
-  "usage": {"tokens_used": 350, "cost": 0.001, "model": "gemini-2.5-flash"}
+  "reply": "I've generated a Twitter post for you. Ready to copy and post!",
+  "data_referenced": ["marketing_strategy", "analytics_7d"],
+  "agent_name": "Nova",
+  "actions_taken": [
+    {
+      "tool": "generate_content",
+      "result": {
+        "success": true,
+        "data": {
+          "platform": "twitter",
+          "content": "Week 3 building BlogBurst. 15 followers, 40 posts published. Best post got 5 likes on Bluesky. Small numbers, real progress.\n\nThe AI agent now picks topics based on what actually performed well last week. No more guessing.",
+          "image_urls": ["https://..."],
+          "copy_only": true
+        }
+      }
+    }
+  ]
 }
 ```
 
-**When to use**: When the user wants help coming up with a topic or title, or says things like "help me brainstorm", "what should I write about", "suggest some titles about X".
+**What users can say** (the agent understands natural language):
+- "Generate a post for Twitter/Bluesky/LinkedIn/all platforms"
+- "What's trending in my space?"
+- "How are my posts doing this week?"
+- "Turn on auto-pilot" / "Pause auto-pilot"
+- "What did you post today?"
+- "What platforms do I have connected?"
+- "Show me my recent activity"
+
+**When to use**: This is the PRIMARY API. Use it for any user request about social media content, analytics, automation, or marketing. It handles everything through conversation.
 
 ---
 
-## API 2: Generate Blog Post
+## API 2: Generate Platform Content (Quick one-shot)
 
-Generate a full blog article from a topic or title.
-
-**Endpoint**: `POST /blog/generate`
-
-**Request**:
-```json
-{
-  "topic": "How AI Detects What Doctors Miss in 5 Seconds",
-  "tone": "professional",
-  "language": "en",
-  "length": "medium"
-}
-```
-
-**Parameters**:
-- `topic` (required): The title or topic (5-500 chars)
-- `tone`: professional | casual | witty | educational | inspirational (default: professional)
-- `language`: Language code, e.g. "en", "zh" (default: en)
-- `length`: short (500-800 words) | medium (1000-1500 words) | long (2000-3000 words) (default: medium)
-
-**Response**:
-```json
-{
-  "success": true,
-  "title": "How AI Detects What Doctors Miss in 5 Seconds",
-  "content": "Full markdown blog post content here...",
-  "summary": "A concise summary of the article...",
-  "keywords": ["AI", "healthcare", "diagnosis", "medical AI"],
-  "usage": {"tokens_used": 2500, "cost": 0.005, "model": "gemini-2.5-flash"}
-}
-```
-
-**When to use**: When the user wants to generate a blog post, article, or long-form content from a topic.
-
----
-
-## API 3: Generate Platform Content
-
-Generate optimized content for multiple social platforms from a topic. This is the main content distribution endpoint.
+Generate optimized content for multiple platforms at once. Use this for fast, direct generation without conversation.
 
 **Endpoint**: `POST /blog/platforms`
 
 **Request**:
 ```json
 {
-  "topic": "How AI Detects What Doctors Miss in 5 Seconds",
-  "platforms": ["twitter", "linkedin", "bluesky", "telegram", "discord"],
-  "tone": "professional",
+  "topic": "5 lessons from building my SaaS in public",
+  "platforms": ["twitter", "linkedin", "bluesky"],
+  "tone": "casual",
   "language": "en"
 }
 ```
 
 **Parameters**:
 - `topic` (required): The title or topic (5-500 chars)
-- `platforms` (required): Array of 1-9 platforms from: twitter, linkedin, reddit, bluesky, threads, telegram, discord, tiktok, youtube
+- `platforms` (required): Array from: twitter, linkedin, reddit, bluesky, threads, telegram, discord, tiktok, youtube
 - `tone`: professional | casual | witty | educational | inspirational (default: professional)
 - `language`: Language code (default: en)
 
@@ -141,59 +120,35 @@ Generate optimized content for multiple social platforms from a topic. This is t
 ```json
 {
   "success": true,
-  "topic": "How AI Detects What Doctors Miss in 5 Seconds",
+  "topic": "5 lessons from building my SaaS in public",
   "twitter": {
     "thread": [
-      "1/ AI can now detect diseases that doctors miss. Here's how it's saving lives...",
-      "2/ A study found AI caught 95% of early-stage cancers, vs 85% for radiologists.",
-      "3/ The key? AI analyzes millions of images. A doctor sees thousands in a lifetime."
+      "1/ 5 months building a SaaS in public. Here are the lessons nobody talks about...",
+      "2/ Lesson 1: Your first 10 users teach you more than 10,000 pageviews.",
+      "3/ Lesson 2: Ship weekly. Perfection is the enemy of traction."
     ]
   },
   "linkedin": {
-    "post": "I've been researching AI in healthcare for 2 years.\n\nThe results are staggering...",
-    "hashtags": ["#AIHealthcare", "#MedTech", "#DigitalHealth"]
+    "post": "I've been building my SaaS in public for 5 months...",
+    "hashtags": ["#BuildInPublic", "#SaaS", "#IndieHacker"]
   },
   "bluesky": {
-    "posts": ["AI is quietly revolutionizing medical diagnosis. Here's what most people don't know..."]
-  },
-  "telegram": {
-    "post": "**AI in Medical Diagnosis: The Silent Revolution**\n\nDoctors are getting a powerful new ally..."
-  },
-  "discord": {
-    "post": "Hey everyone! Wanted to share something fascinating about AI in healthcare..."
-  },
-  "reddit": {
-    "title": "How AI is detecting diseases doctors miss - a deep dive",
-    "body": "I've been following AI in healthcare closely and wanted to share...",
-    "suggestedSubreddits": ["r/artificial", "r/healthcare", "r/technology"]
-  },
-  "tiktok": {
-    "hook": "Did you know AI can detect cancer faster than a doctor?",
-    "script": "Here's something wild. AI systems can now...",
-    "caption": "AI is changing medicine forever",
-    "hashtags": ["#AI", "#Healthcare", "#MedTech", "#Science"]
-  },
-  "youtube": {
-    "title": "How AI Detects What Doctors Miss",
-    "description": "In this video, we explore how artificial intelligence...",
-    "script": "What if I told you that an AI can spot a disease...",
-    "tags": ["AI healthcare", "medical AI", "diagnosis"]
-  },
-  "usage": {"tokens_used": 3000, "cost": 0.006, "model": "gemini-2.5-flash"}
+    "posts": ["5 months of building in public. The biggest lesson: your first users don't care about features. They care that you listen."]
+  }
 }
 ```
 
-**When to use**: When the user wants to create social media posts, distribute content across platforms, or says things like "create posts for Twitter and LinkedIn about X", "generate social content", "help me post about X on all platforms".
+**When to use**: When user wants quick multi-platform content from a topic without ongoing conversation.
 
 ---
 
-## API 4: Repurpose Existing Content
+## API 3: Repurpose Existing Content
 
-Transform an existing blog post or article into platform-optimized posts.
+Transform a blog post or article (by URL or text) into platform-optimized posts.
 
 **Endpoint**: `POST /repurpose`
 
-**Request with URL**:
+**Request**:
 ```json
 {
   "content": "https://myblog.com/my-article",
@@ -203,135 +158,181 @@ Transform an existing blog post or article into platform-optimized posts.
 }
 ```
 
-**Request with text**:
-```json
-{
-  "content": "Your full article text here (minimum 50 characters)...",
-  "platforms": ["twitter", "linkedin", "bluesky"],
-  "tone": "casual",
-  "language": "en"
-}
-```
-
 **Parameters**:
-- `content` (required): A URL to an article, or the full text
-- `platforms` (required): Array from: twitter, linkedin, reddit, bluesky, threads
+- `content` (required): A URL to an article, or the full text (min 50 chars)
+- `platforms` (required): Array from: twitter, linkedin, reddit, bluesky, threads, telegram, discord, tiktok, youtube
 - `tone`: professional | casual | witty | educational | inspirational
 - `language`: Language code (default: en)
 
-**Response**: Same format as API 3 (platform-specific content for each requested platform).
+**Response**: Same format as API 2.
 
-**When to use**: When the user provides a URL or pastes existing content and wants it adapted for social platforms.
+**When to use**: When user provides a URL or pastes existing content and wants it adapted for social platforms.
 
 ---
 
-## API 5: Publish to Connected Platforms
+## API 4: Auto-Pilot Management
 
-Publish content directly to the user's connected social accounts.
+Check and configure the autonomous posting agent.
 
-**IMPORTANT**: Before using this API, the user must first connect their social accounts at [blogburst.ai/dashboard/connections](https://blogburst.ai/dashboard/connections). Without connected accounts, publishing will fail.
-
-### Check Connected Accounts
-
-**Endpoint**: `GET /publish/connected`
+**Get status**: `GET /assistant/auto-pilot`
 
 **Response**:
 ```json
 {
-  "platforms": [
-    {
-      "platform": "bluesky",
-      "username": "@user.bsky.social",
-      "connected_at": "2026-02-01T10:00:00Z",
-      "capabilities": {"text": true, "images": true, "video": true}
-    },
-    {
-      "platform": "telegram",
-      "username": "MyChannel",
-      "connected_at": "2026-02-01T10:00:00Z",
-      "capabilities": {"text": true, "images": true, "video": true}
-    }
-  ]
+  "enabled": true,
+  "platforms": ["bluesky", "telegram", "discord", "twitter"],
+  "posts_per_day": 4,
+  "timezone": "America/New_York",
+  "last_daily_run": "2026-03-02T08:49:28Z",
+  "reactions_enabled": true
 }
 ```
 
-**When to use**: Before publishing, call this to check which platforms the user has connected. If no platforms are connected, tell the user to visit https://blogburst.ai/dashboard/connections to connect their accounts first.
+**Configure**: `POST /assistant/auto-pilot`
 
-### Publish Content
+```json
+{
+  "enabled": true,
+  "posts_per_day": 3,
+  "platforms": ["twitter", "bluesky", "telegram"],
+  "timezone": "America/New_York"
+}
+```
 
-**Endpoint**: `POST /publish`
+**Run immediately**: `POST /assistant/auto-pilot/run-now`
+
+**When to use**: When user wants to start/stop auto-pilot, change posting frequency, or check automation status.
+
+---
+
+## API 5: Trending Topics
+
+Get real-time trending topics from Reddit, HackerNews, Google Trends, and Product Hunt. Updated every 4 hours.
+
+**Endpoint**: `GET /assistant/trending-topics?limit=10`
+
+**Response**:
+```json
+{
+  "topics": [
+    {"keyword": "AI agents replacing SaaS", "source": "hackernews", "score": 92},
+    {"keyword": "Claude Code launch", "source": "reddit", "score": 87},
+    {"keyword": "Open source AI tools", "source": "google_trends", "score": 78}
+  ],
+  "total": 96,
+  "sources": ["reddit", "hackernews", "google_trends", "producthunt"]
+}
+```
+
+**When to use**: When user asks about trends, hot topics, or what's popular to write about.
+
+---
+
+## API 6: Brainstorm Titles
+
+Chat with AI to develop compelling titles.
+
+**Endpoint**: `POST /chat/title`
 
 **Request**:
 ```json
 {
-  "platforms": ["bluesky", "telegram", "discord"],
-  "content": "Your post content here",
-  "image_urls": ["https://example.com/image.jpg"],
-  "video_url": null
+  "messages": [
+    {"role": "user", "content": "I want to write about AI agents"}
+  ],
+  "language": "en"
 }
 ```
-
-**Parameters**:
-- `platforms` (required): Array of connected platform IDs to publish to
-- `content` (required): The text content to publish
-- `image_urls` (optional): Array of image URLs to attach
-- `video_url` (optional): Video URL to attach
-- `reddit_subreddit` (optional): Subreddit name for Reddit posts
-- `reddit_title` (optional): Post title for Reddit
 
 **Response**:
 ```json
 {
-  "total": 3,
-  "successful": 2,
-  "failed": 1,
-  "results": [
-    {"platform": "bluesky", "success": true, "post_url": "https://bsky.app/..."},
-    {"platform": "telegram", "success": true, "post_url": "https://t.me/..."},
-    {"platform": "discord", "success": false, "error": "Webhook expired"}
+  "success": true,
+  "reply": "Great topic! Here are some angles...",
+  "suggested_titles": [
+    "I Replaced My Marketing Team with an AI Agent",
+    "Why AI Agents Are the New SaaS",
+    "Building an AI Agent That Posts for Me While I Sleep"
   ]
 }
 ```
 
-**When to use**: After generating content with API 3 or API 4, when the user wants to actually publish it to their connected platforms. Always check connected accounts first with `GET /publish/connected`.
+---
+
+## API 7: Generate Blog Post
+
+Generate a full blog article from a topic.
+
+**Endpoint**: `POST /blog/generate`
+
+**Request**:
+```json
+{
+  "topic": "I Replaced My Marketing Team with an AI Agent",
+  "tone": "casual",
+  "language": "en",
+  "length": "medium"
+}
+```
+
+**Parameters**:
+- `topic` (required): Title or topic (5-500 chars)
+- `tone`: professional | casual | witty | educational | inspirational
+- `language`: Language code (default: en)
+- `length`: short (500-800 words) | medium (1000-1500) | long (2000-3000)
+
+**Response**:
+```json
+{
+  "success": true,
+  "title": "I Replaced My Marketing Team with an AI Agent",
+  "content": "Full markdown blog post...",
+  "summary": "A concise summary...",
+  "keywords": ["AI agent", "marketing automation", "SaaS"]
+}
+```
 
 ---
 
-## Recommended Workflow
+## Recommended Workflows
 
-For the best results, guide the user through this flow:
+### Quick content generation
+User says: "Create posts about X for Twitter and LinkedIn"
+→ Call **API 2** (`/blog/platforms`)
 
-1. Ask what topic they want to create content about
-2. Call **API 1** (`/chat/title`) to brainstorm titles together
-3. Once they pick a title, call **API 3** (`/blog/platforms`) to generate content for their chosen platforms
-4. Present the generated content organized by platform
-5. If the user wants to publish, first call `GET /publish/connected` to check which accounts are connected
-6. If accounts are connected, call **API 5** (`/publish`) with the generated content for each platform
-7. If no accounts are connected, tell the user: "Please connect your social accounts at https://blogburst.ai/dashboard/connections first"
+### Conversational (best experience)
+User says: "Help me with my social media" or anything complex
+→ Call **API 1** (`/assistant/agent-chat-v2`) — the agent handles everything
 
-If the user already has a blog post URL, skip to **API 4** (`/repurpose`).
+### Repurpose existing content
+User shares a URL or pastes text
+→ Call **API 3** (`/repurpose`)
 
-If the user wants a full blog article first, use **API 2** (`/blog/generate`) before step 3.
+### Full content pipeline
+1. Brainstorm with **API 6** (`/chat/title`)
+2. Write blog with **API 7** (`/blog/generate`)
+3. Distribute with **API 2** (`/blog/platforms`)
 
-**Note on publishing**: Each platform receives the content tailored for it. For example, send the Twitter thread text to Twitter, the LinkedIn post text to LinkedIn, etc. Do NOT send the same raw content to all platforms — use the platform-specific output from API 3.
+### Automation
+User says: "Automate my posting" or "Turn on auto-pilot"
+→ Call **API 4** (`/assistant/auto-pilot`)
 
 ## Supported Platforms
 
-| Platform | ID | Generate | Auto-Publish | Notes |
-|----------|-----|----------|-------------|-------|
-| Twitter/X | twitter | Yes | Yes | Threads with hooks (280 chars/tweet) |
-| LinkedIn | linkedin | Yes | Coming soon | Professional insights + hashtags |
-| Bluesky | bluesky | Yes | Yes | Short authentic posts (300 chars) |
-| Telegram | telegram | Yes | Yes | Rich formatted broadcasts |
-| Discord | discord | Yes | Yes | Community-friendly announcements |
-| Reddit | reddit | Yes | Waiting API | Discussion posts + subreddit suggestions |
-| TikTok | tiktok | Yes | Yes | Hook + script + caption + hashtags |
-| YouTube | youtube | Yes | Yes | Title + description + script + tags |
-| Threads | threads | Yes | Coming soon | Conversational posts |
+| Platform | ID | Auto-Publish | Content Style |
+|----------|-----|:---:|---------------|
+| Twitter/X | twitter | Manual | Threads with hooks (280 chars/tweet) |
+| LinkedIn | linkedin | Coming soon | Professional insights + hashtags |
+| Bluesky | bluesky | Yes | Short authentic posts (300 chars) |
+| Telegram | telegram | Yes | Rich formatted broadcasts |
+| Discord | discord | Yes | Community-friendly announcements |
+| Reddit | reddit | Manual | Discussion posts + subreddit suggestions |
+| TikTok | tiktok | Manual | Hook + script + caption + hashtags |
+| YouTube | youtube | Manual | Title + description + script + tags |
+| Threads | threads | Coming soon | Conversational posts |
 
 ## Links
 
 - Website: https://blogburst.ai
 - API Docs: https://api.blogburst.ai/docs
-- Connect Accounts: https://blogburst.ai/dashboard/connections
 - GitHub: https://github.com/shensi8312/blogburst-openclaw-skill
