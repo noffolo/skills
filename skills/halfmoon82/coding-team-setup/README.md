@@ -1,4 +1,4 @@
-# Coding Team Setup v2.1
+# Coding Team Setup v2.2
 
 ## English
 
@@ -12,6 +12,8 @@ Flexible multi-agent development team wizard for OpenClaw.
 - **Smart model assignment** — auto-detects registered models, maps by type
 - **One command setup** — wizard handles openclaw.json + workspaces + manifests
 - **Standard post-setup flow** — core-skill baseline + weekly skill optimization cron
+- **Mandatory timeout governance** — graded timeout/retry/circuit-breaker for subagent fan-out checks
+- **Allowlist guardrail** — merge + dedupe to `main.subagents.allowAgents` before spawn
 - **Cross-team optimization** — one mechanism for coding/wealth/all future teams
 
 ### Usage
@@ -49,6 +51,8 @@ See `SKILL.md` for full documentation.
 - **智能模型分配** — 自动检测已注册模型，按类型映射
 - **一键配置** — 向导自动处理 openclaw.json + workspace + manifests
 - **标准后置流程** — 核心技能基线 + 每周技能优化 Cron
+- **强制超时治理** — 子代理并发检查必须走分级超时/重试/熔断
+- **Allowlist 防护** — spawn 前先完成 `main.subagents.allowAgents` 合并去重校验
 - **跨团队统一优化** — coding/wealth/未来团队共用一套机制
 
 ### 使用方法

@@ -3,11 +3,16 @@
   "slug": "coding-team-setup",
   "displayName": "Coding Team Setup",
   "latest": {
-    "version": "2.1.0",
-    "publishedAt": 1772457140586,
-    "commit": "https://github.com/openclaw/skills/commit/a2d63752153629aa2b850813af4e8dc35f5b1d5d"
+    "version": "2.2.0",
+    "publishedAt": 1772515882478,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.1.0",
+      "publishedAt": 1772457140586,
+      "commit": "https://github.com/openclaw/skills/commit/a2d63752153629aa2b850813af4e8dc35f5b1d5d"
+    },
     {
       "version": "2.0.0",
       "publishedAt": 1772315728791,

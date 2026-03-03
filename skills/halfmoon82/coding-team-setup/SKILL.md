@@ -192,7 +192,7 @@ skills/coding-team-setup/
 4. **Concurrency control** — spawning too many at once triggers Rate Limit; spawn in batches
 5. **Team prefix** — multi-team agent IDs auto-include prefix; use full ID when spawning
 
-### Standard Post-Setup Workflow (NEW in v2.1)
+### Standard Post-Setup Workflow (UPDATED in v2.2)
 
 After creating any sub-agent team, execute this as **mandatory standard flow**:
 
@@ -216,6 +216,24 @@ After creating any sub-agent team, execute this as **mandatory standard flow**:
 5. **Review outputs**
    - Save weekly optimization summary to `memory/YYYY-MM-DD.md`
    - Keep optimization history under `.lib/skill_analytics/`
+
+6. **Mandatory Subagent Timeout Governance (NEW)**
+   - Do not call `sessions_spawn` directly for production fan-out checks.
+   - Use timeout governance wrapper with graded timeout + retry + circuit breaker.
+   - Recommended baseline:
+     - Simple tasks: 60s, retry 2
+     - Normal tasks: 120s, retry 3
+     - Complex tasks: 180s, retry 3
+   - Failure classification must be explicit in reports:
+     - `SPAWN_REJECTED` / `TIMEOUT` / `NO_CHANNEL_503` / `RATE_LIMIT` / `UNKNOWN`
+   - Health-check outputs must include three blocks:
+     1) spawn accepted/rejected
+     2) fallback trace (primary → fallback1 → fallback2)
+     3) final failure type + request id (if any)
+
+7. **Allowlist Guardrail (NEW)**
+   - `allowAgents` must be merged into `main.subagents.allowAgents` (append + dedupe), never overwritten blindly.
+   - After write, verify with `agents_list` that all new agents are visible before any spawn.
 
 ---
 
@@ -411,7 +429,7 @@ skills/coding-team-setup/
 4. **并发控制** — 同时 spawn 太多会触发 Rate Limit，建议分批
 5. **团队前缀** — 多团队时 agent ID 自动带前缀，spawn 时要用完整 ID
 
-### 标准后置流程（v2.1 新增）
+### 标准后置流程（v2.2 更新）
 
 所有子代理团队创建完成后，必须执行以下标准流程：
 
@@ -435,3 +453,21 @@ skills/coding-team-setup/
 5. **输出与归档**
    - 每周优化结果写入 `memory/YYYY-MM-DD.md`
    - 优化历史保存在 `.lib/skill_analytics/`
+
+6. **子代理超时治理（新增，强制）**
+   - 生产场景禁止裸调 `sessions_spawn` 做并发健康检查。
+   - 必须走超时治理封装（分级超时 + 重试 + 熔断）。
+   - 推荐基线：
+     - 简单任务：60s，重试2次
+     - 普通任务：120s，重试3次
+     - 复杂任务：180s，重试3次
+   - 报告必须输出统一失败分型：
+     - `SPAWN_REJECTED` / `TIMEOUT` / `NO_CHANNEL_503` / `RATE_LIMIT` / `UNKNOWN`
+   - 健康检查结果必须包含三段：
+     1) spawn 是否 accepted
+     2) fallback 轨迹（primary → fallback1 → fallback2）
+     3) 最终失败类型 + request id（若有）
+
+7. **Allowlist 防护（新增）**
+   - `allowAgents` 只能合并写入 `main.subagents.allowAgents`（追加+去重），禁止覆盖清空。
+   - 写入后先用 `agents_list` 验证新增代理可见，再进行 spawn。

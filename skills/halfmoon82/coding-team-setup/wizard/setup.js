@@ -131,6 +131,13 @@ teamtask/tasks/{task-id}/${roleId}/
 ## Model Fallback
 
 When the current model fails (429 / timeout), the framework auto-falls back.
+
+## Timeout Governance (Mandatory)
+
+- Do not run production fan-out checks with bare \`sessions_spawn\`.
+- Use timeout-governed dispatch (graded timeout + retry + circuit breaker).
+- Baseline: simple 60s/2 retries, normal 120s/3 retries, complex 180s/3 retries.
+- Always report: spawn status + fallback trace + final failure type.
 `;
 }
 
