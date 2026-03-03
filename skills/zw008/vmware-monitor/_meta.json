@@ -1,0 +1,11 @@
+{
+  "owner": "zw008",
+  "slug": "vmware-monitor",
+  "displayName": "Vmware Monitor",
+  "latest": {
+    "version": "1.0.5",
+    "publishedAt": 1772501996219,
+    "commit": null
+  },
+  "history": []
+}
