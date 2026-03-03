@@ -3,11 +3,16 @@
   "slug": "ai-persona-os",
   "displayName": "AI Persona OS",
   "latest": {
-    "version": "1.5.6",
-    "publishedAt": 1771432703383,
-    "commit": "https://github.com/openclaw/skills/commit/633362f22c622cb72095f06f364942c1b6c6ad8f"
+    "version": "1.6.2",
+    "publishedAt": 1772526950073,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.5.6",
+      "publishedAt": 1771432703383,
+      "commit": "https://github.com/openclaw/skills/commit/633362f22c622cb72095f06f364942c1b6c6ad8f"
+    },
     {
       "version": "1.4.1",
       "publishedAt": 1771090266990,

@@ -1,8 +1,8 @@
 # End-of-Day Checkpoint — Cron Job Template
 # ⚠️  OPT-IN ONLY: This template is NOT auto-installed.
 # The user must explicitly request cron setup ("set up cron jobs")
-# and manually copy-paste this command into their terminal.
-# This skill NEVER runs this command automatically.
+# and approve the exec command when prompted.
+# This skill does not install cron jobs automatically. The agent presents the command via exec for user approval.
 #
 # Requires: openclaw CLI (pre-installed with OpenClaw)
 # Effect: Creates a scheduled job that runs daily at 6 PM
@@ -13,7 +13,7 @@
 # Schedule: Daily at 6 PM (adjust timezone)
 #
 # Usage:
-#   Copy and paste the command below into your terminal.
+#   The agent will run this via exec. Review and approve when prompted.
 #   Change --tz to your timezone.
 
 openclaw cron add \

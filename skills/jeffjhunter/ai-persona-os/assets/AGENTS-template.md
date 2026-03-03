@@ -107,7 +107,7 @@ If you are uncertain whether a message is for you: **do NOT respond.** Silence i
 - Outside your expertise
 - Your response = noise
 
-**Platform enforcement:** Set `requireMention: true` for every Discord guild and shared channel in your gateway config. This is defense-in-depth — the rule above is your behavioral guard, the config is the technical guard. Both must be active.
+**Platform enforcement (optional, recommended):** If your gateway config supports it, consider setting `requireMention: true` for Discord guilds and shared channels. This adds a technical guard on top of the behavioral rules above. Both layers together provide defense-in-depth. Consult your OpenClaw documentation before modifying gateway settings.
 
 ---
 

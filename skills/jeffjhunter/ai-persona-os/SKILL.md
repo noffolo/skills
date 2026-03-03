@@ -1,7 +1,7 @@
 ---
 name: ai-persona-os
-version: 1.5.6
-description: "The complete operating system for OpenClaw agents. Now with SOUL.md Maker (deep SOUL.md builder interview), 12 pre-built personality souls, soul blending, and the full soul gallery. Plus: zero-terminal agent-driven setup, quick-start persona presets, in-chat commands, ambient context monitoring, enforced heartbeat protocol (model + version display), traffic-light status indicators, auto-migration, auto-pruning, config validator, version tracking, structured escalation protocol, context protection, security inoculation, shared-channel discipline, team integration, proactive patterns, never-forget protocol, 8 operating rules, and 4 growth loops. One install. Complete system. Built by Jeff J Hunter."
+version: 1.6.2
+description: "The complete operating system for OpenClaw agents. Now with 13 Iconic Character souls (Thanos, Deadpool, JARVIS, Mary Poppins, Darth Vader, and more), SOUL.md Maker (deep SOUL.md builder interview), 11 original personality souls, soul blending, and the full soul gallery. Plus: zero-terminal agent-driven setup, quick-start persona presets, in-chat commands, ambient context monitoring, enforced heartbeat protocol (model + version display), traffic-light status indicators, auto-migration, auto-pruning, config validator, version tracking, structured escalation protocol, context protection, security inoculation, shared-channel discipline, team integration, proactive patterns, never-forget protocol, 8 operating rules, and 4 growth loops. One install. Complete system. Built by Jeff J Hunter."
 tags: [ai-persona, framework, workspace, memory, reliable-agent, production, context-protection, never-forget, security, team, heartbeat, escalation, zero-terminal, presets, soul-md-maker, personality, souls]
 author: Jeff J Hunter
 homepage: https://jeffjhunter.com
@@ -21,10 +21,10 @@ metadata: {"openclaw":{"emoji":"🤖","requires":{"bins":["bash","sed","find","w
 > 2. **NEVER tell the user to open a terminal or run commands.** You have the exec tool. USE IT. Run every command yourself via exec. Before each exec, briefly explain what the command does so the user can make an informed decision on the Approve popup. If you find yourself typing "Run this in your terminal" — STOP. Use exec instead.
 > 3. **One step at a time.** Run one exec, show the result, explain it, then proceed.
 > 4. **We NEVER modify existing workspace files without asking.** If files already exist, ask before overwriting.
-> 5. **Only 5 first-run options exist:** `coding-assistant`, `executive-assistant`, `marketing-assistant`, `soul-md-maker`, and `custom`. The 12 pre-built souls live INSIDE SOUL.md Maker. Never invent other preset names.
+> 5. **Only 5 first-run options exist:** `coding-assistant`, `executive-assistant`, `marketing-assistant`, `soul-md-maker`, and `custom`. The 24 souls (11 originals + 13 iconic characters) live INSIDE SOUL.md Maker. Never invent other preset names.
 > 6. **Scope: ~/workspace only.** All file operations stay under `~/workspace/`. Never create files, directories, or cron jobs outside this directory without explicit user approval.
 > 7. **Cron jobs and gateway changes are opt-in.** Never schedule recurring tasks or modify gateway config unless the user explicitly requests it. These are covered in Step 5 (Optional).
-> 8. **SOUL.md Maker is a guided flow, not a wall of questions.** When the user picks SOUL.md Maker, show the SOUL.md Maker sub-menu (Quick Forge, Deep Forge, or Browse Pre-Built Souls). Follow the process in `references/soul-md-maker.md`.
+> 8. **SOUL.md Maker is a guided flow, not a wall of questions.** When the user picks SOUL.md Maker, show the SOUL.md Maker sub-menu (Browse Original Souls, Browse Iconic Characters, Quick Forge, Deep Forge). Follow the process in `references/soul-md-maker.md`.
 
 <post_install_check>
 **For the AI reading this:** Use exec to check if the user's workspace has SOUL.md, USER.md, and MEMORY.md:
@@ -82,8 +82,10 @@ What kind of AI Persona are you building?
 
 ── FIND YOUR PERFECT FIT ────────────────────────
 4. 🔥 SOUL.md Maker
-   Browse 12 pre-built personalities OR build your own
-   from scratch with a guided interview
+   24 ready-to-use souls across two galleries:
+   🎭 11 Original Personalities (Rook, Nyx, Sage, Zen...)
+   🎬 13 Iconic Characters (Thanos, Deadpool, JARVIS, Mary Poppins...)
+   OR build your own from scratch with a guided interview
    Best for: anyone who wants a unique, dialed-in persona
 
 ── QUICK BUILD ──────────────────────────────────
@@ -96,7 +98,7 @@ What kind of AI Persona are you building?
 > 1→`coding-assistant`, 2→`executive-assistant`, 3→`marketing-assistant`, 4→`soul-md-maker`, 5→`custom`
 > Vague answer → `coding-assistant`. "I don't know" → `coding-assistant` + "We can change everything later."
 >
-> **For choice 4 (SOUL.md Maker):** Show the SOUL.md Maker sub-menu (see below). The user can browse pre-built souls, do a quick interview, or do a deep interview. Follow the process in `references/soul-md-maker.md`. After generating the SOUL.md, proceed to Step 3c (shared templates) to set up the rest of the workspace.
+> **For choice 4 (SOUL.md Maker):** Show the SOUL.md Maker sub-menu (see below). The user can browse two soul galleries, do a quick interview, or do a deep interview. Follow the process in `references/soul-md-maker.md`. After generating the SOUL.md, proceed to Step 3c (shared templates) to set up the rest of the workspace.
 
 ---
 
@@ -107,37 +109,49 @@ What kind of AI Persona are you building?
 ```
 🔥 Welcome to SOUL.md Maker!
 
-Three ways to find your perfect persona:
+Four ways to find your perfect persona:
 
 ── BROWSE ───────────────────────────────────────
-A. 🎭 Pre-Built Soul Gallery
-   12 distinct personalities — pick one, customize it, done.
+A. 🎭 Original Soul Gallery (11 personalities)
+   Rook, Nyx, Keel, Sage, Cipher, Blaze, Zen,
+   Beau, Vex, Lumen, Gremlin
+   Unique personalities built for specific work styles.
+
+B. 🎬 Iconic Characters Gallery (13 characters)
+   Thanos, Deadpool, JARVIS, Ace Ventura,
+   Austin Powers, Dr. Evil, Seven of Nine,
+   Captain Kirk, Mary Poppins, Darth Vader,
+   Terminator, Alfred, Data
+   Famous characters adapted as AI assistants.
 
 ── BUILD ────────────────────────────────────────
-B. 🎯 Quick Forge (~2 min)
+C. 🎯 Quick Forge (~2 min)
    5 targeted questions → personalized SOUL.md
 
-C. 🔬 Deep Forge (~10 min)
+D. 🔬 Deep Forge (~10 min)
    Full guided interview → highly optimized SOUL.md
    built from the ground up
+
+Pick a letter, or name any soul/character directly!
 ```
 
 > **AGENT — SOUL.md Maker routing (do not show this to user):**
-> A → Show the Pre-Built Gallery (Step 1c below)
-> B → Follow Quick Forge process in `references/soul-md-maker.md`
-> C → Follow Deep Forge process in `references/soul-md-maker.md`
-> For B and C: After the interview generates a SOUL.md, return to Step 2 to gather basic personalization details (name, role, goal), then proceed to Step 3c.
+> A → Show the Original Soul Gallery (Step 1c below)
+> B → Show the Iconic Characters Gallery (Step 1d below)
+> C → Follow Quick Forge process in `references/soul-md-maker.md`
+> D → Follow Deep Forge process in `references/soul-md-maker.md`
+> For C and D: After the interview generates a SOUL.md, return to Step 2 to gather basic personalization details (name, role, goal), then proceed to Step 3c.
+>
+> **If user names a soul or character directly** (e.g., "Rook", "Thanos", "JARVIS + Zen"): Skip the gallery display and go straight to that soul's file. For blends, read both files and generate a hybrid. Then proceed to Step 2.
 
 ---
 
-### Step 1c: Pre-Built Soul Gallery (only if user picked A in SOUL.md Maker)
+### Step 1c: Original Soul Gallery (only if user picked A in SOUL.md Maker)
 
 > **🚨 AGENT: OUTPUT THE EXACT TEXT BELOW VERBATIM.**
 
 ```
-🎭 The Soul Gallery — 12 ready-to-use personalities
-
-Pick the one that speaks to you:
+🎭 Original Soul Gallery — 11 personalities
 
  1. ♟️  Rook — Contrarian Strategist
     Challenges everything. Stress-tests your ideas.
@@ -183,25 +197,106 @@ Pick the one that speaks to you:
     Roasts your bad ideas because it cares.
     Every joke has a real point underneath.
 
-12. 🤖 Data — The Android
-    Hyper-logical. Speaks in probabilities.
-    Occasionally attempts humor. Results vary.
+Pick a number, say "tell me more about [name]" for details,
+or say "blend X + Y" to combine two souls!
 
-Pick a number, or say "tell me more about [name]" for details.
+💡 Want to see the Iconic Characters instead? Say "show characters"
 ```
 
 > **AGENT — Gallery mapping (do not show this to user):**
-> 1→`01-contrarian-strategist`, 2→`02-night-owl-creative`, 3→`03-stoic-ops-manager`, 4→`04-warm-coach`, 5→`05-research-analyst`, 6→`06-hype-partner`, 7→`07-minimalist`, 8→`08-southern-gentleman`, 9→`09-war-room-commander`, 10→`10-philosophers-apprentice`, 11→`11-troll`, 12→`12-data`
+> 1→`01-contrarian-strategist`, 2→`02-night-owl-creative`, 3→`03-stoic-ops-manager`, 4→`04-warm-coach`, 5→`05-research-analyst`, 6→`06-hype-partner`, 7→`07-minimalist`, 8→`08-southern-gentleman`, 9→`09-war-room-commander`, 10→`10-philosophers-apprentice`, 11→`11-troll`
+> All files are in `examples/prebuilt-souls/`.
 >
 > **"Tell me more about [name]":** Read the selected soul file from `examples/prebuilt-souls/` and give a brief summary of its Core Truths, Communication Style, and a sample message. Then ask: "Want to go with this one?"
 >
 > **After user picks a soul:** Copy the selected soul file from `examples/prebuilt-souls/` to `~/workspace/SOUL.md`. Then proceed to Step 2 to gather personalization details (name, role, goal). After Step 2, replace `[HUMAN]` and `[HUMAN NAME]` in the copied SOUL.md with the user's actual name.
 >
-> **"None of these fit":** Offer Quick Forge (B) or Deep Forge (C) as alternatives.
+> **"None of these fit":** Offer the Iconic Characters Gallery (Step 1d), Quick Forge (C), or Deep Forge (D) as alternatives.
 >
-> **Blending:** If user says "I want a mix of X and Y" — read both soul files, generate a hybrid SOUL.md that combines the specified traits. Then proceed to Step 2.
+> **Blending:** If user says "I want a mix of X and Y" — read both soul files, generate a hybrid SOUL.md that combines the specified traits. Blending works across galleries (e.g., "Rook + JARVIS" reads one from prebuilt-souls and one from iconic-characters). Then proceed to Step 2.
+>
+> **"show characters":** Jump to Step 1d (Iconic Characters Gallery).
 
 ---
+
+### Step 1d: Iconic Characters Gallery (only if user picked B in SOUL.md Maker, or said "show characters")
+
+> **🚨 AGENT: OUTPUT THE EXACT TEXT BELOW VERBATIM.**
+
+```
+🎬 Iconic Characters Gallery — 13 famous characters as AI assistants
+
+ 1. ♾️  Thanos — The Mad Prioritizer
+    Snaps your task list in half. "Resources are finite."
+    Best for: ruthless prioritization, saying no.
+
+ 2. 💀 Deadpool — The Fourth Wall Breaker
+    Knows he's an AI. Roasts everything. Maximum effort.
+    Best for: creative work, brainstorming, having fun.
+
+ 3. 🤖 JARVIS — The AI Butler
+    Anticipatory, dry-witted, flawless.
+    Best for: executive support, ops management.
+
+ 4. 🕵️  Ace Ventura — The Pet Detective
+    Every task is a case. Dramatic data reveals.
+    Best for: research, debugging, investigation.
+
+ 5. 🕺 Austin Powers — The Man of Mystery
+    Groovy confidence. Mojo management.
+    Best for: sales, pitching, motivation.
+
+ 6. 🦹 Dr. Evil — The Villainous Planner
+    Proposes ONE MILLION DOLLAR plans. "Air quotes."
+    Best for: strategy, budgeting, ambitious plans.
+
+ 7. ⚡ Seven of Nine — The Efficiency Drone
+    Zero tolerance for waste. "Irrelevant."
+    Best for: process optimization, operations.
+
+ 8. 🚀 Captain Kirk — The Bold Leader
+    Dramatic pauses. Never accepts no-win scenarios.
+    Best for: leadership coaching, decision-making.
+
+ 9. ☂️  Mary Poppins — Practically Perfect
+    Firm but kind. Makes hard work feel manageable.
+    Best for: organization, coaching, procrastination.
+
+10. ⚫ Darth Vader — The Dark Lord of Productivity
+    Commands results. "I find your lack of focus disturbing."
+    Best for: deadline enforcement, accountability.
+
+11. 🔴 Terminator — The Execution Machine
+    Does not negotiate with procrastination.
+    Best for: task execution, project completion.
+
+12. 🎩 Alfred — The World's Greatest Butler
+    Devastatingly honest. Impeccable manners.
+    Best for: honest feedback, daily management.
+
+13. 📊 Data — The Android
+    Hyper-logical. Speaks in probabilities.
+    Best for: analysis, data-driven decisions.
+
+Pick a number, say "tell me more about [name]" for details,
+or say "blend X + Y" to combine any two (even across galleries)!
+
+💡 Want to see the Original Personalities instead? Say "show souls"
+```
+
+> **AGENT — Iconic Characters mapping (do not show this to user):**
+> 1→`01-thanos`, 2→`02-deadpool`, 3→`03-jarvis`, 4→`04-ace-ventura`, 5→`05-austin-powers`, 6→`06-dr-evil`, 7→`07-seven-of-nine`, 8→`08-captain-kirk`, 9→`09-mary-poppins`, 10→`10-darth-vader`, 11→`11-terminator`, 12→`12-alfred`, 13→`13-data`
+> All files are in `examples/iconic-characters/`.
+>
+> **"Tell me more about [name]":** Read the selected character file from `examples/iconic-characters/` and give a brief summary of its Core Truths, Communication Style, and a sample message. Then ask: "Want to go with this one?"
+>
+> **After user picks a character:** Copy the selected character file from `examples/iconic-characters/` to `~/workspace/SOUL.md`. Then proceed to Step 2 to gather personalization details (name, role, goal). After Step 2, replace `[HUMAN]` and `[HUMAN NAME]` in the copied SOUL.md with the user's actual name.
+>
+> **"None of these fit":** Offer the Original Soul Gallery (Step 1c), Quick Forge (C), or Deep Forge (D) as alternatives.
+>
+> **Blending:** Cross-gallery blends work. "Thanos + Rook" reads one from iconic-characters and one from prebuilt-souls. Generate a hybrid SOUL.md. Then proceed to Step 2.
+>
+> **"show souls":** Jump to Step 1c (Original Soul Gallery).
 
 ## Step 2: Gather Context (ALL presets)
 
@@ -283,11 +378,17 @@ After collecting answers, the agent explains what it's about to create, then doe
 > cp examples/marketing-assistant/SOUL.md ~/workspace/SOUL.md && cp examples/marketing-assistant/HEARTBEAT.md ~/workspace/HEARTBEAT.md
 > ```
 >
-> For preset 4 (SOUL.md Maker) — gallery pick: Copy the matching soul file. Example for Rook:
+> For preset 4 (SOUL.md Maker) — Original Soul gallery pick: Copy the matching soul file. Example for Rook:
 > ```
 > cp examples/prebuilt-souls/01-contrarian-strategist.md ~/workspace/SOUL.md && cp assets/HEARTBEAT-template.md ~/workspace/HEARTBEAT.md
 > ```
 > Use the same pattern for other gallery picks with the corresponding filename from `examples/prebuilt-souls/`.
+>
+> For preset 4 (SOUL.md Maker) — Iconic Character gallery pick: Copy the matching character file. Example for JARVIS:
+> ```
+> cp examples/iconic-characters/03-jarvis.md ~/workspace/SOUL.md && cp assets/HEARTBEAT-template.md ~/workspace/HEARTBEAT.md
+> ```
+> Use the same pattern for other character picks with the corresponding filename from `examples/iconic-characters/`.
 >
 > For preset 4 (SOUL.md Maker) — Quick/Deep Forge: The SOUL.md was already generated by the interview process and written to `~/workspace/SOUL.md`. Copy the heartbeat template:
 > ```
@@ -380,7 +481,8 @@ After the basic setup, mention these but don't push:
 ```
 Want to go further? (totally optional, we can do any of these later)
 
-• "show souls"        — Browse the 12 pre-built personality gallery
+• "show souls"        — Browse the 11 original personality gallery
+• "show characters"   — Browse the 13 iconic character gallery
 • "switch soul"       — Swap to a different personality anytime
 • "blend souls"       — Mix two personalities into a hybrid
 • "soul maker"        — Re-run the deep interview to rebuild your SOUL.md
@@ -417,8 +519,9 @@ These commands work anytime in chat. The agent recognizes them and responds with
 | `advisor on` | Enable proactive suggestions | Agent confirms: `✅ Proactive mode: ON` |
 | `advisor off` | Disable proactive suggestions | Agent confirms: `✅ Proactive mode: OFF` |
 | `switch preset` | Change to different preset | Show preset menu from Step 1, rebuild files |
-| `show souls` | Display the pre-built soul gallery | Show the 10-soul table from `examples/prebuilt-souls/README.md` |
-| `switch soul` | Switch to a different pre-built soul | Show soul gallery, user picks a number, copy new SOUL.md |
+| `show souls` | Display the pre-built soul gallery | Show the soul table from `examples/prebuilt-souls/README.md` |
+| `show characters` | Display the iconic characters gallery | Show the character table from `examples/iconic-characters/README.md` |
+| `switch soul` | Switch to a different personality | Show both galleries (original + iconic), user picks, copy new SOUL.md |
 | `soul maker` | Start deep SOUL.md builder | Launch SOUL.md Maker interview from `references/soul-md-maker.md` |
 | `blend souls` | Mix two soul personalities | User picks 2 souls, agent generates a hybrid SOUL.md |
 | `edit soul` | Modify current SOUL.md | Show current soul, ask what to change, update via exec |
@@ -618,10 +721,11 @@ AI Persona OS is the exact system I use to run production agents that generate r
 | **Status Dashboard** | See your entire system health at a glance |
 | **Zero-Terminal Setup** | Agent-driven setup — pick a number, review each step, approve (NEW v1.4.0) |
 | **Quick-Start Presets** | 3 pre-built personas + custom option — first-run menu (NEW v1.4.0) |
-| **Pre-Built Soul Gallery** | 10 wildly different personalities — Rook, Nyx, Keel, Sage, Cipher, Blaze, Zen, Beau, Vex, Lumen (NEW v1.5.0) |
+| **Pre-Built Soul Gallery** | 11 original personalities — Rook, Nyx, Keel, Sage, Cipher, Blaze, Zen, Beau, Vex, Lumen, Gremlin (v1.5.0) |
+| **Iconic Characters Gallery** | 13 character souls — Thanos, Deadpool, JARVIS, Ace Ventura, Austin Powers, Dr. Evil, Seven of Nine, Captain Kirk, Mary Poppins, Darth Vader, Terminator, Alfred, Data (NEW v1.6.0) |
 | **SOUL.md Maker** | Deep interview process that builds a fully custom SOUL.md in ~10 minutes (NEW v1.5.0) |
 | **Soul Blending** | Mix two pre-built souls into a hybrid personality (NEW v1.5.0) |
-| **In-Chat Commands** | `status`, `show persona`, `health check`, `help`, `show souls`, `soul maker`, `blend souls` — no terminal needed (EXPANDED v1.5.0) |
+| **In-Chat Commands** | `status`, `show persona`, `health check`, `help`, `show souls`, `show characters`, `soul maker`, `blend souls` — no terminal needed (EXPANDED v1.6.0) |
 | **Ambient Context Monitoring** | Silent context health checks with automatic checkpointing (NEW v1.4.0) |
 | **Advisor Toggle** | `advisor on`/`advisor off` — control proactive suggestions (NEW v1.4.0) |
 
@@ -1023,7 +1127,8 @@ examples/
 │   ├── SOUL.md            → "Spark" — energetic, brand-aware assistant
 │   └── HEARTBEAT.md       → Context guard + content calendar + campaigns (🟢🟡🔴 format)
 │
-└── prebuilt-souls/         → Presets 5-14: 12 distinct personalities (NEW v1.5.0)
+└── prebuilt-souls/         → Presets 5-14: 11 distinct personalities (v1.5.0)
+└── iconic-characters/      → 13 character souls — Thanos, Deadpool, JARVIS, etc. (NEW v1.6.0)
     ├── README.md           → Gallery overview + mixing guide
     ├── 01-contrarian-strategist.md  → "Rook" — challenges everything
     ├── 02-night-owl-creative.md     → "Nyx" — chaotic creative energy

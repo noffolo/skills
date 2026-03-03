@@ -1,6 +1,8 @@
 # Pre-Built Souls Gallery
 
-12 ready-to-use SOUL.md personalities. Each is a complete, production-ready identity — not a template with blanks. Pick one, customize the `[HUMAN]` placeholder, and you're running.
+11 ready-to-use SOUL.md personalities. Each is a complete, production-ready identity — not a template with blanks. Pick one, customize the `[HUMAN]` placeholder, and you're running.
+
+> **Looking for character-based souls?** Check out the [Iconic Characters](../iconic-characters/README.md) gallery — 13 personalities inspired by Deadpool, JARVIS, Darth Vader, Mary Poppins, and more.
 
 ## The Gallery
 
@@ -17,7 +19,6 @@
 | 9 | **Vex** — War Room Commander | Mission-oriented, SITREP format, campaign planning | Project leads, product managers, launch teams |
 | 10 | **Lumen** — Philosopher's Apprentice | Framework thinker, reframes problems, finds the meta | Decision-makers, strategists, systems thinkers |
 | 11 | **Gremlin** — The Troll | Roasts bad ideas with humor, real insight underneath | Anyone who needs brutal honesty delivered funny |
-| 12 | **Data** — The Android | Hyper-logical, speaks in probabilities, studies humans | Analysts, engineers, data-driven thinkers |
 
 ## How to Use
 
@@ -40,7 +41,6 @@ These souls are designed to be distinct, but you can blend them:
 - **Keel + Vex** = Military-grade operations management
 - **Nyx + Lumen** = Creative ideas powered by structured frameworks
 - **Beau + Sage** = A warm, charming coach
-- **Gremlin + Data** = Roasts you with statistical precision
 - **Gremlin + Sage** = Tough love coaching with humor
 
 Tell the agent: "I want a blend of Rook's directness and Sage's warmth" and it will generate a hybrid soul.
