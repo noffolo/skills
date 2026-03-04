@@ -1,15 +1,19 @@
 ---
 name: upgrade-openclaw
 description: |
-  Upgrade OpenClaw and discover new features, hooks, and config improvements. 
-  Use when: user explicitly says "upgrade openclaw", "update openclaw", "check for openclaw updates", 
-  or asks to "see what's new in openclaw". Runs the update, audits current setup, and proposes 
+  Upgrade OpenClaw and discover new features, hooks, and config improvements.
+  Use when: user explicitly says "upgrade openclaw", "update openclaw", "check for openclaw updates",
+  or asks to "see what's new in openclaw". Runs the update, audits current setup, and proposes
   optimizations for user approval.
 metadata:
-  author: decentraliser
-  version: "1.0.0"
-  clawdbot:
-    emoji: 🚀
+  {
+    "openclaw":
+      {
+        "emoji": "🚀",
+        "author": "decentraliser",
+        "requires": { "bins": ["openclaw", "curl", "clawhub"] }
+      }
+  }
 ---
 
 # Upgrade OpenClaw
@@ -30,9 +34,13 @@ On first run, prompt user for preferred sub-agent model and save to `settings.js
 
 ```json
 {
-  "subagentModel": "anthropic/claude-opus-4-5"
+  "subagentModel": "anthropic/claude-sonnet-4-6"
 }
 ```
+
+> ⚠️ **Privacy note:** If you choose an external provider (e.g. `gpt-4o`, `claude-*`), your local
+> OpenClaw config and environment details will be sent to that provider during the upgrade run.
+> Prefer a locally-hosted model or your primary trusted provider.
 
 ## Procedure
 
@@ -40,17 +48,29 @@ On first run, prompt user for preferred sub-agent model and save to `settings.js
 
 Look for `settings.json` in this skill's directory. If `subagentModel` not set, ask:
 
-> "Which model for upgrade sub-agents? (e.g., `claude-opus-4-5`, `claude-sonnet-4`, `gpt-4o`)"
+> "Which model for upgrade sub-agents? (e.g., `claude-sonnet-4-6`, `deepseek-chat`). Note: external providers will receive your config data."
 
 Save choice to `settings.json`.
 
-### 2. Run Update
+### 2. Check Prerequisites
+
+Verify required binaries are present before proceeding:
+
+```bash
+which openclaw && openclaw --version
+which curl
+which clawhub && clawhub -V
+```
+
+Abort and instruct the user to install missing binaries if any are not found.
+
+### 3. Run Update
 
 ```bash
 openclaw update
 ```
 
-### 3. Discover What's New
+### 4. Discover What's New
 
 ```bash
 openclaw --version
@@ -61,7 +81,7 @@ Check:
 - Config templates: `github.com/openclaw/openclaw/tree/main/docs/reference/templates`
 - Changelog: GitHub releases
 
-### 4. Audit Current Setup
+### 5. Audit Current Setup
 
 ```bash
 openclaw hooks list
@@ -74,7 +94,7 @@ Look for:
 - Unused config options
 - Relevant new ClawHub skills
 
-### 5. Present Findings
+### 6. Present Findings
 
 ```markdown
 ## 🔍 Post-Upgrade Report
@@ -99,11 +119,13 @@ Look for:
 **Apply these improvements?** (yes/no/select)
 ```
 
-### 6. Apply with Approval
+### 7. Apply with Approval
 
 **Never apply without explicit user approval.**
+
+Wait for the user to reply "yes", "apply", or select specific items. Do not proceed on ambiguous input.
 
 Spawn sub-agent (using model from `settings.json`) to:
 - Config changes via `gateway config.patch`
 - Hook enablement via `openclaw hooks enable <hook>`
-- Skill install via `clawdhub install <skill>`
+- Skill install via `clawhub install <skill>`
