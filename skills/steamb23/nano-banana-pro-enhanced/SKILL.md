@@ -1,20 +1,7 @@
 ---
 name: nano-banana-pro-enhanced
 description: Generate or edit images via Gemini 3 Pro Image (Nano Banana Pro).
-metadata:
-  openclaw:
-    emoji: "🍌"
-    homepage: https://ai.google.dev/
-    primaryEnv: GEMINI_API_KEY
-    requires:
-      bins: [uv]
-      env: [GEMINI_API_KEY]
-    install:
-      - id: uv-brew
-        kind: brew
-        formula: uv
-        bins: [uv]
-        label: "Install uv (brew)"
+metadata: {"openclaw":{"emoji":"🍌","homepage":"https://ai.google.dev/","primaryEnv":"GEMINI_API_KEY","requires":{"bins":["uv"],"env":["GEMINI_API_KEY"]},"install":[{"id":"uv-brew","kind":"brew","formula":"uv","bins":["uv"],"label":"Install uv (brew)"}]}}
 ---
 
 # Nano Banana Pro (Gemini 3 Pro Image)
@@ -62,11 +49,11 @@ Batch file format (JSON array):
 
 Batch notes
 - `--batch` is always non-blocking: submits the job, prints `BATCH_JOB:` token, and exits immediately.
-- After submitting, add a temporary check list to HEARTBEAT.md.
+- After submitting, add a temporary check list to HEARTBEAT.md. Include **why** this image was requested (context/intent), so it's clear even after a session reset.
   ```
   # Temporary Check List
 
-  - **Nano Banana Batch job**: Check `batches/abc123` for job result. When ready, retrieve and send to user with mediaUrl parameter. Remove this item after reporting the result.
+  - **Nano Banana Batch job**: <why this image was requested>. Check `batches/abc123` for job result. When ready, retrieve and send to user with mediaUrl parameter. Remove this item after reporting the result.
   ```
 - If the user explicitly requests a timed check, use a cronjob instead of HEARTBEAT.md.
 - The script tracks pending jobs in `memory/pending-batch-jobs.json`. Created on batch submit, removed on `--batch-check` completion. Format: `[{"job_name", "filename", "prompt", "created_at"}]`. File is deleted when empty.
