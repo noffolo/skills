@@ -68,6 +68,39 @@ npx skills add zw008/VMware-AIops
 
 All tools accept optional `target` parameter (e.g., `"home-esxi"`, `"prod-vcenter"`).
 
+### MCP Direct Calling Pattern (Default)
+
+When this skill is activated, **always use direct Python import** to call MCP tools:
+
+```python
+# cd /path/to/VMware-AIops
+
+from mcp_server.server import (
+    list_virtual_machines,
+    list_esxi_hosts,
+    list_all_datastores,
+    list_all_clusters,
+    get_alarms,
+    get_events,
+    vm_info,
+    vm_power_on,
+    vm_power_off,
+)
+
+# Read operations
+result = list_virtual_machines(target='home-esxi')
+alarms = get_alarms(target='home-vcenter')
+info = vm_info(vm_name='my-vm', target='home-esxi')
+
+# Write operations (require user confirmation)
+vm_power_on(vm_name='my-vm', target='home-esxi')
+vm_power_off(vm_name='my-vm', force=False, target='home-esxi')
+```
+
+**Calling priority:**
+1. ✅ Direct import from `mcp_server.server` (fastest, default)
+2. ⚠️ CLI fallback: `vmware-aiops inventory vms` (when import fails)
+
 ### MCP Setup (Claude Code)
 
 Add to `~/.claude/settings.json`:
@@ -221,7 +254,7 @@ ESXi Standalone ──→ VMs
 | Audit Trail | All operations logged to `~/.vmware-aiops/audit.log` (JSONL) with before/after state |
 | Input Validation | VM name length/format, CPU (1-128), memory (128-1048576 MB), disk (1-65536 GB) validated before execution |
 | Password Protection | `.env` file loading, never in command line or shell history; file permission check at startup |
-| SSL Self-signed Support | `disableSslCertValidation` for ESXi 8.0 self-signed certs |
+| SSL Self-signed Support | `disableSslCertValidation` — **only** for ESXi hosts with self-signed certificates in isolated lab/home environments. Production environments should use CA-signed certificates with full TLS verification enabled. |
 | Task Waiting | All async operations wait for completion and report result |
 | State Validation | Pre-operation checks (VM exists, power state correct) |
 
@@ -324,6 +357,14 @@ cd VMware-AIops
 uv venv && source .venv/bin/activate
 uv pip install -e .
 ```
+
+## Security
+
+- **TLS Verification**: Enabled by default. The `disableSslCertValidation` option exists solely for ESXi hosts using self-signed certificates (common in home labs). In production, always use CA-signed certificates with full TLS verification.
+- **Credentials**: Loaded exclusively from environment variables via `.env` file (`chmod 600`). Never passed in CLI arguments, config files, or MCP messages.
+- **Webhook Data Scope**: Webhook notifications send infrastructure summaries to **user-configured URLs only** (Slack, Discord, or any HTTP endpoint you control). No data is sent to third-party services by default.
+- **Prompt Injection Protection**: All vSphere-sourced content (event messages, host logs) is truncated, stripped of control characters, and wrapped in boundary markers before output.
+- **Code Review**: We recommend reviewing the source code and commit history before deploying in production. Run in an isolated environment for initial evaluation.
 
 ## License
 
