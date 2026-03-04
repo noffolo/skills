@@ -259,7 +259,7 @@ curl -s -X POST \
   "API_BASE/api/research-sessions/SESSION_ID/share?clientId=PAYMENT_HASH"
 ```
 
-`nodes` is **optional** — if omitted, the backend auto-generates a 3D layout from stored embeddings (UMAP projection). Only pass `nodes` if you need a custom layout.
+`nodes` array is **optional** — if omitted, the backend auto-generates a semantically meaningful 3D layout from stored embeddings (UMAP projection). Omit for best results. Only pass `nodes` if you need a custom layout.
 
 Shared URL: `https://www.pullthatupjamie.ai/app?sharedSession=SHARE_ID`
 
