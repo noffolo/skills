@@ -3,11 +3,16 @@
   "slug": "pr-ship",
   "displayName": "Pr Ship",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1772448891237,
-    "commit": "https://github.com/openclaw/skills/commit/01bc6a62cb8dc7ae01347f042042513caa443178"
+    "version": "1.0.13",
+    "publishedAt": 1772581593699,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1772448891237,
+      "commit": "https://github.com/openclaw/skills/commit/01bc6a62cb8dc7ae01347f042042513caa443178"
+    },
     {
       "version": "1.0.7",
       "publishedAt": 1772240058174,
