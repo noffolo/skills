@@ -1,7 +1,7 @@
 ---
 name: gateway-watchdog
 description: Monitor OpenClaw gateway health with a watchdog state machine, Discord alerts, cooldown dedupe, and isolated fallback deployment on macOS. Use when users want gateway failure detection, auto-recovery policy, and low-noise Discord incident notifications.
-version: "1.0.0"
+version: "1.0.2"
 metadata:
   {
     "openclaw":
@@ -14,8 +14,18 @@ metadata:
 
 # Gateway Watchdog (Discord)
 
-Discord-first watchdog for OpenClaw gateway incidents.  
-Design goals: fast detection, deduplicated alerts, and strict isolation from core OpenClaw runtime files.
+Discord-first watchdog for OpenClaw gateway incidents.
+
+## 🛠️ Installation
+
+### 1. Ask OpenClaw (Recommended)
+Tell OpenClaw: *"Install the gateway-watchdog skill."* The agent will handle the installation and configuration automatically.
+
+### 2. Manual Installation (CLI)
+If you prefer the terminal, run:
+```bash
+clawhub install gateway-watchdog
+```
 
 ## Isolation model
 
