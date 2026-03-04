@@ -1,11 +1,17 @@
 {
   "owner": "yankeguo",
   "slug": "weavmail",
-  "displayName": "weavMail",
+  "displayName": "weavmail",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1772479155506,
-    "commit": "https://github.com/openclaw/skills/commit/74785c0d25030893cb75eb7738c5eece5db61ca3"
+    "version": "1.0.3",
+    "publishedAt": 1772522219973,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1772479155506,
+      "commit": "https://github.com/openclaw/skills/commit/74785c0d25030893cb75eb7738c5eece5db61ca3"
+    }
+  ]
 }
