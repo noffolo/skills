@@ -1,13 +1,18 @@
 {
   "owner": "brianleach",
   "slug": "capmetro-skill",
-  "displayName": "CapMetro Skill",
+  "displayName": "Capmetro Skill",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1771264757858,
-    "commit": "https://github.com/openclaw/skills/commit/6c4773297d0551896a8d95cd1ca3f6293031fa12"
+    "version": "1.0.3",
+    "publishedAt": 1772508104085,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1771264757858,
+      "commit": "https://github.com/openclaw/skills/commit/6c4773297d0551896a8d95cd1ca3f6293031fa12"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1771263564028,
