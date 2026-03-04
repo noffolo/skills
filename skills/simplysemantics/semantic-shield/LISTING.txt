@@ -61,19 +61,22 @@ HOW IT WORKS (Quick Start)
 API ENDPOINTS
 ================================================================================
 
-All endpoints require an API key via x-api-key header.
+All endpoints require your SEMANTIC_SHIELD_API_KEY via x-api-key header.
+Your API key is generated at signup, scoped to your account only, and
+revocable at any time from the dashboard.
 
-GET  /api/v1/search?q=...&provider=...
+GET  /shield/api/v1/search?q=...&provider=...
      Search for skills (free, no quota cost)
      Returns: skill_id + provider pairs
 
-GET  /api/v1/check?skill_id=...&provider=...
+GET  /shield/api/v1/check?skill_id=...&provider=...
      Full trust details (costs 1 lookup)
      Returns: safety_score, risk_level, threats, recommendation
 
-POST /api/v1/validate
+POST /shield/api/v1/validate
      Submit skill for expert evaluation (costs 1 inquiry)
      Body: { skill_id, provider, skill_url }
+     skill_url must be a public URL only — never submit secrets or private URLs
      Returns: request_id, status
 
 ================================================================================
@@ -104,6 +107,22 @@ Pro Tier ............... $29/month
 Enterprise ............. Custom pricing
   Unlimited lookups and inquiries
   Private queue, SLA, dedicated support, custom integrations
+
+================================================================================
+PRIVACY & DATA HANDLING
+================================================================================
+
+* Only skill identifiers, provider names, and optional public skill URLs are
+  transmitted — no user PII, secrets, source code, or environment variables
+* Your API key is used solely for authentication — never logged in plaintext,
+  shared, or transmitted to third parties
+* Skill safety assessments are public verdicts; your account usage metrics
+  are stored in your account only
+* Webhook alerts (Pro+ only) contain only skill_id, provider, safety_score,
+  and risk_level — you control the webhook URL and can disable it any time
+* No cross-service data sharing with other Simply Semantics services
+* API request logs contain key hash (not the key), endpoint, skill_id,
+  provider, and timestamp — retained for 30 days
 
 ================================================================================
 CONTACT & SUPPORT

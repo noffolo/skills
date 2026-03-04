@@ -7,6 +7,12 @@ homepage: https://www.simplysemantics.com/semantic-shield.html
 author: Simply Semantics (@simplysemantics)
 license: MIT
 
+requires:
+  env:
+    - name: SEMANTIC_SHIELD_API_KEY
+      required: true
+      description: Your Semantic Shield API key. Generated when you create an account at https://dashboard.simplysemantics.com. This key authenticates your requests — it is scoped to your account and does not grant access to any other service. You can revoke and regenerate it at any time from the dashboard.
+
 metadata:
   clawbot:
     emoji: "🛡️🔒"
@@ -22,6 +28,20 @@ metadata:
 AI skill safety validation powered by real human security experts. Before your agent installs a skill, plugin, or MCP tool — check its trust profile. Get a safety score (0–100), risk level, threat details, and a clear install/reject recommendation. If the skill hasn't been vetted yet, submit it for expert evaluation. Continuous 0-day monitoring keeps assessments current.
 
 100% REAL human security staff with 30+ years of enterprise security experience, including US Homeland Security. No AI-only reviews — every skill is assessed by trusted experts.
+
+## Authentication
+
+`SEMANTIC_SHIELD_API_KEY` is **always required**. This is your personal API key generated when you create an account at https://dashboard.simplysemantics.com. It authenticates your requests and is scoped to your Semantic Shield account only — it does not grant access to any other Simply Semantics service or third-party system. You can revoke and regenerate your key at any time from the dashboard.
+
+## Privacy & data handling
+
+- **What data is sent**: Only skill identifiers (`skill_id`), provider names (`provider`), and optionally a public skill URL (`skill_url`) when submitting a skill for evaluation. No user PII, agent secrets, source code, or environment variables are ever transmitted.
+- **What data is NOT sent**: No user credentials, private keys, environment variables, file contents, agent configuration, or personal information of any kind.
+- **Data retention**: Skill safety assessments are stored in the Semantic Shield registry and are available to all users (they are public safety verdicts). Your account usage metrics (lookup/inquiry counts) are stored in your account only.
+- **API key handling**: Your `SEMANTIC_SHIELD_API_KEY` is used solely for request authentication. It is never logged, shared, or transmitted to third parties.
+- **Webhook alerts (Pro+ tiers only)**: If you configure a webhook URL in the dashboard, Semantic Shield will POST notifications to your URL when a previously vetted skill's safety status changes (e.g. new threat detected). The webhook payload contains only the skill ID, provider, updated safety score, and risk level. You control the webhook URL and can disable it at any time. Free tier users do not have webhooks.
+- **No cross-service data sharing**: Your Semantic Shield data is not shared with other Simply Semantics services (e.g. Semantic Prospect).
+- **Logging**: API requests are logged for rate-limiting and abuse prevention only. Logs contain your API key hash (not the key itself), the endpoint called, skill_id, provider, and timestamp. Logs are retained for 30 days.
 
 ## When to use this skill (activation triggers)
 
@@ -45,7 +65,7 @@ Do **NOT** use for:
 
 Check if a skill exists in the Semantic Shield database before using a lookup.
 
-**GET** `${SEMANTIC_SHIELD_API_BASE:-https://dashboard.simplysemantics.com/shield}/api/v1/search`
+**GET** `https://dashboard.simplysemantics.com/shield/api/v1/search`
 
 Headers:
 ```text
@@ -58,7 +78,7 @@ Query parameters:
 
 Example:
 ```
-GET /api/v1/search?q=weather&provider=example-ai
+GET https://dashboard.simplysemantics.com/shield/api/v1/search?q=weather&provider=example-ai
 ```
 
 Response:
@@ -75,7 +95,7 @@ Response:
 
 Get full safety details for a specific skill.
 
-**GET** `${SEMANTIC_SHIELD_API_BASE:-https://dashboard.simplysemantics.com/shield}/api/v1/check`
+**GET** `https://dashboard.simplysemantics.com/shield/api/v1/check`
 
 Headers:
 ```text
@@ -88,7 +108,7 @@ Query parameters:
 
 Example:
 ```
-GET /api/v1/check?skill_id=weather-pro-v2&provider=example-ai
+GET https://dashboard.simplysemantics.com/shield/api/v1/check?skill_id=weather-pro-v2&provider=example-ai
 ```
 
 Response (vetted):
@@ -124,9 +144,9 @@ Response (not vetted — 404):
 
 ### 3. Submit a skill for vetting (costs 1 inquiry)
 
-If a skill is not in the database, submit it for expert evaluation.
+If a skill is not in the database, submit it for expert evaluation. Only public skill identifiers and URLs are accepted — do not submit private source code, secrets, or internal URLs.
 
-**POST** `${SEMANTIC_SHIELD_API_BASE:-https://dashboard.simplysemantics.com/shield}/api/v1/validate`
+**POST** `https://dashboard.simplysemantics.com/shield/api/v1/validate`
 
 Headers:
 ```text
@@ -142,6 +162,8 @@ Body:
   "skill_url": "https://example.com/new-plugin"
 }
 ```
+
+> ⚠️ **`skill_url` should be a public URL only** (e.g. a marketplace listing, GitHub repo, or documentation page). Do not submit private/internal URLs, source code repositories, or URLs containing secrets or tokens.
 
 Response:
 ```json
@@ -169,10 +191,10 @@ Based on the response, the agent should:
 
 ### 5. Edge cases
 
-- **401/403** → "Missing or invalid SEMANTIC_SHIELD_API_KEY. Set the env var to use this skill."
-- **429** → "Rate/quota limit reached — upgrade your plan or retry later."
-- **404** → Skill not vetted. Offer to submit for evaluation or warn user.
-- **500** → "Service temporarily unavailable. Try again shortly."
+- 401/403 → "Missing or invalid SEMANTIC_SHIELD_API_KEY. Set the env var to use this skill."
+- 429 → "Rate/quota limit reached — upgrade your plan or retry later."
+- 404 → Skill not vetted. Offer to submit for evaluation or warn user.
+- 500 → "Service temporarily unavailable. Try again shortly."
 
 ## Output format
 

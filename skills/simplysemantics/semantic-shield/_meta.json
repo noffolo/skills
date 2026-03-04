@@ -3,9 +3,15 @@
   "slug": "semantic-shield",
   "displayName": "Semantic Shield",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772367306723,
-    "commit": "https://github.com/openclaw/skills/commit/05a9cc1dae4bc73ebd74451c68191ab7eca32f43"
+    "version": "1.0.1",
+    "publishedAt": 1772539225260,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772367306723,
+      "commit": "https://github.com/openclaw/skills/commit/05a9cc1dae4bc73ebd74451c68191ab7eca32f43"
+    }
+  ]
 }
