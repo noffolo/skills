@@ -1,36 +1,47 @@
 ---
 name: imgbb-api
 description: Upload images to ImgBB and get shareable URLs. Use when: (1) User wants to upload images to imgbb, (2) Need to get direct image URLs for sharing, (3) Converting local images to shareable links, (4) Bulk uploading images, (5) Uploading from URL, (6) Base64 encoding.
-version: 1.0.0
+version: 1.1.0
+changelog: "v1.1.0: Added reasoning framework, decision tree, troubleshooting"
 metadata:
   openclaw:
     requires:
       bins:
         - python3
+      pip:
+        - requests
       env:
         - IMGBB_API_KEY
-    primaryEnv: IMGBB_API_KEY
     emoji: "📸"
+    category: "utility"
     homepage: https://github.com/KeXu9/imgbb-api
 ---
 
 # ImgBB API
 
-Free image hosting API. Upload images and get shareable URLs.
+Upload images to ImgBB and get shareable URLs.
+
+## When This Skill Activates
+
+This skill triggers when user wants to upload images to the web for sharing.
+
+## Reasoning Framework
+
+| Step | Action | Why |
+|------|--------|-----|
+| 1 | **CHECK** | Verify API key is available |
+| 2 | **PREPARE** | Get image path or URL |
+| 3 | **UPLOAD** | Send to ImgBB API |
+| 4 | **RETURN** | Return shareable URL |
+
+---
 
 ## Setup
 
-**Option 1: Environment Variable (Recommended)**
 ```bash
 export IMGBB_API_KEY="your_api_key_here"
-```
-
-**Option 2: Config File**
-Create `~/.imgbb_api_key` file with your API key.
-
-**Option 3: Pass as Parameter**
-```bash
-python scripts/imgbb.py image.jpg --key YOUR_API_KEY
+# or
+echo "your_api_key" > ~/.imgbb_api_key
 ```
 
 ## Get API Key
@@ -39,73 +50,76 @@ python scripts/imgbb.py image.jpg --key YOUR_API_KEY
 2. Click "Get API Key"
 3. Copy your API key
 
-## Upload Methods
+---
 
-### 1. Local File
-```bash
-curl -s -X POST "https://api.imgbb.com/1/upload?key=YOUR_KEY" -F "image=@/path/to/image.jpg"
+## Decision Tree
+
+```
+├── Upload single image → python imgbb.py image.jpg
+├── Upload from URL → python imgbb.py --url "URL"
+├── Custom name → python imgbb.py image.jpg --name myimg
+├── Set expiration → python imgbb.py image.jpg --expiration 3600
+├── Batch upload → python imgbb.py --batch ./folder/
+└── JSON output → python imgbb.py image.jpg --json
 ```
 
-### 2. From URL
-```bash
-curl -s -X POST "https://api.imgbb.com/1/upload?key=YOUR_KEY" -F "image=https://example.com/image.jpg"
-```
+---
 
-### 3. Base64
-```bash
-curl -s -X POST "https://api.imgbb.com/1/upload?key=YOUR_KEY" -F "image=base64_data"
-```
-
-### 4. With Expiration (60-15552000 sec)
-```bash
-curl -s -X POST "https://api.imgbb.com/1/upload?key=YOUR_KEY&expiration=3600" -F "image=@image.jpg"
-```
-
-## Script Usage
+## Usage
 
 ```bash
-# Upload file (uses IMGBB_API_KEY env or ~/.imgbb_api_key)
-python scripts/imgbb.py /path/to/image.jpg
+# Upload file
+python imgbb.py image.jpg
 
 # With custom API key
-python scripts/imgbb.py /path/to/image.jpg --key YOUR_KEY
-
-# With name
-python scripts/imgbb.py image.jpg --name custom_name
-
-# With expiration
-python scripts/imgbb.py image.jpg --expiration 3600
+python imgbb.py image.jpg --key YOUR_KEY
 
 # From URL
-python scripts/imgbb.py --url "https://..."
-
-# JSON output
-python scripts/imgbb.py image.jpg --json
+python imgbb.py --url "https://..."
 
 # Batch upload
-python scripts/imgbb.py --batch /folder/
+python imgbb.py --batch ./folder/
+
+# JSON output
+python imgbb.py image.jpg --json
 ```
 
-## Response Fields
+## Options
 
-| Field | Description |
-|-------|-------------|
-| `url` | Direct image URL |
-| `url_viewer` | Viewer page |
-| `thumb.url` | Thumbnail |
-| `delete_url` | Delete link |
-| `width` | Width |
-| `height` | Height |
-| `size` | Size (bytes) |
+| Flag | Description |
+|------|-------------|
+| `image` | Path to image |
+| `--key` | API key |
+| `--url` | Upload from URL |
+| `--name` | Custom name |
+| `--expiration` | Expiry seconds |
+| `--json` | JSON output |
+| `--batch` | Batch folder |
+| `--set-key` | Save API key |
 
-## Priority
+---
 
-API key is read in this order:
-1. `--key` parameter (highest)
-2. `IMGBB_API_KEY` environment variable
-3. `~/.imgbb_api_key` config file
+## Troubleshooting
 
-## Dependencies
+### No API key found
+- Fix: Set `IMGBB_API_KEY` env or use `--key`
 
-- Python 3
-- `requests` library (`pip install requests`)
+### File not found
+- Fix: Check file path is correct
+
+### Invalid image format
+- Fix: Use JPG, PNG, GIF, or WEBP
+
+### Image too large
+- Fix: Compress under 32MB
+
+---
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Upload | `python imgbb.py image.jpg` |
+| URL | `python imgbb.py --url "URL"` |
+| Batch | `python imgbb.py --batch ./folder/` |
+| JSON | `python imgbb.py image.jpg --json` |

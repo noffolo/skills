@@ -38,21 +38,21 @@ def upload_file(image_path, api_key, name=None, expiration=0):
         data = {'key': api_key}
         if name: data['name'] = name
         if expiration > 0: data['expiration'] = expiration
-        response = requests.post(API_URL, files=files, data=data)
+        response = requests.post(API_URL, files=files, data=data, timeout=30)
     return response.json()
 
 def upload_url(image_url, api_key, name=None, expiration=0):
     data = {'key': api_key, 'image': image_url}
     if name: data['name'] = name
     if expiration > 0: data['expiration'] = expiration
-    response = requests.post(API_URL, data=data)
+    response = requests.post(API_URL, data=data, timeout=30)
     return response.json()
 
 def upload_base64(base64_string, api_key, name=None, expiration=0):
     data = {'key': api_key, 'image': base64_string}
     if name: data['name'] = name
     if expiration > 0: data['expiration'] = expiration
-    response = requests.post(API_URL, data=data)
+    response = requests.post(API_URL, data=data, timeout=30)
     return response.json()
 
 def upload_batch(folder_path, api_key, extension='.jpg'):
