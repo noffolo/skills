@@ -2,6 +2,30 @@
 
 All notable changes to the Web3 Investor Skill will be documented in this file.
 
+## [0.4.0] - 2026-03-05
+
+### Framework Optimization
+
+#### SKILL.md Restructuring
+- **Refactored**: Split monolithic SKILL.md (~700 lines) into Progressive Disclosure structure
+- **New references/**:
+  - `discovery.md` - Detailed opportunity discovery documentation
+  - `investment-profile.md` - Investment preference system guide
+  - `trade-executor.md` - Complete REST API documentation
+  - `portfolio-indexer.md` - Portfolio balance query guide
+- **SKILL.md streamlined**: Reduced from ~700 lines to 263 lines
+  - Kept: Critical Rules, Quick Start, Module Overview with links
+  - Moved: Detailed API docs, usage examples to references/
+  - Removed: Version History section (kept in CHANGELOG.md)
+  - Retained: Contributing section per maintainer request
+
+#### Alignment with skill-creator Best Practices
+- Implemented Progressive Disclosure pattern (3-level loading)
+- Separated metadata (frontmatter), core workflow (SKILL.md), detailed docs (references/)
+- Improved context efficiency for AI agents
+
+---
+
 ## [0.3.0] - 2026-03-05
 
 ### Trade Executor Module (REST API Adapter)

@@ -1,98 +1,98 @@
-# Web3 Signer API 规范（参考实现）
+# Web3 Signer API Specification (Reference Implementation)
 
-> **版本**: v1.0.0  
-> **目的**: 定义 web3-investor skill 期望的签名服务 API 接口  
-> **适用对象**: 签名服务实现者、智能体（Agent）
-
----
-
-## 设计理念
-
-### 面向智能体设计
-
-本规范的设计目标是**让智能体理解**，而非让程序自动适配。
-
-- 智能体拥有 LLM 能力和编程能力
-- 智能体可以阅读文档、理解设计意图、二次修改代码
-- 我们提供的是**参考规范**，而非强制标准
-
-### 核心原则
-
-| 原则 | 说明 |
-|------|------|
-| **无私钥** | 签名服务持有私钥，skill 不持有任何私钥 |
-| **状态机** | 所有交易必须经过 `preview → approve → execute` |
-| **安全检查** | 余额充足、授权充足、路由有效 |
-| **可配置** | API 端点可通过配置文件映射 |
+> **Version**: v1.0.0  
+> **Purpose**: Define the expected signer service API interface for web3-investor skill  
+> **Audience**: Signer service implementers, intelligent agents
 
 ---
 
-## 执行模型
+## Design Philosophy
+
+### Agent-First Design
+
+This specification is designed to be **understood by intelligent agents**, not auto-adapted by programs.
+
+- Agents have LLM and programming capabilities
+- Agents can read documentation, understand design intent, and modify code
+- We provide a **reference specification**, not a mandatory standard
+
+### Core Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **No Private Keys** | Signer service holds private keys, skill does NOT hold any |
+| **State Machine** | All transactions must go through `preview → approve → execute` |
+| **Security Checks** | Sufficient balance, sufficient allowance, valid route |
+| **Configurable** | API endpoints can be mapped via configuration file |
+
+---
+
+## Execution Model
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Web3 Investor Skill                   │
-│                     (运行在 Agent 环境中)                     │
+│                     (Running in Agent Environment)           │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              │ REST API 调用
+                              │ REST API Call
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    本地 Keystore 签名服务                     │
+│                    Local Keystore Signer Service             │
 │  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐       │
-│  │  Keystore   │   │  签名引擎   │   │  广播服务   │       │
-│  │  (私钥存储)  │ → │  (eth_sign) │ → │  (RPC)     │       │
+│  │  Keystore   │   │   Signing   │   │   Broadcast │       │
+│  │ (Key Store) │ → │   Engine    │ → │   Service   │       │
 │  └─────────────┘   └─────────────┘   └─────────────┘       │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              │ 广播交易
+                              │ Broadcast Transaction
                               ▼
                        ┌─────────────┐
-                       │  区块链网络  │
+                       │  Blockchain │
                        │ (Base/ETH)  │
                        └─────────────┘
 ```
 
-**关键点**：
-- Skill 只负责生成交易请求，不持有私钥
-- 签名服务负责签名和广播
-- 两者通过 REST API 通信
+**Key Points**:
+- Skill only generates transaction requests, does NOT hold private keys
+- Signer service handles signing and broadcasting
+- Both communicate via REST API
 
 ---
 
-## 状态机
+## State Machine
 
 ```
 preview ──→ approve ──→ execute
    │           │            │
-   │           │            └──→ tx_hash (成功) 或 error (失败)
+   │           │            └──→ tx_hash (success) or error (failure)
    │           │
-   │           └──→ 需要人工确认
+   │           └──→ Requires manual confirmation
    │
    └──→ simulation_ok: true/false
         risk: { balance, allowance, route }
 ```
 
-**强制规则**：
-- ❌ 不能跳过 `approve` 步骤
-- ✅ 必须先 `preview` 验证交易可行性
-- ✅ `approve` 需要人工/外部确认
+**Enforced Rules**:
+- ❌ Cannot skip `approve` step
+- ✅ Must `preview` first to validate transaction feasibility
+- ✅ `approve` requires manual/external confirmation
 
 ---
 
-## API 端点规范
+## API Endpoint Specification
 
-### 1. 查询余额
+### 1. Query Balances
 
 ```
 GET /api/wallet/balances
 ```
 
-**查询参数**:
-- `chain` (可选): 链名称，如 `base`, `ethereum`
-- `tokens` (可选): 代币列表，如 `USDC,WETH`
+**Query Parameters**:
+- `chain` (optional): Chain name, e.g., `base`, `ethereum`
+- `tokens` (optional): Token list, e.g., `USDC,WETH`
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -114,13 +114,13 @@ GET /api/wallet/balances
 
 ---
 
-### 2. 预览交易
+### 2. Preview Transaction
 
 ```
 POST /api/trades/preview
 ```
 
-**请求**:
+**Request**:
 ```json
 {
   "type": "swap",
@@ -132,7 +132,7 @@ POST /api/trades/preview
 }
 ```
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -156,30 +156,30 @@ POST /api/trades/preview
 }
 ```
 
-**字段说明**:
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `preview_id` | string | 预览ID，用于后续 approve |
-| `simulation_ok` | boolean | 模拟是否成功 |
-| `risk` | object | 风险评估结果 |
-| `next_step` | string | 下一步操作：`approve` 或 `clarification` |
+**Field Descriptions**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `preview_id` | string | Preview ID for subsequent approve |
+| `simulation_ok` | boolean | Whether simulation succeeded |
+| `risk` | object | Risk assessment result |
+| `next_step` | string | Next action: `approve` or `clarification` |
 
 ---
 
-### 3. 批准交易
+### 3. Approve Transaction
 
 ```
 POST /api/trades/approve
 ```
 
-**请求**:
+**Request**:
 ```json
 {
   "preview_id": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -192,20 +192,20 @@ POST /api/trades/approve
 
 ---
 
-### 4. 执行交易
+### 4. Execute Transaction
 
 ```
 POST /api/trades/execute
 ```
 
-**请求**:
+**Request**:
 ```json
 {
   "approval_id": "660e8400-e29b-41d4-a716-446655440001"
 }
 ```
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -218,13 +218,13 @@ POST /api/trades/execute
 
 ---
 
-### 5. 查询交易状态
+### 5. Query Transaction Status
 
 ```
 GET /api/transactions/{tx_hash}
 ```
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -238,13 +238,13 @@ GET /api/transactions/{tx_hash}
 
 ---
 
-### 6. 查询授权
+### 6. Query Allowances
 
 ```
 GET /api/allowances?chain=base&token=USDC
 ```
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -263,13 +263,13 @@ GET /api/allowances?chain=base&token=USDC
 
 ---
 
-### 7. 预览撤销授权
+### 7. Preview Revoke Allowance
 
 ```
 POST /api/allowances/revoke-preview
 ```
 
-**请求**:
+**Request**:
 ```json
 {
   "token": "USDC",
@@ -278,7 +278,7 @@ POST /api/allowances/revoke-preview
 }
 ```
 
-**响应**:
+**Response**:
 ```json
 {
   "success": true,
@@ -290,9 +290,9 @@ POST /api/allowances/revoke-preview
 
 ---
 
-## 错误格式
+## Error Format
 
-所有错误响应遵循统一格式：
+All error responses follow a unified format:
 
 ```json
 {
@@ -305,27 +305,27 @@ POST /api/allowances/revoke-preview
 }
 ```
 
-**错误码定义**:
+**Error Code Definitions**:
 
-| 代码 | 说明 |
-|------|------|
-| E001 | 余额不足 |
-| E002 | 授权不足，需要先 approve token |
-| E003 | 无有效路由 |
-| E004 | 链不在白名单中 |
-| E005 | 协议不在白名单中 |
-| E006 | 代币不在白名单中 |
-| E007 | 超过交易限额 |
-| E008 | 模拟失败 |
-| E009 | 未批准，无法执行 |
-| E010 | API 服务不可用 |
-| E999 | 未知错误 |
+| Code | Description |
+|------|-------------|
+| E001 | Insufficient balance |
+| E002 | Insufficient allowance, need to approve token first |
+| E003 | No valid route found |
+| E004 | Chain not in whitelist |
+| E005 | Protocol not in whitelist |
+| E006 | Token not in whitelist |
+| E007 | Exceeds transaction limit |
+| E008 | Simulation failed |
+| E009 | Not approved, cannot execute |
+| E010 | API service unavailable |
+| E999 | Unknown error |
 
 ---
 
-## 配置适配
+## Configuration Adaptation
 
-签名服务实现者可以通过修改 `config/config.json` 来适配不同的 API：
+Signer service implementers can adapt different APIs by modifying `config/config.json`:
 
 ```json
 {
@@ -346,32 +346,32 @@ POST /api/allowances/revoke-preview
 
 ---
 
-## 适配指南
+## Adaptation Guide
 
-如果你的签名服务 API 与本规范不同：
+If your signer service API differs from this specification:
 
-### 方法 1：修改配置文件
-修改 `config/config.json` 中的 `endpoints` 映射。
+### Method 1: Modify Configuration File
+Update the `endpoints` mapping in `config/config.json`.
 
-### 方法 2：修改代码
-修改 `scripts/trading/trade_executor.py` 中的 `api_request()` 函数。
+### Method 2: Modify Code
+Update the `api_request()` function in `scripts/trading/trade_executor.py`.
 
-### 方法 3：实现适配层
-在你的签名服务中实现一个适配层，将你的 API 转换为本规范格式。
-
----
-
-## 安全建议
-
-1. **签名服务应运行在本地**，不暴露到公网
-2. **approve 步骤应有确认机制**，可以是：
-   - 控制台确认（开发环境）
-   - 硬件钱包确认（生产环境）
-   - 多签确认（团队环境）
-3. **设置交易限额**，防止单笔交易金额过大
-4. **白名单机制**，限制可交互的合约地址
+### Method 3: Implement Adapter Layer
+Implement an adapter layer in your signer service to convert your API to this specification format.
 
 ---
 
-**维护者**: Web3 Investor Skill Team  
-**更新日期**: 2026-03-05
+## Security Recommendations
+
+1. **Signer service should run locally**, not exposed to public internet
+2. **Approve step should have confirmation mechanism**, which can be:
+   - Console confirmation (development environment)
+   - Hardware wallet confirmation (production environment)
+   - Multi-signature confirmation (team environment)
+3. **Set transaction limits** to prevent single transactions that are too large
+4. **Whitelist mechanism** to limit contract addresses that can be interacted with
+
+---
+
+**Maintainer**: Web3 Investor Skill Team  
+**Last Updated**: 2026-03-05

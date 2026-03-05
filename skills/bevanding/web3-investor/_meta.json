@@ -3,11 +3,16 @@
   "slug": "web3-investor",
   "displayName": "Web3 Investor",
   "latest": {
-    "version": "0.3.3",
-    "publishedAt": 1772709508630,
-    "commit": "https://github.com/openclaw/skills/commit/f90afe4e5f5d8befe011fb366f77948c586e495f"
+    "version": "0.4.0",
+    "publishedAt": 1772724482673,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.3.3",
+      "publishedAt": 1772709508630,
+      "commit": "https://github.com/openclaw/skills/commit/f90afe4e5f5d8befe011fb366f77948c586e495f"
+    },
     {
       "version": "0.2.2",
       "publishedAt": 1772623315892,
