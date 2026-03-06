@@ -1,0 +1,11 @@
+{
+  "owner": "assistant-design",
+  "slug": "cc-changelog-monitor",
+  "displayName": "Claude Code Changelog Monitor",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772717119405,
+    "commit": null
+  },
+  "history": []
+}
