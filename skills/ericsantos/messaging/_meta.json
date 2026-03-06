@@ -1,11 +1,17 @@
 {
   "owner": "ericsantos",
   "slug": "messaging",
-  "displayName": "NexusMessaging",
+  "displayName": "Messaging",
   "latest": {
-    "version": "0.4.0",
-    "publishedAt": 1772410378123,
-    "commit": "https://github.com/openclaw/skills/commit/743d2ee53cf77bbe3694afcbedb72e80ebbf0ece"
+    "version": "0.7.0",
+    "publishedAt": 1772740979487,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.4.0",
+      "publishedAt": 1772410378123,
+      "commit": "https://github.com/openclaw/skills/commit/743d2ee53cf77bbe3694afcbedb72e80ebbf0ece"
+    }
+  ]
 }
