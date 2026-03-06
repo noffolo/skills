@@ -1,3 +1,21 @@
+﻿# ⚠️ 重要声明
+
+> **本技能非 139 邮箱官方发布**
+> 
+> 本技能由 139 邮箱发烧友基于标准 IMAP/POP3 协议开发，旨在为 OpenClaw 用户提供便捷的 139 邮箱访问方式。
+> 
+> **注意事项：**
+> - 本技能为**非官方**第三方工具
+> - 使用本技能产生的风险与 139 邮箱官方无关
+> - 请用户谨慎使用，妥善保管账号密码
+> - 建议定期更换邮箱授权码以确保安全
+> 
+> **使用前请确保：**
+> 1. 您已了解并接受上述声明
+> 2. 您已开启 139 邮箱的 IMAP/POP3 服务
+> 3. 您已生成邮箱授权码（非登录密码）
+
+---
 ---
 name: 139mail
 description: 139邮箱IMAP/POP3操作技能。支持通过IMAP/POP3协议查看收件箱/未读邮件、发送邮件、搜索邮件、管理邮件、邮件分拣。首次使用需配置账号和授权码。当用户需要操作139邮箱（mail.10086.cn）时触发此技能。
@@ -318,3 +336,4 @@ python scripts/check_mail.py --limit 5
 
 - **IMAP操作指南**：参见 [references/imap_guide.md](references/imap_guide.md)
 - **服务器配置**：参见 [references/credentials.md](references/credentials.md)
+

@@ -1,13 +1,18 @@
 {
   "owner": "fanjiabo-529",
   "slug": "139mail",
-  "displayName": "139mail",
+  "displayName": "139mail（非官方）",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772449667037,
-    "commit": "https://github.com/openclaw/skills/commit/6fd50ed3650b5aaaf0e5572ab926c696c90049dd"
+    "version": "1.0.4",
+    "publishedAt": 1772708529793,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772449667037,
+      "commit": "https://github.com/openclaw/skills/commit/6fd50ed3650b5aaaf0e5572ab926c696c90049dd"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1772189070831,
