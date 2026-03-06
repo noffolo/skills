@@ -11,7 +11,7 @@ Schedule social media posts across 9 platforms from one API. SaaS — no self-ho
 
 ## Setup
 
-1. Sign up at https://app.adaptlypost.com/register
+1. Sign up at https://adaptlypost.com/signup
 2. Go to Settings → API Tokens → generate an API token
 3. Set the environment variable:
    ```bash
