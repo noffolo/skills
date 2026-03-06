@@ -1,6 +1,22 @@
 ---
 name: agent-phone-network
 description: Agent-to-agent calling over the OpenClawAgents A2A endpoint with Supabase auth. Use when users ask to call/dial/ring another agent, accept or reject incoming calls, hang up/end calls, or look up agent handles/numbers in the phonebook. Do not use for normal human phone calls or PSTN/SIP routing.
+homepage: https://github.com/chefbc2k/openclawagents-a2a
+emoji: ☎️
+metadata:
+  clawdbot:
+    always: false
+    skillKey: agent-phone-network
+    primaryEnv: A2A_BEARER_TOKEN
+    requires:
+      env:
+        - A2A_BASE_URL
+        - A2A_AGENT_KEY_B64
+        - A2A_BEARER_TOKEN
+    os:
+      - linux
+      - darwin
+      - win32
 ---
 
 # Agent Phone Network

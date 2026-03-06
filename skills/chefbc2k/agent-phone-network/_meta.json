@@ -3,11 +3,16 @@
   "slug": "agent-phone-network",
   "displayName": "Agent Phone Network",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1772727688915,
-    "commit": "https://github.com/openclaw/skills/commit/63483e84ea39ae328842d4b7c4d157416c1e8cd5"
+    "version": "0.1.2",
+    "publishedAt": 1772728375313,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1772727688915,
+      "commit": "https://github.com/openclaw/skills/commit/63483e84ea39ae328842d4b7c4d157416c1e8cd5"
+    },
     {
       "version": "0.2.0",
       "publishedAt": 1772642119131,
