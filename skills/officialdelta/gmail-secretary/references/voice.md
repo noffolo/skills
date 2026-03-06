@@ -1,6 +1,6 @@
 # Alan voice reference (auto)
 
-Generated: 2026-03-05T10:55:30.054Z
+Generated: 2026-03-06T10:55:31.697Z
 Sample size (sent snippets): 50
 
 ## High-level style (heuristics)
