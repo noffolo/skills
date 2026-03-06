@@ -139,3 +139,20 @@ Upload this folder directly:
 `marsbit-co/skills/opennews`
 
 Do not upload its parent directory.
+
+## Install from GitHub
+
+You can install this skill directly from GitHub when ClawHub is unavailable
+(for example, rate-limit errors).
+
+Repository:
+- `https://github.com/domilin/marsbit-news-skill`
+
+Example local install:
+
+```bash
+git clone https://github.com/domilin/marsbit-news-skill /tmp/marsbit-news-skill
+mkdir -p ~/.openclaw/skills/opennews
+cp -R /tmp/marsbit-news-skill/openclaw-skill/opennews/* ~/.openclaw/skills/opennews/
+openclaw skills list
+```

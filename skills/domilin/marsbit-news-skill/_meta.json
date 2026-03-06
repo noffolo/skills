@@ -1,11 +1,17 @@
 {
   "owner": "domilin",
   "slug": "marsbit-news-skill",
-  "displayName": "marsbit-news",
+  "displayName": "marsbit-news-skill",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1772611627620,
-    "commit": "https://github.com/openclaw/skills/commit/6aedca25c62e63c136a470f50a0660d09fae7159"
+    "version": "1.0.7",
+    "publishedAt": 1772615874276,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1772611627620,
+      "commit": "https://github.com/openclaw/skills/commit/6aedca25c62e63c136a470f50a0660d09fae7159"
+    }
+  ]
 }
