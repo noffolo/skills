@@ -25,7 +25,7 @@ Use geminipdfocr to extract text from PDF documents via OCR (Google Gemini).
 
 ## Data and privacy
 
-PDF pages are split and uploaded to Google Gemini for OCR. Do not use with highly sensitive documents unless you accept that content is sent to Google's API.
+**Full page images/files are sent to Google's API.** PDFs are split into single-page files and each page is uploaded to Google Gemini for OCR. There are no hidden exfiltration endpoints or other data collection. Do not use with highly sensitive documents unless you accept that content is sent to Google.
 
 ## Setup (venv installation)
 
