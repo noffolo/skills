@@ -1,0 +1,11 @@
+{
+  "owner": "upwell",
+  "slug": "html-to-image",
+  "displayName": "Use agentbrowser to convert html to image",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772765978906,
+    "commit": null
+  },
+  "history": []
+}
