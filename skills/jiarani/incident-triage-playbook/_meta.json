@@ -1,11 +1,17 @@
 {
   "owner": "jiarani",
   "slug": "incident-triage-playbook",
-  "displayName": "1.0.0",
+  "displayName": "1.1.0",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772881244174,
-    "commit": "https://github.com/openclaw/skills/commit/469a8da7ed7d1702d91ab1c9a909295c08ca102c"
+    "version": "1.1.0",
+    "publishedAt": 1772881255476,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772881244174,
+      "commit": "https://github.com/openclaw/skills/commit/469a8da7ed7d1702d91ab1c9a909295c08ca102c"
+    }
+  ]
 }

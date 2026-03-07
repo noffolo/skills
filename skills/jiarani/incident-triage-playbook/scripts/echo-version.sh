@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-echo "incident-triage-playbook 1.0.0"
+echo "incident-triage-playbook 1.1.0"
