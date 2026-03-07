@@ -1,0 +1,11 @@
+{
+  "owner": "mosonchan2023",
+  "slug": "news-headlines-aggregator",
+  "displayName": "News Headlines Aggregator",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1772841978055,
+    "commit": null
+  },
+  "history": []
+}
