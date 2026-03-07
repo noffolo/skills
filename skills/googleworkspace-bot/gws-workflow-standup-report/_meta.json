@@ -1,0 +1,11 @@
+{
+  "owner": "googleworkspace-bot",
+  "slug": "gws-workflow-standup-report",
+  "displayName": "Gws Workflow Standup Report",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772831375388,
+    "commit": null
+  },
+  "history": []
+}
