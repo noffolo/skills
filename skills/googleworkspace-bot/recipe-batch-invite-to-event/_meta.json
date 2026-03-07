@@ -1,0 +1,11 @@
+{
+  "owner": "googleworkspace-bot",
+  "slug": "recipe-batch-invite-to-event",
+  "displayName": "Recipe Batch Invite To Event",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772847347599,
+    "commit": null
+  },
+  "history": []
+}
