@@ -1,0 +1,11 @@
+{
+  "owner": "mculp",
+  "slug": "agent-companion",
+  "displayName": "Agent Companion",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772926805540,
+    "commit": null
+  },
+  "history": []
+}
