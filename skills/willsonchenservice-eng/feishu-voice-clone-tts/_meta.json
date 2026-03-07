@@ -1,0 +1,11 @@
+{
+  "owner": "willsonchenservice-eng",
+  "slug": "feishu-voice-clone-tts",
+  "displayName": "Feishu Voice Clone TTS Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772767308901,
+    "commit": null
+  },
+  "history": []
+}
