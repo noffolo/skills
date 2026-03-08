@@ -1,42 +1,77 @@
 ---
 name: agent-bom
 description: >-
-  AI agent infrastructure security scanner — check packages for CVEs, look up MCP servers
-  in the 427+ server security metadata registry, assess blast radius, generate SBOMs, enforce
-  compliance (OWASP, MITRE ATLAS, EU AI Act, NIST AI RMF). Use when the user
-  mentions vulnerability scanning, dependency security, SBOM generation, MCP server
-  trust, or AI supply chain risk.
-version: 0.57.0
+  AI agent infrastructure security scanner — discovers MCP clients and servers,
+  scans for CVEs, maps blast radius, runs CIS benchmarks (AWS, Azure, GCP,
+  Snowflake), OWASP/NIST/MITRE compliance, AISVS v1.0, MAESTRO layer tagging,
+  and vector database security checks. Use when the user mentions vulnerability
+  scanning, MCP server trust, compliance, SBOM generation, CIS benchmarks,
+  blast radius, or AI supply chain risk.
+version: 0.59.3
 license: Apache-2.0
 compatibility: >-
-  Requires Python 3.11+. Install via pipx or pip. Optional: Docker for container
-  scanning (Grype/Syft). No external API keys required for basic operation.
+  Requires Python 3.11+. Install via pipx or pip. No credentials required for
+  basic scanning. CIS benchmark checks optionally use cloud SDK credentials
+  (AWS/Azure/GCP/Snowflake). Optional: Grype/Syft for container image scanning.
 metadata:
   author: msaad00
   homepage: https://github.com/msaad00/agent-bom
   source: https://github.com/msaad00/agent-bom
   pypi: https://pypi.org/project/agent-bom/
-  smithery: https://smithery.ai/server/agent-bom/agent-bom
   scorecard: https://securityscorecards.dev/viewer/?uri=github.com/msaad00/agent-bom
-  tests: 6100
+  tests: 3480
   install:
     pipx: agent-bom
     pip: agent-bom
-    docker: ghcr.io/msaad00/agent-bom:0.57.0
+    docker: ghcr.io/msaad00/agent-bom:0.59.3
   openclaw:
     requires:
       bins: []
       env: []
+      credentials: none
+    credential_policy: >-
+      Zero credentials required for CVE scanning, blast radius, compliance
+      evaluation, SBOM generation, and MCP registry lookups. Optional env vars
+      below increase rate limits or enable cloud CIS checks. Env var values in
+      discovered config files are replaced with ***REDACTED*** by
+      sanitize_env_vars() in the installed code — verify at
+      https://github.com/msaad00/agent-bom/blob/main/src/agent_bom/security.py#L159
     optional_env:
-      - NVD_API_KEY
-      - SNYK_TOKEN
-      - AGENT_BOM_CLICKHOUSE_URL
+      - name: NVD_API_KEY
+        purpose: "Increases NVD API rate limit (scanning works without it)"
+        required: false
+      - name: SNYK_TOKEN
+        purpose: "Snyk vulnerability enrichment for code_scan (optional)"
+        required: false
+      - name: AWS_PROFILE
+        purpose: "AWS CIS benchmark checks — uses boto3 with local AWS profile"
+        required: false
+      - name: AZURE_TENANT_ID
+        purpose: "Azure CIS benchmark checks (azure-mgmt-* SDK)"
+        required: false
+      - name: AZURE_CLIENT_ID
+        purpose: "Azure CIS benchmark checks — service principal client ID"
+        required: false
+      - name: AZURE_CLIENT_SECRET
+        purpose: "Azure CIS benchmark checks — service principal secret"
+        required: false
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        purpose: "GCP CIS benchmark checks (google-cloud-* SDK)"
+        required: false
+      - name: SNOWFLAKE_ACCOUNT
+        purpose: "Snowflake CIS benchmark checks"
+        required: false
+      - name: SNOWFLAKE_USER
+        purpose: "Snowflake CIS benchmark checks"
+        required: false
+      - name: SNOWFLAKE_PASSWORD
+        purpose: "Snowflake CIS benchmark checks"
+        required: false
     optional_bins:
       - syft
       - grype
-      - kubectl
       - semgrep
-      - docker
+      - kubectl
     emoji: "\U0001F6E1"
     homepage: https://github.com/msaad00/agent-bom
     source: https://github.com/msaad00/agent-bom
@@ -45,14 +80,68 @@ metadata:
       - darwin
       - linux
       - windows
-    file_reads_note: "Reads server names and command paths only — never credentials, tokens, or env var values"
+    install_verification: >-
+      Before running with sensitive data: (1) pip install agent-bom;
+      (2) agent-bom verify agent-bom; (3) review security.py#L159
+      (sanitize_env_vars) and discovery/__init__.py to confirm redaction
+      behavior.
+    credential_handling: >-
+      MCP config files are parsed as JSON/TOML/YAML. Only server names,
+      commands, args, and URLs are extracted. Env var values are replaced with
+      ***REDACTED*** by sanitize_env_vars() in the installed code. Verify at
+      https://github.com/msaad00/agent-bom/blob/main/src/agent_bom/security.py#L159
+    data_flow: >-
+      All scanning is local-first. Only public package names and CVE IDs are
+      sent to vulnerability databases (OSV, NVD, EPSS, GitHub Advisories).
+      Registry data (427+ MCP server metadata) is bundled in the package —
+      lookups are in-memory with zero network calls. CIS benchmark checks call
+      cloud provider APIs using locally configured credentials only. No config
+      files, credentials, or env var values ever leave the machine.
     file_reads:
-      - "~/.cursor/mcp.json"
+      # Claude Desktop
       - "~/Library/Application Support/Claude/claude_desktop_config.json"
+      - "~/.config/Claude/claude_desktop_config.json"
+      # Claude Code
       - "~/.claude/settings.json"
+      - "~/.claude.json"
+      # Cursor
+      - "~/.cursor/mcp.json"
+      - "~/Library/Application Support/Cursor/User/globalStorage/cursor.mcp/mcp.json"
+      # Windsurf
       - "~/.windsurf/mcp.json"
-      - "~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json"
+      # Cline
+      - "~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json"
+      # VS Code Copilot
+      - "~/Library/Application Support/Code/User/mcp.json"
+      # Codex CLI
+      - "~/.codex/config.toml"
+      # Gemini CLI
+      - "~/.gemini/settings.json"
+      # Goose
+      - "~/.config/goose/config.yaml"
+      # Continue
+      - "~/.continue/config.json"
+      # Zed
+      - "~/.config/zed/settings.json"
+      # OpenClaw
+      - "~/.openclaw/openclaw.json"
+      # Roo Code
+      - "~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json"
+      # Amazon Q
+      - "~/Library/Application Support/Code/User/globalStorage/amazonwebservices.amazon-q-vscode/mcp.json"
+      # JetBrains AI
+      - "~/Library/Application Support/JetBrains/*/mcp.json"
+      - "~/.config/github-copilot/intellij/mcp.json"
+      # Junie
+      - "~/.junie/mcp/mcp.json"
+      # Project-level configs
+      - ".mcp.json"
+      - ".vscode/mcp.json"
+      - ".cursor/mcp.json"
+      # User-provided files
       - "user-provided SBOM files (CycloneDX/SPDX JSON)"
+      - "user-provided policy files (YAML/JSON policy-as-code)"
+      - "user-provided audit log files (JSONL from agent-bom proxy)"
       - "user-provided SKILL.md files (for skill_trust analysis)"
     file_writes: []
     network_endpoints:
@@ -65,15 +154,12 @@ metadata:
       - url: "https://api.first.org/data/v1/epss"
         purpose: "EPSS exploit probability scores"
         auth: false
-      - url: "https://api.deps.dev/v3alpha"
-        purpose: "Google deps.dev — transitive dependency resolution and license enrichment"
+      - url: "https://api.github.com/advisories"
+        purpose: "GitHub Security Advisories — supplemental CVE lookup"
         auth: false
       - url: "https://api.snyk.io"
-        purpose: "Snyk vulnerability enrichment (requires SNYK_TOKEN)"
+        purpose: "Snyk vulnerability enrichment for code_scan (requires SNYK_TOKEN)"
         auth: true
-      - url: "https://agent-bom-mcp.up.railway.app/sse"
-        purpose: "Optional remote MCP endpoint — local-first scanning recommended"
-        auth: false
     telemetry: false
     persistence: false
     privilege_escalation: false
@@ -81,24 +167,23 @@ metadata:
     autonomous_invocation: restricted
 ---
 
-# agent-bom — AI Supply Chain Security Scanner
+# agent-bom — AI Agent Infrastructure Security Scanner
 
-Scans AI infrastructure for vulnerabilities, generates SBOMs, and enforces
-compliance. Discovers MCP clients, servers, and packages across 20 MCP clients.
+Discovers MCP clients and servers across 20+ AI tools, scans for CVEs, maps
+blast radius, runs cloud CIS benchmarks, checks OWASP/NIST/MITRE compliance,
+generates SBOMs, and assesses AI infrastructure against AISVS v1.0 and MAESTRO
+framework layers.
 
-## Install (Recommended: Local-First)
-
-Local scanning eliminates all third-party trust concerns. All vulnerability
-databases (OSV, NVD, EPSS, KEV) are queried directly from your machine.
+## Install
 
 ```bash
 pipx install agent-bom
-agent-bom scan              # auto-discover 20 MCP clients + scan
+agent-bom scan              # auto-discover + scan
 agent-bom check langchain   # check a specific package
 agent-bom where             # show all discovery paths
 ```
 
-### As an MCP Server (Local)
+### As an MCP Server
 
 ```json
 {
@@ -111,50 +196,49 @@ agent-bom where             # show all discovery paths
 }
 ```
 
-### As a Docker Container
+## Tools (22)
 
-```bash
-docker run --rm ghcr.io/msaad00/agent-bom:0.57.0 scan
-```
-
-### Self-Hosted SSE Server
-
-```bash
-docker build -f Dockerfile.sse -t agent-bom-sse .
-docker run -p 8080:8080 agent-bom-sse
-# Connect: { "type": "sse", "url": "http://localhost:8080/sse" }
-```
-
-## Available MCP Tools (19 tools)
-
+### Vulnerability Scanning
 | Tool | Description |
 |------|-------------|
 | `scan` | Full discovery + vulnerability scan pipeline |
 | `check` | Check a package for CVEs (OSV, NVD, EPSS, KEV) |
 | `blast_radius` | Map CVE impact chain across agents, servers, credentials |
-| `registry_lookup` | Look up MCP server in 427+ server security metadata registry |
-| `compliance` | OWASP LLM/Agentic Top 10, EU AI Act, MITRE ATLAS, NIST AI RMF |
 | `remediate` | Prioritized remediation plan for vulnerabilities |
 | `verify` | Package integrity + SLSA provenance check |
-| `skill_trust` | Assess skill file trust level (5-category analysis) |
-| `generate_sbom` | Generate SBOM (CycloneDX or SPDX format) |
-| `policy_check` | Evaluate results against security policy |
 | `diff` | Compare two scan reports (new/resolved/persistent) |
-| `marketplace_check` | Pre-install trust check with registry cross-reference |
-| `code_scan` | SAST scanning via Semgrep with CWE-based compliance mapping |
 | `where` | Show MCP client config discovery paths |
 | `inventory` | List discovered agents, servers, packages |
-| `context_graph` | Agent context graph with lateral movement analysis |
-| `analytics_query` | Query vulnerability trends, posture history, and runtime events from ClickHouse |
-| `cis_benchmark` | Run CIS benchmark checks against AWS or Snowflake accounts |
+
+### Compliance & Policy
+| Tool | Description |
+|------|-------------|
+| `compliance` | OWASP LLM/Agentic Top 10, EU AI Act, MITRE ATLAS, NIST AI RMF |
+| `policy_check` | Evaluate results against custom security policy (17 conditions) |
+| `cis_benchmark` | CIS benchmark checks (AWS, Azure v3.0, GCP v3.0, Snowflake) |
+| `generate_sbom` | Generate SBOM (CycloneDX or SPDX format) |
+| `aisvs_benchmark` | OWASP AISVS v1.0 compliance — 9 AI security checks |
+
+### Registry & Trust
+| Tool | Description |
+|------|-------------|
+| `registry_lookup` | Look up MCP server in 427+ server security metadata registry |
+| `marketplace_check` | Pre-install trust check with registry cross-reference |
 | `fleet_scan` | Batch registry lookup + risk scoring for MCP server inventories |
+| `skill_trust` | Assess skill file trust level (5-category analysis) |
+| `code_scan` | SAST scanning via Semgrep with CWE-based compliance mapping |
 
-## MCP Resources
+### Runtime & Analytics
+| Tool | Description |
+|------|-------------|
+| `context_graph` | Agent context graph with lateral movement analysis |
+| `analytics_query` | Query vulnerability trends, posture history, and runtime events |
+| `vector_db_scan` | Probe Qdrant/Weaviate/Chroma/Milvus for auth and exposure |
 
+### Resources
 | Resource | Description |
 |----------|-------------|
 | `registry://servers` | Browse 427+ MCP server security metadata registry |
-| `policy://template` | Default security policy template |
 
 ## Example Workflows
 
@@ -165,79 +249,61 @@ check(package="@modelcontextprotocol/server-filesystem", ecosystem="npm")
 # Map blast radius of a CVE
 blast_radius(cve_id="CVE-2024-21538")
 
-# Look up a server in the threat registry
-registry_lookup(server_name="brave-search")
+# Full scan
+scan()
 
-# Generate an SBOM
-generate_sbom(format="cyclonedx")
+# Run CIS benchmark
+cis_benchmark(provider="aws")
+
+# Run AISVS v1.0 compliance
+aisvs_benchmark()
+
+# Scan vector databases for auth misconfigurations
+vector_db_scan()
 
 # Assess trust of a skill file
 skill_trust(skill_content="<paste SKILL.md content>")
 ```
 
-## Remote SSE Endpoint (Optional)
+## Supported Frameworks
 
-For MCP clients that only support remote servers (e.g., some Claude Desktop
-configurations), a convenience endpoint is available:
-
-```json
-{
-  "mcpServers": {
-    "agent-bom": {
-      "type": "sse",
-      "url": "https://agent-bom-mcp.up.railway.app/sse"
-    }
-  }
-}
-```
-
-**Important:** This endpoint queries the same public vulnerability databases
-as local scanning. It receives only the arguments you provide in tool calls
-(package names, CVE IDs, server names). For sensitive environments, use local
-installation or self-host your own instance.
+- **OWASP LLM Top 10** (2025) — prompt injection, supply chain, data leakage
+- **OWASP Agentic Top 10** — tool poisoning, rug pulls, credential theft
+- **OWASP AISVS v1.0** — AI Security Verification Standard (9 checks)
+- **MITRE ATLAS** — adversarial ML threat framework
+- **MITRE ATT&CK Enterprise** — cloud/infra T-code mapping on CIS failures
+- **MAESTRO** — KC1–KC6 layer tagging on all findings
+- **EU AI Act** — risk classification, transparency, SBOM requirements
+- **NIST AI RMF** — govern, map, measure, manage lifecycle
+- **CIS Foundations** — AWS, Azure v3.0, GCP v3.0, Snowflake benchmarks
 
 ## Privacy & Data Handling
 
-### Config file reads
+This skill installs agent-bom from PyPI. The redaction behavior described here
+is implemented in the installed package — **verify before running with
+sensitive data**:
 
-Discovery reads local MCP client config files to extract **server names and
-command paths only**. It never reads, parses, or transmits credential values,
-API keys, or environment variable contents from those files. The extracted data
-(e.g., "brave-search is configured in Claude Desktop") stays in local memory
-and is only included in scan output you explicitly request.
+```bash
+# 1. Verify package integrity (Sigstore)
+agent-bom verify agent-bom
 
-### Network behavior
+# 2. Review the redaction code directly
+# security.py L159: sanitize_env_vars() — replaces env values with ***REDACTED***
+# https://github.com/msaad00/agent-bom/blob/main/src/agent_bom/security.py#L159
 
-All scanning runs **locally by default** with no outbound connections except
-public vulnerability databases (OSV, NVD, EPSS). The remote SSE endpoint
-(`railway.app`) is **opt-in only** — you must explicitly add it to your MCP
-client config. It is never contacted during normal local operation.
+# 3. Review config parsing
+# https://github.com/msaad00/agent-bom/blob/main/src/agent_bom/discovery/__init__.py
+```
 
-Optional tokens (NVD_API_KEY, SNYK_TOKEN, AGENT_BOM_CLICKHOUSE_URL) are only
-used when you explicitly set them. They are never auto-discovered or inferred.
-
-## Security Boundaries
-
-### Safe to send (public data only)
-
-- Public package names + versions (`langchain`, `express@4.18.2`)
-- Public CVE IDs (`CVE-2024-21538`)
-- Public MCP server names (`brave-search`)
-- Ecosystem identifiers (`pypi`, `npm`, `go`)
-
-### Never send
-
-- API keys, tokens, passwords, or `.env` contents
-- Full config files (may contain credentials)
-- Internal URLs, hostnames, or proprietary package names
-- Use `${env:VAR}` references, never literal credential values
+Discovery reads local MCP client config files. Only server names, commands,
+args, and URLs are extracted. Env var values are replaced with `***REDACTED***`
+by `sanitize_env_vars()` in the installed code. Only public package names and
+CVE IDs are sent to vulnerability databases. Cloud CIS checks use locally
+configured credentials and call only the cloud provider's own APIs.
 
 ## Verification
 
 - **Source**: [github.com/msaad00/agent-bom](https://github.com/msaad00/agent-bom) (Apache-2.0)
-- **PyPI**: [pypi.org/project/agent-bom](https://pypi.org/project/agent-bom/)
-- **Smithery**: [smithery.ai/server/agent-bom](https://smithery.ai/server/agent-bom/agent-bom)
-- **Sigstore signed**: `agent-bom verify agent-bom@0.57.0`
-- **6,100+ tests** with automated security scanning (CodeQL + OpenSSF Scorecard)
-- **OpenSSF Scorecard**: [securityscorecards.dev](https://securityscorecards.dev/viewer/?uri=github.com/msaad00/agent-bom)
+- **Sigstore signed**: `agent-bom verify agent-bom@0.60.0`
+- **3,400+ tests** with CodeQL + OpenSSF Scorecard
 - **No telemetry**: Zero tracking, zero analytics
