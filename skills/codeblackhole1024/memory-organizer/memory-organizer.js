@@ -2,12 +2,12 @@
 
 /**
  * Memory Organizer - Organize and compress memory files
- * Features:
- * 1. Scan memory files
- * 2. Analyze content importance
- * 3. Classify by topic
- * 4. Compress/discard redundant content
- * 
+ *
+ * Principles:
+ * 1. Keep MEMORY.md small and durable
+ * 2. Keep dated detail in memory/YYYY-MM-DD.md
+ * 3. Promote only stable facts that should load every session
+ *
  * Security: Validates paths to prevent directory traversal
  */
 
@@ -15,36 +15,29 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-// Get workspace from env or argument, with validation
 function getWorkspace() {
   const envWorkspace = process.env.OPENCLAW_WORKSPACE;
   if (envWorkspace) {
     return path.resolve(envWorkspace);
   }
-  
-  // Default to home workspace
+
   const home = os.homedir();
   return path.join(home, '.openclaw', 'workspace-main');
 }
 
-// Validate that a file path is within the allowed directory
 function isPathSafe(filePath, baseDir) {
   const resolved = path.resolve(filePath);
   const baseResolved = path.resolve(baseDir);
   return resolved.startsWith(baseResolved + path.sep) || resolved === baseResolved;
 }
 
-// Validate filename to prevent path traversal
 function isFilenameSafe(filename) {
-  // Reject any path components, only allow simple filenames
   if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
     return false;
   }
-  // Reject hidden files (except .md)
   if (filename.startsWith('.') && !filename.startsWith('..')) {
     return false;
   }
-  // Only allow .md files
   if (!filename.endsWith('.md')) {
     return false;
   }
@@ -55,7 +48,6 @@ const WORKSPACE = getWorkspace();
 const MEMORY_DIR = path.join(WORKSPACE, 'memory');
 const MAIN_MEMORY = path.join(WORKSPACE, 'MEMORY.md');
 
-// Topic keyword mapping
 const TOPIC_KEYWORDS = {
   'User Preferences': ['用户', '偏好', 'preference', '称呼', '名字', '时区', 'timezone', 'name', 'pronoun'],
   'Project Config': ['项目', '配置', 'config', 'agent', '工作空间', 'workspace', 'cron', '定时', 'bot', 'skill'],
@@ -66,21 +58,21 @@ const TOPIC_KEYWORDS = {
   'Daily': ['日记', '日志', '记录', '今天', '昨天', '日常', 'daily', 'log']
 };
 
-// Keywords to keep
 const IMPORTANT_KEYWORDS = [
   '用户', '偏好', '配置', '项目', '待办', '任务', 'Agent', '重要', '关键',
   'user', 'preference', 'config', 'project', 'todo', 'task', 'important', 'key'
 ];
 
-// Keywords to discard
-const DISCARD_KEYWORDS = [
-  '测试', 'test', '调试', '临时', 'temp', '日志', '详情', '具体过程',
-  'debug', 'temporary', 'details', 'process'
+const DURABLE_KEYWORDS = [
+  'preference', 'prefer', 'user', 'timezone', 'name', 'workspace', 'config', 'rule', 'path', 'todo', 'next', 'important',
+  '偏好', '用户', '时区', '配置', '规则', '路径', '待办', '下一步', '重要', '长期'
 ];
 
-/**
- * Scan memory directory
- */
+const NON_DURABLE_KEYWORDS = [
+  'today', 'yesterday', 'daily', 'log', 'debug', 'test', 'temporary', 'details', 'process',
+  '今天', '昨天', '日志', '调试', '测试', '临时', '详情', '过程'
+];
+
 function scanMemories() {
   if (!fs.existsSync(MEMORY_DIR)) {
     console.log('❌ Memory directory does not exist');
@@ -104,7 +96,7 @@ function scanMemories() {
   console.log('\n📁 Memory files:\n');
   console.log(`  Workspace: ${WORKSPACE}`);
   console.log(`  Memory dir: ${MEMORY_DIR}\n`);
-  
+
   let totalChars = 0;
   files.forEach(f => {
     console.log(`  ${f.name}: ${f.chars} chars, ${f.lines} lines`);
@@ -115,16 +107,13 @@ function scanMemories() {
   return files;
 }
 
-/**
- * Analyze memory content topic
- */
 function analyzeTopic(content) {
   const scores = {};
-  
+
   Object.keys(TOPIC_KEYWORDS).forEach(topic => {
     scores[topic] = 0;
   });
-  scores['Uncategorized'] = 0;
+  scores.Uncategorized = 0;
 
   Object.entries(TOPIC_KEYWORDS).forEach(([topic, keywords]) => {
     keywords.forEach(kw => {
@@ -138,7 +127,7 @@ function analyzeTopic(content) {
 
   let maxTopic = 'Uncategorized';
   let maxScore = 0;
-  
+
   Object.entries(scores).forEach(([topic, score]) => {
     if (score > maxScore) {
       maxScore = score;
@@ -149,9 +138,6 @@ function analyzeTopic(content) {
   return { topic: maxTopic, scores };
 }
 
-/**
- * Classify all memory files
- */
 function classifyMemories() {
   if (!fs.existsSync(MEMORY_DIR)) {
     console.log('❌ Memory directory does not exist');
@@ -168,7 +154,7 @@ function classifyMemories() {
   files.forEach(f => {
     const content = fs.readFileSync(path.join(MEMORY_DIR, f), 'utf-8');
     const { topic, scores } = analyzeTopic(content);
-    
+
     if (!categories[topic]) {
       categories[topic] = [];
     }
@@ -189,9 +175,6 @@ function classifyMemories() {
   return categories;
 }
 
-/**
- * Find redundant memories
- */
 function findRedundant() {
   const categories = classifyMemories();
   const redundant = [];
@@ -222,24 +205,18 @@ function findRedundant() {
   return redundant;
 }
 
-/**
- * Discard memory file (with safety check)
- */
 function discardMemory(filename, force = false) {
-  // Security: validate filename
   if (!isFilenameSafe(filename)) {
     console.log(`❌ Invalid filename: ${filename}`);
     return false;
   }
 
   const filePath = path.join(MEMORY_DIR, filename);
-  
-  // Security: validate path is within memory directory
   if (!isPathSafe(filePath, MEMORY_DIR)) {
     console.log(`❌ Path outside memory directory: ${filename}`);
     return false;
   }
-  
+
   if (!fs.existsSync(filePath)) {
     console.log(`❌ File does not exist: ${filename}`);
     return false;
@@ -253,19 +230,16 @@ function discardMemory(filename, force = false) {
 
   const backupPath = filePath + '.discarded';
   fs.renameSync(filePath, backupPath);
-  
+
   console.log(`🗑️ Discarded: ${filename}`);
   console.log(`   Backup: ${filename}.discarded`);
-  
+
   return true;
 }
 
-/**
- * Batch discard redundant memories
- */
 function discardRedundant(force = false) {
   const redundant = findRedundant();
-  
+
   if (redundant.length === 0) {
     console.log('✅ No memories to discard');
     return;
@@ -283,24 +257,18 @@ function discardRedundant(force = false) {
   console.log(`\n✅ Discarded ${discarded} files`);
 }
 
-/**
- * Compress memory file
- */
 function compressMemory(filename, options = {}) {
-  // Security: validate filename
   if (!isFilenameSafe(filename)) {
     console.log(`❌ Invalid filename: ${filename}`);
     return false;
   }
 
   const filePath = path.join(MEMORY_DIR, filename);
-  
-  // Security: validate path
   if (!isPathSafe(filePath, MEMORY_DIR)) {
-    console.log(`❌ Path outside memory directory`);
+    console.log('❌ Path outside memory directory');
     return false;
   }
-  
+
   if (!fs.existsSync(filePath)) {
     console.log(`❌ File does not exist: ${filename}`);
     return false;
@@ -313,50 +281,118 @@ function compressMemory(filename, options = {}) {
   if (options.aggressive) {
     compressed = lines.filter(l => l.startsWith('#'));
   } else if (options.keepTitles) {
-    compressed = lines.filter(l => 
-      l.startsWith('#') || 
-      l.startsWith('- ') || 
+    compressed = lines.filter(l =>
+      l.startsWith('#') ||
+      l.startsWith('- ') ||
       l.startsWith('* ')
     );
   } else {
     compressed = lines.filter(l => {
       const lower = l.toLowerCase();
-      return l.startsWith('#') || 
-             l.startsWith('- ') || 
-             l.startsWith('* ') ||
-             IMPORTANT_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+      return l.startsWith('#') ||
+        l.startsWith('- ') ||
+        l.startsWith('* ') ||
+        IMPORTANT_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
     });
   }
 
   const result = compressed.join('\n');
-  
+
   fs.writeFileSync(filePath + '.bak', content);
   fs.writeFileSync(filePath, result);
 
   console.log(`✅ Compressed: ${filename}`);
   console.log(`   Original: ${content.length} -> Compressed: ${result.length} chars`);
+  console.log('   Detail stays in the dated file structure. Permanent memory is not expanded automatically.');
 
   return true;
 }
 
-/**
- * Merge to main memory
- */
+function normalizeBullet(line) {
+  return line.replace(/^[-*]\s+/, '').trim();
+}
+
+function shouldPromoteLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) {
+    return false;
+  }
+  if (!trimmed.startsWith('- ') && !trimmed.startsWith('* ')) {
+    return false;
+  }
+
+  const lower = trimmed.toLowerCase();
+  const hasDurableSignal = DURABLE_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+  const hasNonDurableSignal = NON_DURABLE_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+
+  return hasDurableSignal && !hasNonDurableSignal;
+}
+
+function getSectionTitle(topic) {
+  const allowed = new Set(['User Preferences', 'Project Config', 'Todos', 'Skills', 'Tech Notes']);
+  if (allowed.has(topic)) {
+    return topic;
+  }
+  return 'Long-term Notes';
+}
+
+function insertIntoSection(content, sectionTitle, bulletLines) {
+  const sectionHeader = `## ${sectionTitle}`;
+  const existingBullets = new Set(
+    content
+      .split('\n')
+      .map(line => normalizeBullet(line))
+      .filter(Boolean)
+  );
+
+  const uniqueBullets = bulletLines.filter(line => !existingBullets.has(normalizeBullet(line)));
+  if (uniqueBullets.length === 0) {
+    return { content, added: 0 };
+  }
+
+  if (!content.trim()) {
+    const next = `# MEMORY.md\n\n${sectionHeader}\n${uniqueBullets.join('\n')}\n`;
+    return { content: next, added: uniqueBullets.length };
+  }
+
+  if (!content.includes(sectionHeader)) {
+    const separator = content.endsWith('\n') ? '' : '\n';
+    const next = `${content}${separator}\n${sectionHeader}\n${uniqueBullets.join('\n')}\n`;
+    return { content: next, added: uniqueBullets.length };
+  }
+
+  const lines = content.split('\n');
+  const headerIndex = lines.findIndex(line => line.trim() === sectionHeader);
+  let insertIndex = lines.length;
+
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    if (lines[i].startsWith('## ')) {
+      insertIndex = i;
+      break;
+    }
+  }
+
+  const updated = [
+    ...lines.slice(0, insertIndex),
+    ...uniqueBullets,
+    ...lines.slice(insertIndex)
+  ].join('\n');
+
+  return { content: updated, added: uniqueBullets.length };
+}
+
 function mergeToMain(sourceFile) {
-  // Security: validate filename
   if (!isFilenameSafe(sourceFile)) {
     console.log(`❌ Invalid filename: ${sourceFile}`);
     return false;
   }
 
   const sourcePath = path.join(MEMORY_DIR, sourceFile);
-  
-  // Security: validate path
   if (!isPathSafe(sourcePath, MEMORY_DIR)) {
-    console.log(`❌ Path outside memory directory`);
+    console.log('❌ Path outside memory directory');
     return false;
   }
-  
+
   if (!fs.existsSync(sourcePath)) {
     console.log(`❌ Source file does not exist: ${sourceFile}`);
     return false;
@@ -364,57 +400,64 @@ function mergeToMain(sourceFile) {
 
   const sourceContent = fs.readFileSync(sourcePath, 'utf-8');
   const { topic } = analyzeTopic(sourceContent);
-  
-  const importantLines = sourceContent.split('\n').filter(l => 
-    l.startsWith('#') || l.startsWith('- ') || l.startsWith('* ')
-  );
+  const sectionTitle = getSectionTitle(topic);
+
+  const promotableLines = sourceContent
+    .split('\n')
+    .filter(shouldPromoteLine);
+
+  if (promotableLines.length === 0) {
+    console.log(`ℹ️ No durable items found in ${sourceFile}`);
+    console.log('   Daily detail stays in the dated memory file.');
+    return true;
+  }
 
   let mainContent = '';
   if (fs.existsSync(MAIN_MEMORY)) {
     mainContent = fs.readFileSync(MAIN_MEMORY, 'utf-8');
   }
 
-  const merged = mainContent + '\n\n---\n\n## ' + topic + ': ' + sourceFile + '\n\n' + importantLines.join('\n');
+  const { content: merged, added } = insertIntoSection(mainContent, sectionTitle, promotableLines);
+
+  if (added === 0) {
+    console.log(`ℹ️ No new durable items were added from ${sourceFile}`);
+    console.log('   All promotable items already exist in MEMORY.md.');
+    return true;
+  }
+
   fs.writeFileSync(MAIN_MEMORY, merged);
-  
-  console.log(`✅ Merged to MEMORY.md [${topic}]: ${sourceFile}`);
+
+  console.log(`✅ Promoted ${added} durable item(s) from ${sourceFile}`);
+  console.log(`   Section: ${sectionTitle}`);
+  console.log('   Daily history remains in the original dated file.');
   return true;
 }
 
-/**
- * View memory content
- */
 function viewMemory(filename) {
-  // Security: validate filename
   if (!isFilenameSafe(filename)) {
     console.log(`❌ Invalid filename: ${filename}`);
     return;
   }
 
   const filePath = path.join(MEMORY_DIR, filename);
-  
-  // Security: validate path
   if (!isPathSafe(filePath, MEMORY_DIR)) {
-    console.log(`❌ Path outside memory directory`);
+    console.log('❌ Path outside memory directory');
     return;
   }
-  
+
   if (!fs.existsSync(filePath)) {
     console.log(`❌ File does not exist: ${filename}`);
     return;
   }
-  
+
   const content = fs.readFileSync(filePath, 'utf-8');
   const { topic } = analyzeTopic(content);
-  
+
   console.log(`\n📄 ${filename} [${topic}]`);
   console.log('─'.repeat(40));
   console.log(content);
 }
 
-/**
- * Cleanup backups and discarded files
- */
 function cleanup() {
   if (!fs.existsSync(MEMORY_DIR)) return;
 
@@ -434,14 +477,12 @@ function cleanup() {
   console.log(`\n✅ Cleaned ${count} files`);
 }
 
-// Main
 const args = process.argv.slice(2);
 const command = args[0];
 
-console.log('🧠 Memory Organizer v2.1');
-console.log('=======================\n');
+console.log('🧠 Memory Organizer v1.2.0');
+console.log('===========================\n');
 
-// Handle workspace override
 if (args.includes('--workspace')) {
   const idx = args.indexOf('--workspace');
   if (args[idx + 1]) {
@@ -464,7 +505,7 @@ switch (command) {
     findRedundant();
     break;
 
-  case 'discard':
+  case 'discard': {
     const force = args.includes('--force');
     if (args[1] === 'redundant') {
       discardRedundant(force);
@@ -475,8 +516,9 @@ switch (command) {
       console.log('       memory-organizer discard redundant [--force]');
     }
     break;
+  }
 
-  case 'compress':
+  case 'compress': {
     const fileToCompress = args[1];
     const options = {
       keepTitles: args.includes('--titles'),
@@ -488,8 +530,9 @@ switch (command) {
       console.log('Usage: memory-organizer compress <filename> [--titles] [--aggressive]');
     }
     break;
+  }
 
-  case 'merge':
+  case 'merge': {
     const fileToMerge = args[1];
     if (fileToMerge) {
       mergeToMain(fileToMerge);
@@ -497,8 +540,9 @@ switch (command) {
       console.log('Usage: memory-organizer merge <filename>');
     }
     break;
+  }
 
-  case 'view':
+  case 'view': {
     const fileToView = args[1];
     if (fileToView) {
       viewMemory(fileToView);
@@ -506,6 +550,7 @@ switch (command) {
       console.log('Usage: memory-organizer view <filename>');
     }
     break;
+  }
 
   case 'clean':
     cleanup();
@@ -514,7 +559,7 @@ switch (command) {
   case 'help':
   default:
     console.log(`
-🧠 Memory Organizer v2.1 - Memory Organization Tool
+🧠 Memory Organizer v1.2.0 - Memory Organization Tool
 
 Usage:
   memory-organizer scan                   Scan all memory files
@@ -522,13 +567,19 @@ Usage:
   memory-organizer redundant             Find redundant memories
   memory-organizer discard <filename>    Discard memory file
   memory-organizer discard redundant [--force]  Discard redundant files
-  memory-organizer compress <filename>   Compress file
+  memory-organizer compress <filename>   Compress dated file in place
   memory-organizer compress <filename> --titles  Keep titles only
   memory-organizer compress <filename> --aggressive  Aggressive compression
-  memory-organizer merge <filename>      Merge to MEMORY.md
+  memory-organizer merge <filename>      Promote durable facts only to MEMORY.md
   memory-organizer view <filename>       View memory content
   memory-organizer clean                 Clean backups/discarded files
   memory-organizer --workspace <path>    Use custom workspace
+
+Rules:
+  - Keep MEMORY.md small and durable
+  - Do not merge every dated note into permanent memory
+  - Preserve daily detail inside memory/YYYY-MM-DD.md
+  - Promote only stable facts, config, preferences, and active todos
 
 Security:
   - Validates all file paths to prevent directory traversal
