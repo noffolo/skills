@@ -46,7 +46,7 @@ Use this skill whenever the user asks to:
 | dismissal_delay | string  | Optional. The delay a activity is shown after end message is sent. Only on end messages |
 
 ## Start Live Activity. 
-&nbsp;  
+  
 Use the bundled script:
 
 ```bash
@@ -97,8 +97,8 @@ node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
 
 ## Usage
 
-In update & end messages the following parameters need to be taken from start message and retransmitted if not defined otherwise:
-&nbsp;
+In update & end messages the following parameters need to be taken from start message and retransmitted if not defined otherwise:  
+
 &nbsp;&nbsp;o   &nbsp;title  
 &nbsp;&nbsp;o   &nbsp;body  
 &nbsp;&nbsp;o   &nbsp;severity  
@@ -106,17 +106,9 @@ In update & end messages the following parameters need to be taken from start me
 &nbsp;&nbsp;o   &nbsp;progress_legend  
 &nbsp;&nbsp;o   &nbsp;start_text  
 &nbsp;&nbsp;o   &nbsp;end_text  
-
+&nbsp;  
 Otherwise the activity will change its appearance. 
 It is allowed for flexibility, but not needed most of the time.
-
-## Options
-
--   `--title <title>`: Notification title (required)
--   `--body <body>`: Main message (required)
--   `--type <type>`: Notification type --- `crit`, `warn`, `success`,
-    `info`
--   `--critical <bool>`: Emergency bypass flag (optional)
 
 ## Notes
 
