@@ -4,6 +4,10 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/run.log"
 
+# 确保日志文件存在并设置安全权限 (600)
+touch "$LOG_FILE"
+chmod 600 "$LOG_FILE"
+
 # 记录运行日志
 echo "=== 运行时间：$(date '+%Y-%m-%d %H:%M:%S') ===" >> "$LOG_FILE"
 
@@ -19,3 +23,6 @@ else
 fi
 
 echo "" >> "$LOG_FILE"
+
+# 再次确保日志文件权限正确（防止被重新创建）
+chmod 600 "$LOG_FILE"
