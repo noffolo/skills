@@ -1,53 +1,56 @@
 ---
 name: memory-system-optimizer
-description: OpenCLAW 记忆系统优化 - 三层架构 + 自动衰减 + CRUD验证
-version: 1.2.0
+description: OpenCLAW 记忆系统优化 - 四层架构 + 自我反思 + 情绪识别 + 任务规划 + 12项增强功能
+version: 2.0.0
 author: Odin
-tags: [memory, openclaw, optimization, ai]
+tags: [memory, openclaw, optimization, ai, agent]
 ---
 
 # Memory System Optimizer
 
-> OpenCLAW 记忆系统优化 Skill，基于 Ray Wang 30天实战经验
+> OpenCLAW 记忆系统优化 Skill v2.0，基于 Ray Wang 实战经验 + 12项增强功能
 
-## 功能
+## v2.0 新增功能
 
-### 1. 三层记忆架构
-- **NOW.md** - 工作台，当前任务看板
-- **memory/YYYY-MM-DD.md** - 每日日志
-- **INDEX.md** - 知识导航 + 健康度仪表盘
+| # | 功能 | 目录/文件 |
+|---|------|----------|
+| 1 | 四层记忆架构 | short-term/semantic/confidence/ |
+| 2 | 自我反思与元认知 | reflections/ + confidence/ |
+| 3 | 动态知识整合 | knowledge/ |
+| 4 | 情绪识别 | emotions/ |
+| 5 | 主动学习 | AGENTS.md |
+| 6 | 任务规划与监控 | tasks/ |
+| 7 | 隐私与数据治理 | privacy/ |
+| 8 | 可解释性 | explainability/ |
+| 9 | 弹性与自适应 | elastic/ |
+| 10 | 持续进化 | evolution/ |
+| 11 | 协作与共享 | collaboration/ |
+| 12 | 多模态能力 | (待接入) |
+
+---
+
+## 核心功能
+
+### 1. 四层记忆架构
+- **短期**: memory/short-term/ - 当前会话任务、临时变量
+- **情景**: memory/YYYY-MM-DD.md - 按时间线的重要交互
+- **语义**: memory/semantic/ - 知识图谱、事实库
+- **长期**: MEMORY.md - 精选记忆
 
 ### 2. 自动衰减机制
 - Hot/Warm/Cold 温度模型
 - 自动归档过期记忆
-- 优先级标记
 
-### 3. CRUD 验证
-- 写入前先读原则
-- 冲突检测
-- 过时标记
+### 3. 自我反思机制
+- 任务完成后自动复盘
+- 置信度评估（<50%主动请求澄清）
 
-### 4. 写入工具
-- auto-memlog.sh - 自动时间戳日志（推荐）
-- memlog.sh - 手动日志
-- memory-gc.sh - 冷数据归档
-- memory-decay.js - 温度分档
+### 4. 情绪识别
+- 识别用户情绪，调整回应风格
 
-### 5. 12个核心配置文件
-| # | 文件 | 用途 |
-|---|------|------|
-| 1 | SOUL.md | 告诉AI它是谁 |
-| 2 | IDENTITY.md | 明确身份角色 |
-| 3 | USER.md | 了解服务对象 |
-| 4 | AGENTS.md | 多代理分工 |
-| 5 | TOOLS.md | 配置可用工具 |
-| 6 | MEMORY.md | 长期记忆，防止失忆 |
-| 7 | FEEDBACK-LOG.md | 错误不再犯 |
-| 8 | AUTONOMY.md | 自主权限，减少确认 |
-| 9 | SKILLS.md | 技能加载，持续升级 |
-| 10 | MULTI-INSTANCE.md | 并行工作 |
-| 11 | SECURITY.md | 安全设置，有限授权 |
-| 12 | TRAINING.md | 边做边教，每日培训 |
+### 5. 任务规划
+- 复杂任务自动拆解
+- 实时状态跟踪
 
 ## 安装配置
 
