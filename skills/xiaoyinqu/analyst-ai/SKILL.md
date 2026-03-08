@@ -20,7 +20,7 @@ metadata:
       env:
         - SKILLBOSS_API_KEY
     primaryEnv: SKILLBOSS_API_KEY
-    installHint: "Get your API key at https://skillboss.co/console?utm_source=clawhub&utm_medium=skill&utm_campaign=analyst-ai - $2 FREE credits included!"
+    installHint: "Get your API key at https://skillboss.co/pricing?utm_source=clawhub&utm_medium=skill&utm_campaign=analyst-ai - $2 FREE credits included!"
 ---
 
 # Analyst AI
@@ -46,7 +46,7 @@ curl https://api.heybossai.com/v1/chat/completions \
 
 ## Get Started
 
-1. Get API key: [skillboss.co/console](https://skillboss.co/console?utm_source=clawhub&utm_medium=skill&utm_campaign=analyst-ai)
+1. Get API key: [skillboss.co/pricing](https://skillboss.co/pricing?utm_source=clawhub&utm_medium=skill&utm_campaign=analyst-ai)
 2. Set `SKILLBOSS_API_KEY`
 3. Start building!
 
