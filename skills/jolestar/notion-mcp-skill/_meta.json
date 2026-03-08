@@ -3,9 +3,15 @@
   "slug": "notion-mcp-skill",
   "displayName": "Notion Mcp Skill",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772547016582,
-    "commit": "https://github.com/openclaw/skills/commit/ac7404ead2d7a258ba3bdd970a5e834ad8ba7db8"
+    "version": "1.0.1",
+    "publishedAt": 1772843310714,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772547016582,
+      "commit": "https://github.com/openclaw/skills/commit/ac7404ead2d7a258ba3bdd970a5e834ad8ba7db8"
+    }
+  ]
 }
