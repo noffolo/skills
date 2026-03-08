@@ -93,7 +93,7 @@ Change: 4124.19 - 4108.57 = +15.62
 Generate at this exact format with timestamps:
 
 ```
-Latest snapshot from the `market-report` skill, generated at `UTC timestamp` and `China time`.
+Latest snapshot from the `market-global-snapshot` skill, generated at `UTC timestamp` and `China time`.
 
 📊 Stock indices:
 
