@@ -3,9 +3,15 @@
   "slug": "best-free-ai",
   "displayName": "Best Free Ai",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1772781526559,
-    "commit": "https://github.com/openclaw/skills/commit/71f7adebad32c93ad1ed1ea67a1ff619e5a1c420"
+    "version": "1.0.2",
+    "publishedAt": 1772911080260,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1772781526559,
+      "commit": "https://github.com/openclaw/skills/commit/71f7adebad32c93ad1ed1ea67a1ff619e5a1c420"
+    }
+  ]
 }
