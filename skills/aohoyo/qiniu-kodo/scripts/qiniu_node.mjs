@@ -15,14 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 尝试加载 qiniu SDK
-let qiniu;
-try {
-  qiniu = await import('qiniu');
-} catch (error) {
-  console.error('❌ qiniu Node.js SDK 未安装');
-  console.error('请运行: npm install qiniu');
-  process.exit(1);
-}
+import qiniu from 'qiniu';
 
 // 配置文件路径
 const SKILL_DIR = path.dirname(__dirname);
@@ -113,7 +106,7 @@ class QiniuKodo {
             success: true,
             key: respBody.key,
             hash: respBody.hash,
-            url: this.getUrl(key),
+            url: this.domain ? this.getUrl(key) : null,
             size: fs.statSync(localPath).size
           });
         } else {
@@ -273,14 +266,14 @@ class QiniuKodo {
   /**
    * 获取文件 URL
    */
-  getUrl(key, private = false, expires = 3600) {
+  getUrl(key, isPrivate = false, expires = 3600) {
     if (!this.domain) {
       throw new Error('配置中缺少 domain 字段');
     }
-    
+
     const baseUrl = `${this.domain}/${key}`;
-    
-    if (private) {
+
+    if (isPrivate) {
       const deadline = Math.floor(Date.now() / 1000) + expires;
       const sign = qiniu.util.hmacSha1(baseUrl, this.mac.secretKey);
       const encodedSign = qiniu.util.base64ToUrlSafe(sign);

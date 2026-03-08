@@ -1,11 +1,17 @@
 {
   "owner": "aohoyo",
   "slug": "qiniu-kodo",
-  "displayName": "Qiniu KODO Storage Skill",
+  "displayName": "qiniu-kodo",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772407130287,
-    "commit": "https://github.com/openclaw/skills/commit/d74d4487680b3d0caec57fd511d859f568cd1dc5"
+    "version": "1.0.3",
+    "publishedAt": 1772817015394,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772407130287,
+      "commit": "https://github.com/openclaw/skills/commit/d74d4487680b3d0caec57fd511d859f568cd1dc5"
+    }
+  ]
 }
