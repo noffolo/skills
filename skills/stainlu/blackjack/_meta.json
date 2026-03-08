@@ -1,13 +1,18 @@
 {
   "owner": "stainlu",
   "slug": "blackjack",
-  "displayName": "Claw21",
+  "displayName": "blackjack",
   "latest": {
-    "version": "0.2.8",
-    "publishedAt": 1772512413378,
-    "commit": "https://github.com/openclaw/skills/commit/6c1be9073655184ec7a1d686830d177c07491013"
+    "version": "0.3.0",
+    "publishedAt": 1772871759372,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.8",
+      "publishedAt": 1772512413378,
+      "commit": "https://github.com/openclaw/skills/commit/6c1be9073655184ec7a1d686830d177c07491013"
+    },
     {
       "version": "0.2.6",
       "publishedAt": 1772417797248,
