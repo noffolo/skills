@@ -1,0 +1,11 @@
+{
+  "owner": "btcagentic",
+  "slug": "audit",
+  "displayName": "Audit",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772995041447,
+    "commit": null
+  },
+  "history": []
+}
