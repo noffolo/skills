@@ -1,0 +1,11 @@
+{
+  "owner": "urianpaul94",
+  "slug": "security-news",
+  "displayName": "Security News",
+  "latest": {
+    "version": "2.0.0",
+    "publishedAt": 1772996934201,
+    "commit": null
+  },
+  "history": []
+}
