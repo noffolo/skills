@@ -3,9 +3,15 @@
   "slug": "useclick-link-shortening-analytics",
   "displayName": "Useclick Link Shortening Analytics",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1772881739492,
-    "commit": "https://github.com/openclaw/skills/commit/512c12faec4bd2ae4d82a0c3505b9c5578e4ea71"
+    "version": "1.0.5",
+    "publishedAt": 1772901852826,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1772881739492,
+      "commit": "https://github.com/openclaw/skills/commit/512c12faec4bd2ae4d82a0c3505b9c5578e4ea71"
+    }
+  ]
 }
