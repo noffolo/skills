@@ -1,7 +1,7 @@
 ---
 name: context-clean-up
 slug: context-clean-up
-version: 1.0.6
+version: 1.0.7
 license: MIT
 description: |
   Use when: prompt context is bloating (slow replies, rising cost, noisy transcripts) and you want a ranked offender list + reversible plan.
@@ -17,126 +17,135 @@ metadata: { "openclaw": { "emoji": "🧹", "requires": { "bins": ["python3"] } }
 
 # Context Clean Up (audit-only)
 
-This skill is a **runbook** to identify what is bloating your prompt context and produce a **safe, reversible plan**.
+This skill identifies what is bloating prompt context and turns it into a **safe, reversible plan**.
 
-**Important:** this skill is intentionally **audit-only**.
-- It will not delete data, prune sessions, patch config, or modify cron jobs.
-- If you ask for changes, it will propose an exact patch + rollback plan and wait for explicit approval.
+## Contract
 
-## Safety model (why this should not be flagged as RCE)
+- **Audit-only by default.**
+- No automatic deletions.
+- No unattended config edits.
+- No silent cron/session pruning.
+- If you ask for changes, the skill should propose:
+  1. exact change,
+  2. expected impact,
+  3. rollback plan,
+  4. verification steps.
 
-- No `exec` tool usage (no arbitrary shell command execution).
-- No `read` tool usage (no arbitrary file reads).
-- If you want a file-level audit, you run the bundled script manually and paste the JSON (optional).
+## Safety model
+
+- No `exec` tool usage.
+- No `read` tool usage.
+- If you want file-level analysis, run the bundled script manually and paste the JSON.
 
 ## Quick start
 
-- `/context-clean-up` -> audit + actionable plan (no changes)
+- `/context-clean-up` → audit + actionable plan (no changes)
 
-Optional (manual, human-run): generate a JSON report with the bundled audit script.
-
-This is intentionally **not** executed by the agent (no `exec` tool), so it won't get flagged as RCE-capable.
+Optional manual report generation:
 
 ```text
 python3 scripts/context_cleanup_audit.py --out context-cleanup-audit.json
 ```
 
-If your Python executable is not `python3` (common on Windows):
+Windows variant:
 
 ```text
 py -3 scripts/context_cleanup_audit.py --out context-cleanup-audit.json
 ```
 
-## A note on `NO_REPLY`
+## What to measure (authoritative, not vibes)
 
-Some OpenClaw setups use `NO_REPLY` as a sentinel meaning "silent success" (no human notification).
+When available, prefer **fresh-session `/context json` receipts** over subjective claims like “it feels leaner”.
 
-- If your runtime does not support it, interpret this as: print nothing on success.
+High-signal fields:
+- `eligible skills`
+- `skills.promptChars`
+- `projectContextChars`
+- `systemPrompt.chars`
+- `promptTokens`
 
-## Common offenders (what usually causes bloat)
+If exact receipts are unavailable, fall back to ranked offenders + change scope, but label confidence lower.
 
-Typical high-impact sources (roughly in descending frequency):
+## Common offender classes
 
-1) Tool result dumps
-- large `exec` output pasted back into chat
-- big `read` outputs (logs, JSON, lockfiles)
-- web fetches that inject long pages
+1. **Tool result dumps**
+   - oversized `exec` output
+   - large `read` output
+   - long `web_fetch` payloads
 
-2) Automation transcript noise
-- cron jobs that report "OK" every run
-- heartbeat outputs that are not strictly alert-only
+2. **Automation transcript noise**
+   - cron jobs that say “OK” every run
+   - heartbeat messages that are not alert-only
 
-3) Bootstrap reinjection bloat
-- overgrown `AGENTS.md` / `MEMORY.md` / `SOUL.md` / `USER.md`
-- large runbooks embedded directly in `SKILL.md` instead of `references/`
+3. **Bootstrap reinjection bloat**
+   - overgrown `AGENTS.md` / `MEMORY.md` / `SOUL.md` / `USER.md`
+   - long runbooks embedded directly in `SKILL.md`
 
-4) Repeated summaries that never get trimmed
-- summaries that accrete historical detail instead of staying restart-critical
+4. **Ambient specialist surface**
+   - too many always-visible specialist skills that should be on-demand workers/subagents instead
 
-## Negative examples (don't run this skill)
+5. **Summary accretion**
+   - repeated summaries that keep historical detail instead of restart-critical facts only
 
-- "Delete old sessions / prune logs / apply fixes now" -> this skill is audit-only.
-- "Change my OpenClaw config automatically" -> must ask first.
-- "Investigate a specific bug in app code" -> use repo-specific debugging instead.
+## Recommended trim ladder (lowest-risk first)
 
-## Workflow (audit -> plan)
+### Phase 1 — Noise discipline
+- Make no-op automation truly silent (`NO_REPLY` or nothing on success).
+- Keep alerts out-of-band when possible.
 
-### Step 0 - Determine scope
+### Phase 2 — Bootstrap slimming
+- Keep always-injected files short.
+- Move long guidance to `references/`, `memory/`, or external notes.
 
+### Phase 3 — Ambient surface reduction
+- Remove low-frequency specialist skills from always-on prompt surface.
+- Prefer worker/subagent invocation for specialist flows.
+
+### Phase 4 — Higher-risk changes
+- Tool-surface or deeper runtime/config narrowing.
+- Only propose with stronger rollback and explicit approval.
+
+## Workflow (audit → plan)
+
+### Step 0 — Determine scope
 You need:
-- Workspace dir: where your workspace/project files live
-- State dir: where the runtime stores sessions/memory (call it `<OPENCLAW_STATE_DIR>`)
+- workspace dir
+- state dir (`<OPENCLAW_STATE_DIR>`)
 
-Common defaults (may vary by install):
+Common defaults:
 - macOS/Linux: `~/.openclaw`
 - Windows: `%USERPROFILE%\.openclaw`
 
-The audit script supports overrides via `--state-dir` or the `OPENCLAW_STATE_DIR` env var.
-
-### Step 1 - Run the audit script
-
-This script prints a short stdout summary and can write a JSON report.
+### Step 1 — Run the audit script
 
 ```text
 python3 scripts/context_cleanup_audit.py --workspace . --state-dir <OPENCLAW_STATE_DIR> --out context-cleanup-audit.json
 ```
 
 Interpretation cheatsheet:
-- huge tool outputs (exec/read/web_fetch): transcript bloat
-- many `System:` / `Cron:` lines: automation bloat
-- large bootstrap docs (AGENTS/MEMORY/SOUL/USER): reinjected rules bloat
+- huge tool outputs → transcript bloat
+- many cron/system lines → automation bloat
+- large bootstrap docs → reinjection bloat
 
-### Step 2 - Produce a fix plan (lowest-risk first)
+### Step 2 — Produce a fix plan
+Include:
+- top offenders
+- lowest-risk fixes first
+- expected impact
+- rollback notes
+- verification plan
 
-Create a short plan with:
-- top offenders (largest transcript entries)
-- noisiest recurring jobs (cron/heartbeat)
-- quick wins (reversible)
+### Step 3 — Verify
+After changes:
+- confirm automation is silent on success
+- check context growth flattens
+- if possible, compare fresh-session `/context json` before/after
 
-Standard levers:
+## Important caveat
 
-#### Lever A - Make no-op automation truly silent
-
-Goal: maintenance loops should output exactly `NO_REPLY` (or nothing) unless there is an anomaly.
-
-#### Lever B - Keep notifications, avoid transcript injection
-
-If you want alerts but want the interactive session lean:
-- send out-of-band (Telegram/Slack/etc.)
-- then keep job output silent
-
-See: `references/out-of-band-delivery.md`
-
-#### Lever C - Keep injected bootstrap files small
-
-- keep only restart-critical rules in `MEMORY.md`
-- move bulky notes into `references/*.md` or `memory/*.md`
-
-### Step 3 - Verify
-
-After you apply any changes:
-- confirm the next cron/heartbeat runs are silent on success
-- watch context growth rate (it should flatten)
+Many OpenClaw runtimes snapshot skills/bootstrap per session.
+So skill/config slimming often **does not fully apply to the current session**.
+Use a **new session** for authoritative verification.
 
 ## References
 
