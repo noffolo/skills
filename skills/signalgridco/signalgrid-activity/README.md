@@ -1,4 +1,5 @@
 # Signalgrid Live Activities for OpenClaw
+[![ClawHub Skill](https://img.shields.io/badge/ClawHub-signalgrid--activity-blue?logo=openclaw&logoColor=white)](https://clawhub.ai/signalgridco/signalgrid-activity)
 
 Send Live Activities & Ongoing notifications to your iOS / Android via Signalgrid.
 
@@ -21,7 +22,9 @@ Add your credentials to your OpenClaw settings (typically `config.yaml` or throu
 
 ## Installation
 
-openclaw skills install https://github.com/signalgridco/signalgrid-openclaw-activity
+``` bash
+clawdhub --workdir ~/.openclaw install signalgrid-activity
+```
 
 ## How to use
 
@@ -40,6 +43,3 @@ It handles different priority levels:
 - "Progress my activity to 20%"
 - "Set the severity of my activity to warn and progress it by 10%"
 - "End my activity, and delay the dismissal for 5 minutes"
-
----
-© 2026 Signalgrid e.U.

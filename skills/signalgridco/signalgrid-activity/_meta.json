@@ -3,11 +3,16 @@
   "slug": "signalgrid-activity",
   "displayName": "Signalgrid Activity",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1772994234994,
-    "commit": "https://github.com/openclaw/skills/commit/0cfc50311a6610f01f226b25061b5534502d48ea"
+    "version": "1.0.16",
+    "publishedAt": 1772995674938,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1772994234994,
+      "commit": "https://github.com/openclaw/skills/commit/0cfc50311a6610f01f226b25061b5534502d48ea"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1772994038113,

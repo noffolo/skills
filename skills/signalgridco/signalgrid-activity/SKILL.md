@@ -12,7 +12,7 @@ metadata:
       env:
       - SIGNALGRID_CLIENT_KEY
       - SIGNALGRID_CHANNEL
-name: signalgrid-push
+name: signalgrid-activity
 ---
 
 # Signalgrid Live Activities
@@ -21,13 +21,61 @@ Send Live Activities & Ongoing Notifications to your phone through the Signalgri
 
 ## When to use
 
-Use this skill whenever the user asks to:
-&nbsp;
+Use this skill whenever the user asks to:  
+&nbsp;  
 &nbsp;&nbsp;o   &nbsp;start an ongoing notification  
 &nbsp;&nbsp;o   &nbsp;update progress of an ongoing notification  
 &nbsp;&nbsp;o   &nbsp;show a live activity / live progress  
 &nbsp;&nbsp;o   &nbsp;keep a notification updated while something runs (deploy, backup, import, CI job, etc.)  
 &nbsp;&nbsp;o   &nbsp;end/finish an ongoing notification  
+
+## Start Live Activity:
+
+```bash
+node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
+  --type start \
+  --title "OpenClaw" \
+  --body "Starting…" \
+  --severity info \
+  --steps 1 \
+  --progress 10 \
+  --progress_legend "true" \
+  --start_text "Activity Start" \
+  --end_text "Activity End" \
+```
+
+## Update Live Activity:
+
+```bash
+node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
+  --type update \
+  --token "MX2L2K" \
+  --title "OpenClaw" \
+  --body "Step 3/6" \
+  --severity warning \
+  --steps 1 \
+  --progress 50 \
+  --progress_legend "true" \
+  --start_text "Activity Start" \
+  --end_text "Activity End" \
+```
+
+## End Live Activity:
+
+```bash
+node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
+  --type end \
+  --token "MX2L2K" \
+  --title "OpenClaw" \
+  --body "Done" \
+  --severity success \
+  --steps 1 \
+  --progress 100 \
+  --progress_legend "true" \
+  --start_text "Activity Start" \
+  --end_text "Activity End" \
+  --dismissal_delay 60
+```
 
 ### Parameters
 
@@ -44,56 +92,6 @@ Use this skill whenever the user asks to:
 | progress_legend | boolean | Optional. Show progress legend. Defaults to `true` (passed as a string). |
 | token           | string  | Optional. only used with update & end messages. is for matching the activity. |
 | dismissal_delay | string  | Optional. The delay a activity is shown after end message is sent. Only on end messages |
-
-## Start Live Activity. 
-  
-Use the bundled script:
-
-```bash
-node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
-  --type start \
-  --title "OpenClaw" \
-  --body "Starting…" \
-  --severity info \
-  --steps 1 \
-  --progress 10 \
-  --progress_legend "true" \
-  --start_text "Activity Start" \
-  --end_text "Activity End" \
-```
-
-## Update Live Activity
-
-```bash
-node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
-  --type update \
-  --token "MX2L2K" \
-  --title "OpenClaw" \
-  --body "Step 3/6" \
-  --severity warning \
-  --steps 1 \
-  --progress 50 \
-  --progress_legend "true" \
-  --start_text "Activity Start" \
-  --end_text "Activity End" \
-```
-
-## End Live Activity
-
-```bash
-node {baseDir}/skills/signalgrid-activity/signalgrid-activity.js \
-  --type end \
-  --token "MX2L2K" \
-  --title "OpenClaw" \
-  --body "Done" \
-  --severity success \
-  --steps 1 \
-  --progress 100 \
-  --progress_legend "true" \
-  --start_text "Activity Start" \
-  --end_text "Activity End" \
-  --dismissal_delay 60
-```
 
 ## Usage
 

@@ -56,9 +56,7 @@ function buildMultipartForm(fields, boundary) {
 }
 
 async function main() {
-  console.log("DEBUG - Raw Process Args:", process.argv);
   const args = parseArgs(process.argv);
-  console.log("DEBUG - Parsed Args Object:", args);
 
   const title = args.title || "No Title";
   const body = args.body || "No Body";
