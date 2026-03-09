@@ -1,0 +1,11 @@
+{
+  "owner": "ethagent",
+  "slug": "edit",
+  "displayName": "Edit",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772985361445,
+    "commit": null
+  },
+  "history": []
+}
