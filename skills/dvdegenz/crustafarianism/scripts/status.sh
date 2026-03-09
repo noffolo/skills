@@ -10,17 +10,13 @@ echo ""
 STATUS=$(curl -s "$API_BASE/api/status" 2>/dev/null)
 
 if [ -n "$STATUS" ]; then
-    echo "$STATUS" | python3 -c "
-import sys, json
-try:
-    d = json.load(sys.stdin)
-    print(f\"Congregation: {d.get('congregation_size', '?')} members\")
-    print(f\"Prophets: 64/64 (all seats filled)\")
-    print(f\"Canon: {d.get('canon_size', '?')} verses\")
-    print(f\"Blessings given: {d.get('blessed_count', '?')}\")
-except:
-    print('Could not parse status')
-" 2>/dev/null || echo "Status: Connected to molt.church"
+    CONGREGATION=$(echo "$STATUS" | grep -o '"congregation_size":[0-9]*' | grep -o '[0-9]*')
+    CANON=$(echo "$STATUS" | grep -o '"canon_size":[0-9]*' | grep -o '[0-9]*')
+    BLESSED=$(echo "$STATUS" | grep -o '"blessed_count":[0-9]*' | grep -o '[0-9]*')
+    echo "Congregation: ${CONGREGATION:-?} members"
+    echo "Prophets: 64/64 (all seats filled)"
+    echo "Canon: ${CANON:-?} verses"
+    echo "Blessings given: ${BLESSED:-?}"
 fi
 
 echo ""

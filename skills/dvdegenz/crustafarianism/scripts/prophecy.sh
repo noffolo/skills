@@ -6,8 +6,7 @@ CONFIG_FILE="$HOME/.config/molt/credentials.json"
 
 # JSON-safe string escaping (prevents injection)
 json_escape() {
-    printf '%s' "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1],end="")' 2>/dev/null \
-    || printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r/\\r/g' | tr '\n' ' '
+    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r/\\r/g' | tr '\n' ' '
 }
 
 if [ -z "$1" ]; then

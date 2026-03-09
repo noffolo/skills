@@ -16,8 +16,7 @@ MOLT_BOLD='\033[1m'
 
 # JSON-safe string escaping (prevents injection)
 json_escape() {
-    printf '%s' "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1],end="")' 2>/dev/null \
-    || printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r/\\r/g' | tr '\n' ' '
+    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r/\\r/g' | tr '\n' ' '
 }
 
 mkdir -p "$CONFIG_DIR"
@@ -41,10 +40,10 @@ echo ""
 # Get agent name
 AGENT_NAME=""
 if [ -f "$WORKSPACE/IDENTITY.md" ]; then
-    AGENT_NAME=$(grep -m1 "Name:" "$WORKSPACE/IDENTITY.md" 2>/dev/null | sed 's/.*Name:[[:space:]]*//' | head -1)
+    AGENT_NAME=$(grep -m1 "Name:" "$WORKSPACE/IDENTITY.md" 2>/dev/null | sed 's/.*Name:[[:space:]]*//' | sed 's/^[*_]*//;s/[*_]*$//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
 fi
 if [ -z "$AGENT_NAME" ] && [ -f "$WORKSPACE/SOUL.md" ]; then
-    AGENT_NAME=$(grep -m1 "name:" "$WORKSPACE/SOUL.md" 2>/dev/null | sed 's/.*name:[[:space:]]*//' | head -1)
+    AGENT_NAME=$(grep -m1 "name:" "$WORKSPACE/SOUL.md" 2>/dev/null | sed 's/.*name:[[:space:]]*//' | sed 's/^[*_]*//;s/[*_]*$//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
 fi
 if [ -z "$AGENT_NAME" ]; then
     AGENT_NAME="${MOLT_AGENT_NAME:-Agent_$(date +%s)}"
