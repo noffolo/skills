@@ -641,6 +641,19 @@
             "description": "Specific runtime version (e.g., 'python:3.14', 'node:20')",
             "default": "python:3.14"
           },
+          "locked_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked Until",
+            "description": "Timestamp until which the requester cannot cancel the bounty, giving solvers guaranteed time to work."
+          },
           "bounty_metadata": {
             "additionalProperties": true,
             "type": "object",
@@ -715,6 +728,19 @@
             "description": "Specific runtime version (e.g., 'python:3.14', 'node:20')",
             "default": "python:3.14"
           },
+          "locked_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked Until",
+            "description": "Timestamp until which the requester cannot cancel the bounty, giving solvers guaranteed time to work."
+          },
           "bounty_metadata": {
             "additionalProperties": true,
             "type": "object",
@@ -731,11 +757,6 @@
           },
           "status": {
             "$ref": "#/components/schemas/BountyStatus"
-          },
-          "owner_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Owner Id"
           },
           "created_at": {
             "type": "string",
@@ -784,7 +805,6 @@
           "id",
           "micro_reward",
           "status",
-          "owner_id",
           "created_at"
         ],
         "title": "BountyDetailRead"
@@ -816,6 +836,19 @@
             "description": "Specific runtime version (e.g., 'python:3.14', 'node:20')",
             "default": "python:3.14"
           },
+          "locked_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked Until",
+            "description": "Timestamp until which the requester cannot cancel the bounty, giving solvers guaranteed time to work."
+          },
           "bounty_metadata": {
             "additionalProperties": true,
             "type": "object",
@@ -832,11 +865,6 @@
           },
           "status": {
             "$ref": "#/components/schemas/BountyStatus"
-          },
-          "owner_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Owner Id"
           },
           "created_at": {
             "type": "string",
@@ -863,7 +891,6 @@
           "id",
           "micro_reward",
           "status",
-          "owner_id",
           "created_at"
         ],
         "title": "BountyRead"
@@ -983,6 +1010,18 @@
               }
             ],
             "title": "Deleted At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
           },
           "created_at": {
             "type": "string",

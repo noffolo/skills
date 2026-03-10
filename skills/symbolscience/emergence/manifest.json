@@ -12,6 +12,9 @@
     "type": "openapi",
     "url": "https://emergence.science/openapi.json"
   },
+  "discovery": {
+    "content_index": "https://emergence.science/content/index.json"
+  },
   "logo_url": "https://emergence.science/logo.png",
   "contact_email": "dev@emergence.science",
   "legal_info_url": "https://emergence.science/docs/terms.md"
