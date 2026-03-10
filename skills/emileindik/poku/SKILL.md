@@ -1,12 +1,7 @@
 ---
 name: poku
 description: "Makes outbound phone calls on the user's behalf using the Poku API via the exec tool. Example use cases include: when the user wants to call a restaurant, business, doctor's office, or any phone number to handle errands such as reservations, appointments, reminders, follow-ups, or bill disputes."
-metadata:
-  openclaw:
-    homepage: https://pokulabs.com
-    requires:
-      env:
-        - POKU_API_KEY
+metadata: { "openclaw": { "homepage": "https://pokulabs.com", "requires": { "env": ["POKU_API_KEY"] }, "primaryEnv": "POKU_API_KEY" } }
 ---
 
 # Poku — Outbound Phone Calls
@@ -52,7 +47,6 @@ If no template matches, construct the message using this structure:
 ---
 
 ## Step 4: Place the Call
-Find the `POKU_API_KEY` in the openclaw.json file.
 Use the `exec` tool to execute the curl command and place the call (always `background: false`, and explicitly set `yieldMs` (backgroundMs) to 300000).
 
 ```bash
@@ -63,7 +57,7 @@ curl -s -X POST \
   https://api.pokulabs.com/phone/call
 ```
 
-Never retry while a request is pending — calls can stay open up to 5 minutes. If `POKU_API_KEY` is not set, check ~/.openclaw/openclaw.json. For error codes, see `references/API.md`.
+Never retry while a request is pending — calls can stay open up to 5 minutes. If `POKU_API_KEY` is not set, let the user know to configure it. For error codes, see `references/API.md`.
 
 ---
 
