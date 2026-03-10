@@ -3,9 +3,15 @@
   "slug": "bitquery-crypto-price-stream",
   "displayName": "Reliable Bitcoin Price Feed",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772807122307,
-    "commit": "https://github.com/openclaw/skills/commit/1d5b8466a26e48319cf2693b0041640f85ed0e43"
+    "version": "1.0.3",
+    "publishedAt": 1773143854138,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772807122307,
+      "commit": "https://github.com/openclaw/skills/commit/1d5b8466a26e48319cf2693b0041640f85ed0e43"
+    }
+  ]
 }
