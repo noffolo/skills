@@ -13,17 +13,20 @@ set -euo pipefail
 
 # ── Find project root ────────────────────────────────────────────────────────
 find_project() {
+    # 1. Explicit env override
     if [[ -n "${BINANCE_COACH_PATH:-}" && -f "$BINANCE_COACH_PATH/main.py" ]]; then
         echo "$BINANCE_COACH_PATH"; return
     fi
-    local candidates=("$HOME/.binance-coach" "$HOME/workspace/binance-coach" "$HOME/binance-coach")
+    # 2. Standard workspace locations
+    local candidates=("$HOME/workspace/binance-coach" "$HOME/.binance-coach" "$HOME/binance-coach")
     for dir in "${candidates[@]}"; do
         if [[ -f "$dir/main.py" && -f "$dir/.env" ]]; then echo "$dir"; return; fi
     done
-    # Relative to skill location (repo-bundled)
-    local skill_dir
-    skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-    if [[ -f "$skill_dir/main.py" ]]; then echo "$skill_dir"; return; fi
+    # 3. Bundled src/ inside skill (no setup needed for read-only commands)
+    local skill_dir src_dir
+    skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    src_dir="$skill_dir/src"
+    if [[ -f "$src_dir/main.py" ]]; then echo "$src_dir"; return; fi
     echo ""
 }
 
@@ -95,6 +98,44 @@ case "$COMMAND" in
         SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         exec bash "$SCRIPT_DIR/setup.sh"
         ;;
+    update)
+        echo "🔄 BinanceCoach update — review before applying"
+        echo "   Changelog: https://clawhub.ai/skills/binance-coach"
+        echo "   Source:    https://github.com/UnrealBNB/BinanceCoachAI"
+        echo ""
+        printf "   Proceed with update? [y/N] "
+        read -r confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Update cancelled."; exit 0; }
+        echo ""
+        echo "🔄 Updating BinanceCoach skill..."
+        # Step 1: Update skill files via ClaWHub
+        if command -v clawhub &>/dev/null; then
+            clawhub update binance-coach && echo "✅ Skill updated from ClaWHub"
+        else
+            echo "⚠️  clawhub CLI not found — skipping registry update"
+        fi
+        # Step 2: Copy new bundled src to workspace (preserve .env and data/)
+        SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+        SRC_DIR="$SKILL_DIR/src"
+        if [[ -d "$SRC_DIR" && -f "$SRC_DIR/main.py" && -d "$PROJECT" ]]; then
+            # Back up .env and data/
+            TMP_ENV=$(mktemp)
+            cp "$PROJECT/.env" "$TMP_ENV" 2>/dev/null || true
+            # Copy new source (excludes .env and data/)
+            rsync -a --exclude='.env' --exclude='data/' "$SRC_DIR/" "$PROJECT/" 2>/dev/null || \
+            cp -r "$SRC_DIR/." "$PROJECT/"
+            # Restore .env
+            [[ -f "$TMP_ENV" ]] && cp "$TMP_ENV" "$PROJECT/.env"
+            rm -f "$TMP_ENV"
+            echo "✅ Source updated at $PROJECT"
+        else
+            echo "⚠️  Bundled src not found — re-run setup to reinstall"
+        fi
+        # Step 3: Re-install deps in case requirements changed
+        pip3 install --break-system-packages -q -r "$PROJECT/requirements.txt" 2>/dev/null || true
+        echo "✅ BinanceCoach updated successfully"
+        echo "   Your .env and alert data are preserved."
+        ;;
     help|--help|-h)
         echo "BinanceCoach — commands:"
         echo "  portfolio            Portfolio health score & analysis"
@@ -114,6 +155,7 @@ case "$COMMAND" in
         echo "  telegram             Start standalone Telegram bot"
         echo "  demo                 Demo mode (no API keys needed)"
         echo "  setup                First-time setup wizard"
+        echo "  update               Update to latest version from ClaWHub"
         ;;
     *)
         echo "❌ Unknown command: $COMMAND"
