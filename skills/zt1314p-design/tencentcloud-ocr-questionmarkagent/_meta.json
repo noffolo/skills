@@ -3,9 +3,15 @@
   "slug": "tencentcloud-ocr-questionmarkagent",
   "displayName": "TencentCloud QuestionMark OCR",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1772962242998,
-    "commit": "https://github.com/openclaw/skills/commit/7b40ed9137870bdc8f5337ebe10cb95a85e50bb4"
+    "version": "1.0.2",
+    "publishedAt": 1773110438285,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1772962242998,
+      "commit": "https://github.com/openclaw/skills/commit/7b40ed9137870bdc8f5337ebe10cb95a85e50bb4"
+    }
+  ]
 }

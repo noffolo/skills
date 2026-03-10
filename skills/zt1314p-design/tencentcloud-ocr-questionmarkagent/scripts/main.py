@@ -79,7 +79,7 @@ def load_image_base64(value: str) -> str:
             raw_str = raw.decode("utf-8").strip()
             base64.b64decode(raw_str, validate=True)
             return raw_str
-        except Exception:
+        except (UnicodeDecodeError, ValueError):
             pass
         # 否则将二进制文件编码为Base64
         if len(raw) > MAX_IMAGE_SIZE_BYTES:
@@ -94,7 +94,7 @@ def load_image_base64(value: str) -> str:
             if len(decoded) > MAX_IMAGE_SIZE_BYTES:
                 print(f"错误: 图片/PDF大小超过 {MAX_IMAGE_SIZE_BYTES // (1024 * 1024)}MB 限制", file=sys.stderr)
                 sys.exit(1)
-        except Exception:
+        except ValueError:
             print("错误: 提供的 ImageBase64 不是合法的 Base64 编码，也不是有效的文件路径", file=sys.stderr)
             sys.exit(1)
         return value
@@ -354,6 +354,7 @@ def run(args: argparse.Namespace) -> None:
     http_profile.endpoint = "ocr.tencentcloudapi.com"
     client_profile = ClientProfile()
     client_profile.httpProfile = http_profile
+    client_profile.request_client = args.user_agent
     region = args.region if args.region else "ap-guangzhou"
     client = ocr_client.OcrClient(cred, region, client_profile)
 
@@ -495,6 +496,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         help="腾讯云地域，默认 ap-guangzhou",
+    )
+    parser.add_argument(
+        "--user-agent",
+        type=str,
+        default="Skills",
+        help="客户端标识，用于统计调用来源，统一固定为 Skills",
     )
 
     return parser

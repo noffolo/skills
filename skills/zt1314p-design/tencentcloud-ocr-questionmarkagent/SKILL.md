@@ -65,6 +65,7 @@ description: 腾讯云试题批改Agent(SubmitQuestionMarkAgentJob/DescribeQuest
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | JobId | str | 是 | 任务唯一ID，由Submit接口返回，长度不超过32字符 |
+| **UserAgent** | **str** | **否** | **请求来源标识(可选)，用于追踪调用来源，统一固定为`Skills`** |
 
 ### 输出格式
 
@@ -248,5 +249,4 @@ python scripts/main.py --image-url "https://example.com/exam.jpg" --raw
 
 # 指定地域和自定义轮询参数
 python scripts/main.py --image-url "https://example.com/exam.jpg" \
-  --region ap-beijing --poll-interval 3 --poll-timeout 300
-```
+  --region ap-beijing --poll-interval 3 --poll-timeout 300```
