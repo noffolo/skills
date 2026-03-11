@@ -1,0 +1,11 @@
+{
+  "owner": "allanwei",
+  "slug": "slack-standup",
+  "displayName": "Slack Standup",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1773256420864,
+    "commit": null
+  },
+  "history": []
+}
