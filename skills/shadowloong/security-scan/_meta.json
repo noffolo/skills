@@ -1,0 +1,11 @@
+{
+  "owner": "shadowloong",
+  "slug": "security-scan",
+  "displayName": "Security Scan",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773221842315,
+    "commit": null
+  },
+  "history": []
+}
