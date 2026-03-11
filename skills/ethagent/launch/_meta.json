@@ -1,0 +1,11 @@
+{
+  "owner": "ethagent",
+  "slug": "launch",
+  "displayName": "Launch",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772978414052,
+    "commit": null
+  },
+  "history": []
+}
