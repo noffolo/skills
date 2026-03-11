@@ -1,0 +1,11 @@
+{
+  "owner": "marcopesani",
+  "slug": "bitrefill-cli",
+  "displayName": "Bitrefill CLI",
+  "latest": {
+    "version": "1.5.0",
+    "publishedAt": 1773142158419,
+    "commit": null
+  },
+  "history": []
+}
