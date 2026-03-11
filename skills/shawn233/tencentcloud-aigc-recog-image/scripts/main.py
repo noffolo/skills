@@ -14,37 +14,18 @@ Usage:
 
 import json
 import os
-import subprocess
 import sys
-
-
-# ============================================================
-# Part 1: Auto-install dependencies
-# ============================================================
-
-def ensure_dependencies():
-    """Ensure tencentcloud-sdk-python is installed; auto-install if missing."""
-    try:
-        import tencentcloud.ims.v20201229  # noqa: F401
-    except ImportError:
-        print("[INFO] tencentcloud-sdk-python is not installed, installing now...", file=sys.stderr)
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "tencentcloud-sdk-python", "-q"],
-            stdout=sys.stderr,
-            stderr=sys.stderr,
-        )
-        print("[INFO] tencentcloud-sdk-python installed successfully.", file=sys.stderr)
-
-
-ensure_dependencies()
-
 import base64  # noqa: E402
-from tencentcloud.common import credential  # noqa: E402
-from tencentcloud.common.profile.client_profile import ClientProfile  # noqa: E402
-from tencentcloud.common.profile.http_profile import HttpProfile  # noqa: E402
-from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException  # noqa: E402
-from tencentcloud.ims.v20201229 import ims_client, models  # noqa: E402
 
+try:
+    from tencentcloud.common import credential  # noqa: E402
+    from tencentcloud.common.profile.client_profile import ClientProfile  # noqa: E402
+    from tencentcloud.common.profile.http_profile import HttpProfile  # noqa: E402
+    from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException  # noqa: E402
+    from tencentcloud.ims.v20201229 import ims_client, models  # noqa: E402
+except ImportError:
+    print("错误: 缺少依赖 tencentcloud-sdk-python，请执行: pip install tencentcloud-sdk-python", file=sys.stderr)
+    sys.exit(1)
 
 # Maximum file size: 5MB
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -54,7 +35,7 @@ SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp"}
 
 
 # ============================================================
-# Part 2: Credential checking
+# Part 1: Credential checking
 # ============================================================
 
 def get_credentials():
@@ -125,7 +106,7 @@ def get_biz_type():
 
 
 # ============================================================
-# Part 3: Command-line argument parsing
+# Part 2: Command-line argument parsing
 # ============================================================
 
 def parse_args():
@@ -254,7 +235,7 @@ def read_image_file(file_path):
 
 
 # ============================================================
-# Part 4: API call and result output
+# Part 3: API call and result output
 # ============================================================
 
 def call_image_moderation(cred, image_url=None, file_content=None,
