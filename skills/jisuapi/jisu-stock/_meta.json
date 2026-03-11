@@ -1,0 +1,11 @@
+{
+  "owner": "jisuapi",
+  "slug": "jisu-stock",
+  "displayName": "股票查询 - Chinese Stock Inquiry",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773202294979,
+    "commit": null
+  },
+  "history": []
+}
