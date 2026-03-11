@@ -1,0 +1,11 @@
+{
+  "owner": "toughspider",
+  "slug": "knowledge-spider",
+  "displayName": "本地知识库",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773113414240,
+    "commit": null
+  },
+  "history": []
+}
