@@ -3,9 +3,15 @@
   "slug": "comment-to-content-recycler",
   "displayName": "Comment To Content Recycler",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773201702191,
-    "commit": "https://github.com/openclaw/skills/commit/8d5967e87c18e3eca820483fd912eff4b7b81339"
+    "version": "1.0.3",
+    "publishedAt": 1773218508190,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773201702191,
+      "commit": "https://github.com/openclaw/skills/commit/8d5967e87c18e3eca820483fd912eff4b7b81339"
+    }
+  ]
 }
