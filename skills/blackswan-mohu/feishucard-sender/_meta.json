@@ -1,0 +1,11 @@
+{
+  "owner": "blackswan-mohu",
+  "slug": "feishucard-sender",
+  "displayName": "feishu-card-sender",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773213612572,
+    "commit": null
+  },
+  "history": []
+}
