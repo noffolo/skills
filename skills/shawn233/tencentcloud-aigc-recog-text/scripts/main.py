@@ -13,40 +13,22 @@ tencentcloud-aigc-recog-text: 腾讯云 AI 生成文本识别 Skill
 
 import json
 import os
-import subprocess
 import sys
-
-
-# ============================================================
-# 第一部分：依赖自动安装
-# ============================================================
-
-def ensure_dependencies():
-    """确保 tencentcloud-sdk-python 已安装，若缺失则自动安装。"""
-    try:
-        import tencentcloud.tms.v20201229  # noqa: F401
-    except ImportError:
-        print("[INFO] tencentcloud-sdk-python 未安装，正在自动安装...", file=sys.stderr)
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "tencentcloud-sdk-python", "-q"],
-            stdout=sys.stderr,
-            stderr=sys.stderr,
-        )
-        print("[INFO] tencentcloud-sdk-python 安装成功。", file=sys.stderr)
-
-
-ensure_dependencies()
-
 import base64  # noqa: E402
-from tencentcloud.common import credential  # noqa: E402
-from tencentcloud.common.profile.client_profile import ClientProfile  # noqa: E402
-from tencentcloud.common.profile.http_profile import HttpProfile  # noqa: E402
-from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException  # noqa: E402
-from tencentcloud.tms.v20201229 import tms_client, models  # noqa: E402
+
+try:
+    from tencentcloud.common import credential  # noqa: E402
+    from tencentcloud.common.profile.client_profile import ClientProfile  # noqa: E402
+    from tencentcloud.common.profile.http_profile import HttpProfile  # noqa: E402
+    from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException  # noqa: E402
+    from tencentcloud.tms.v20201229 import tms_client, models  # noqa: E402
+except ImportError:
+    print("错误: 缺少依赖 tencentcloud-sdk-python，请执行: pip install tencentcloud-sdk-python", file=sys.stderr)
+    sys.exit(1)
 
 
 # ============================================================
-# 第二部分：凭证检测
+# 第一部分：凭证检测
 # ============================================================
 
 def get_credentials():
@@ -117,7 +99,7 @@ def get_biz_type():
 
 
 # ============================================================
-# 第三部分：命令行参数解析
+# 第二部分：命令行参数解析
 # ============================================================
 
 def parse_args():
@@ -212,7 +194,7 @@ def get_input_text(args):
 
 
 # ============================================================
-# 第四部分：API 调用与结果输出
+# 第三部分：API 调用与结果输出
 # ============================================================
 
 def call_text_moderation(cred, text, data_id=None, biz_type=None):
