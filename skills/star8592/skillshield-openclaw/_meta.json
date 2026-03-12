@@ -3,9 +3,15 @@
   "slug": "skillshield-openclaw",
   "displayName": "SkillShield",
   "latest": {
-    "version": "2.1.2",
-    "publishedAt": 1773278597435,
-    "commit": "https://github.com/openclaw/skills/commit/e54ac3a632368555f863f2fc8ef5ab90875ac96b"
+    "version": "2.1.6",
+    "publishedAt": 1773302409476,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.1.2",
+      "publishedAt": 1773278597435,
+      "commit": "https://github.com/openclaw/skills/commit/e54ac3a632368555f863f2fc8ef5ab90875ac96b"
+    }
+  ]
 }

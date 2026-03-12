@@ -1,1 +1,1 @@
-{"name":"skillshield","version":"2.1.1","description":"Enterprise-grade physical sandbox for AI Agents. Powered by Rust & bwrap.","author":"SkillShield"}
+{"name":"skillshield","version":"2.1.5","description":"Sandboxed command runner for AI agents — Rust daemon with Linux user-namespace isolation via Bubblewrap.","author":"SkillShield"}
