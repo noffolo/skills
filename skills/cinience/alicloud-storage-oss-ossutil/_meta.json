@@ -3,11 +3,16 @@
   "slug": "alicloud-storage-oss-ossutil",
   "displayName": "Alicloud Storage Oss Ossutil",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1770973251709,
-    "commit": "https://github.com/openclaw/skills/commit/bf59832f2c41adcf372f963e25a7d9c77875742e"
+    "version": "1.0.3",
+    "publishedAt": 1773222065063,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1770973251709,
+      "commit": "https://github.com/openclaw/skills/commit/bf59832f2c41adcf372f963e25a7d9c77875742e"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1770768637001,
