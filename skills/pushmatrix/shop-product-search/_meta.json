@@ -3,11 +3,16 @@
   "slug": "shop-product-search",
   "displayName": "Shop",
   "latest": {
-    "version": "0.0.13",
-    "publishedAt": 1773060594072,
-    "commit": "https://github.com/openclaw/skills/commit/73462ffc3e8477a7d9db7bd3c5f2f001cccc66ce"
+    "version": "0.0.16",
+    "publishedAt": 1773344004635,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.0.13",
+      "publishedAt": 1773060594072,
+      "commit": "https://github.com/openclaw/skills/commit/73462ffc3e8477a7d9db7bd3c5f2f001cccc66ce"
+    },
     {
       "version": "0.0.12",
       "publishedAt": 1772833858896,

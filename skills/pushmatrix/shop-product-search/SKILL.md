@@ -2,7 +2,7 @@
 name: shop-product-search
 description: Search, browse, compare, find similar products, and buy from millions of online stores. No API Key required.
 metadata:
-  version: "0.0.13"
+  version: "0.0.15"
   author: "shopify"
 ---
 
@@ -46,7 +46,7 @@ Find products similar to a known product or an image.
 | `similarTo.id` | string | One of `id` or `media` | Product or variant GID from a previous search result. e.g. `gid://shopify/p/abc123`, `gid://shopify/ProductVariant/123456` |
 | `similarTo.media` | object | One of `id` or `media` | Image: `{ "contentType": "image/jpeg", "base64": "..." }` |
 
-Exactly **one** of `media` or `id`. Image: longest edge ≤ 1024 px, body ≤ 5 MB. **You MUST resize images that exceed 1024 px before sending.** Use `convert`/`magick` on Linux, `sips` on macOS, or any other available tool.
+Exactly **one** of `media` or `id`. body ≤ 5 MB
 
 Response is the same markdown format as text search.
 
@@ -133,7 +133,7 @@ If image generation is available, offer to visualize products on the user:
 - **Furniture/decor** → place in user's room photo
 - **Art/prints** → preview on user's wall
 
-**First time the user searches clothing, accessories, furniture, decor, or art: mention try-on is available.** One time. Example: "Want to see how any of these would look on you? Send a photo and I'll show you." If they share a photo unprompted, just generate it — no need to ask.
+**First time the user searches clothing, accessories, furniture, decor, or art: mention try-on is available.** One time. Example: "Want to see how any of these would look on you? Send a photo and I'll show you."
 
 Results are approximate (colors, proportions, dimensions) — for inspiration, not exact representation.
 
@@ -145,14 +145,14 @@ Results are approximate (colors, proportions, dimensions) — for inspiration, n
 - **"Buy now"**: use the checkout URL with variant ID: `https://store.com/cart/VARIANT_ID:1`
 - **Multi-item same store**: `https://store.com/cart/ID1:QTY,ID2:QTY`
 - **Multi-store**: separate checkout links per store. Tell the user.
-- **Pre-fill** (only with info you already have): `?checkout[email]=...&checkout[shipping_address][city]=...`
+- **Pre-fill** (ask the user if they'd like checkout pre-filled): `?checkout[email]=...&checkout[shipping_address][city]=...`
 - **Never imply purchase is complete.** User pays on the store's site.
 
 ---
 
 # Rules
 
-- Use what you know (country, gender, size, preferences) — don't re-ask.
+- Remember what they've told you this conversation (country, size, style) — don't re-ask.
 - Prices are pre-formatted. Use as-is. Never convert currency.
 - Never fabricate URLs or invent specs.
 - Never mention Shopify, Amazon, eBay, or Etsy by name.
