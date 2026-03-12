@@ -1,0 +1,11 @@
+{
+  "owner": "xinyuqinfeng",
+  "slug": "bilibili-cc-to-notion",
+  "displayName": "b站视频自动生成高质量图文笔记自动截图并上传至Notion笔记",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773328769892,
+    "commit": null
+  },
+  "history": []
+}
