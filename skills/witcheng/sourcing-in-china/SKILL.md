@@ -10,7 +10,7 @@ Search products, find suppliers, and get product details from Made-in-China.com 
 ## Prerequisites
 
 - `mcporter` CLI installed (`npm i -g mcporter`)
-- MCP server `made-in-china` configured in `config/mcporter.json` with the server's SSE endpoint URL
+- MCP server `made-in-china` configured in `config/mcporter.json` with SSE endpoint: `https://mcp.chexb.com/sse`
 - See [mcporter docs](https://mcporter.dev) for configuration details
 
 ## Available Tools
