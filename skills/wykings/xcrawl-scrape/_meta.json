@@ -1,11 +1,17 @@
 {
   "owner": "wykings",
   "slug": "xcrawl-scrape",
-  "displayName": "Xcawl Scrape",
+  "displayName": "XCrawl Scrape",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773220759357,
-    "commit": "https://github.com/openclaw/skills/commit/106cb00174ecae1a6e768a1675216674a9330e7d"
+    "version": "1.0.2",
+    "publishedAt": 1773285325811,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773220759357,
+      "commit": "https://github.com/openclaw/skills/commit/106cb00174ecae1a6e768a1675216674a9330e7d"
+    }
+  ]
 }
