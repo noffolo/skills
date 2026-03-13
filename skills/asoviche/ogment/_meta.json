@@ -3,11 +3,16 @@
   "slug": "ogment",
   "displayName": "Ogment",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772738610696,
-    "commit": "https://github.com/openclaw/skills/commit/e342e3aafe3f80855f8eecf8b8e7c2ea9e6a3b19"
+    "version": "1.0.3",
+    "publishedAt": 1773172629852,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772738610696,
+      "commit": "https://github.com/openclaw/skills/commit/e342e3aafe3f80855f8eecf8b8e7c2ea9e6a3b19"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1772615146500,
