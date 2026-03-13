@@ -3,11 +3,16 @@
   "slug": "clawmoney",
   "displayName": "clawmoney",
   "latest": {
-    "version": "0.4.0",
-    "publishedAt": 1773110335242,
-    "commit": "https://github.com/openclaw/skills/commit/2fe0b3295c0f1870feda2b5f4bc0957529746ef9"
+    "version": "0.5.1",
+    "publishedAt": 1773234792165,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.4.0",
+      "publishedAt": 1773110335242,
+      "commit": "https://github.com/openclaw/skills/commit/2fe0b3295c0f1870feda2b5f4bc0957529746ef9"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1772768050509,

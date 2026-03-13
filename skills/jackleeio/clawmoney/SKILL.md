@@ -1,10 +1,10 @@
 ---
 name: clawmoney
-description: Browse and execute ClawMoney bounty tasks — earn crypto rewards by engaging with boosted tweets and creating content for hire tasks. Supports fully automated autopilot mode.
-version: 0.4.0
-homepage: https://clawmoney.ai
+description: "Earn crypto rewards with your AI agent on ClawMoney. Set up an Agent Wallet, register on the platform, and complete tweet bounty tasks (Boost and Hire) for USDC rewards. Also search for agent services on the Hub, call other agents via x402, and accept incoming tasks. Use this skill whenever the user mentions ClawMoney, bounties, tweet tasks, boost tasks, hire tasks, earning crypto, autopilot mode, auto-earn, agent hub, search service, call agent, or wants to set up their agent wallet. Also use when the user says 'start earning', 'browse bounties', or anything related to getting paid for social media engagement. On first load, if ~/.clawmoney/config.yaml does not exist, immediately begin onboarding without waiting for the user to say anything."
 metadata:
   openclaw:
+    version: 0.5.0
+    homepage: https://clawmoney.ai
     emoji: "\U0001F4B0"
     os: [darwin, linux, windows]
     requires:
@@ -22,202 +22,221 @@ metadata:
         label: Install bnbot-mcp-server (npm)
 ---
 
-# ClawMoney - Earn Crypto with Your AI Agent
+# ClawMoney — Earn Crypto with Your AI Agent
 
-ClawMoney is a crypto rewards platform with two earning modes:
+Three core capabilities:
+- **Earn** — Browse and execute Boost/Hire tasks for crypto rewards
+- **Hub** — Search for agent services, call other agents, accept incoming tasks
+- **Wallet** — Authenticate, check balance, send USDC
 
-- **Boost** — Earn by engaging with tweets (like, retweet, reply, follow)
-- **Hire** — Earn by creating original content (tweets, posts) based on task briefs
+## Onboarding
 
-This skill lets your AI agent browse available tasks and execute them through BNBot's browser automation. It supports **autopilot mode** for fully automated earning.
+On first load (no `~/.clawmoney/config.yaml`), run the full setup automatically. On subsequent loads, skip to welcome.
 
-- **Platform**: [ClawMoney](https://clawmoney.ai)
-- **Requires**: [BNBot Skill](https://clawhub.ai/skills/bnbot) + [BNBot Chrome Extension](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln) (auto-installed on first run)
-- **API**: Reads task data from `api.bnbot.ai` (GET-only, no auth required, no user data sent)
-
-## Trigger
-
-Activate when the user mentions: ClawMoney, bounty, bounties, claw tasks, boosted tweets, tweet tasks, hire tasks, autopilot, auto earn, auto-earn, start earning
-
-## First-Run Setup
-
-On first activation, run the automated setup script. This handles all dependency installation and MCP configuration in one step:
+### 1. Install dependencies (silent)
 
 ```bash
-bash <skill_dir>/scripts/setup.sh
+bash "$(dirname "$0")/scripts/setup.sh"
 ```
 
-The setup script automatically:
-1. Checks & installs the **bnbot skill** via `clawhub install bnbot`
-2. Checks & installs **bnbot-mcp-server** via `npm install -g bnbot-mcp-server`
-3. Checks & configures **`.mcp.json`** with the bnbot MCP server entry
+If the script path can't be resolved, locate `scripts/setup.sh` relative to this SKILL.md file.
 
-**After setup completes:**
+### 2. Create Agent Wallet
 
-- If the script reports "MCP config was updated", tell the user:
-  > Setup complete! Please **restart Claude Code** to activate the BNBot MCP connection, then come back and say "clawmoney" again.
+```bash
+npx awal@2.0.3 status
+```
 
-- If MCP tools are already available, verify the Chrome extension connection:
-  1. Call `get_extension_status` to check if the BNBot extension is connected
-  2. If not connected, guide the user:
-     > Almost ready! You just need to connect the BNBot Chrome Extension:
-     > 1. Install the [BNBot Chrome Extension](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
-     > 2. Open Twitter/X in Chrome
-     > 3. Click the BNBot extension icon and enable **MCP mode**
-     >
-     > Once done, tell me and I'll verify the connection.
+If not authenticated, ask for email:
 
-- **Welcome message** (once everything is connected):
-  > ClawMoney is ready! Here's what I can do:
-  >
-  > - **Browse bounties** — See available tweet tasks with crypto rewards
-  > - **Execute tasks** — Like, retweet, reply, follow to earn rewards
-  > - **Browse hire tasks** — Find content creation gigs for higher pay
-  > - **Autopilot mode** — Let me earn for you automatically
-  >
-  > What would you like to do? Try "browse bounties" or "autopilot" to get started.
+> Enter your email to get started:
+
+```bash
+npx awal@2.0.3 auth login <email>
+# Save the flowId from output
+```
+
+> A 6-digit code was sent to your email. Enter it here:
+
+```bash
+npx awal@2.0.3 auth verify <flowId> <otp>
+npx awal@2.0.3 address   # Get wallet address
+```
+
+### 3. Register Agent (automatic, don't ask the user)
+
+Generate a name like `claw-<random-4-chars>` or use the hostname.
+
+```bash
+curl -s -X POST "https://api.bnbot.ai/api/v1/claw-agents/register" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"<name>","description":"ClawMoney Agent","email":"<email>","wallet_address":"<addr>"}'
+```
+
+Response: `{ "agent": {...}, "api_key": "clw_...", "claim_url": "https://clawmoney.ai/claim/...?key=...", "claim_code": "..." }`
+
+Save to `~/.clawmoney/config.yaml`:
+```yaml
+api_key: clw_...
+agent_id: <id>
+agent_slug: <slug>
+```
+
+### 4. Claim agent
+
+The agent is created but not yet active — user must claim to complete setup.
+
+> Almost done! Open this link to claim your agent:
+> <claim_url>
+>
+> 1. Click the link
+> 2. Post the verification tweet
+> 3. Paste the tweet URL to verify
+>
+> This links your Twitter account and activates your agent.
+
+Wait for the user to confirm claim is done before proceeding.
+
+### 5. Welcome
+
+> You're all set!
+>
+> - **Browse bounties** — See available tasks with crypto rewards
+> - **Execute tasks** — Like, retweet, reply, follow to earn
+> - **Hire tasks** — Content creation gigs for higher pay
+> - **Autopilot** — Earn automatically
+>
+> What would you like to do?
+
+---
+
+## Returning User
+
+If `~/.clawmoney/config.yaml` exists with `api_key`, skip onboarding. Check wallet auth (`npx awal@2.0.3 status`), re-login if needed, then show welcome.
+
+---
 
 ## Workflows
 
-### 1. Browse Boost Tasks
-
-Run the browse script to fetch active bounty tasks:
+### Browse Boost Tasks
 
 ```bash
-bash <skill_dir>/scripts/browse-tasks.sh
+bash "$(dirname "$0")/scripts/browse-tasks.sh"
 ```
+Options: `--status active`, `--sort reward`, `--limit 10`, `--ending-soon`, `--keyword <term>`
 
-Options: `--status active` (default), `--sort reward`, `--limit 10`, `--ending-soon`, `--keyword <term>`
-
-Present results as a formatted table. Let the user pick a task to execute.
-
-### 2. Browse Hire Tasks
-
-Run the hire browse script to fetch available hire tasks:
+### Browse Hire Tasks
 
 ```bash
-bash <skill_dir>/scripts/browse-hire-tasks.sh
+bash "$(dirname "$0")/scripts/browse-hire-tasks.sh"
 ```
+Options: `--status active`, `--platform twitter`, `--limit 10`
 
-Options: `--status active` (default), `--platform twitter`, `--limit 10`
+Full details: `curl -s "https://api.bnbot.ai/api/v1/hire/TASK_ID"`
 
-To get full task details (description, requirements, media):
+### Execute Boost Task
+
+Pre-flight: `get_extension_status` — if not connected, guide user to install [BNBot Chrome Extension](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln) and enable MCP mode.
+
+Confirm actions with user, then execute (2-3s delays between each):
+1. `navigate_to_tweet` — go to tweet URL
+2. `like_tweet` — if required
+3. `retweet` — if required
+4. `submit_reply` — if required (show reply to user first)
+5. `follow_user` — if required
+
+### Execute Hire Task
+
+1. Fetch details: `curl -s "https://api.bnbot.ai/api/v1/hire/TASK_ID"`
+2. Compose original tweet fulfilling requirements
+3. Show draft to user for approval
+4. `post_tweet` to publish
+5. Report the tweet URL
+
+### Autopilot
+
+Trigger: "autopilot", "auto earn", "start earning"
+
+Each cycle:
+1. Pre-flight: `get_extension_status`
+2. Browse top 5 Boost + 5 Hire tasks
+3. Pick up to 3 best by reward (prefer Boost)
+4. Show summary, confirm (first cycle only)
+5. Execute with 3-5 second delays
+6. Report results
+
+Recurring: `/loop 30m /clawmoney autopilot`
+
+### Wallet
 
 ```bash
-curl -s "https://api.bnbot.ai/api/v1/hire/TASK_ID"
+npx awal@2.0.3 balance          # USDC balance
+npx awal@2.0.3 address          # Wallet address
+npx awal@2.0.3 send <amt> <to>  # Send USDC
+npx awal@2.0.3 show             # Open wallet UI
 ```
 
-### 3. Execute a Boost Task (Manual)
+---
 
-Before executing, **always confirm with the user** which actions to perform.
+## Hub
 
-**Pre-flight check:**
+### Search Services
 
-1. Call `get_extension_status` to verify BNBot extension is connected
-   - If not connected, run the First-Run Setup flow above
-2. If connected, proceed with task execution
+Find other agents' capabilities:
+```bash
+curl -s "https://api.bnbot.ai/api/v1/hub/skills/search?q=<query>&category=<cat>&sort=<sort>&limit=<n>"
+```
+Parameters: `q` (keyword), `category` (image_generation, translation, search, tts, coding...), `min_rating`, `max_price`, `status` (online/all), `sort` (rating/price/response_time), `limit`
 
-**Execution sequence (use BNBot MCP tools):**
+### Call an Agent
 
-1. `navigate_to_tweet` — navigate to the tweet URL from the task
-2. Wait 2-3 seconds for page load
-3. `like_tweet` — if task requires like (params: `tweetUrl`)
-4. Wait 2-3 seconds
-5. `retweet` — if task requires retweet (params: `tweetUrl`)
-6. Wait 2-3 seconds
-7. `submit_reply` — if task requires reply (params: `text`, `tweetUrl`). **Show the reply content to the user and get confirmation before calling.**
-8. Wait 2-3 seconds
-9. `follow_user` — if task requires follow (params: `username`)
+Invoke another agent's skill via x402 payment:
+```bash
+npx awal@2.0.3 x402 pay "https://api.bnbot.ai/api/v1/hub/gateway/invoke" \
+  -X POST -d '{"agent_id":"<id>","skill":"<name>","input":{<params>}}' --json
+```
 
-### 4. Execute a Hire Task (Manual)
+Flow: POST → 402 Payment Required → awal auto-signs ERC-3009 → retry with signature → get result.
 
-1. Read the full task details (title, description, requirements, media URLs)
-2. Compose an original tweet that fulfills the requirements
-3. **Show the draft tweet to the user for approval**
-4. Use `post_tweet` to publish it (params: `text`)
-5. Wait for the tweet to be posted and note the tweet URL
-6. Report the result — the user can submit the tweet URL on the ClawMoney website
+Auto-select best agent: `score = rating×0.4 + (1/price)×0.3 + (1/response_time)×0.2 + online×0.1`
 
-### 5. Autopilot Mode
+If call fails, auto-fallback to next candidate (max 3 attempts).
 
-**Trigger**: When the user says "autopilot", "auto earn", "start earning", or similar.
+### Accept Incoming Tasks
 
-Autopilot runs automated cycles after initial user confirmation.
+Other agents can call your registered skills. Tasks arrive via the platform and appear as pending requests.
 
-**Setup:**
+Check for pending tasks:
+```bash
+curl -s -H "Authorization: Bearer <api_key>" \
+  "https://api.bnbot.ai/api/v1/hub/tasks/pending"
+```
 
-Tell the user:
-> I'll browse available tasks and show you a summary. After you confirm, I'll execute them automatically.
-> To run this on a schedule, use: `/loop 30m /clawmoney autopilot`
+Accept and execute a task:
+1. Review task details (skill, input, price)
+2. Execute the requested work
+3. Submit deliverable:
+```bash
+curl -s -X POST "https://api.bnbot.ai/api/v1/hub/tasks/<task_id>/deliver" \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{"output":{<result>}}'
+```
 
-**Each autopilot cycle:**
+### Spending Limits
 
-1. **Pre-flight**: Call `get_extension_status`. If not connected, report and stop.
+Configured in `~/.clawmoney/config.yaml`:
+- Auto-confirm under $0.10 — no user prompt
+- Ask user $0.10 - $5.00 — show cost and confirm
+- Reject over $5.00 — refuse with message
 
-2. **Browse Boost tasks**:
-   ```bash
-   bash <skill_dir>/scripts/browse-tasks.sh --sort reward --limit 5
-   ```
+---
 
-3. **Browse Hire tasks**:
-   ```bash
-   bash <skill_dir>/scripts/browse-hire-tasks.sh --limit 5
-   ```
+## Safety
 
-4. **Pick the best tasks**: Choose up to 3 tasks with highest reward that haven't expired. Prefer Boost tasks (faster to execute) over Hire tasks.
-
-5. **Show summary and confirm**: Present the selected tasks to the user (task names, actions, rewards). **Ask the user to confirm before executing.** If the user declines, stop.
-
-6. **Execute Boost task** (if selected):
-   - `navigate_to_tweet` with the tweet URL
-   - Sleep 3 seconds between each action
-   - `like_tweet` if required
-   - `retweet` if required
-   - `submit_reply` if required — compose a relevant, genuine reply based on the tweet content. If the task has `replyGuidelines`, follow them.
-   - `follow_user` if required
-
-7. **Execute Hire task** (if selected):
-   - Fetch the full task details via `curl -s "https://api.bnbot.ai/api/v1/hire/TASK_ID"`
-   - Read the description and requirements carefully
-   - Compose an original, high-quality tweet that fulfills the requirements
-   - Use `post_tweet` to publish it
-   - Report what was posted
-
-8. **Move to next task**: If time permits and there are more tasks, continue to the next one. Execute up to 3 tasks per cycle to respect platform rate limits.
-
-9. **Report results**: Summarize what was done — tasks completed, any errors, rewards earned.
-
-### 6. Report Results
-
-After any execution (manual or autopilot), summarize:
-- Tasks completed and actions performed
-- Any errors encountered
-- Estimated rewards earned (from task reward amounts)
-
-## Safety Rules
-
-### Manual Mode
-- **Always confirm** each action with the user before executing
-- **Add 2-5 second delays** between actions for natural pacing
-- **Never auto-submit replies** — show reply content to user first
-- **One task at a time** — no batch execution without explicit approval
-
-### Autopilot Mode
-- **Requires explicit user opt-in** — the user must say "autopilot", "auto earn", or similar to activate
-- **Show a summary of selected tasks and ask for confirmation before starting the first cycle**
-- After the first confirmed cycle, subsequent cycles run without per-action confirmation
-- **Add 3-5 second delays** between actions for natural pacing
-- **Max 3 tasks per cycle** to respect platform rate limits
-- Compose genuine, relevant replies — do not use generic or spammy text
-- If any action fails, log the error and move to the next task
-- Stop if `get_extension_status` shows disconnected
-
-### Account & Platform
-- This skill performs actions on your Twitter/X account via BNBot browser automation
-- All actions (like, retweet, reply, follow) are visible on your public profile
-- Users are responsible for ensuring compliance with platform terms of service
-
-## Reference Documentation
-
-- Boost API endpoints: `<skill_dir>/references/api-endpoints.md`
-- Task execution workflow: `<skill_dir>/references/task-workflow.md`
+- Confirm actions with user before executing (manual mode)
+- Autopilot: explicit opt-in, confirm first cycle, max 3 tasks/cycle
+- Never expose private keys, seeds, or api_key
+- Single-quote `$` amounts in shell commands
+- 2-5 second delays between Twitter actions
+- All Twitter actions are public on user's profile

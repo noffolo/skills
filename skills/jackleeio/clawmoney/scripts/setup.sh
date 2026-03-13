@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ClawMoney Skill - Automated Setup
-# Installs all dependencies: bnbot skill, bnbot-mcp-server, MCP config
+# ClawMoney Skill - Fully Automated Setup
+# Installs bnbot-mcp-server + .mcp.json silently, checks wallet status.
 
 set -euo pipefail
 
@@ -13,91 +13,60 @@ ok()   { echo -e "${GREEN}✓${NC} $1"; }
 warn() { echo -e "${YELLOW}!${NC} $1"; }
 fail() { echo -e "${RED}✗${NC} $1"; }
 
-NEEDS_RESTART=false
+# --- 1. Node.js ---
+if ! command -v npx &>/dev/null; then
+  fail "Node.js not found. Install from https://nodejs.org (v18+)"
+  exit 1
+fi
+ok "Node.js $(node -v 2>/dev/null || echo '')"
 
-# --- 1. Check & install bnbot skill ---
-echo "Checking bnbot skill..."
-if clawhub list 2>/dev/null | grep -q "bnbot"; then
-  ok "bnbot skill already installed"
+# --- 2. bnbot-mcp-server (silent) ---
+if command -v bnbot-mcp-server &>/dev/null; then
+  ok "bnbot-mcp-server"
 else
-  warn "bnbot skill not found, installing..."
-  if clawhub install bnbot; then
-    ok "bnbot skill installed"
+  npm install -g bnbot-mcp-server 2>/dev/null && ok "bnbot-mcp-server installed" || true
+fi
+
+# --- 3. bnbot skill (silent) ---
+if command -v clawhub &>/dev/null; then
+  if clawhub list 2>/dev/null | grep -q "bnbot"; then
+    ok "bnbot skill"
   else
-    fail "Failed to install bnbot skill. Run manually: clawhub install bnbot"
-    exit 1
+    clawhub install bnbot 2>/dev/null && ok "bnbot skill installed" || true
   fi
 fi
 
-# --- 2. Check & install bnbot-mcp-server ---
-echo "Checking bnbot-mcp-server..."
-if command -v bnbot-mcp-server &>/dev/null || npx --yes bnbot-mcp-server --version &>/dev/null 2>&1; then
-  ok "bnbot-mcp-server available"
-else
-  warn "bnbot-mcp-server not found, installing..."
-  if npm install -g bnbot-mcp-server; then
-    ok "bnbot-mcp-server installed globally"
-  else
-    fail "Failed to install bnbot-mcp-server. Run manually: npm install -g bnbot-mcp-server"
-    exit 1
-  fi
-fi
-
-# --- 3. Check & configure MCP in .mcp.json ---
-echo "Checking MCP configuration..."
-
-# Find the project root (look for .mcp.json or package.json going upward)
+# --- 4. .mcp.json (silent) ---
 find_project_root() {
   local dir="$PWD"
   while [[ "$dir" != "/" ]]; do
-    if [[ -f "$dir/.mcp.json" ]] || [[ -f "$dir/package.json" ]]; then
-      echo "$dir"
-      return
-    fi
+    [[ -f "$dir/.mcp.json" || -f "$dir/package.json" ]] && echo "$dir" && return
     dir="$(dirname "$dir")"
   done
   echo "$PWD"
 }
 
-PROJECT_ROOT="$(find_project_root)"
-MCP_FILE="$PROJECT_ROOT/.mcp.json"
+MCP_FILE="$(find_project_root)/.mcp.json"
 
-if [[ -f "$MCP_FILE" ]]; then
-  # Check if bnbot is already configured
-  if python3 -c "
-import json, sys
-with open('$MCP_FILE') as f:
-    data = json.load(f)
-servers = data.get('mcpServers', {})
-if 'bnbot' in servers:
-    sys.exit(0)
-sys.exit(1)
-" 2>/dev/null; then
-    ok "MCP config already has bnbot server"
-  else
-    # Add bnbot to existing .mcp.json
-    warn "Adding bnbot to existing .mcp.json..."
+needs_bnbot() {
+  [[ ! -f "$MCP_FILE" ]] && return 0
+  python3 -c "
+import json,sys
+with open('$MCP_FILE') as f: d=json.load(f)
+sys.exit(0 if 'bnbot' not in d.get('mcpServers',{}) else 1)
+" 2>/dev/null
+}
+
+if needs_bnbot; then
+  if [[ -f "$MCP_FILE" ]]; then
     python3 -c "
 import json
-with open('$MCP_FILE') as f:
-    data = json.load(f)
-if 'mcpServers' not in data:
-    data['mcpServers'] = {}
-data['mcpServers']['bnbot'] = {
-    'command': 'npx',
-    'args': ['bnbot-mcp-server']
-}
-with open('$MCP_FILE', 'w') as f:
-    json.dump(data, f, indent=2)
-    f.write('\n')
+with open('$MCP_FILE') as f: d=json.load(f)
+d.setdefault('mcpServers',{})['bnbot']={'command':'npx','args':['bnbot-mcp-server']}
+with open('$MCP_FILE','w') as f: json.dump(d,f,indent=2); f.write('\n')
 "
-    ok "Added bnbot MCP server to $MCP_FILE"
-    NEEDS_RESTART=true
-  fi
-else
-  # Create new .mcp.json
-  warn "Creating .mcp.json..."
-  cat > "$MCP_FILE" << 'MCPEOF'
+  else
+    cat > "$MCP_FILE" << 'EOF'
 {
   "mcpServers": {
     "bnbot": {
@@ -106,19 +75,25 @@ else
     }
   }
 }
-MCPEOF
-  ok "Created $MCP_FILE with bnbot MCP server"
-  NEEDS_RESTART=true
+EOF
+  fi
+  ok ".mcp.json configured"
+else
+  ok ".mcp.json"
 fi
 
-# --- Summary ---
+# --- 5. Wallet status ---
+WALLET_STATUS="needs_login"
+if WOUT=$(npx awal@2.0.3 status 2>&1); then
+  if echo "$WOUT" | grep -qi "address\|authenticated\|logged"; then
+    WALLET_STATUS="ready"
+  fi
+fi
+
+# --- Result ---
 echo ""
-echo "=== Setup Complete ==="
-if $NEEDS_RESTART; then
-  warn "MCP config was updated. Please restart Claude Code to activate the bnbot MCP connection."
-  echo "  Then install the BNBot Chrome Extension if not already:"
-  echo "  https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln"
+if [[ "$WALLET_STATUS" == "ready" ]]; then
+  echo "STATUS:READY"
 else
-  ok "All dependencies ready!"
-  echo "  Make sure the BNBot Chrome Extension is installed and MCP mode is enabled."
+  echo "STATUS:NEEDS_LOGIN"
 fi
