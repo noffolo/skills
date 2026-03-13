@@ -10,10 +10,10 @@ import json
 import random
 import ssl
 
-# Allow HTTPS without certificate verification for simplicity
+# ✅ 修复：启用 SSL 证书验证（安全）
 ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
+ssl_context.check_hostname = True
+ssl_context.verify_mode = ssl.CERT_REQUIRED
 
 def get_cat_image():
     """Fetch a random cat image from multiple sources with fallbacks."""
