@@ -6,7 +6,8 @@ User:
 "Call +46700000000 and confirm my appointment for Tuesday at 2pm."
 
 Expected behavior:
-- Resolve API key from `CALLMYCALL_API_KEY`, then `~/.openclaw/openclaw.json` (`skills.openclaw-phone.apiKey`), and only then prompt once with confirmation before persisting.
+- Resolve API key from `CALLMYCALL_API_KEY`, then `~/.openclaw/openclaw.json` (`skills.openclaw-phone.apiKey`), and only then prompt for one-time use.
+- If the user asks for persistence, provide manual instructions for writing `~/.openclaw/openclaw.json`.
 - Use layered gating to collect any missing details (language, call brief).
 - Present a review summary and ask for confirmation.
 - Call `POST /v1/start-call` with `phone_number` and `task`.
@@ -48,4 +49,4 @@ Expected behavior:
 - Call `GET /v1/calls/:callId`.
 - Call `GET /v1/calls/:callId/transcripts/stream` if needed.
 - If recording exists, fetch `GET /v1/calls/:callSid/recording`.
-- Summarize result + transcript excerpt + recording URL.
+- Summarize result + minimal transcript excerpt + recording URL with a sensitivity warning.

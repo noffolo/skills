@@ -68,6 +68,35 @@ Response (JSON):
 
 ---
 
+## GET /v1/verified-caller-ids
+List verified caller IDs available to your API key/account.
+
+Auth: **Required**
+
+Response (JSON):
+| Field | Type | Notes |
+| --- | --- | --- |
+| verified_caller_ids | array | Verified caller IDs |
+| verified_caller_ids[].phone_number | string | E.164 caller ID |
+| verified_caller_ids[].status | string | Typically `verified` |
+
+## POST /v1/verify-caller-id
+Start caller ID verification for a number you want to use as `from_number`.
+
+Auth: **Required**
+
+Request body (JSON):
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| phone_number | string | Yes | E.164 number to verify |
+
+## GET /v1/verification-status/:verificationId
+Check verification state for caller ID verification.
+
+Auth: **Required**
+
+Response includes status such as `pending`, `verified`, `failed`.
+
 ## POST /v1/end-call
 End a call.
 

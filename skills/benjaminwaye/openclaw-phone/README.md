@@ -24,6 +24,7 @@ Examples:
 - "Show my recent calls."
 - "End call 1."
 - "Show results for call 2."
+- "Prepare this call for 3pm and remind me to run it then."
 
 ## Files
 
@@ -37,13 +38,16 @@ Key lookup order:
 
 1. `CALLMYCALL_API_KEY` environment variable
 2. `~/.openclaw/openclaw.json` at `skills.openclaw-phone.apiKey`
-3. One-time user prompt, with confirmation before persisting to `~/.openclaw/openclaw.json`
+3. One-time user prompt for current task only
+
+This skill does not write config files automatically. If you want persistence, add the key manually to `~/.openclaw/openclaw.json`.
 
 The skill must not store API keys in skill source files or memory/state files.
 
 ## Notes
 
 This skill is pull based. It does not rely on webhook callbacks; results are fetched on demand.
+It also does not create OS scheduler jobs (`cron`/launchd/task scheduler) or autonomous background runs.
 
 See also:
 

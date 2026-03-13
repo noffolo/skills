@@ -36,6 +36,9 @@ Cons:
 Best for:
 - Production deployments that need reliability without websocket complexity.
 
+Security note:
+- Not enabled by this skill. Requires explicit platform/operator implementation and permission controls outside this repository.
+
 ## Option 3: Websocket bridge service
 
 How it works:
@@ -73,9 +76,9 @@ Best for:
 ## Recommended rollout
 
 1. Start with Option 1 for immediate UX improvements.
-2. Move to Option 2 for durable production behavior.
+2. For this skill, keep scheduling and updates in-session only.
 3. Add Option 4 when webhook support is confirmed and operational controls are ready.
-4. Use Option 3 only if realtime push UX is a hard requirement.
+4. Use Option 2 or Option 3 only in a separately managed service with explicit permissioning and secret management.
 
 ## Event model (common across options)
 
