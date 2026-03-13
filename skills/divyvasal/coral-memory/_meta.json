@@ -1,11 +1,17 @@
 {
   "owner": "divyvasal",
   "slug": "coral-memory",
-  "displayName": "Coral Memory",
+  "displayName": "Coral Memory (Deprecated)",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773190403899,
-    "commit": "https://github.com/openclaw/skills/commit/813e399b0c378f4faceb3ce5e26cafda4d6be240"
+    "version": "1.0.3",
+    "publishedAt": 1773342725369,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773190403899,
+      "commit": "https://github.com/openclaw/skills/commit/813e399b0c378f4faceb3ce5e26cafda4d6be240"
+    }
+  ]
 }
