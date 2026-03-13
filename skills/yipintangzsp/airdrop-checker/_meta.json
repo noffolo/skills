@@ -1,11 +1,17 @@
 {
   "owner": "yipintangzsp",
   "slug": "airdrop-checker",
-  "displayName": "空投资格检测器",
+  "displayName": "Airdrop Checker",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772813456216,
-    "commit": "https://github.com/openclaw/skills/commit/607681721e72648189732d43a9877fbfbd3e3b44"
+    "version": "1.1.0",
+    "publishedAt": 1773111519338,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772813456216,
+      "commit": "https://github.com/openclaw/skills/commit/607681721e72648189732d43a9877fbfbd3e3b44"
+    }
+  ]
 }
