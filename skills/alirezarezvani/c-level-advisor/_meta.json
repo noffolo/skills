@@ -1,11 +1,17 @@
 {
   "owner": "alirezarezvani",
   "slug": "c-level-advisor",
-  "displayName": "C-Level Advisory Ecosystem",
+  "displayName": "c-level-advisor",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1772746495741,
-    "commit": "https://github.com/openclaw/skills/commit/6326295878539d480c3f8db103231b1083da52cb"
+    "version": "1.0.0",
+    "publishedAt": 1773242071089,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1772746495741,
+      "commit": "https://github.com/openclaw/skills/commit/6326295878539d480c3f8db103231b1083da52cb"
+    }
+  ]
 }
