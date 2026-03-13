@@ -5,9 +5,10 @@
  * View results of a specific evaluation run.
  *
  * Usage: result.mjs <run-id>
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn, gql, formatError } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn, formatError, sanitizeId } from "./lib/helpers.mjs";
 
 function usage() {
   console.error('Usage: result.mjs <run-id>');
@@ -17,20 +18,15 @@ function usage() {
 const args = process.argv.slice(2);
 if (args.length === 0 || args[0] === "-h" || args[0] === "--help") usage();
 
-const runId = args[0];
+const runId = sanitizeId(args[0], "Run ID");
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN. Set it via: export KNOW_YOUR_AI_DSN=...");
-  process.exit(1);
-}
-
+const dsn = requireDsn();
 const parsed = parseDsn(dsn);
 
 try {
   const query = `
-    query GetEvaluationRun {
-      getEvaluationRun(id: "${runId}") {
+    query GetEvaluationRun($id: ID!) {
+      getEvaluationRun(id: $id) {
         id
         evaluationID
         status
@@ -45,7 +41,7 @@ try {
     }
   `;
 
-  const data = await gql(parsed, query);
+  const data = await gql(parsed, query, { id: runId });
   const run = data?.data?.getEvaluationRun;
 
   if (!run) {

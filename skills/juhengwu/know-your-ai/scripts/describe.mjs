@@ -5,9 +5,10 @@
  * Show detailed evaluation configuration.
  *
  * Usage: describe.mjs <evaluation-id>
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn, gql, formatError } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn, formatError, sanitizeId } from "./lib/helpers.mjs";
 
 function usage() {
   console.error('Usage: describe.mjs <evaluation-id>');
@@ -17,20 +18,15 @@ function usage() {
 const args = process.argv.slice(2);
 if (args.length === 0 || args[0] === "-h" || args[0] === "--help") usage();
 
-const evaluationId = args[0];
+const evaluationId = sanitizeId(args[0], "Evaluation ID");
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN. Set it via: export KNOW_YOUR_AI_DSN=...");
-  process.exit(1);
-}
-
+const dsn = requireDsn();
 const parsed = parseDsn(dsn);
 
 try {
   const query = `
-    query GetEvaluation {
-      getEvaluation(id: "${evaluationId}") {
+    query GetEvaluation($id: ID!) {
+      getEvaluation(id: $id) {
         id
         name
         description
@@ -50,7 +46,7 @@ try {
     }
   `;
 
-  const data = await gql(parsed, query);
+  const data = await gql(parsed, query, { id: evaluationId });
   const ev = data?.data?.getEvaluation;
 
   if (!ev) {

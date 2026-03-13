@@ -3,6 +3,12 @@
 name: know-your-ai
 description: AI security testing & evaluation CLI. Run red-team evaluations, check vulnerabilities, and review results for your AI products.
 homepage: https://knowyourai.hydrox.ai
+requires:
+  bins:
+    - node
+  env:
+    - KNOW_YOUR_AI_DSN
+primaryEnv: KNOW_YOUR_AI_DSN
 metadata: {"clawdbot":{"emoji":"🛡️","requires":{"bins":["node"],"env":["KNOW_YOUR_AI_DSN"]},"primaryEnv":"KNOW_YOUR_AI_DSN"}}
 ---
 
@@ -16,7 +22,7 @@ AI security testing and evaluation CLI by [HydroxAI](https://hydrox.ai). Run red
 node {baseDir}/scripts/doctor.mjs
 ```
 
-Validates your DSN configuration and tests API connectivity.
+Validates your DSN configuration and tests API connectivity. Requires `KNOW_YOUR_AI_DSN` environment variable.
 
 ## Show linked product & connection
 
@@ -71,7 +77,8 @@ Shows detailed evaluation configuration: judge model, threshold, linked datasets
 
 ## Notes
 
-- Needs `KNOW_YOUR_AI_DSN` from the Know Your AI dashboard (Settings → API Keys)
+- Requires `node` (>=18) runtime
+- Requires `KNOW_YOUR_AI_DSN` environment variable from the Know Your AI dashboard (Settings → API Keys)
 - DSN format: `https://kya_xxx:da2-xxx@host/product_id`
 - Short alias `kya` is also available if installed globally via npm
 - Use `doctor` first to verify connectivity before running evaluations

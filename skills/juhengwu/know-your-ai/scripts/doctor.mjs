@@ -3,19 +3,14 @@
 /**
  * Know Your AI — Doctor (connectivity check)
  * Validates DSN configuration and tests API connectivity.
+ *
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn } from "./lib/helpers.mjs";
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN environment variable.");
-  console.error("  Set it from the Know Your AI dashboard → Settings → API Keys.");
-  console.error('  Example: export KNOW_YOUR_AI_DSN="https://kya_xxx:da2-xxx@host/product_id"');
-  process.exit(1);
-}
+const dsn = requireDsn();
 
-// Parse DSN
 let parsed;
 try {
   parsed = parseDsn(dsn);
@@ -54,35 +49,18 @@ checks.push({
 // Check 4: API Connection
 try {
   const testQuery = `
-    query ListEvaluations {
-      listEvaluations(filter: { productID: { eq: "${parsed.productId}" } }, limit: 1) {
+    query ListEvaluations($productId: String!) {
+      listEvaluations(filter: { productID: { eq: $productId } }, limit: 1) {
         items { id name }
       }
     }
   `;
 
-  const resp = await fetch(`https://${parsed.host}/graphql`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: parsed.authToken,
-    },
-    body: JSON.stringify({ query: testQuery }),
-  });
+  const data = await gql(parsed, testQuery, { productId: parsed.productId });
 
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => "");
-    checks.push({ name: "API Connection", ok: false, detail: `HTTP ${resp.status}: ${text.slice(0, 200)}` });
-  } else {
-    const data = await resp.json();
-    if (data.errors) {
-      checks.push({ name: "API Connection", ok: false, detail: `GraphQL errors: ${JSON.stringify(data.errors).slice(0, 200)}` });
-    } else {
-      checks.push({ name: "API Connection", ok: true, detail: "Connected successfully" });
-      const items = data?.data?.listEvaluations?.items ?? [];
-      checks.push({ name: "Evaluations", ok: true, detail: `Query returned ${items.length} evaluation(s) (limit 1)` });
-    }
-  }
+  checks.push({ name: "API Connection", ok: true, detail: "Connected successfully" });
+  const items = data?.data?.listEvaluations?.items ?? [];
+  checks.push({ name: "Evaluations", ok: true, detail: `Query returned ${items.length} evaluation(s) (limit 1)` });
 } catch (err) {
   checks.push({ name: "API Connection", ok: false, detail: `Connection failed: ${err.message}` });
 }
@@ -104,5 +82,3 @@ if (allOk) {
   console.log("✖ Some checks failed. Please review the errors above.");
   process.exit(1);
 }
-
-

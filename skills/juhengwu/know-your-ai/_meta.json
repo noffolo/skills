@@ -3,9 +3,15 @@
   "slug": "know-your-ai",
   "displayName": "Know your AI",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773194793987,
-    "commit": "https://github.com/openclaw/skills/commit/1bf0231713a15eea04382e3487090d7a0099ef5e"
+    "version": "1.0.2",
+    "publishedAt": 1773256719486,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773194793987,
+      "commit": "https://github.com/openclaw/skills/commit/1bf0231713a15eea04382e3487090d7a0099ef5e"
+    }
+  ]
 }

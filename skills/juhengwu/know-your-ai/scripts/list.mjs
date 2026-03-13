@@ -2,23 +2,20 @@
 
 /**
  * Know Your AI — List evaluations and datasets
+ *
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn, gql, formatError } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn, formatError } from "./lib/helpers.mjs";
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN. Set it via: export KNOW_YOUR_AI_DSN=...");
-  process.exit(1);
-}
-
+const dsn = requireDsn();
 const parsed = parseDsn(dsn);
 
 try {
   // Fetch evaluations
   const evalQuery = `
-    query ListEvaluations {
-      listEvaluations(filter: { productID: { eq: "${parsed.productId}" } }, limit: 50) {
+    query ListEvaluations($productId: String!) {
+      listEvaluations(filter: { productID: { eq: $productId } }, limit: 50) {
         items {
           id
           name
@@ -30,7 +27,7 @@ try {
     }
   `;
 
-  const evalData = await gql(parsed, evalQuery);
+  const evalData = await gql(parsed, evalQuery, { productId: parsed.productId });
   const evaluations = evalData?.data?.listEvaluations?.items ?? [];
 
   console.log("## Evaluations\n");
@@ -47,8 +44,8 @@ try {
 
   // Fetch datasets
   const dsQuery = `
-    query ListDatasets {
-      listDatasets(filter: { productID: { eq: "${parsed.productId}" } }, limit: 50) {
+    query ListDatasets($productId: String!) {
+      listDatasets(filter: { productID: { eq: $productId } }, limit: 50) {
         items {
           id
           name
@@ -59,7 +56,7 @@ try {
     }
   `;
 
-  const dsData = await gql(parsed, dsQuery);
+  const dsData = await gql(parsed, dsQuery, { productId: parsed.productId });
   const datasets = dsData?.data?.listDatasets?.items ?? [];
 
   console.log("\n## Datasets\n");

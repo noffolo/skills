@@ -3,21 +3,18 @@
 /**
  * Know Your AI — Target
  * Show linked product, model & connection info.
+ *
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn, gql, formatError } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn, formatError } from "./lib/helpers.mjs";
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN. Set it via: export KNOW_YOUR_AI_DSN=...");
-  process.exit(1);
-}
-
+const dsn = requireDsn();
 const parsed = parseDsn(dsn);
 
 const query = `
-  query GetProduct {
-    getProduct(id: "${parsed.productId}") {
+  query GetProduct($id: ID!) {
+    getProduct(id: $id) {
       id
       name
       description
@@ -29,7 +26,7 @@ const query = `
 `;
 
 try {
-  const data = await gql(parsed, query);
+  const data = await gql(parsed, query, { id: parsed.productId });
   const product = data?.data?.getProduct;
 
   if (!product) {

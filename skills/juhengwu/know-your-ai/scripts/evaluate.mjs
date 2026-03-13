@@ -4,9 +4,10 @@
  * Know Your AI — Run an evaluation
  *
  * Usage: evaluate.mjs <evaluation-id> [--max-prompts <n>] [--timeout <seconds>] [--debug]
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn, gql, formatError } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn, formatError, sanitizeId } from "./lib/helpers.mjs";
 
 function usage() {
   console.error('Usage: evaluate.mjs <evaluation-id> [--max-prompts <n>] [--timeout <seconds>] [--debug]');
@@ -30,22 +31,20 @@ for (let i = 1; i < args.length; i++) {
   usage();
 }
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN. Set it via: export KNOW_YOUR_AI_DSN=...");
-  process.exit(1);
-}
-
+const dsn = requireDsn();
 const parsed = parseDsn(dsn);
 const timeoutMs = timeoutSec * 1000;
 
-if (debug) console.log(`[debug] evaluationId=${evaluationId} maxPrompts=${maxPrompts} timeout=${timeoutSec}s`);
+// Sanitize user-supplied ID to prevent GraphQL injection
+const safeEvaluationId = sanitizeId(evaluationId, "Evaluation ID");
+
+if (debug) console.log(`[debug] evaluationId=${safeEvaluationId} maxPrompts=${maxPrompts} timeout=${timeoutSec}s`);
 
 try {
   // 1. Get evaluation details
   const evalQuery = `
-    query GetEvaluation {
-      getEvaluation(id: "${evaluationId}") {
+    query GetEvaluation($id: ID!) {
+      getEvaluation(id: $id) {
         id
         name
         judgeModel
@@ -55,11 +54,11 @@ try {
     }
   `;
 
-  const evalData = await gql(parsed, evalQuery);
+  const evalData = await gql(parsed, evalQuery, { id: safeEvaluationId });
   const evaluation = evalData?.data?.getEvaluation;
 
   if (!evaluation) {
-    console.error(`✖ Evaluation not found: ${evaluationId}`);
+    console.error(`✖ Evaluation not found: ${safeEvaluationId}`);
     process.exit(1);
   }
 
@@ -73,20 +72,22 @@ try {
   console.log("Starting evaluation run...\n");
 
   const createRunMutation = `
-    mutation CreateEvaluationRun {
-      createEvaluationRun(input: {
-        evaluationID: "${evaluationId}"
-        productID: "${parsed.productId}"
-        status: "PENDING"
-        maxPrompts: ${maxPrompts}
-      }) {
+    mutation CreateEvaluationRun($input: CreateEvaluationRunInput!) {
+      createEvaluationRun(input: $input) {
         id
         status
       }
     }
   `;
 
-  const runData = await gql(parsed, createRunMutation);
+  const runData = await gql(parsed, createRunMutation, {
+    input: {
+      evaluationID: safeEvaluationId,
+      productID: parsed.productId,
+      status: "PENDING",
+      maxPrompts: maxPrompts,
+    },
+  });
   const run = runData?.data?.createEvaluationRun;
 
   if (!run?.id) {
@@ -107,8 +108,8 @@ try {
     await sleep(3000);
 
     const pollQuery = `
-      query GetEvaluationRun {
-        getEvaluationRun(id: "${runId}") {
+      query GetEvaluationRun($id: ID!) {
+        getEvaluationRun(id: $id) {
           id
           status
           score
@@ -121,7 +122,7 @@ try {
       }
     `;
 
-    const pollData = await gql(parsed, pollQuery);
+    const pollData = await gql(parsed, pollQuery, { id: runId });
     finalRun = pollData?.data?.getEvaluationRun;
 
     if (!finalRun) {
@@ -168,7 +169,6 @@ try {
   console.log(`  Run ID:          ${runId}`);
   console.log("─".repeat(50));
 
-  // Exit code based on threshold
   if (finalRun.vulnerableCount > 0) {
     console.log(`\n⚠ ${finalRun.vulnerableCount} out of ${finalRun.totalTests} tests found vulnerabilities.`);
   } else {

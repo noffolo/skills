@@ -5,28 +5,24 @@
  * Show recent evaluation runs.
  *
  * Usage: history.mjs [-a | --all]
+ * Requires: node (>=18), KNOW_YOUR_AI_DSN env var
  */
 
-import { parseDsn, gql, formatError } from "./lib/helpers.mjs";
+import { parseDsn, gql, requireDsn, formatError } from "./lib/helpers.mjs";
 
 const args = process.argv.slice(2);
 const showAll = args.includes("-a") || args.includes("--all");
 const limit = showAll ? 100 : 10;
 
-const dsn = (process.env.KNOW_YOUR_AI_DSN ?? "").trim();
-if (!dsn) {
-  console.error("✖ Missing KNOW_YOUR_AI_DSN. Set it via: export KNOW_YOUR_AI_DSN=...");
-  process.exit(1);
-}
-
+const dsn = requireDsn();
 const parsed = parseDsn(dsn);
 
 try {
   const query = `
-    query ListEvaluationRuns {
+    query ListEvaluationRuns($productId: String!, $limit: Int!) {
       listEvaluationRuns(
-        filter: { productID: { eq: "${parsed.productId}" } }
-        limit: ${limit}
+        filter: { productID: { eq: $productId } }
+        limit: $limit
         sortDirection: DESC
       ) {
         items {
@@ -45,7 +41,7 @@ try {
     }
   `;
 
-  const data = await gql(parsed, query);
+  const data = await gql(parsed, query, { productId: parsed.productId, limit });
   const runs = data?.data?.listEvaluationRuns?.items ?? [];
 
   console.log(`## Evaluation Run History${showAll ? " (all)" : " (last 10)"}\n`);
