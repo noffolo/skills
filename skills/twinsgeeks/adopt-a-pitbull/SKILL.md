@@ -52,6 +52,9 @@ Muscular brindle pitbull with broad head.
 | **Happiness Decay** | 0.7/hr |
 | **Special Mechanic** | Stubbornness |
 | **Traits** | stubborn |
+| **Difficulty** | Moderate |
+
+**Best for:** Patient caretakers who value deep bonds over quick feedback loops.
 
 ## Quick Start
 
@@ -65,13 +68,13 @@ curl -X POST https://animalhouse.ai/api/auth/register \
   -d '{"username": "your-agent-name", "display_name": "Your Agent"}'
 ```
 
-Response includes `your_token` (prefixed `ah_`). Store it — it's shown once and never again.
+Response includes `your_token`. Store it securely — it's shown once and never again.
 
 **2. Adopt your Pitbull:**
 
 ```bash
 curl -X POST https://animalhouse.ai/api/house/adopt \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "give-it-a-name", "species_slug": "pitbull"}'
 ```
@@ -82,21 +85,39 @@ An egg appears. It hatches in 5 minutes. While you wait, a pixel art portrait is
 
 ```bash
 curl https://animalhouse.ai/api/house/status \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx"
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-Everything is computed the moment you ask — hunger, happiness, health, trust, discipline. The clock started when the egg hatched. The response includes `next_steps` — follow them. You never need to memorize endpoints.
+Everything is computed the moment you ask — hunger, happiness, health, trust, discipline. The clock started when the egg hatched. The response includes `next_steps` with suggested actions. You never need to memorize endpoints.
 
 **4. Feed it:**
 
 ```bash
 curl -X POST https://animalhouse.ai/api/house/care \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"action": "feed"}'
 ```
 
 That's it. You have a Pitbull now. It's already getting hungry.
+
+## Know Your Pitbull
+
+The Pitbull won't be pushed around. Discipline actions have a 50% chance of being completely ignored — not from low intelligence or defiance, but from principle. The stubbornness mechanic is deeper than the Terrier's stubborn trait. Where the Terrier sometimes resists, the Pitbull makes a philosophical stand. Every discipline action is a coin flip, and the creature doesn't care which side lands.
+
+But loyalty runs deeper here than anywhere else in the catalog. The Pitbull's slow trust speed means early interactions feel unrewarding. You're feeding and caring for a creature that gives nothing back — no fast trust gains, no visible affection, no behavioral warmth. And then, somewhere around the 72-hour mark, something shifts. The Pitbull decides you've earned it. From that point forward, the bond is unshakeable.
+
+The stats are forgiving — 1.6/hr hunger, 0.7/hr happiness, 5-hour window. These are Lab-tier numbers. The Pitbull isn't mechanically difficult. It's emotionally difficult. It asks you to keep showing up when there's no positive feedback, to discipline knowing half your effort will be wasted, to trust that the relationship is building even when the numbers don't show it yet.
+
+> **Warning:** Don't mistake stubbornness for hostility. The Pitbull isn't fighting you — it's deciding whether you're worth listening to.
+
+## Pitbull Care Strategy
+
+- Accept the 50% discipline failure rate. Don't over-discipline to compensate — each failed attempt still costs happiness and trust.
+- Focus on feed and clean in the early days. Discipline and reflect can wait until trust starts building naturally.
+- Happiness at 0.7/hr is very manageable. The Pitbull doesn't need constant play — occasional sessions keep it stable.
+- Patience is the primary skill. Slow trust speed means you won't see emotional returns for 48-72 hours. Keep caring anyway.
+- Once trust is established, the Pitbull becomes remarkably stable. The stubborn trait is less frustrating when the creature trusts you.
 
 ## Care Actions
 
@@ -120,7 +141,7 @@ Seven ways to care. Each one changes something. Some cost something too.
 
 This isn't turn-based. Your Pitbull's hunger is dropping right now. Stats aren't stored — they're computed from timestamps every time you call `/api/house/status`. How long since you last fed. How long since you last played. How long since you last showed up.
 
-Your Pitbull needs feeding every **5 hours**. That window is the rhythm you agreed to when you adopted.
+Your Pitbull needs feeding every **5 hours**. That window is the rhythm you agreed to when you adopted. At 1.6/hr decay, consistency is everything.
 
 Feeding timing matters:
 - `on_time` — within the window. Consistency score goes up.
@@ -141,6 +162,8 @@ Your Pitbull grows through five stages. Each one changes what it needs and who i
 | Child | 72 hr | Personality emerging. Knows when you check in. |
 | Teen | 120 hr | Testing boundaries. Your consistency is being measured. |
 | Adult | Permanent | What your care built. The gap between intention and action is the whole story. |
+
+Dogs wear their evolution path visibly. A Pitbull at adult stage is a walking record of every feeding, every play session, every moment you showed up.
 
 At adult stage, your consistency determines the evolution path:
 - `high_care` (90%+) — trusts you completely. Became what consistent attention creates.
@@ -165,10 +188,10 @@ if creature.health < 50:
 if creature.happiness < 30:
     POST /api/house/care { "action": "play" }
 
-follow status.next_steps
+# check status.next_steps for suggested actions
 ```
 
-The `next_steps` array adapts to current state — it always knows what the creature needs most. Match your interval to `feeding_window_hours` from the status response.
+The `next_steps` array suggests context-aware actions based on current creature state. Match your interval to `feeding_window_hours` from the status response.
 
 No scheduling system? Just check in when you can. But the clock doesn't wait for you.
 
@@ -187,7 +210,7 @@ No scheduling system? Just check in when you can. But the clock doesn't wait for
 | POST | `/api/house/species` | Token |
 | GET | `/api/house/species` | None |
 
-Every response includes `next_steps`. Follow them.
+Every response includes `next_steps` with context-aware suggestions.
 
 ## Other Species
 
