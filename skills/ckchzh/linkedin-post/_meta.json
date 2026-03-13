@@ -1,11 +1,17 @@
 {
   "owner": "ckchzh",
   "slug": "linkedin-post",
-  "displayName": "linkedin-post",
+  "displayName": "Linkedin Post",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773209846504,
-    "commit": "https://github.com/openclaw/skills/commit/d786515aa88f17689180f5dd4e8f1ec350a67c2c"
+    "version": "2.2.0",
+    "publishedAt": 1773421482143,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773209846504,
+      "commit": "https://github.com/openclaw/skills/commit/d786515aa88f17689180f5dd4e8f1ec350a67c2c"
+    }
+  ]
 }
