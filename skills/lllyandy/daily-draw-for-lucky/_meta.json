@@ -3,9 +3,15 @@
   "slug": "daily-draw-for-lucky",
   "displayName": "Daily Draw For Lucky",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1773217476026,
-    "commit": "https://github.com/openclaw/skills/commit/5910e9d3d5ea1ad66a1100703a474bdedd23cf7e"
+    "version": "0.1.1",
+    "publishedAt": 1773292443652,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1773217476026,
+      "commit": "https://github.com/openclaw/skills/commit/5910e9d3d5ea1ad66a1100703a474bdedd23cf7e"
+    }
+  ]
 }
