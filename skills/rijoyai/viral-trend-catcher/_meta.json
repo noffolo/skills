@@ -3,9 +3,15 @@
   "slug": "viral-trend-catcher",
   "displayName": "Viral Trend Catcher",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1772786338874,
-    "commit": "https://github.com/openclaw/skills/commit/57d5da4adb1da29a864d75dfbc6476b09bd10e33"
+    "version": "0.1.2",
+    "publishedAt": 1773198147715,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1772786338874,
+      "commit": "https://github.com/openclaw/skills/commit/57d5da4adb1da29a864d75dfbc6476b09bd10e33"
+    }
+  ]
 }
