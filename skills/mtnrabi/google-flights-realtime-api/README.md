@@ -87,6 +87,21 @@ All plans include 10,240 MB/month bandwidth (then $0.001 per MB).
 
 See latest pricing at [RapidAPI](https://rapidapi.com/mtnrabi/api/google-flights-live-api/pricing).
 
+## Permissions
+
+This skill requires **`network:outbound`** to make HTTPS POST requests to the Google Flights Live API hosted on RapidAPI. This is the only external communication the skill performs. No other network access is needed or used.
+
+| Permission | Reason |
+|------------|--------|
+| `network:outbound` | Required to call `google-flights-live-api.p.rapidapi.com` (the only endpoint this skill contacts) |
+
+## Security
+
+- **Single endpoint only.** This skill communicates exclusively with `https://google-flights-live-api.p.rapidapi.com`. No other external services, domains, or IPs are contacted.
+- **No data storage.** Flight search results are returned directly to the agent and presented to the user. No data is stored, cached, logged, or forwarded anywhere.
+- **No code execution.** This skill contains only instructions for the AI agent — no scripts, no `eval`, no dynamic code execution.
+- **API key handling.** Your RapidAPI key is read from the `RAPIDAPI_KEY` environment variable (or `skills.entries.google-flights-search.apiKey` in config) and sent only in the `x-rapidapi-key` header to RapidAPI's servers. It is never logged, stored, or sent elsewhere.
+
 ## Troubleshooting
 
 | Issue | Solution |

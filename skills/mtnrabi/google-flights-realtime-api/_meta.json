@@ -3,9 +3,15 @@
   "slug": "google-flights-realtime-api",
   "displayName": "Google Flights Realtime API",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773166320553,
-    "commit": "https://github.com/openclaw/skills/commit/5a2a2cf3f23feb9eaf6b11fbd5d86da83e380c03"
+    "version": "1.0.5",
+    "publishedAt": 1773336736680,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773166320553,
+      "commit": "https://github.com/openclaw/skills/commit/5a2a2cf3f23feb9eaf6b11fbd5d86da83e380c03"
+    }
+  ]
 }
