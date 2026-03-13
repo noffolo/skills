@@ -142,5 +142,7 @@ python3 skills/express/express.py type
 ## 在 OpenClaw 中的推荐用法
 
 1. 用户例如：「帮我查一下单号 `4303200322000` 的快递，应该是韵达。」  
-2. 代理构造：`python3 skills/express/express.py '{"number":"4303200322000","type":"yunda"}'`。  
-3. 解析返回的 JSON，为用户总结：当前状态、是否签收、最近几条轨迹等。
+2. 代理在调用脚本时，应将用户提供的 `number` / `type` / `mobile` **放入结构化 JSON 参数中，而不是直接拼接到 shell 字符串里**，例如在内部构造形如：  
+   `{"number": "<快递单号>", "type": "<快递公司代号>"}` 并作为第二个参数传给 `express.py`。  
+3. 若必须通过 shell 执行，请务必对 JSON 与命令参数做严格转义/引用，禁止直接把原始用户输入插入到命令行中，以避免 shell 注入风险。  
+4. 解析返回的 JSON，为用户总结：当前状态、是否签收、最近几条轨迹等。
