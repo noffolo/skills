@@ -1,0 +1,11 @@
+{
+  "owner": "zlshiny",
+  "slug": "wx-article-fetcher",
+  "displayName": "微信公众号文章抓取",
+  "latest": {
+    "version": "1.1.0",
+    "publishedAt": 1773398717553,
+    "commit": null
+  },
+  "history": []
+}
