@@ -38,12 +38,17 @@ If the target group is not a topic-group, explain that the result will only be a
 
 ## Default target group
 
-Default to the fixed topic-group configured in `TOOLS.md`.
+Default to the fixed topic-group configured in `TOOLS.md`, if one exists.
 
-Current default:
-- `泡菜的话题群`
+Do **not** hardcode a personal/local group name into a public skill.
 
 Use `feishu_chat` with `action=search` to resolve the group.
+
+If the user explicitly names a target group, use that group.
+
+If the user does not name a group and no local default is configured:
+- Stop.
+- Ask which Feishu topic-group to use.
 
 If no matching group is found:
 - Stop.
@@ -55,7 +60,8 @@ If no matching group is found:
 ### 1. Resolve target group
 
 - If the user explicitly names a group, use that name.
-- Otherwise default to `泡菜的话题群`.
+- Otherwise use the local default topic-group from `TOOLS.md`, if configured.
+- If no local default exists, ask the user which topic-group to use.
 - Resolve the `chat_id` with `feishu_chat.search`.
 
 ### 2. Parse requested action
@@ -238,7 +244,7 @@ User:
 ```
 
 Action:
-- resolve `泡菜的话题群`
+- resolve the configured default topic-group (or ask the user which group to use)
 - send top-level `测试 4`
 
 ### Example 2: topic + thread reply
