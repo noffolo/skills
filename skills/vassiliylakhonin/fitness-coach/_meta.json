@@ -3,9 +3,15 @@
   "slug": "fitness-coach",
   "displayName": "Fitness Coach",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1772174301479,
-    "commit": "https://github.com/openclaw/skills/commit/b6835a5f0988601ca60a0feb1e12f334fb99eb7b"
+    "version": "1.1.1",
+    "publishedAt": 1773331612807,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1772174301479,
+      "commit": "https://github.com/openclaw/skills/commit/b6835a5f0988601ca60a0feb1e12f334fb99eb7b"
+    }
+  ]
 }
