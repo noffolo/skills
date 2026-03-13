@@ -3,11 +3,16 @@
   "slug": "hyperbot-quote-mcp",
   "displayName": "hyperbot-quote-mcp",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773155329115,
-    "commit": "https://github.com/openclaw/skills/commit/09cc7eda007102e73199199a97bdcde16e465f6b"
+    "version": "1.0.5",
+    "publishedAt": 1773384986757,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773155329115,
+      "commit": "https://github.com/openclaw/skills/commit/09cc7eda007102e73199199a97bdcde16e465f6b"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1772698598478,
