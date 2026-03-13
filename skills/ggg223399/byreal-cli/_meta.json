@@ -3,11 +3,16 @@
   "slug": "byreal-cli",
   "displayName": "Byreal Cli",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1773154944811,
-    "commit": "https://github.com/openclaw/skills/commit/86498374b05b31e4ff504fd2828493a016d96af0"
+    "version": "0.2.7",
+    "publishedAt": 1773386284471,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1773154944811,
+      "commit": "https://github.com/openclaw/skills/commit/86498374b05b31e4ff504fd2828493a016d96af0"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1772961233084,

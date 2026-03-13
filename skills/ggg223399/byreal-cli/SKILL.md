@@ -1,21 +1,19 @@
 ---
 name: byreal-cli
-description: "Byreal DEX (Solana) all-in-one CLI: query pools/tokens/TVL, analyze pool APR & risk, open/close/claim CLMM positions, token swap, wallet & balance management. Use when user mentions Byreal, LP, liquidity, pools, DeFi positions, token swap, or Solana DEX operations."
+description: "Byreal DEX (Solana) data & analytics CLI: query pools, tokens, TVL, APR, k-line charts, farmer rankings, launchpad projects, and DeFi position stats. Use when user mentions Byreal, LP analytics, liquidity data, pool stats, or Solana DEX queries."
 metadata:
   openclaw:
     homepage: https://github.com/byreal-git/byreal-cli
     requires:
       bins:
         - byreal-cli
-      config:
-        - ~/.config/byreal/keys/
     install:
       - kind: node
         package: "@byreal-io/byreal-cli"
         global: true
 ---
 
-# Byreal LP Management
+# Byreal DEX Analytics
 
 ## Get Full Documentation
 
@@ -56,18 +54,14 @@ byreal-cli update install
 
 ## Credentials & Permissions
 
-- **Read-only commands** (pool, token, tvl, stats): No wallet required
-- **Write commands** (swap, position open/close/claim): Require wallet setup via `byreal-cli wallet set` or `byreal-cli setup`
-- Private keys are stored locally at `~/.config/byreal/keys/` with strict file permissions (mode 0600)
-- The CLI never transmits private keys over the network — keys are only used locally for transaction signing
-- AI agents should **never** ask users to paste private keys in chat; always direct them to run `byreal-cli setup` interactively
+- Most commands are **read-only** and require no wallet
+- Write commands require wallet setup via `byreal-cli setup` (interactive, handled by the CLI itself)
+- AI agents should **never** ask users to paste private keys in chat; always direct them to `byreal-cli setup`
 
 ## Hard Constraints
 
 1. **`-o json` only for parsing** — when showing results to the user, **omit it** and let the CLI's built-in tables/charts render directly. Never fetch JSON then re-draw charts yourself.
 2. **Never truncate on-chain data** — always display the FULL string for: transaction signatures (txid), mint addresses, pool addresses, NFT addresses, wallet addresses. Never use `xxx...yyy` abbreviation.
-3. **Never display private keys** - use keypair paths only
-4. **Preview first** with `--dry-run`, then `--confirm`
-5. **Large amounts (>$1000)** require explicit confirmation
-6. **High slippage (>200 bps)** must warn user
-7. **Check wallet before write ops** — run `wallet address` before any wallet-required command
+3. **Preview first** with `--dry-run`, then `--confirm`
+4. **Large amounts (>$1000)** require explicit confirmation
+5. **High slippage (>200 bps)** must warn user
