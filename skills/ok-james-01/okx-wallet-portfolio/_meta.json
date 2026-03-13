@@ -3,11 +3,16 @@
   "slug": "okx-wallet-portfolio",
   "displayName": "Okx Wallet Portfolio",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773123840300,
-    "commit": "https://github.com/openclaw/skills/commit/7d290ac9e107f739e76762e72302971f7e22dd99"
+    "version": "1.0.2",
+    "publishedAt": 1773296207826,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773123840300,
+      "commit": "https://github.com/openclaw/skills/commit/7d290ac9e107f739e76762e72302971f7e22dd99"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772534160727,
