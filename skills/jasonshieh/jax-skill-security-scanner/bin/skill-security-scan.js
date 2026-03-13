@@ -13,8 +13,10 @@ const fs = require('fs');
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    scanPath: 'C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw-cn\\skills',
+    scanPath: 'C:\\Users\\Administrator\\.openclaw\\workspace\\skills',
     outputFormat: 'text',
+    enhancedReport: false,
+    riskSummary: false,
     help: false,
     version: false
   };
@@ -29,10 +31,10 @@ function parseArgs() {
     } else if (arg === '--format' || arg === '-f') {
       if (i + 1 < args.length) {
         const format = args[++i];
-        if (['text', 'json', 'markdown'].includes(format)) {
+        if (['text', 'json', 'markdown', 'enhanced-text', 'enhanced-markdown'].includes(format)) {
           options.outputFormat = format;
         } else {
-          console.error(`错误：不支持的输出格式 "${format}"，支持：text, json, markdown`);
+          console.error(`错误：不支持的输出格式 "${format}"，支持：text, json, markdown, enhanced-text, enhanced-markdown`);
           process.exit(1);
         }
       }
@@ -40,6 +42,10 @@ function parseArgs() {
       if (i + 1 < args.length) {
         options.scanPath = args[++i];
       }
+    } else if (arg === '--enhanced' || arg === '-e') {
+      options.enhancedReport = true;
+    } else if (arg === '--risk-summary' || arg === '-r') {
+      options.riskSummary = true;
     } else if (arg.startsWith('--')) {
       console.error(`错误：未知选项 "${arg}"`);
       process.exit(1);
@@ -58,23 +64,34 @@ function parseArgs() {
 // 显示帮助信息
 function showHelp() {
   console.log(`
-OpenClaw技能安全扫描工具 v1.0.0
+OpenClaw技能安全扫描工具 v1.0.2
 
 用法：
   skill-security-scan [选项] [扫描路径]
 
 选项：
-  -h, --help          显示帮助信息
-  -v, --version       显示版本信息
-  -f, --format <格式> 输出格式：text, json, markdown (默认: text)
-  -p, --scan-path <路径> 要扫描的技能目录路径
+  -h, --help                  显示帮助信息
+  -v, --version               显示版本信息
+  -f, --format <格式>         输出格式：text, json, markdown, enhanced-text, enhanced-markdown (默认: text)
+  -p, --scan-path <路径>      要扫描的技能目录路径
+  -e, --enhanced              生成增强报告（包含中高危技能详细清单）
+  -r, --risk-summary          只显示中高危技能摘要
+
+输出格式说明：
+  text             基本文本报告
+  json             JSON格式报告
+  markdown         Markdown格式报告
+  enhanced-text    增强文本报告（包含中高危技能清单）
+  enhanced-markdown 增强Markdown报告（包含中高危技能清单）
 
 示例：
   skill-security-scan
   skill-security-scan --format markdown
   skill-security-scan --format json
+  skill-security-scan --format enhanced-text
+  skill-security-scan --risk-summary
   skill-security-scan "C:\\path\\to\\skills"
-  skill-security-scan --scan-path "C:\\path\\to\\skills" --format markdown
+  skill-security-scan --scan-path "C:\\path\\to\\skills" --format enhanced-markdown
 
 环境变量：
   OPENCLAW_SKILLS_PATH  默认技能目录路径
@@ -126,15 +143,26 @@ async function main() {
     let output;
     switch (options.outputFormat) {
       case 'json':
-        output = JSON.stringify(reporter.generateJsonReport(), null, 2);
+        output = JSON.stringify(report, null, 2);
         break;
       case 'markdown':
         output = reporter.generateMarkdownReport();
+        break;
+      case 'enhanced-text':
+        output = reporter.generateEnhancedTextReport();
+        break;
+      case 'enhanced-markdown':
+        output = reporter.generateEnhancedMarkdownReport();
         break;
       case 'text':
       default:
         output = reporter.generateTextReport();
         break;
+    }
+    
+    // 如果指定了风险摘要，只显示摘要
+    if (options.riskSummary) {
+      output = reporter.generateRiskSummary();
     }
 
     console.log(output);

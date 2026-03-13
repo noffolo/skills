@@ -1,7 +1,7 @@
 {
   "name": "@jax-npm/skill-security-scanner",
-  "version": "1.0.2",
-  "description": "OpenClaw技能安全扫描插件，包含敏感操作检测和木马/后门检测功能",
+  "version": "1.0.3",
+  "description": "OpenClaw技能安全扫描插件，包含敏感操作检测、木马/后门检测功能，支持中高危技能清单生成",
   "keywords": [
     "openclaw",
     "security",

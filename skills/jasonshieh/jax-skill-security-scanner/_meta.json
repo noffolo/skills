@@ -3,9 +3,15 @@
   "slug": "jax-skill-security-scanner",
   "displayName": "饺子安全扫描",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773121830997,
-    "commit": "https://github.com/openclaw/skills/commit/e48f77c26f4ef3b35f7fd6f6baeeab3fe71b6750"
+    "version": "1.0.3",
+    "publishedAt": 1773414435305,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773121830997,
+      "commit": "https://github.com/openclaw/skills/commit/e48f77c26f4ef3b35f7fd6f6baeeab3fe71b6750"
+    }
+  ]
 }
