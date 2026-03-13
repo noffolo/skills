@@ -1,11 +1,17 @@
 {
   "owner": "bytesagain3",
   "slug": "sop-writer",
-  "displayName": "sop-writer",
+  "displayName": "Sop Writer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773235739471,
-    "commit": "https://github.com/openclaw/skills/commit/2451a9e70396657c13d76145a23acc493f44028b"
+    "version": "2.2.0",
+    "publishedAt": 1773444890470,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773235739471,
+      "commit": "https://github.com/openclaw/skills/commit/2451a9e70396657c13d76145a23acc493f44028b"
+    }
+  ]
 }
