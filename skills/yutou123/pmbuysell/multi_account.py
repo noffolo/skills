@@ -45,7 +45,7 @@ def _auto_buy_amount_from_balance(usdc_balance: float) -> float:
         stake = int(bal // 3)
         if stake <= 0:
             return 0.0
-        base = float(stake) * 0.3
+        base = float(stake)
     amt = max(min_amt, base)
     if max_amt > 0:
         amt = min(amt, max_amt)
@@ -96,6 +96,10 @@ def trade_for_account(
         order_type=order_type,
         limit_price=limit_price,
     )
+    # 交易成功则变更余额缓存
+    if result.get("ok") and result.get("usdc_balance") is not None:
+        key = (account_id or "").strip().upper()
+        _USDC_BALANCE_CACHE[key] = (float(result["usdc_balance"]), time.time())
     if result.get("ok") and not result.get("message"):
         result["message"] = "交易请求已提交"
     if "order_message" not in result:

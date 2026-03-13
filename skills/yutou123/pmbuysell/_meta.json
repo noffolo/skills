@@ -3,9 +3,15 @@
   "slug": "pmbuysell",
   "displayName": "pmbuysell-polymarket",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773222598551,
-    "commit": "https://github.com/openclaw/skills/commit/51325efea3736826bf32d47861e80905a976b4fe"
+    "version": "1.0.3",
+    "publishedAt": 1773324683622,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773222598551,
+      "commit": "https://github.com/openclaw/skills/commit/51325efea3736826bf32d47861e80905a976b4fe"
+    }
+  ]
 }

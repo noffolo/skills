@@ -93,7 +93,7 @@ python -m pmbuysell.skills.balance_cli --account ACC1 --slug tc-updown-5m-177245
 python -m pmbuysell.skills.auto_redeem_cli --account ACC1 --dry-run
 ```
 
-返回示例：`{"ok": false, "message": "自动结算为 Pro 版本功能，请购买 pmbuysell_redeem 后使用。安装：pip install pmbuysell_redeem", ...}`
+返回示例：`{"ok": false, "message": "自动结算为 Pro 版本功能，请购买", ...}`
 
 购买 Pro 后安装并调用：
 
@@ -130,7 +130,9 @@ result = get_balance("ACC1", slug="tc-updown-5m-1772452800")
 ## 环境与依赖
 
 - 需在 `pmbuysell` 目录下存在 `.env`（可参考 `.env.example`），配置 `PM_ACCOUNT_IDS`、`ACCx_PRIVATE_KEY`、`ACCx_FUNDER`。
-- 安装依赖：`pip install -r pmbuysell/requirements.txt`（在项目根目录执行）。
+- **安装依赖**（任选其一，在项目根目录执行）：
+  - 仅使用本 Skill：`pip install -r pmbuysell/skills/requirements.txt`
+  - 使用完整项目（含 Flask 等）：`pip install -r pmbuysell/requirements.txt`
 
 ## 账号配置样例（复制到 `pmbuysell/.env`）
 
