@@ -1,11 +1,17 @@
 {
   "owner": "kenneth-bro",
   "slug": "investoday-api",
-  "displayName": "今日投资金融数据",
+  "displayName": "Skills",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773121388085,
-    "commit": "https://github.com/openclaw/skills/commit/24076045003245f1e94871dd2d64ef8327cb3793"
+    "version": "1.0.3",
+    "publishedAt": 1773400622748,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773121388085,
+      "commit": "https://github.com/openclaw/skills/commit/24076045003245f1e94871dd2d64ef8327cb3793"
+    }
+  ]
 }
