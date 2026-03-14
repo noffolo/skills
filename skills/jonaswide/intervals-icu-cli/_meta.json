@@ -1,0 +1,11 @@
+{
+  "owner": "jonaswide",
+  "slug": "intervals-icu-cli",
+  "displayName": "intervals.icu CLI",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1773399387499,
+    "commit": null
+  },
+  "history": []
+}
