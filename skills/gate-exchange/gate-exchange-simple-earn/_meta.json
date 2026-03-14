@@ -1,0 +1,11 @@
+{
+  "owner": "gate-exchange",
+  "slug": "gate-exchange-simple-earn",
+  "displayName": "Gate Exchange Simple Earn",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773452213914,
+    "commit": null
+  },
+  "history": []
+}
