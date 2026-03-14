@@ -1,0 +1,11 @@
+{
+  "owner": "qq280948982",
+  "slug": "ansible-generator",
+  "displayName": "Ansible Generator",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1773408416384,
+    "commit": null
+  },
+  "history": []
+}
