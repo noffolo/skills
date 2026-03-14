@@ -3,9 +3,15 @@
   "slug": "ai-agent-opsec",
   "displayName": "AI Agent OPSEC — Runtime Classified Data Enforcer",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1773288316997,
-    "commit": "https://github.com/openclaw/skills/commit/6849c548170743d98cc8c2da8abafb1d5a17bce5"
+    "version": "1.4.0",
+    "publishedAt": 1773291370331,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1773288316997,
+      "commit": "https://github.com/openclaw/skills/commit/6849c548170743d98cc8c2da8abafb1d5a17bce5"
+    }
+  ]
 }

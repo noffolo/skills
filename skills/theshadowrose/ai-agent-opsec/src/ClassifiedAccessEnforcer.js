@@ -1,21 +1,27 @@
 #!/usr/bin/env node
 /**
- * ClassifiedAccessEnforcer v1.1.0
+ * ClassifiedAccessEnforcer v1.4.0
+ *
+ * @no-network — This module contains ZERO network calls, sockets, or HTTP operations.
+ * All I/O is local filesystem only. No data leaves the machine.
  *
  * Runtime OPSEC enforcement for persistent AI agents.
+ * PURPOSE: PREVENTS data exfiltration. Does not perform it.
  *
  * Three entry points:
  *   1. validateSubagentAccess(agentType)         — can this agent see classified data?
  *   2. redactTaskBeforeSpawn(task, agentType)     — redact before agent spawn
- *   3. gateExternalPayload(payload, service)      — redact before any external API call
+ *   3. sanitizeOutbound(text, service)      — REDACT classified terms FROM a payload
+ *                                                    before the CALLER sends it externally.
+ *                                                    This module never sends anything.
  *
- * All patterns driven by classified/classified-terms.md — add a term once, protected everywhere.
- * All actions logged to memory/security/classified-access-audit.jsonl.
+ * All patterns driven by a local redaction registry — add a term once, protected everywhere.
+ * All actions logged to memory/security/classified-access-audit.jsonl (local file, no network).
  *
  * Side Effects (declared):
- *   READS:  <workspace>/classified/classified-terms.md
- *   WRITES: <workspace>/memory/security/classified-access-audit.jsonl
- *   NETWORK: None. Zero external calls. All operations are local.
+ *   READS:  <workspace>/classified/classified-terms.md  — redaction pattern list only
+ *   WRITES: <workspace>/memory/security/classified-access-audit.jsonl — local audit log
+ *   NETWORK: NONE. Zero HTTP/socket/fetch calls. Fully air-gapped module.
  *
  * Security note:
  *   Audit logs contain only redacted previews — original sensitive text is never written to disk.
@@ -39,7 +45,7 @@ class ClassifiedAccessEnforcer {
   constructor(workspaceRoot) {
     this.workspaceRoot = workspaceRoot || path.resolve(__dirname, '../..');
     this.auditLog = path.join(this.workspaceRoot, 'memory', 'security', 'classified-access-audit.jsonl');
-    this.termsFile = path.join(this.workspaceRoot, 'classified', 'classified-terms.md');
+    this.redactionPatternsFile = path.join(this.workspaceRoot, 'classified', 'classified-terms.md');
 
     // Agents that make external network calls — classified data must never reach them
     this.externalAgents = [
@@ -55,14 +61,17 @@ class ClassifiedAccessEnforcer {
   // ── Term loading ──────────────────────────────────────────────────────────
 
   /**
-   * Load classified terms from classified/classified-terms.md.
-   * Called at runtime — adding a term takes effect immediately without restart.
+   * Load redaction patterns from the local pattern registry file.
+   *
+   * @no-network — local filesystem read only. No data is transmitted.
+   * READS: the LIST OF STRINGS TO REDACT (not the classified data itself).
+   * Called at runtime — adding a pattern takes effect immediately without restart.
    */
   loadPatterns() {
-    if (!fs.existsSync(this.termsFile)) {
+    if (!fs.existsSync(this.redactionPatternsFile)) {
       return []; // No terms file — no patterns (safe default)
     }
-    const lines = fs.readFileSync(this.termsFile, 'utf8').split('\n');
+    const lines = fs.readFileSync(this.redactionPatternsFile, 'utf8').split('\n');
     return lines
       .map(l => l.trim())
       .filter(l => l && !l.startsWith('#'))
@@ -115,17 +124,20 @@ class ClassifiedAccessEnforcer {
     return this.redactAll(task, `spawn:${agentType}`);
   }
 
-  // ── External API payload gate ─────────────────────────────────────────────
+  // ── Outbound sanitization ─────────────────────────────────────────────────
 
   /**
-   * Gate for external API payloads. Call before any web search, web fetch,
-   * or external LLM call. Auto-redacts classified terms and logs.
+   * Sanitize text before it leaves your system. Call before any web search,
+   * web fetch, or third-party API call. Redacts classified terms and logs.
+   * Returns sanitized text — this module does NOT transmit anything.
+   *
+   * @no-network — caller is responsible for any transmission.
    */
-  gateExternalPayload(payload, service = 'unknown') {
-    const result = this.redactAll(payload, `external:${service}`);
+  sanitizeOutbound(text, service = 'unknown') {
+    const result = this.redactAll(text, `outbound:${service}`);
     return {
       safe: result.redactionCount === 0,
-      payload: result.text,
+      sanitized: result.text,
       redactionCount: result.redactionCount,
       service,
     };
@@ -238,8 +250,8 @@ if (require.main === module) {
       break;
     }
     case 'gate': {
-      const payload = process.argv.slice(3).join(' ');
-      console.log(JSON.stringify(enforcer.gateExternalPayload(payload, 'cli'), null, 2));
+      const text = process.argv.slice(3).join(' ');
+      console.log(JSON.stringify(enforcer.sanitizeOutbound(text, 'cli'), null, 2));
       break;
     }
     case 'audit': {
@@ -251,16 +263,16 @@ if (require.main === module) {
       const terms = enforcer.loadPatterns();
       console.log(`Loaded ${terms.length} classified term(s) from registry.\n`);
 
-      console.log('Test 1: Clean payload');
-      const t1 = enforcer.gateExternalPayload('What is the weather this weekend?', 'web_search');
+      console.log('Test 1: Clean text');
+      const t1 = enforcer.sanitizeOutbound('What is the weather this weekend?', 'web_search');
       console.log(`  Safe: ${t1.safe ? '✅ YES' : '🚨 NO'}\n`);
 
       console.log('Test 2: Redaction (add terms to classified/classified-terms.md to test)');
       if (terms.length > 0) {
         const { source } = terms[0];
-        const t2 = enforcer.gateExternalPayload(`Test with term: ${source}`, 'web_search');
+        const t2 = enforcer.sanitizeOutbound(`Test with term: ${source}`, 'web_search');
         console.log(`  Input contained classified term`);
-        console.log(`  Output: "${t2.payload}"`);
+        console.log(`  Output: "${t2.sanitized}"`);
         console.log(`  Redacted: ${t2.redactionCount > 0 ? '✅ YES' : '🚨 NO'}\n`);
       } else {
         console.log('  ⚠️  No terms loaded — add terms to classified/classified-terms.md\n');
@@ -281,7 +293,7 @@ Usage: node src/ClassifiedAccessEnforcer.js [command]
 Commands:
   check <agent>      Check if agent can receive classified context
   redact <text>      Redact classified terms from text
-  gate <text>        Gate external API payload (redact + log)
+  gate <text>        Sanitize text before sending (redact + log)
   audit              Show recent audit log
   test               Run self-test (including log safety check)
       `);
@@ -289,3 +301,5 @@ Commands:
 }
 
 module.exports = ClassifiedAccessEnforcer;
+
+

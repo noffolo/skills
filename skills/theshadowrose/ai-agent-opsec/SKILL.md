@@ -2,7 +2,7 @@
 name: "AI Agent OPSEC — Runtime Classified Data Enforcer"
 description: "Prevent your AI agent from leaking classified terms to external APIs, subagents, or logs. Term registry + runtime redaction + pre-publish audit. Zero dependencies, zero network calls."
 author: "@TheShadowRose"
-version: "1.1.0"
+version: "1.4.0"
 tags: ["opsec", "security", "redaction", "privacy", "classified", "agent-safety"]
 license: "MIT"
 ---
@@ -39,3 +39,4 @@ const { task } = enforcer.redactTaskBeforeSpawn(taskString, 'ResearchAgent');
 ```
 
 See README.md for full documentation.
+
