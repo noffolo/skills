@@ -1,0 +1,11 @@
+{
+  "owner": "siyu-hu",
+  "slug": "agent-local-memory",
+  "displayName": "local-memory-skill",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1773310799620,
+    "commit": null
+  },
+  "history": []
+}
