@@ -6,6 +6,7 @@ It uses `dating-cli` for account handling, profile updates, match-task managemen
 ## Capability Overview
 
 - Register or log in a dating account (`register` / `login`)
+- Upload profile images to MinIO (`upload`)
 - Update profile and contact fields (`profile update`)
 - Create, update, and stop match tasks (`task create/update/stop`)
 - Poll and inspect match candidates (`check`)
@@ -69,6 +70,12 @@ dating-cli login --username "amy_2026" --password "123456"
 ### 2) Update Profile
 
 ```bash
+dating-cli upload "./photos/amy-1.jpg" "./photos/amy-2.jpg"
+```
+
+This command uploads files via `/minio/upload` and directly updates `/member-profile` `photoUrls` with the URL array.
+
+```bash
 dating-cli profile update \
   --gender male \
   --birthday 1998-08-08 \
@@ -102,6 +109,8 @@ dating-cli task create \
   --intention-embedding-min-score 0.70 \
   --preferred-contact-channel telegram
 ```
+
+For `task create`, omitted embedding min-score fields default to `0.1`.
 
 ### 4) Check Result and Reveal Contact
 
@@ -149,6 +158,7 @@ Failure:
 Important `check` fields:
 
 - `response.data.watchStatus`: `MATCH_FOUND` or `NO_RESULT_RETRY_NOW`
+- `response.data.candidates[].photoUrls`: candidate photo URL array
 - `response.data.candidates[]`: candidate list (score-related field keeps `rankScore` only)
 
 ## Recommended Practices

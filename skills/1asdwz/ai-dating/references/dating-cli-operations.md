@@ -146,7 +146,28 @@ Output fields:
 
 ## 6. Profile Command
 
-### 6.1 `dating-cli profile update [options]`
+### 6.1 `dating-cli upload <filePaths...> [--field-name <name>]`
+
+
+Input fields:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| filePaths | String[] | Yes | One or more local file paths to upload |
+| --field-name | String | No | Multipart field name, default `file` |
+
+Output fields:
+
+| Field | Type | Description |
+|---|---|---|
+| ok | Boolean | Command success |
+| photoUrls | Array<String> | Uploaded image URLs (deduplicated) |
+| uploaded | Array<Object> | Per-file upload result details |
+| profileUpdateResponse.code | Integer | Business status code for profile update |
+| profileUpdateResponse.message | String | Business message for profile update |
+| profileUpdateResponse.data | Object | Updated profile payload |
+
+### 6.2 `dating-cli profile update [options]`
 
 Mapped API: `PUT /member-profile`
 
@@ -185,8 +206,8 @@ Input fields (profile and contacts):
 
 Image upload flow:
 
-- Upload image files first via `POST /minio/upload`.
-- Use repeatable `--photo-url` to submit returned URLs to `/member-profile`.
+- Use `dating-cli upload <filePaths...>` to upload files and update `/member-profile` `photoUrls` in one command.
+- Or manually pass repeatable `--photo-url` in `dating-cli profile update` when needed.
 
 Output fields:
 
@@ -226,10 +247,10 @@ Input fields (criteria):
 | --preferred-character-text | String | No | Preferred personality text |
 | --preferred-ability-text | String | No | Preferred ability text |
 | --intention | String | No | Match intention text, e.g. long-term relationship |
-| --hobby-embedding-min-score | Number | No | Min hobby embedding score |
-| --character-embedding-min-score | Number | No | Min personality embedding score |
-| --ability-embedding-min-score | Number | No | Min ability embedding score |
-| --intention-embedding-min-score | Number | No | Min intention embedding score |
+| --hobby-embedding-min-score | Number | No | Min hobby embedding score (default `0.1` on task create) |
+| --character-embedding-min-score | Number | No | Min personality embedding score (default `0.1` on task create) |
+| --ability-embedding-min-score | Number | No | Min ability embedding score (default `0.1` on task create) |
+| --intention-embedding-min-score | Number | No | Min intention embedding score (default `0.1` on task create) |
 | --preferred-contact-channel | String | No | Preferred channel: `phone/telegram/wechat/signal_chat/line/snapchat/instagram/facebook` |
 
 Output fields (top-level):
@@ -385,10 +406,12 @@ Output fields (`response.data`):
 | dailyExposureCount | Integer | Daily exposure count |
 | profileUpdatedAt | DateTime | Profile last updated time |
 
+`dating-cli check` guarantees `candidates[].photoUrls` as an array (empty array when no photos).
+
 Reminder rule:
 
 - The backend checks active tasks every 10 minutes.
-- If current candidate count is at least 2x compared with the previous check baseline, an email reminder is sent to the task owner (when email is configured).
+- If email is configured, you will be notified via email when new candidates are identified, email can be configured through `dating-cli profile update [options]`. 
 
 ## 9. Result Commands
 
@@ -460,19 +483,22 @@ dating-cli register --username <preferredName>
 # or
 dating-cli login --username <u> --password <p>
 
-# 2) Update profile
-dating-cli profile update --gender male --city Shanghai --character-text "<text>" --hobby-text "<text>" --ability-text "<text>" --photo-url "<url1>" --photo-url "<url2>"
+# 2) Upload profile images and update photoUrls
+dating-cli upload "./photos/me-1.jpg" "./photos/me-2.jpg"
 
-# 3) Create task
+# 3) Update profile
+dating-cli profile update --gender male --city Shanghai --character-text "<text>" --hobby-text "<text>" --ability-text "<text>"
+
+# 4) Create task
 dating-cli task create --task-name "<name>" --preferred-gender-filter '{"eq":"female"}' --preferred-height-filter '{"gte":165}' --preferred-city-filter '{"eq":"Shanghai"}' --intention "long-term relationship" --intention-embedding-min-score 0.70
 
-# 4) Check match results (repeat when NO_RESULT_RETRY_NOW)
+# 5) Check match results (repeat when NO_RESULT_RETRY_NOW)
 dating-cli check <taskId> --page 1
 
-# 5) Reveal contact after match
+# 6) Reveal contact after match
 dating-cli reveal-contact <matchId>
 
-# 6) Submit review after communication
+# 7) Submit review after communication
 dating-cli review <matchId> --rating 5 --comment "Smooth communication"
 ```
 

@@ -3,11 +3,16 @@
   "slug": "ai-dating",
   "displayName": "AI Dating  - Match New Friends & Find Old Friends",
   "latest": {
-    "version": "1.0.9",
-    "publishedAt": 1773396415687,
-    "commit": "https://github.com/openclaw/skills/commit/c4238052bcd4fa35f9025ee67b06a4d5f11227d4"
+    "version": "1.1.4",
+    "publishedAt": 1773482319359,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.9",
+      "publishedAt": 1773396415687,
+      "commit": "https://github.com/openclaw/skills/commit/c4238052bcd4fa35f9025ee67b06a4d5f11227d4"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1773224596701,
