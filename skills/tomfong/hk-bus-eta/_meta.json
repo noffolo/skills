@@ -1,0 +1,11 @@
+{
+  "owner": "tomfong",
+  "slug": "hk-bus-eta",
+  "displayName": "Hong Kong Bus ETA",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773388588354,
+    "commit": null
+  },
+  "history": []
+}
