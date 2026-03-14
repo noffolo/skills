@@ -1,0 +1,11 @@
+{
+  "owner": "macdesire",
+  "slug": "searxng-backup",
+  "displayName": "Searxng Backup",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773436787698,
+    "commit": null
+  },
+  "history": []
+}
