@@ -1,0 +1,11 @@
+{
+  "owner": "ezviz-open",
+  "slug": "ezviz-open-ptz-control",
+  "displayName": "Ezviz Open PTZ Control",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1773406569312,
+    "commit": null
+  },
+  "history": []
+}
