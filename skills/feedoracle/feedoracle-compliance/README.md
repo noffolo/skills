@@ -1,8 +1,8 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # 🛡️ FeedOracle Compliance Intelligence
 
-**The trust and evidence layer for AI agents in regulated tokenized markets**
+**Verifiable compliance evidence for AI agents in regulated tokenized markets**
 
 [![License: MIT-0](https://img.shields.io/badge/License-MIT--0-brightgreen.svg)](https://spdx.org/licenses/MIT-0.html)
 [![API Status](https://img.shields.io/badge/API-Live-success.svg)](https://api.feedoracle.io/health)
@@ -10,8 +10,8 @@
 [![ClawHub](https://img.shields.io/badge/ClawHub-feedoracle--compliance-orange.svg)](https://clawhub.ai/feedoracle/feedoracle-compliance)
 [![Endpoints](https://img.shields.io/badge/API_Endpoints-43+-purple.svg)](https://feedoracle.io/docs)
 
-Every API response is **ECDSA-signed** and **multi-chain anchored** (Polygon + XRPL).
-Audit-grade evidence for MiCA, DORA, and AMLR compliance workflows.
+ECDSA-signed responses · On-chain anchored (Polygon + XRPL) · Replayable proof
+Designed for MiCA, DORA, and AMLR compliance workflows.
 
 [Get Free API Key](https://feedoracle.io/dashboard) · [API Docs](https://feedoracle.io/docs) · [MCP Servers](https://feedoracle.io/mcp) · [Website](https://feedoracle.io)
 
@@ -24,17 +24,17 @@ Audit-grade evidence for MiCA, DORA, and AMLR compliance workflows.
 No login, no funnel — just copy-paste:
 
 ```bash
-# Get a stablecoin risk score (no API key needed for health check)
+# Health check (no API key needed)
 curl -s https://api.feedoracle.io/health | jq .
 
 # With your free API key (100 calls/day):
 export FEEDORACLE_API_KEY="your_key_here"
 
-# Check USDC risk score
+# Stablecoin risk score with reserve backing and peg monitoring
 curl -s -H "Authorization: Bearer $FEEDORACLE_API_KEY" \
   https://api.feedoracle.io/v1/stablecoin/risk/USDC | jq .
 
-# Check MiCA compliance status
+# MiCA compliance status and issuer registry check
 curl -s -H "Authorization: Bearer $FEEDORACLE_API_KEY" \
   https://api.feedoracle.io/v1/mica/status/USDC | jq .
 ```
@@ -84,7 +84,7 @@ Or add manually to `~/.openclaw/openclaw.json`:
 }
 ```
 
-Get your free API key → [feedoracle.io/dashboard](https://feedoracle.io/dashboard)
+API keys available at → [feedoracle.io/dashboard](https://feedoracle.io/dashboard)
 
 ---
 
@@ -96,10 +96,12 @@ Your agent **automatically** uses FeedOracle whenever a conversation involves:
 |---------|----------|
 | 🪙 **Stablecoin names** | USDT, USDC, EURC, EURI, PYUSD, DAI |
 | 📋 **Regulatory keywords** | MiCA, DORA, AMLR, ESMA, EBA, BaFin |
-| 🏦 **Tokenized asset compliance** | RWA, regulated DeFi, issuer licensing |
-| 🔍 **Evidence requests** | "Is this stablecoin MiCA compliant?", "What's the risk score?" |
+| 🏦 **Issuer due diligence** | Issuer registration, licensing, reserve backing |
+| 📊 **Peg monitoring** | Peg stability, collateral, reserve assessment |
+| 🔍 **Evidence requests** | "Show proof", "audit trail", "compliance verification" |
+| 🏛️ **Tokenized asset compliance** | RWA, regulated DeFi, digital asset issuer intelligence |
 
-The agent will call the appropriate endpoint, cite the Polygon TX hash for audit trail, and flag the **MiCA enforcement deadline: July 2026**.
+The agent retrieves signed compliance data, cites the Polygon TX hash for audit trail, and references the relevant MiCA enforcement timeline where applicable.
 
 ---
 
@@ -109,10 +111,10 @@ The agent will call the appropriate endpoint, cite the Polygon TX hash for audit
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/v1/stablecoin/risk/{symbol}` | Risk score (0-100), peg stability, reserve backing, MiCA status |
+| `GET` | `/v1/stablecoin/risk/{symbol}` | Risk score (0-100), peg stability, reserve backing, issuer status |
 | `GET` | `/v1/mica/status/{symbol}` | ESMA/EBA register check, EMT/ART classification, enforcement timeline |
 | `GET` | `/v1/macro/{indicator}` | 86 FRED + 20 ECB macro economic series |
-| `POST` | `/v1/evidence/bundle` | ECDSA-signed audit bundle with Polygon TX hash |
+| `POST` | `/v1/evidence/bundle` | ECDSA-signed evidence bundle with Polygon TX hash |
 | `GET` | `/v1/registry/issuer/{name}` | Issuer license and registration lookup |
 
 ### Full Platform (43+ Endpoints)
@@ -122,11 +124,11 @@ Beyond this skill, FeedOracle offers **43+ API endpoints** across 9 categories, 
 - **Macro Economic Oracle** — FRED (86 series) + ECB (20 series) real-time data
 - **On-chain Verification** — Polygon + XRPL multi-chain anchoring
 - **Evidence Infrastructure** — JWS signing, versioned schemas, deterministic replay
-- **Issuer Registry** — ESMA + EBA register cross-referencing
+- **Issuer Registry** — ESMA + EBA register cross-referencing for issuer due diligence
 
 ### MCP Servers (48 Tools)
 
-FeedOracle also provides **3 MCP servers** for direct AI agent integration:
+FeedOracle provides **3 MCP servers** for direct AI agent integration:
 
 | Server | Tools | Focus |
 |--------|-------|-------|
@@ -136,11 +138,11 @@ FeedOracle also provides **3 MCP servers** for direct AI agent integration:
 
 ---
 
-## 🔐 Trust Architecture
+## 🔐 Evidence Architecture
 
 ```
 ┌─────────────────────────────────────────────┐
-│            FeedOracle Evidence Flow          │
+│         FeedOracle Evidence Flow             │
 ├─────────────────────────────────────────────┤
 │                                             │
 │  Agent Query → API Response                 │
@@ -150,9 +152,10 @@ FeedOracle also provides **3 MCP servers** for direct AI agent integration:
 │  Independently   On-chain                   │
 │  Verifiable      Anchored                   │
 │       ↓              ↓                      │
-│       └──── Audit-Grade Evidence ────┘      │
+│  Verifiable compliance evidence             │
+│  suitable for audit and review workflows    │
 │                                             │
-│  Every claim verifiable.                    │
+│  Every claim independently checkable.       │
 │  Every proof replayable.                    │
 └─────────────────────────────────────────────┘
 ```
@@ -191,4 +194,3 @@ Payments via Stripe or USDC (Polygon).
 ## 📄 License
 
 [MIT-0](https://spdx.org/licenses/MIT-0.html) — use freely in any agent or application. No attribution required.
-]]>

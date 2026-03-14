@@ -3,9 +3,15 @@
   "slug": "feedoracle-compliance",
   "displayName": "FeedOracle Compliance Intelligence",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773250100029,
-    "commit": "https://github.com/openclaw/skills/commit/e34d48b6937d7a2b449b0247e039f769da183023"
+    "version": "1.1.1",
+    "publishedAt": 1773260685843,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773250100029,
+      "commit": "https://github.com/openclaw/skills/commit/e34d48b6937d7a2b449b0247e039f769da183023"
+    }
+  ]
 }
