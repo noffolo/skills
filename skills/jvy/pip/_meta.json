@@ -1,0 +1,11 @@
+{
+  "owner": "jvy",
+  "slug": "pip",
+  "displayName": "pip",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773498343506,
+    "commit": null
+  },
+  "history": []
+}
