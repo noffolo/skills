@@ -1,0 +1,11 @@
+{
+  "owner": "jack-atlas",
+  "slug": "iemail-send",
+  "displayName": "Send transactional email via DmartechX/Iemail OpenAPI. Configure in OpenClaw skills env or use secret.md.",
+  "latest": {
+    "version": "1.0.4",
+    "publishedAt": 1773365007122,
+    "commit": null
+  },
+  "history": []
+}
