@@ -1,0 +1,11 @@
+{
+  "owner": "ollielin",
+  "slug": "tencent-mps",
+  "displayName": "tencent mps skill",
+  "latest": {
+    "version": "1.0.6",
+    "publishedAt": 1773419797634,
+    "commit": null
+  },
+  "history": []
+}
