@@ -1,11 +1,17 @@
 {
   "owner": "bytesagain",
   "slug": "dashboard-builder",
-  "displayName": "dashboard-builder",
+  "displayName": "Dashboard Builder",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773256725165,
-    "commit": "https://github.com/openclaw/skills/commit/45b4eb0eb28f3db765dbc0ebcea38a35597b5397"
+    "version": "2.3.0",
+    "publishedAt": 1773446845094,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773256725165,
+      "commit": "https://github.com/openclaw/skills/commit/45b4eb0eb28f3db765dbc0ebcea38a35597b5397"
+    }
+  ]
 }
