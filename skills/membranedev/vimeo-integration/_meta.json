@@ -1,0 +1,11 @@
+{
+  "owner": "membranedev",
+  "slug": "vimeo-integration",
+  "displayName": "Vimeo",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773356529247,
+    "commit": null
+  },
+  "history": []
+}
