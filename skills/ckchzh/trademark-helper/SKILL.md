@@ -1,6 +1,6 @@
 ---
 name: Trademark Helper
-description: >-
+description: "商标注册助手。商标查询、分类选择、注册流程、驳回应对。Trademark registration helper with search, classification, process guide. Use when you need trademark helper capabilities. Triggers on: trademark helper."
   商标注册助手。商标查询、分类选择、注册流程、驳回应对。Trademark registration helper with search, classification, process guide. 商标注册、品牌保护、知识产权。Use when registering trademarks.
 ---
 # Trademark Helper
@@ -27,3 +27,6 @@ A: 主要输出Markdown格式，方便复制和编辑。
 
 ---
 *Trademark Helper by BytesAgain*
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com

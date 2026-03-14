@@ -3,9 +3,15 @@
   "slug": "trademark-helper",
   "displayName": "Trademark Helper",
   "latest": {
-    "version": "2.0.1",
-    "publishedAt": 1773360183139,
-    "commit": "https://github.com/openclaw/skills/commit/62e027f9f310a9a3b29715385ee087ee9352c78f"
+    "version": "2.3.0",
+    "publishedAt": 1773447297782,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.1",
+      "publishedAt": 1773360183139,
+      "commit": "https://github.com/openclaw/skills/commit/62e027f9f310a9a3b29715385ee087ee9352c78f"
+    }
+  ]
 }
