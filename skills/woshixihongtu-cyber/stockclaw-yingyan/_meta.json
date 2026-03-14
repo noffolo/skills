@@ -1,0 +1,11 @@
+{
+  "owner": "woshixihongtu-cyber",
+  "slug": "stockclaw-yingyan",
+  "displayName": "stockClaw-yingyan 股票量化助手，可以获取个股择时量化图，个股行情分析，AI搜索特定股票，监控股买卖点变化通知。",
+  "latest": {
+    "version": "1.1.0",
+    "publishedAt": 1773459868946,
+    "commit": null
+  },
+  "history": []
+}
