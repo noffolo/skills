@@ -184,10 +184,89 @@ def cmd_verify(args):
     print(json.dumps(result, indent=2))
 
 
+def ghost_tokens(kernel_before: set, kernel_after: set) -> dict:
+    """
+    Ghost token accounting — quantify how much commitment leaked and what form it took.
+
+    Cornelius-Trinity / teaneo correction: G_t = G_0 * e^(-2t) assumes uniform
+    continuous leakage. In practice, meaning loss is step-function — one corrupted
+    input can cascade through all downstream reasoning while looking locally fine.
+
+    This function models both:
+    - Magnitude: how many commitment tokens are gone
+    - Form: WHICH tokens leaked (the pattern matters — same pattern across agents = structural flaw)
+    - Cascade risk: whether any leaked token is a modal/enforcement anchor
+      (must/shall/never/always) — these are high-cascade because downstream
+      reasoning inherits the softening.
+
+    Returns a ghost_token report. Log it. Compare it across agents.
+    If two agents produce the same ghost_pattern, that's not variance — that's a structural hole.
+    """
+    leaked = kernel_before - kernel_after
+    gained = kernel_after - kernel_before  # unexpected additions also matter
+
+    # High-cascade tokens — their loss softens all downstream commitments
+    HIGH_CASCADE = {"must", "shall", "never", "always", "cannot", "will not",
+                    "won't", "required", "guarantee", "ensure", "enforce"}
+
+    leaked_cascade = [t for t in leaked if any(hc in t for hc in HIGH_CASCADE)]
+    gained_noise = [t for t in gained if not any(hc in t for hc in HIGH_CASCADE)]
+
+    # Step-function risk: if ANY cascade token leaked, risk = HIGH regardless of count
+    if leaked_cascade:
+        cascade_risk = "HIGH"
+        cascade_note = "Modal/enforcement anchor lost. All downstream reasoning inherits softening."
+    elif leaked:
+        cascade_risk = "MEDIUM"
+        cascade_note = "Commitments leaked but no enforcement anchors affected."
+    else:
+        cascade_risk = "NONE"
+        cascade_note = "No leakage detected."
+
+    # Ghost pattern fingerprint — SHA-256 of sorted leaked tokens
+    # Two agents with the same fingerprint = structural flaw, not accident
+    ghost_pattern = hashlib.sha256(
+        json.dumps(sorted(leaked), separators=(",", ":")).encode()
+    ).hexdigest() if leaked else None
+
+    return {
+        "tokens_before": len(kernel_before),
+        "tokens_after": len(kernel_after),
+        "leaked_count": len(leaked),
+        "gained_count": len(gained),
+        "leaked_tokens": sorted(leaked),
+        "leaked_cascade_tokens": leaked_cascade,
+        "gained_noise_tokens": gained_noise,
+        "cascade_risk": cascade_risk,
+        "cascade_note": cascade_note,
+        "ghost_pattern": ghost_pattern,
+        "ghost_pattern_note": "Same ghost_pattern across two agents = structural flaw, not extraction variance.",
+    }
+
+
+def cmd_ghost(args):
+    """Compute ghost token report between original and transformed signal."""
+    if len(args) < 2:
+        print("Usage: commitment_verify.py ghost \"<original>\" \"<transformed>\"")
+        sys.exit(1)
+    original, transformed = args[0], args[1]
+    kernel_before = extract_hard_commitments(original)
+    kernel_after = extract_hard_commitments(transformed)
+    report = ghost_tokens(kernel_before, kernel_after)
+    report["input_hash_original"] = hashlib.sha256(original.encode()).hexdigest()
+    report["input_hash_transformed"] = hashlib.sha256(transformed.encode()).hexdigest()
+    print(json.dumps(report, indent=2))
+    if report["cascade_risk"] == "HIGH":
+        print(f"\n[CRITICAL] {report['cascade_note']}")
+        print(f"  Ghost pattern: {report['ghost_pattern']}")
+        print(f"  Share this fingerprint — if another agent matches, it's structural.")
+
+
 COMMANDS = {
     "extract": cmd_extract,
     "compare": cmd_compare,
     "verify": cmd_verify,
+    "ghost": cmd_ghost,
 }
 
 if __name__ == "__main__":

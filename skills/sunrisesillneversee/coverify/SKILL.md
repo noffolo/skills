@@ -6,7 +6,7 @@ metadata:
   openclaw:
     emoji: ⚖
     tags: [conservation, verification, jaccard, commitment, moses, signal, provenance, falsifiability]
-    version: 0.4.0
+    version: 0.4.1
     bins:
       - python3
     stateDirs:
