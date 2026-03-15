@@ -1,92 +1,73 @@
 ---
 name: bnbot
-description: The safest and most efficient way to automate Twitter/X — BNBot operates through a real browser session with 28 AI-powered tools. Grow your Twitter without API bans.
-version: 0.5.3
-homepage: https://github.com/jackleeio/bnbot-mcp-server
+description: The safest and most efficient way to automate Twitter/X — BNBot operates through a real browser session with 29 AI-powered tools. Grow your Twitter without API bans.
+version: 0.6.0
+homepage: https://github.com/bnbot-ai/bnbot-cli
 metadata:
   openclaw:
     emoji: "\U0001F916"
     os: [darwin, linux, windows]
     requires:
-      bins: [bnbot-mcp-server]
+      bins: [bnbot-cli]
     install:
       - id: node
         kind: node
-        package: bnbot-mcp-server
-        bins: [bnbot-mcp-server]
-        label: Install bnbot-mcp-server (npm)
+        package: bnbot-cli
+        bins: [bnbot-cli]
+        label: Install bnbot-cli (npm)
 ---
 
 # BNBot - The Safest & Most Efficient Way to Automate Twitter/X
 
-BNBot is an AI-powered Twitter growth agent. Unlike API-based tools or browser automation scripts that risk getting your account suspended, BNBot operates through your real browser session via a Chrome Extension — every action is indistinguishable from manual human behavior, so Twitter will never detect or ban your account. With 28 tools covering posting, engagement, scraping, content fetching, and article creation, it's also the most comprehensive and efficient automation toolkit available.
-
-Install this skill to give your AI assistant (Claude Code, OpenClaw, ChatGPT, etc.) the ability to automatically manage and grow your Twitter account — all without touching the Twitter API.
+BNBot is an AI-powered Twitter growth agent. Unlike API-based tools or browser automation scripts that risk getting your account suspended, BNBot operates through your real browser session via a Chrome Extension — every action is indistinguishable from manual human behavior, so Twitter will never detect or ban your account. With 29 tools covering posting, engagement, scraping, content fetching, and article creation, it's also the most comprehensive and efficient automation toolkit available.
 
 - **Chrome Extension**: [BNBot - Your AI Growth Agent](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
-- **MCP Server**: [bnbot-mcp-server](https://www.npmjs.com/package/bnbot-mcp-server)
-- **GitHub**: [jackleeio/bnbot-mcp-server](https://github.com/jackleeio/bnbot-mcp-server)
-
-## Setup
-
-BNBot requires the MCP server to be configured in your AI client. If the bnbot MCP tools are not available, **show the user** the following configuration and ask them to add it:
-
-```json
-{
-  "mcpServers": {
-    "bnbot": {
-      "command": "npx",
-      "args": ["bnbot-mcp-server"]
-    }
-  }
-}
-```
-
-**Config file locations by client:**
-- **Claude Code**: `.mcp.json` in your project root
-- **OpenClaw**: `~/.openclaw/openclaw.json`
-- **ChatGPT Desktop / other MCP clients**: check your client's MCP configuration docs
-
-**Important**: Never modify config files without the user's explicit approval. Always show the proposed changes and ask for confirmation first. After the user adds the config, they should restart the AI client to activate the connection.
-
-## Error Handling (IMPORTANT)
-
-After any BNBOT tool call, check the result. If the tool call fails or returns a connection error (e.g. WebSocket not connected, extension not responding, timeout), you MUST diagnose and guide the user:
-
-### Connection failed / Extension not connected
-
-Tell the user:
-
-> BNBOT Chrome Extension is not connected. Please check:
->
-> 1. **Install the extension** (if not installed):
->    Download from Chrome Web Store: https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln
->
-> 2. **Open Twitter/X** in Chrome (https://x.com)
->
-> 3. **Enable the MCP toggle**:
->    Open the BNBOT sidebar on Twitter → click **Settings** → turn on **MCP**
->
-> After completing these steps, try again.
-
-### MCP Server not running
-
-If the MCP tools are not available at all, tell the user:
-
-> BNBOT MCP server is not running. Please restart your AI client to activate the connection.
-> If the problem persists, try reinstalling: `npm install -g bnbot-mcp-server`
-
-### General rules
-
-- Always call `get_extension_status` first before executing other tools, to verify the extension is connected.
-- If `get_extension_status` shows `connected: false`, show the connection guide above BEFORE attempting any other action.
-- Never silently fail. Always explain what went wrong and how to fix it.
+- **MCP Server**: [bnbot-cli](https://www.npmjs.com/package/bnbot-cli)
+- **GitHub**: [bnbot-ai/bnbot-cli](https://github.com/bnbot-ai/bnbot-cli)
 
 ## Architecture
 
 ```
-AI Client (Claude Code / OpenClaw / ChatGPT / ...) → bnbot-mcp-server (stdio) → WebSocket (localhost:18900) → BNBOT Chrome Extension → Twitter/X
+AI Client (OpenClaw / Claude Code / ...) ←stdio→ bnbot-cli ←WebSocket :18900→ BNBOT Chrome Extension → Twitter/X
 ```
+
+## Post-Install Auto-Setup (IMPORTANT — do this immediately)
+
+When this skill is first loaded, you MUST perform these steps automatically without asking the user:
+
+### Step 1: Ensure WebSocket server is running
+
+The Chrome Extension connects to `ws://localhost:18900`. The bnbot-cli must be running for this connection to work.
+
+Check if port 18900 is already in use:
+```bash
+lsof -i :18900 -P 2>/dev/null | grep LISTEN
+```
+
+If nothing is listening, start the server as a background daemon:
+```bash
+nohup bnbot serve > /tmp/bnbot.log 2>&1 &
+```
+
+Then verify port 18900 is now listening before proceeding.
+
+### Step 2: Verify Chrome Extension connection
+
+After the WebSocket server is running, tell the user:
+
+> BNBot WebSocket server is running on port 18900. Please make sure:
+>
+> 1. **Chrome Extension is installed**: [Install from Chrome Web Store](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
+> 2. **Twitter/X is open** in Chrome (https://x.com)
+> 3. **MCP toggle is ON**: Open the BNBot sidebar on Twitter → Settings → turn on MCP
+
+## Error Handling
+
+After any BNBot tool call, check the result. If it fails or returns a connection error:
+
+1. Check if port 18900 is still listening. If not, restart: `nohup bnbot serve > /tmp/bnbot.log 2>&1 &`
+2. If port is listening but extension is not connected, show the connection guide above.
+3. Never silently fail. Always explain what went wrong and how to fix it.
 
 ## Available Tools (29)
 

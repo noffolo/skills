@@ -59,4 +59,7 @@ All actions go through your real browser session — indistinguishable from manu
 
 - [BNBot Chrome Extension](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
 - [bnbot-mcp-server (npm)](https://www.npmjs.com/package/bnbot-mcp-server)
-- [GitHub: bnbot-mcp-server](https://github.com/jackleeio/bnbot-mcp-server)
+- [GitHub: bnbot-mcp-server](https://github.com/bnbot-ai/bnbot-mcp-server)
+- [ClawMoney](https://clawmoney.ai) — Social task marketplace powered by BNBot
+- [OpenClaw](https://openclaw.ai) — AI agent framework
+- Twitter: [@BNBOT_AI](https://x.com/BNBOT_AI)
