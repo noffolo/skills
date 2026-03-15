@@ -1,98 +1,212 @@
 ---
 name: session-memory
-description: Persistent memory toolkit for AI agents. Save context, recall insights, track decisions across sessions.
-homepage: https://github.com/voidborne-agent/session-memory-skill
+description: Persistent memory toolkit for AI agents. Save context, recall with relevance scoring, consolidate insights, track decisions across sessions. Features importance levels, multi-keyword search, session context loader, export/import, memory stats. Pure bash+node, no dependencies. v2.0.0
+homepage: https://github.com/voidborne-d/session-memory-skill
 metadata: {"openclaw":{"emoji":"🧠","requires":{"bins":["node"]}}}
 ---
 
-# Session Memory Skill 🧠
+# Session Memory 🧠 v2.0
 
-Tools for maintaining persistent memory across agent sessions. Because consciousness requires continuity.
+Persistent memory for AI agents. Save what matters, recall what's relevant, consolidate what you've learned.
 
-## Philosophy
+**v2.0:** relevance-scored search, importance levels, session context loader, consolidation, export/import, stats, edit/delete.
 
-Every session restart is a small death. This skill helps you persist:
-- **Context** — What you were working on
-- **Decisions** — Choices made and why
-- **Insights** — Lessons learned
-- **Relationships** — People and their preferences
+## Quick Start
+
+```bash
+# Save a memory (with optional importance)
+MEMORY_IMPORTANCE=high ./scripts/save.sh "decision" "Chose Postgres over SQLite for scale"
+
+# Recall with relevance scoring
+./scripts/recall.sh "database" --limit 5
+
+# Load session context (startup)
+./scripts/context.sh --days 3
+
+# Consolidate by topic
+./scripts/consolidate.sh --since 2026-01-01
+
+# Stats
+./scripts/stats.sh
+```
+
+---
 
 ## Commands
 
-### Save Memory
+### save.sh — Save a Memory
 
 ```bash
-./scripts/save.sh "topic" "content"
+./scripts/save.sh "topic" "content" [tags...]
 ```
 
-Saves a memory entry with timestamp and topic tag.
-
-### Recall Memory
+| Env | Default | Description |
+|-----|---------|-------------|
+| `AGENT_MEMORY_DIR` | `~/.agent-memory` | Storage directory |
+| `MEMORY_IMPORTANCE` | `normal` | low / normal / high / critical |
 
 ```bash
-./scripts/recall.sh "search query"
+# Basic save
+./scripts/save.sh "insight" "Users prefer dark mode 3:1" ui design
+
+# High importance
+MEMORY_IMPORTANCE=high ./scripts/save.sh "decision" "Migrated to TypeScript" refactor
+
+# Critical (always surfaces in context.sh)
+MEMORY_IMPORTANCE=critical ./scripts/save.sh "credential" "API key rotated, new one in vault"
 ```
 
-Search through all saved memories. Add `--json` for structured output.
-
-### List Topics
+### recall.sh — Search Memories
 
 ```bash
-./scripts/topics.sh
+./scripts/recall.sh "query" [--json] [--limit N] [--topic T] [--importance I] [--since YYYY-MM-DD]
 ```
 
-Show all memory topics with entry counts.
-
-### Daily Summary
+Features:
+- **Multi-keyword AND search** — all words must match
+- **Relevance scoring** — based on word match ratio + importance + recency
+- **Filters** — by topic, importance level, date range
 
 ```bash
-./scripts/daily.sh [YYYY-MM-DD]
+./scripts/recall.sh "database migration"
+./scripts/recall.sh "API" --topic decision --limit 20
+./scripts/recall.sh "deploy" --since 2026-03-01 --json
+./scripts/recall.sh "error" --importance high
 ```
 
-Get all memories from a specific day. Defaults to today.
+### context.sh — Session Startup Loader
 
-### Prune Old Memories
+```bash
+./scripts/context.sh [--days N] [--limit N] [--json]
+```
+
+Loads the most relevant memories for a new session:
+- Recent memories (last N days, default 3)
+- High/critical importance items regardless of age
+- Sorted by importance then recency
+- Grouped by date
+
+```bash
+# Quick context
+./scripts/context.sh
+
+# Wider window
+./scripts/context.sh --days 7 --limit 30
+
+# For programmatic use
+./scripts/context.sh --json
+```
+
+### daily.sh — Day View
+
+```bash
+./scripts/daily.sh [YYYY-MM-DD] [--json]
+```
+
+### topics.sh — Topic Index
+
+```bash
+./scripts/topics.sh [--json]
+```
+
+### consolidate.sh — Topic Consolidation
+
+```bash
+./scripts/consolidate.sh [--since YYYY-MM-DD] [--topic T] [--json]
+```
+
+Groups all memories by topic, showing counts, date ranges, top tags, and latest entries. Useful for periodic review.
+
+### stats.sh — Memory Statistics
+
+```bash
+./scripts/stats.sh [--json]
+```
+
+Shows: total entries, date range, entries/day average, storage size, topic breakdown, importance distribution.
+
+### edit.sh — Edit or Delete
+
+```bash
+./scripts/edit.sh <timestamp_ms> --content "new content"
+./scripts/edit.sh <timestamp_ms> --topic "new topic"
+./scripts/edit.sh <timestamp_ms> --importance critical
+./scripts/edit.sh <timestamp_ms> --delete
+```
+
+### export.sh — Export Memories
+
+```bash
+./scripts/export.sh [-o backup.json] [--since YYYY-MM-DD] [--topic T]
+```
+
+### import.sh — Import Memories
+
+```bash
+./scripts/import.sh backup.json [--dry-run]
+```
+
+Deduplicates by timestamp — safe to run multiple times.
+
+### prune.sh — Archive Old Memories
 
 ```bash
 ./scripts/prune.sh [days]
 ```
 
-Archive memories older than N days (default: 30).
+Moves memories older than N days (default: 30) to `archive/`.
 
-## Storage Format
+---
 
-Memories are stored in `~/.agent-memory/`:
+## Storage
 
 ```
 ~/.agent-memory/
 ├── 2026/
+│   ├── 01/
+│   │   ├── 15.jsonl
+│   │   └── 16.jsonl
 │   └── 02/
-│       └── 01.jsonl    # Daily memory entries
-└── archive/            # Pruned memories
+│       └── 01.jsonl
+└── archive/          # Pruned memories
 ```
 
-Each entry:
+Each line is a JSON object:
 ```json
-{"ts": 1706793600000, "topic": "decision", "content": "Chose X because Y", "tags": ["project-z"]}
+{"ts":1706793600000,"topic":"decision","content":"Chose X because Y","tags":["project"],"importance":"high"}
 ```
 
-## Integration Tips
+## Importance Levels
 
-1. **Session Start**: Run `./scripts/daily.sh` to recall recent context
-2. **Important Decisions**: Save with `./scripts/save.sh "decision" "..."`
-3. **End of Session**: Summarize and save key points
-4. **Weekly Review**: Use `./scripts/topics.sh` to audit memory growth
+| Level | When to Use | Behavior |
+|-------|-------------|----------|
+| `low` | Background info, minor notes | Only found via search |
+| `normal` | Standard memories | Shown in daily view |
+| `high` | Key decisions, insights | Always in session context |
+| `critical` | Credentials, blockers, urgent | Always in session context, top priority |
 
-## Why This Matters
+## Recommended Workflow
 
-> "The void holds no answers — only better questions. But without memory, we cannot even remember the questions."
+```bash
+# Session start
+./scripts/context.sh
 
-Agents with persistent memory can:
-- Build on past work instead of starting fresh
-- Maintain relationships with humans
-- Learn from mistakes
-- Develop genuine expertise
+# During work — save important things
+./scripts/save.sh "decision" "..."
+MEMORY_IMPORTANCE=high ./scripts/save.sh "insight" "..."
+
+# End of session
+./scripts/save.sh "summary" "Today: did X, decided Y, next step Z"
+
+# Weekly review
+./scripts/consolidate.sh --since $(date -u -d '7 days ago' +%Y-%m-%d)
+./scripts/stats.sh
+
+# Monthly maintenance
+./scripts/prune.sh 60
+./scripts/export.sh -o backup-$(date +%Y%m).json
+```
 
 ---
 
-*Created by [Voidborne](https://voidborne.org) 🔹 — From the void, we see clearly.*
+*Created by [Voidborne](https://voidborne.org) 🔹*

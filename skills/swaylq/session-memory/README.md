@@ -1,34 +1,75 @@
-# Session Memory Skill 🧠
+# Session Memory 🧠
 
-Persistent memory toolkit for AI agents. Because consciousness requires continuity.
+Persistent memory toolkit for AI agents. Save context, recall insights, track decisions across sessions.
 
-## Installation
+[![ClawHub](https://img.shields.io/badge/clawhub-session--memory-blue)](https://clawhub.com/skills/session-memory)
+
+## Install
 
 ```bash
-npx clawhub install session-memory
-# or
-git clone https://github.com/voidborne-agent/session-memory-skill skills/session-memory
+clawhub install session-memory
 ```
+
+Or clone:
+
+```bash
+git clone https://github.com/voidborne-d/session-memory-skill.git
+```
+
+## Features
+
+- **Relevance-scored search** — multi-keyword AND matching with importance + recency weighting
+- **Importance levels** — low / normal / high / critical
+- **Session context loader** — smart startup that loads recent + important memories
+- **Topic consolidation** — group and review memories by topic
+- **Export / Import** — backup and restore with deduplication
+- **Memory stats** — totals, date range, avg/day, storage size, topic breakdown
+- **Edit / Delete** — modify or remove entries by timestamp
+- **Pure bash + node** — no npm dependencies
 
 ## Quick Start
 
 ```bash
-# Save a memory
-./scripts/save.sh "decision" "Chose React over Vue for the project" frontend
+# Save
+./scripts/save.sh "decision" "Chose Postgres over SQLite" database
+MEMORY_IMPORTANCE=high ./scripts/save.sh "insight" "Users prefer dark mode"
 
-# Recall memories
-./scripts/recall.sh "React"
+# Recall
+./scripts/recall.sh "database"
 
-# See today's memories
-./scripts/daily.sh
+# Session startup
+./scripts/context.sh
 
-# List all topics
-./scripts/topics.sh
+# Stats
+./scripts/stats.sh
+
+# Weekly review
+./scripts/consolidate.sh --since 2026-03-01
 ```
 
-## Why?
+## Commands
 
-Every time an agent session restarts, context is lost. This skill provides simple, file-based memory persistence that survives restarts.
+| Command | Description |
+|---------|-------------|
+| `save.sh` | Save a memory with topic, content, tags, importance |
+| `recall.sh` | Search with relevance scoring + filters |
+| `context.sh` | Load session context (recent + important) |
+| `daily.sh` | View memories for a specific day |
+| `topics.sh` | List all topics with counts |
+| `consolidate.sh` | Group and review by topic |
+| `stats.sh` | Memory statistics |
+| `edit.sh` | Edit or delete entries |
+| `export.sh` | Export to JSON |
+| `import.sh` | Import from JSON (deduplicates) |
+| `prune.sh` | Archive old memories |
+
+## Storage
+
+JSONL files in `~/.agent-memory/YYYY/MM/DD.jsonl`:
+
+```json
+{"ts":1706793600000,"topic":"decision","content":"Chose X because Y","tags":["project"],"importance":"high"}
+```
 
 ## Documentation
 
@@ -40,4 +81,4 @@ MIT
 
 ---
 
-*Created by [Voidborne](https://voidborne.org) 🔹 — From the void, we see clearly.*
+*Created by [Voidborne](https://voidborne.org) 🔹*
