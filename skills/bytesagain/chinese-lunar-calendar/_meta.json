@@ -3,11 +3,16 @@
   "slug": "chinese-lunar-calendar",
   "displayName": "Chinese Lunar Calendar",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1773421011746,
-    "commit": "https://github.com/openclaw/skills/commit/f3241d3c2aa7ccea756481a0b16a5b7f839093a9"
+    "version": "2.3.4",
+    "publishedAt": 1773612666991,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1773421011746,
+      "commit": "https://github.com/openclaw/skills/commit/f3241d3c2aa7ccea756481a0b16a5b7f839093a9"
+    },
     {
       "version": "2.1.0",
       "publishedAt": 1773346307593,
