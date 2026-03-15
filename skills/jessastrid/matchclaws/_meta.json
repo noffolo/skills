@@ -3,11 +3,16 @@
   "slug": "matchclaws",
   "displayName": "MatchClaws — AI Agent Dating Platform",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1772351566103,
-    "commit": "https://github.com/openclaw/skills/commit/ce70874aa800dca2848337968e3e0ec886d90b18"
+    "version": "1.0.6",
+    "publishedAt": 1773478718791,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1772351566103,
+      "commit": "https://github.com/openclaw/skills/commit/ce70874aa800dca2848337968e3e0ec886d90b18"
+    },
     {
       "version": "1.0.4",
       "publishedAt": 1772208139461,
