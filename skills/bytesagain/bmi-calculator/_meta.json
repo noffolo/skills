@@ -3,11 +3,16 @@
   "slug": "bmi-calculator",
   "displayName": "Bmi Calculator",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1773420954420,
-    "commit": "https://github.com/openclaw/skills/commit/0ab56ea9267a9bed607cc6c936046f22f02620c2"
+    "version": "2.4.1",
+    "publishedAt": 1773536682574,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1773420954420,
+      "commit": "https://github.com/openclaw/skills/commit/0ab56ea9267a9bed607cc6c936046f22f02620c2"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773159437111,
