@@ -5,7 +5,7 @@ description: >-
   correlation with CVE findings, and vulnerability analytics queries. Use when
   the user mentions runtime monitoring, context graphs, lateral movement analysis,
   audit log correlation, or vulnerability analytics.
-version: 0.62.0
+version: 0.70.12
 license: Apache-2.0
 compatibility: >-
   Requires Python 3.11+. Install via pipx or pip. Optional: kubectl for
@@ -16,7 +16,7 @@ metadata:
   source: https://github.com/msaad00/agent-bom
   pypi: https://pypi.org/project/agent-bom/
   scorecard: https://securityscorecards.dev/viewer/?uri=github.com/msaad00/agent-bom
-  tests: 3480
+  tests: 6040
   install:
     pipx: agent-bom
     pip: agent-bom
@@ -90,5 +90,5 @@ ClickHouse endpoint for persistent analytics.
 ## Verification
 
 - **Source**: [github.com/msaad00/agent-bom](https://github.com/msaad00/agent-bom) (Apache-2.0)
-- **3,400+ tests** with CodeQL + OpenSSF Scorecard
+- **6,040+ tests** with CodeQL + OpenSSF Scorecard
 - **No telemetry**: Zero tracking, zero analytics
