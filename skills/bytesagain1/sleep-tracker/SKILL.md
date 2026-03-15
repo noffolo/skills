@@ -36,3 +36,18 @@ description: "睡眠改善工具。睡眠分析、改善建议、作息规划、
 ---
 💬 Feedback & Feature Requests: https://bytesagain.com/feedback
 Powered by BytesAgain | bytesagain.com
+
+
+## Examples
+
+```bash
+# Show help
+sleep-tracker help
+
+# Run
+sleep-tracker run
+```
+
+## Commands
+
+Run `sleep-tracker help` to see all available commands.
