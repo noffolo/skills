@@ -1,6 +1,13 @@
 ---
 name: mailgun
 description: Send emails via Mailgun API. Use when the user needs to send emails programmatically, such as newsletters, notifications, alerts, or automated reports. Requires MAILGUN_API_KEY and MAILGUN_DOMAIN environment variables to be configured.
+env:
+  - MAILGUN_API_KEY
+  - MAILGUN_DOMAIN
+  - MAILGUN_FROM
+  - MAILGUN_DEFAULT_TO
+homepage: https://github.com/openclaw/openclaw
+repository: https://github.com/openclaw/openclaw
 ---
 
 # Mailgun Email Sender
