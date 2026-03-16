@@ -24,6 +24,7 @@ Registers `openai-codex` provider from existing `~/.codex/auth.json` tokens. No 
 Local OpenAI-compatible HTTP proxy (`127.0.0.1:31337`) routes vllm model calls to CLI subprocesses:
 - `vllm/cli-gemini/gemini-2.5-pro` / `gemini-2.5-flash` / `gemini-3-pro`
 - `vllm/cli-claude/claude-sonnet-4-6` / `claude-opus-4-6` / `claude-haiku-4-5`
+- `vllm/local-bitnet/bitnet-2b` → BitNet llama-server on 127.0.0.1:8082
 
 Prompts go via stdin/tmpfile — never as CLI args (prevents `E2BIG` for long sessions).
 
@@ -40,6 +41,7 @@ Six instant model-switch commands (authorized senders only):
 | `/cli-gemini3` | `vllm/cli-gemini/gemini-3-pro` |
 | `/cli-codex` | `openai-codex/gpt-5.3-codex` |
 | `/cli-codex54` | `openai-codex/gpt-5.4` |
+| `/cli-bitnet` | `vllm/local-bitnet/bitnet-2b` |
 | `/cli-back` | Restore previous model |
 | `/cli-test [model]` | Health check (no model switch) |
 
@@ -56,6 +58,8 @@ Sessions survive gateway restarts. `/bridge-status` shows all 4 at a glance.
 
 On gateway restart, if any session has expired, a **WhatsApp alert** is sent automatically with the exact `/xxx-login` commands needed — no guessing required.
 
+**Browser health dashboard:** `http://127.0.0.1:31337/status` — live overview of all 4 providers, cookie expiry, and model list. Auto-refreshes every 30s.
+
 ## Setup
 
 1. Enable plugin + restart gateway
@@ -64,4 +68,4 @@ On gateway restart, if any session has expired, a **WhatsApp alert** is sent aut
 
 See `README.md` for full configuration reference and architecture diagram.
 
-**Version:** 1.6.2
+**Version:** 1.9.1

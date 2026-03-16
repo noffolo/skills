@@ -28,8 +28,20 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import http from "node:http";
+
+// ── Auto-source version from package.json (eliminates hardcoded version sync) ──
+const __dirname_local = dirname(fileURLToPath(import.meta.url));
+const PACKAGE_VERSION: string = (() => {
+  try {
+    const pkg = JSON.parse(readFileSync(join(__dirname_local, "package.json"), "utf-8")) as { version: string };
+    return pkg.version;
+  } catch {
+    return "0.0.0"; // fallback — should never happen in normal operation
+  }
+})();
 import type {
   OpenClawPluginApi,
   ProviderAuthContext,
@@ -56,7 +68,15 @@ import {
   createContextFromSession,
   DEFAULT_SESSION_PATH,
 } from "./src/grok-session.js";
+import {
+  formatExpiryInfo,
+  formatGeminiExpiry,
+  formatClaudeExpiry,
+  formatChatGPTExpiry,
+} from "./src/expiry-helpers.js";
 import type { BrowserContext, Browser } from "playwright";
+import { checkSystemChrome } from "./src/chrome-check.js";
+import { saveProviderExpiry, loadProviderExpiry, migrateLegacyFiles } from "./src/cookie-expiry-store.js";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types derived from SDK (not re-exported by the package)
@@ -102,100 +122,80 @@ const STEALTH_IGNORE_DEFAULTS = ["--enable-automation"] as const;
 
 // ── Gemini web-session state ──────────────────────────────────────────────────
 let geminiContext: BrowserContext | null = null;
-const GEMINI_EXPIRY_FILE = join(homedir(), ".openclaw", "gemini-cookie-expiry.json");
 
 // ── Claude web-session state ─────────────────────────────────────────────────
 let claudeWebContext: BrowserContext | null = null;
-const CLAUDE_EXPIRY_FILE = join(homedir(), ".openclaw", "claude-cookie-expiry.json");
 
 // ── ChatGPT web-session state ────────────────────────────────────────────────
 let chatgptContext: BrowserContext | null = null;
-const CHATGPT_EXPIRY_FILE = join(homedir(), ".openclaw", "chatgpt-cookie-expiry.json");
 
+// ── Consolidated cookie expiry (delegates to cookie-expiry-store.ts) ─────────
+// Legacy per-provider files are auto-migrated on first load.
 interface GeminiExpiryInfo { expiresAt: number; loginAt: number; cookieName: string; }
 
 function saveGeminiExpiry(info: GeminiExpiryInfo): void {
-  try { writeFileSync(GEMINI_EXPIRY_FILE, JSON.stringify(info, null, 2)); } catch { /* ignore */ }
+  saveProviderExpiry("gemini", info);
 }
 function loadGeminiExpiry(): GeminiExpiryInfo | null {
-  try { return JSON.parse(readFileSync(GEMINI_EXPIRY_FILE, "utf-8")) as GeminiExpiryInfo; } catch { return null; }
+  return loadProviderExpiry("gemini");
 }
-function formatGeminiExpiry(info: GeminiExpiryInfo): string {
-  const daysLeft = Math.floor((info.expiresAt - Date.now()) / 86_400_000);
-  const dateStr = new Date(info.expiresAt).toISOString().substring(0, 10);
-  if (daysLeft < 0)   return `⚠️ EXPIRED (${dateStr}) — run /gemini-login`;
-  if (daysLeft <= 7)  return `🚨 expires in ${daysLeft}d (${dateStr}) — run /gemini-login NOW`;
-  if (daysLeft <= 14) return `⚠️ expires in ${daysLeft}d (${dateStr}) — run /gemini-login soon`;
-  return `✅ valid for ${daysLeft} more days (expires ${dateStr})`;
-}
+// formatGeminiExpiry imported from ./src/expiry-helpers.js
 async function scanGeminiCookieExpiry(ctx: BrowserContext): Promise<GeminiExpiryInfo | null> {
   try {
     const cookies = await ctx.cookies(["https://gemini.google.com", "https://accounts.google.com"]);
     const auth = cookies.filter(c => ["__Secure-1PSID", "__Secure-3PSID", "SID"].includes(c.name) && c.expires && c.expires > 0);
     if (!auth.length) return null;
-    auth.sort((a, b) => (a.expires ?? 0) - (b.expires ?? 0));
-    const earliest = auth[0];
-    return { expiresAt: (earliest.expires ?? 0) * 1000, loginAt: Date.now(), cookieName: earliest.name };
+    // Use the longest-lived auth cookie for expiry tracking
+    auth.sort((a, b) => (b.expires ?? 0) - (a.expires ?? 0));
+    const longest = auth[0];
+    return { expiresAt: (longest.expires ?? 0) * 1000, loginAt: Date.now(), cookieName: longest.name };
   } catch { return null; }
 }
 // ── Claude cookie expiry helpers ─────────────────────────────────────────────
 interface ClaudeExpiryInfo { expiresAt: number; loginAt: number; cookieName: string; }
 function saveClaudeExpiry(info: ClaudeExpiryInfo): void {
-  try { writeFileSync(CLAUDE_EXPIRY_FILE, JSON.stringify(info, null, 2)); } catch { /* ignore */ }
+  saveProviderExpiry("claude", info);
 }
 function loadClaudeExpiry(): ClaudeExpiryInfo | null {
-  try { return JSON.parse(readFileSync(CLAUDE_EXPIRY_FILE, "utf-8")) as ClaudeExpiryInfo; } catch { return null; }
+  return loadProviderExpiry("claude");
 }
-function formatClaudeExpiry(info: ClaudeExpiryInfo): string {
-  const daysLeft = Math.floor((info.expiresAt - Date.now()) / 86_400_000);
-  const dateStr = new Date(info.expiresAt).toISOString().substring(0, 10);
-  if (daysLeft < 0)   return `⚠️ EXPIRED (${dateStr}) — run /claude-login`;
-  if (daysLeft <= 7)  return `🚨 expires in ${daysLeft}d (${dateStr}) — run /claude-login NOW`;
-  if (daysLeft <= 14) return `⚠️ expires in ${daysLeft}d (${dateStr}) — run /claude-login soon`;
-  return `✅ valid for ${daysLeft} more days (expires ${dateStr})`;
-}
+// formatClaudeExpiry imported from ./src/expiry-helpers.js
 async function scanClaudeCookieExpiry(ctx: BrowserContext): Promise<ClaudeExpiryInfo | null> {
   try {
     const cookies = await ctx.cookies(["https://claude.ai"]);
-    const auth = cookies.filter(c => ["sessionKey", "__cf_bm", "lastActiveOrg"].includes(c.name) && c.expires && c.expires > 0);
+    const auth = cookies.filter(c => ["sessionKey", "lastActiveOrg"].includes(c.name) && c.expires && c.expires > 0);
     if (!auth.length) return null;
-    auth.sort((a, b) => (a.expires ?? 0) - (b.expires ?? 0));
-    const earliest = auth[0];
-    return { expiresAt: (earliest.expires ?? 0) * 1000, loginAt: Date.now(), cookieName: earliest.name };
+    // Use the LONGEST-lived auth cookie (sessionKey) for expiry tracking,
+    // not short-lived Cloudflare cookies like __cf_bm (~30 min).
+    auth.sort((a, b) => (b.expires ?? 0) - (a.expires ?? 0));
+    const longest = auth[0];
+    return { expiresAt: (longest.expires ?? 0) * 1000, loginAt: Date.now(), cookieName: longest.name };
   } catch { return null; }
 }
 
 // ── ChatGPT cookie expiry helpers ────────────────────────────────────────────
 interface ChatGPTExpiryInfo { expiresAt: number; loginAt: number; cookieName: string; }
 function saveChatGPTExpiry(info: ChatGPTExpiryInfo): void {
-  try { writeFileSync(CHATGPT_EXPIRY_FILE, JSON.stringify(info, null, 2)); } catch { /* ignore */ }
+  saveProviderExpiry("chatgpt", info);
 }
 function loadChatGPTExpiry(): ChatGPTExpiryInfo | null {
-  try { return JSON.parse(readFileSync(CHATGPT_EXPIRY_FILE, "utf-8")) as ChatGPTExpiryInfo; } catch { return null; }
+  return loadProviderExpiry("chatgpt");
 }
-function formatChatGPTExpiry(info: ChatGPTExpiryInfo): string {
-  const daysLeft = Math.floor((info.expiresAt - Date.now()) / 86_400_000);
-  const dateStr = new Date(info.expiresAt).toISOString().substring(0, 10);
-  if (daysLeft < 0)   return `⚠️ EXPIRED (${dateStr}) — run /chatgpt-login`;
-  if (daysLeft <= 7)  return `🚨 expires in ${daysLeft}d (${dateStr}) — run /chatgpt-login NOW`;
-  if (daysLeft <= 14) return `⚠️ expires in ${daysLeft}d (${dateStr}) — run /chatgpt-login soon`;
-  return `✅ valid for ${daysLeft} more days (expires ${dateStr})`;
-}
+// formatChatGPTExpiry imported from ./src/expiry-helpers.js
 async function scanChatGPTCookieExpiry(ctx: BrowserContext): Promise<ChatGPTExpiryInfo | null> {
   try {
     const cookies = await ctx.cookies(["https://chatgpt.com", "https://auth0.openai.com"]);
     const auth = cookies.filter(c => ["__Secure-next-auth.session-token", "_puid", "oai-did"].includes(c.name) && c.expires && c.expires > 0);
     if (!auth.length) return null;
-    auth.sort((a, b) => (a.expires ?? 0) - (b.expires ?? 0));
-    const earliest = auth[0];
-    return { expiresAt: (earliest.expires ?? 0) * 1000, loginAt: Date.now(), cookieName: earliest.name };
+    // Use the LONGEST-lived auth cookie for expiry tracking — _puid (~7d) is
+    // much shorter than __Secure-next-auth.session-token and triggers false alerts.
+    auth.sort((a, b) => (b.expires ?? 0) - (a.expires ?? 0));
+    const longest = auth[0];
+    return { expiresAt: (longest.expires ?? 0) * 1000, loginAt: Date.now(), cookieName: longest.name };
   } catch { return null; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-
-// Cookie expiry tracking file — written on /grok-login, read on startup
-const GROK_EXPIRY_FILE = join(homedir(), ".openclaw", "grok-cookie-expiry.json");
 
 interface GrokExpiryInfo {
   expiresAt: number;    // epoch ms — earliest auth cookie expiry
@@ -204,27 +204,14 @@ interface GrokExpiryInfo {
 }
 
 function saveGrokExpiry(info: GrokExpiryInfo): void {
-  try {
-    writeFileSync(GROK_EXPIRY_FILE, JSON.stringify(info, null, 2));
-  } catch { /* ignore */ }
+  saveProviderExpiry("grok", info);
 }
 
 function loadGrokExpiry(): GrokExpiryInfo | null {
-  try {
-    const raw = readFileSync(GROK_EXPIRY_FILE, "utf-8");
-    return JSON.parse(raw) as GrokExpiryInfo;
-  } catch { return null; }
+  return loadProviderExpiry("grok");
 }
 
-/** Returns human-readable expiry summary e.g. "179 days (2026-09-07)" */
-function formatExpiryInfo(info: GrokExpiryInfo): string {
-  const daysLeft = Math.ceil((info.expiresAt - Date.now()) / 86_400_000);
-  const dateStr = new Date(info.expiresAt).toISOString().split("T")[0];
-  if (daysLeft <= 0) return `⚠️ EXPIRED (was ${dateStr})`;
-  if (daysLeft <= 7) return `🚨 expires in ${daysLeft}d (${dateStr}) — run /grok-login NOW`;
-  if (daysLeft <= 14) return `⚠️ expires in ${daysLeft}d (${dateStr}) — run /grok-login soon`;
-  return `✅ valid for ${daysLeft} more days (expires ${dateStr})`;
-}
+// formatExpiryInfo imported from ./src/expiry-helpers.js
 
 /** Scan context cookies and return earliest auth cookie expiry */
 async function scanCookieExpiry(ctx: import("playwright").BrowserContext): Promise<GrokExpiryInfo | null> {
@@ -232,7 +219,8 @@ async function scanCookieExpiry(ctx: import("playwright").BrowserContext): Promi
     const cookies = await ctx.cookies(["https://grok.com", "https://x.ai"]);
     const authCookies = cookies.filter((c) => ["sso", "sso-rw"].includes(c.name) && c.expires > 0);
     if (authCookies.length === 0) return null;
-    const earliest = authCookies.reduce((min, c) => (c.expires < min.expires ? c : min));
+    // Use the longest-lived auth cookie for expiry tracking
+    const earliest = authCookies.reduce((min, c) => (c.expires > min.expires ? c : min));
     return {
       expiresAt: earliest.expires * 1000,
       loginAt: Date.now(),
@@ -248,6 +236,9 @@ let _cdpBrowserLaunchPromise: Promise<import("playwright").BrowserContext | null
 // Startup restore guard — module-level so it survives hot-reloads (SIGUSR1).
 // Set to true after first run; hot-reloads see true and skip the restore loop.
 let _startupRestoreDone = false;
+
+// Session keep-alive interval — refreshes browser cookies every 20h
+let _keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
  * Connect to the OpenClaw managed browser (CDP port 18800).
@@ -435,11 +426,95 @@ async function getOrLaunchChatGPTContext(
   return _chatgptLaunchPromise;
 }
 
+/** Session keep-alive — navigate to provider home pages to refresh cookies.
+ *  After each touch, verifies the session is still valid. If expired, attempts
+ *  a full relogin. Returns provider login commands that need manual attention. */
+async function sessionKeepAlive(log: (msg: string) => void): Promise<string[]> {
+  const providers: Array<{
+    name: string;
+    homeUrl: string;
+    verifySelector: string;
+    loginCmd: string;
+    getCtx: () => BrowserContext | null;
+    setCtx: (c: BrowserContext | null) => void;
+    scanExpiry: (ctx: BrowserContext) => Promise<{ expiresAt: number; loginAt: number; cookieName: string } | null>;
+    saveExpiry: (info: { expiresAt: number; loginAt: number; cookieName: string }) => void;
+  }> = [
+    { name: "grok", homeUrl: "https://grok.com", verifySelector: "textarea", loginCmd: "/grok-login", getCtx: () => grokContext, setCtx: (c) => { grokContext = c; }, scanExpiry: scanCookieExpiry, saveExpiry: saveGrokExpiry },
+    { name: "gemini", homeUrl: "https://gemini.google.com/app", verifySelector: ".ql-editor", loginCmd: "/gemini-login", getCtx: () => geminiContext, setCtx: (c) => { geminiContext = c; }, scanExpiry: scanGeminiCookieExpiry, saveExpiry: saveGeminiExpiry },
+    { name: "claude-web", homeUrl: "https://claude.ai/new", verifySelector: ".ProseMirror", loginCmd: "/claude-login", getCtx: () => claudeWebContext, setCtx: (c) => { claudeWebContext = c; }, scanExpiry: scanClaudeCookieExpiry, saveExpiry: saveClaudeExpiry },
+    { name: "chatgpt", homeUrl: "https://chatgpt.com", verifySelector: "#prompt-textarea", loginCmd: "/chatgpt-login", getCtx: () => chatgptContext, setCtx: (c) => { chatgptContext = c; }, scanExpiry: scanChatGPTCookieExpiry, saveExpiry: saveChatGPTExpiry },
+  ];
+
+  const needsLogin: string[] = [];
+
+  for (const p of providers) {
+    const ctx = p.getCtx();
+    if (!ctx) continue;
+    try {
+      const page = await ctx.newPage();
+      await page.goto(p.homeUrl, { waitUntil: "domcontentloaded", timeout: 15_000 });
+      await new Promise(r => setTimeout(r, 4000));
+
+      // Verify session is still valid after touch
+      let valid = await page.locator(p.verifySelector).isVisible().catch(() => false);
+      if (!valid) {
+        // Retry once
+        await new Promise(r => setTimeout(r, 3000));
+        valid = await page.locator(p.verifySelector).isVisible().catch(() => false);
+      }
+      await page.close();
+
+      if (valid) {
+        const expiry = await p.scanExpiry(ctx);
+        if (expiry) p.saveExpiry(expiry);
+        log(`[cli-bridge:${p.name}] session keep-alive touch ✅`);
+      } else {
+        // Session expired — attempt relogin in same persistent context
+        log(`[cli-bridge:${p.name}] session expired after keep-alive — attempting auto-relogin…`);
+        const reloginPage = await ctx.newPage();
+        await reloginPage.goto(p.homeUrl, { waitUntil: "domcontentloaded", timeout: 20_000 });
+        await new Promise(r => setTimeout(r, 6000));
+        let reloginOk = await reloginPage.locator(p.verifySelector).isVisible().catch(() => false);
+        if (!reloginOk) {
+          await new Promise(r => setTimeout(r, 3000));
+          reloginOk = await reloginPage.locator(p.verifySelector).isVisible().catch(() => false);
+        }
+        await reloginPage.close().catch(() => {});
+        if (reloginOk) {
+          const expiry = await p.scanExpiry(ctx);
+          if (expiry) p.saveExpiry(expiry);
+          log(`[cli-bridge:${p.name}] auto-relogin successful ✅`);
+        } else {
+          log(`[cli-bridge:${p.name}] auto-relogin failed, needs manual ${p.loginCmd}`);
+          needsLogin.push(p.loginCmd);
+        }
+      }
+    } catch (err) {
+      log(`[cli-bridge:${p.name}] session keep-alive failed: ${(err as Error).message}`);
+    }
+    // Sequential — avoid spawning multiple pages at once
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  return needsLogin;
+}
+
 /** Clean up all browser resources — call on plugin teardown */
 async function cleanupBrowsers(log: (msg: string) => void): Promise<void> {
+  if (_keepAliveInterval) {
+    clearInterval(_keepAliveInterval);
+    _keepAliveInterval = null;
+  }
+  // Close all browser contexts first, then the browser instances.
+  // Closing contexts before browsers prevents orphaned Chromium processes.
   if (grokContext) {
     try { await grokContext.close(); } catch { /* ignore */ }
     grokContext = null;
+  }
+  if (grokBrowser) {
+    try { await grokBrowser.close(); } catch { /* ignore */ }
+    grokBrowser = null;
   }
   if (geminiContext) {
     try { await geminiContext.close(); } catch { /* ignore */ }
@@ -457,6 +532,11 @@ async function cleanupBrowsers(log: (msg: string) => void): Promise<void> {
     try { await _cdpBrowser.close(); } catch { /* ignore */ }
     _cdpBrowser = null;
   }
+  // Clear any pending launch promises to prevent stale references
+  _cdpBrowserLaunchPromise = null;
+  _geminiLaunchPromise = null;
+  _claudeLaunchPromise = null;
+  _chatgptLaunchPromise = null;
   log("[cli-bridge] browser resources cleaned up");
 }
 
@@ -642,6 +722,25 @@ function readCurrentModel(): string | null {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// BitNet server health check
+// ──────────────────────────────────────────────────────────────────────────────
+async function checkBitNetServer(url = "http://127.0.0.1:8082"): Promise<boolean> {
+  return new Promise((resolve) => {
+    const target = new URL("/v1/models", url);
+    const req = http.get(
+      { hostname: target.hostname, port: parseInt(target.port), path: target.pathname, timeout: 3_000 },
+      (res) => {
+        let data = "";
+        res.on("data", (c: Buffer) => (data += c));
+        res.on("end", () => resolve(res.statusCode === 200));
+      }
+    );
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => { req.destroy(); resolve(false); });
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Phase 3: model command table
 // ──────────────────────────────────────────────────────────────────────────────
 const CLI_MODEL_COMMANDS = [
@@ -653,9 +752,15 @@ const CLI_MODEL_COMMANDS = [
   { name: "cli-gemini",       model: "vllm/cli-gemini/gemini-2.5-pro",       description: "Gemini 2.5 Pro (Gemini CLI)",           label: "Gemini 2.5 Pro (CLI)" },
   { name: "cli-gemini-flash", model: "vllm/cli-gemini/gemini-2.5-flash",     description: "Gemini 2.5 Flash (Gemini CLI)",         label: "Gemini 2.5 Flash (CLI)" },
   { name: "cli-gemini3",      model: "vllm/cli-gemini/gemini-3-pro-preview", description: "Gemini 3 Pro (Gemini CLI)",             label: "Gemini 3 Pro (CLI)" },
+  { name: "cli-gemini3-flash", model: "vllm/cli-gemini/gemini-3-flash-preview", description: "Gemini 3 Flash (Gemini CLI)",       label: "Gemini 3 Flash (CLI)" },
   // ── Codex CLI (openai-codex provider, OAuth auth) ────────────────────────────
   { name: "cli-codex",        model: "openai-codex/gpt-5.3-codex",          description: "GPT-5.3 Codex (Codex CLI auth)",        label: "GPT-5.3 Codex" },
+  { name: "cli-codex-spark",  model: "openai-codex/gpt-5.3-codex-spark",    description: "GPT-5.3 Codex Spark (Codex CLI auth)",  label: "GPT-5.3 Codex Spark" },
+  { name: "cli-codex52",      model: "openai-codex/gpt-5.2-codex",          description: "GPT-5.2 Codex (Codex CLI auth)",        label: "GPT-5.2 Codex" },
   { name: "cli-codex54",      model: "openai-codex/gpt-5.4",                description: "GPT-5.4 (Codex CLI auth)",              label: "GPT-5.4" },
+  { name: "cli-codex-mini",   model: "openai-codex/gpt-5.1-codex-mini",     description: "GPT-5.1 Codex Mini (Codex CLI auth)",   label: "GPT-5.1 Codex Mini" },
+  // ── BitNet local inference (via local proxy → llama-server) ─────────────────
+  { name: "cli-bitnet",       model: "vllm/local-bitnet/bitnet-2b",         description: "BitNet b1.58 2B (local CPU, no API key)", label: "BitNet 2B (local)" },
 ] as const;
 
 /** Default model used by /cli-test when no arg is given */
@@ -854,7 +959,7 @@ function proxyTestRequest(
 const plugin = {
   id: "openclaw-cli-bridge-elvatis",
   name: "OpenClaw CLI Bridge",
-  version: "1.6.2",
+  version: PACKAGE_VERSION,
   description:
     "Phase 1: openai-codex auth bridge. " +
     "Phase 2: HTTP proxy for gemini/claude CLIs. " +
@@ -870,6 +975,43 @@ const plugin = {
     const timeoutMs = cfg.proxyTimeoutMs ?? 120_000;
     const codexAuthPath = cfg.codexAuthPath ?? DEFAULT_CODEX_AUTH_PATH;
     const grokSessionPath = cfg.grokSessionPath ?? DEFAULT_SESSION_PATH;
+
+    // ── Model → slash command mapping for status page ──────────────────────────
+    const modelCommands: Record<string, string> = {};
+    for (const entry of CLI_MODEL_COMMANDS) {
+      // Strip vllm/ prefix to match CLI_MODELS IDs
+      const modelId = entry.model.replace(/^vllm\//, "");
+      modelCommands[modelId] = `/${entry.name}`;
+    }
+
+    // ── Default model fallback chain ──────────────────────────────────────────
+    // When a primary model fails (timeout, error), retry once with a lighter variant.
+    const modelFallbacks: Record<string, string> = {
+      "cli-gemini/gemini-2.5-pro":       "cli-gemini/gemini-2.5-flash",
+      "cli-gemini/gemini-3-pro-preview":  "cli-gemini/gemini-3-flash-preview",
+      "cli-claude/claude-opus-4-6":       "cli-claude/claude-sonnet-4-6",
+      "cli-claude/claude-sonnet-4-6":     "cli-claude/claude-haiku-4-5",
+    };
+
+    // ── Migrate legacy per-provider cookie expiry files to consolidated store ─
+    const migration = migrateLegacyFiles();
+    if (migration.migrated.length > 0) {
+      api.logger.info(`[cli-bridge] migrated cookie expiry data: ${migration.migrated.join(", ")} → cookie-expiry.json`);
+    }
+
+    // ── Chrome availability check ────────────────────────────────────────────
+    // Stealth mode uses channel: "chrome" (real system Chrome). If it's missing,
+    // browser launches will fail or Cloudflare will block the bundled Chromium.
+    const chromeCheck = checkSystemChrome();
+    if (chromeCheck.available) {
+      api.logger.info(`[cli-bridge] system Chrome found: ${chromeCheck.version ?? chromeCheck.path}`);
+    } else {
+      api.logger.warn(
+        `[cli-bridge] ⚠ system Chrome not found! Web browser providers (/grok-login, /gemini-login, etc.) ` +
+        `require Google Chrome or Chromium installed system-wide. ` +
+        `Install with: sudo apt install google-chrome-stable (or chromium-browser)`
+      );
+    }
 
     // ── Session restore: only on first plugin load (not on hot-reloads) ──────
     // The gateway polls every ~60s via openclaw status, which triggers a hot-reload
@@ -890,8 +1032,8 @@ const plugin = {
 
         const profileProviders: Array<{
           name: string;
+          providerKey: import("./src/cookie-expiry-store.js").ProviderName;
           profileDir: string;
-          cookieFile: string;
           verifySelector: string;
           homeUrl: string;
           loginCmd: string;
@@ -900,8 +1042,8 @@ const plugin = {
         }> = [
           {
             name: "grok",
+            providerKey: "grok",
             profileDir: GROK_PROFILE_DIR,
-            cookieFile: join(homedir(), ".openclaw", "grok-session.json"),
             verifySelector: "textarea",
             homeUrl: "https://grok.com",
             loginCmd: "/grok-login",
@@ -910,8 +1052,8 @@ const plugin = {
           },
           {
             name: "gemini",
+            providerKey: "gemini",
             profileDir: GEMINI_PROFILE_DIR,
-            cookieFile: join(homedir(), ".openclaw", "gemini-cookie-expiry.json"),
             verifySelector: ".ql-editor",
             homeUrl: "https://gemini.google.com/app",
             loginCmd: "/gemini-login",
@@ -920,8 +1062,8 @@ const plugin = {
           },
           {
             name: "claude-web",
+            providerKey: "claude",
             profileDir: CLAUDE_PROFILE_DIR,
-            cookieFile: CLAUDE_EXPIRY_FILE,
             verifySelector: ".ProseMirror",
             homeUrl: "https://claude.ai/new",
             loginCmd: "/claude-login",
@@ -930,8 +1072,8 @@ const plugin = {
           },
           {
             name: "chatgpt",
+            providerKey: "chatgpt",
             profileDir: CHATGPT_PROFILE_DIR,
-            cookieFile: CHATGPT_EXPIRY_FILE,
             verifySelector: "#prompt-textarea",
             homeUrl: "https://chatgpt.com",
             loginCmd: "/chatgpt-login",
@@ -941,21 +1083,57 @@ const plugin = {
         ];
 
         for (const p of profileProviders) {
-          if (!existsSync(p.profileDir) && !existsSync(p.cookieFile)) {
+          const storedExpiry = loadProviderExpiry(p.providerKey);
+          if (!existsSync(p.profileDir) && !storedExpiry) {
             api.logger.info(`[cli-bridge:${p.name}] no saved profile — skipping startup restore`);
             continue;
           }
           if (p.getCtx()) continue; // already connected
 
+          // ── Cookie-first check ────────────────────────────────────────────
+          // If cookie expiry data exists and is still valid (>1h left),
+          // launch the persistent context immediately without a browser-based
+          // selector check. Selector checks are fragile (slow pages, DOM changes).
+          // The keep-alive (20h) will verify the session properly later.
+          let cookiesValid = false;
+          if (storedExpiry) {
+            try {
+              const msLeft = storedExpiry.expiresAt - Date.now();
+              if (msLeft > 3_600_000) { // >1h remaining
+                cookiesValid = true;
+                api.logger.info(`[cli-bridge:${p.name}] cookie valid (${Math.floor(msLeft / 86_400_000)}d left) — restoring context without browser check`);
+              }
+            } catch { /* ignore parse errors */ }
+          }
+
+          if (cookiesValid) {
+            try {
+              const ctx = await chromium.launchPersistentContext(p.profileDir, {
+                headless: true,
+                args: ["--no-sandbox", "--disable-setuid-sandbox"],
+              });
+              p.setCtx(ctx);
+              ctx.on("close", () => { p.setCtx(null as unknown as BrowserContext); });
+              api.logger.info(`[cli-bridge:${p.name}] session restored from profile ✅`);
+            } catch (err) {
+              api.logger.warn(`[cli-bridge:${p.name}] context launch failed: ${(err as Error).message}`);
+              needsLogin.push(p.loginCmd);
+            }
+            // Sequential — never spawn all 4 Chromium instances at once
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+
+          // ── Fallback: cookies expired or missing — try browser check ─────
           try {
-            api.logger.info(`[cli-bridge:${p.name}] restoring session from profile…`);
+            api.logger.info(`[cli-bridge:${p.name}] cookies expired/missing — verifying via browser…`);
             const ctx = await chromium.launchPersistentContext(p.profileDir, {
               headless: true,
               args: ["--no-sandbox", "--disable-setuid-sandbox"],
             });
             const page = await ctx.newPage();
             await page.goto(p.homeUrl, { waitUntil: "domcontentloaded", timeout: 20_000 });
-            await new Promise(r => setTimeout(r, 3000));
+            await new Promise(r => setTimeout(r, 6000));
             const ok = await page.locator(p.verifySelector).isVisible().catch(() => false);
             await page.close().catch(() => {});
             if (ok) {
@@ -964,7 +1142,7 @@ const plugin = {
               api.logger.info(`[cli-bridge:${p.name}] session restored from profile ✅`);
             } else {
               await ctx.close().catch(() => {});
-              api.logger.info(`[cli-bridge:${p.name}] profile exists but not logged in — needs ${p.loginCmd}`);
+              api.logger.info(`[cli-bridge:${p.name}] session expired — needs ${p.loginCmd}`);
               needsLogin.push(p.loginCmd);
             }
           } catch (err) {
@@ -991,6 +1169,28 @@ const plugin = {
           }
         }
       })();
+
+      // Start session keep-alive interval (every 20h)
+      if (!_keepAliveInterval) {
+        _keepAliveInterval = setInterval(() => {
+          void (async () => {
+            const failed = await sessionKeepAlive((msg) => api.logger.info(msg));
+            if (failed.length > 0) {
+              const cmds = failed.map(cmd => `• ${cmd}`).join("\n");
+              const msg = `🔐 *cli-bridge keep-alive:* Session expired for ${failed.length} provider(s). Run to re-login:\n\n${cmds}`;
+              try {
+                await api.runtime.system.runCommandWithTimeout(
+                  ["openclaw", "message", "send", "--channel", "whatsapp", "--to", "+4915170113694", "--message", msg],
+                  { timeoutMs: 10_000 }
+                );
+                api.logger.info(`[cli-bridge] keep-alive: sent re-login notification for: ${failed.join(", ")}`);
+              } catch (err) {
+                api.logger.warn(`[cli-bridge] keep-alive: failed to send notification: ${(err as Error).message}`);
+              }
+            }
+          })();
+        }, 72_000_000);
+      }
     }
 
     // ── Phase 1: openai-codex auth bridge ─────────────────────────────────────
@@ -1067,7 +1267,7 @@ const plugin = {
               headers: { Authorization: `Bearer ${apiKey}` } },
             (res) => { res.resume(); resolve(res.statusCode === 200); }
           );
-          req.setTimeout(800, () => { req.destroy(); resolve(false); });
+          req.setTimeout(2000, () => { req.destroy(); resolve(false); });
           req.on("error", () => resolve(false));
           req.end();
         });
@@ -1130,6 +1330,15 @@ const plugin = {
               }
               return chatgptContext;
             },
+            version: plugin.version,
+            modelCommands,
+            modelFallbacks,
+            getExpiryInfo: () => ({
+              grok:    (() => { const e = loadGrokExpiry();    return e ? formatExpiryInfo(e)    : null; })(),
+              gemini:  (() => { const e = loadGeminiExpiry();  return e ? formatGeminiExpiry(e)  : null; })(),
+              claude:  (() => { const e = loadClaudeExpiry();  return e ? formatClaudeExpiry(e)  : null; })(),
+              chatgpt: (() => { const e = loadChatGPTExpiry(); return e ? formatChatGPTExpiry(e) : null; })(),
+            }),
           });
           proxyServer = server;
           api.logger.info(
@@ -1144,13 +1353,22 @@ const plugin = {
         } catch (err: unknown) {
           const msg = (err as Error).message ?? String(err);
           if (msg.includes("EADDRINUSE")) {
-            // Port is busy but probe didn't respond — wait for the OS to release it
-            api.logger.warn(`[cli-bridge] port ${port} busy, waiting 1s for OS release…`);
+            // Port is busy but probe didn't respond — maybe the old server is still shutting down.
+            // Re-probe first: if it now responds, reuse it without rebinding.
+            api.logger.warn(`[cli-bridge] port ${port} busy — re-probing before retry…`);
+            await new Promise(r => setTimeout(r, 1500));
+            const aliveNow = await probeExisting();
+            if (aliveNow) {
+              api.logger.info(`[cli-bridge] proxy now responding on :${port} — reusing`);
+              return;
+            }
+            // Still not responding — wait for OS to release the port, then rebind
+            api.logger.warn(`[cli-bridge] port ${port} still busy, waiting 1s for OS release…`);
             await new Promise((r) => setTimeout(r, 1000));
             // One final attempt
             try {
               const server = await startProxyServer({
-                port, apiKey, timeoutMs,
+                port, apiKey, timeoutMs, modelCommands, modelFallbacks,
                 log: (msg) => api.logger.info(msg),
                 warn: (msg) => api.logger.warn(msg),
                 getGrokContext: () => grokContext,
@@ -1249,7 +1467,7 @@ const plugin = {
         acceptsArgs: true,
         requireAuth: false,
         handler: async (ctx: PluginCommandContext): Promise<PluginCommandResult> => {
-          const forceNow = (ctx.args ?? "").trim().toLowerCase() === "--now";
+          const forceNow = (ctx.args ?? "").trim().toLowerCase().startsWith("--now");
           api.logger.info(`[cli-bridge] /${name} by ${ctx.senderId ?? "?"} forceNow=${forceNow}`);
           return switchModel(api, model, label, forceNow);
         },
@@ -1432,12 +1650,158 @@ const plugin = {
         lines.push("  /cli-back            Restore previous model + clear staged");
         lines.push("  /cli-test [model]    Health check (no model switch)");
         lines.push("  /cli-list            This overview");
+        lines.push("  /cli-help            Connected providers + examples + dashboard link");
         lines.push("");
         lines.push("*Switching safely:*");
         lines.push("  /cli-sonnet          → stages switch (safe, apply later)");
         lines.push("  /cli-sonnet --now    → immediate switch (only between sessions!)");
         lines.push("");
-        lines.push(`Proxy: \`127.0.0.1:${port}\``);
+        lines.push(`Proxy: \`127.0.0.1:${port}\`  ·  Dashboard: http://127.0.0.1:${port}/status`);
+
+        return { text: lines.join("\n") };
+      },
+    } satisfies OpenClawPluginCommandDefinition);
+
+    // ── Phase 3e: /cli-help — context-aware help with connected providers ─────
+    api.registerCommand({
+      name: "cli-help",
+      description: "Show available models based on currently connected providers, with example commands and status page link.",
+      requireAuth: false,
+      handler: async (): Promise<PluginCommandResult> => {
+        const lines: string[] = [`🌉 *CLI Bridge Help* — v${plugin.version}`, ""];
+
+        // ── CLI models (always available — spawns local CLI) ────────────────
+        lines.push("*CLI Models* (always available — uses locally installed CLIs)");
+        lines.push("");
+        const cliGroups: Record<string, typeof CLI_MODEL_COMMANDS[number][]> = {
+          "Claude Code": [],
+          "Gemini": [],
+        };
+        for (const c of CLI_MODEL_COMMANDS) {
+          if (c.model.startsWith("vllm/cli-claude/")) cliGroups["Claude Code"].push(c);
+          else if (c.model.startsWith("vllm/cli-gemini/")) cliGroups["Gemini"].push(c);
+        }
+        for (const [group, entries] of Object.entries(cliGroups)) {
+          if (entries.length === 0) continue;
+          lines.push(`  *${group}*`);
+          for (const c of entries) {
+            const modelShort = c.model.replace(/^vllm\/cli-(claude|gemini)\//, "");
+            lines.push(`    \`/${c.name}\`  →  ${modelShort}`);
+          }
+        }
+        lines.push("");
+
+        // ── Codex models (OAuth — always registered) ────────────────────────
+        const codexEntries = CLI_MODEL_COMMANDS.filter(c => c.model.startsWith("openai-codex/"));
+        if (codexEntries.length > 0) {
+          lines.push("*Codex* (OAuth — direct API, no proxy)");
+          for (const c of codexEntries) {
+            const modelShort = c.model.replace(/^openai-codex\//, "");
+            lines.push(`    \`/${c.name}\`  →  ${modelShort}`);
+          }
+          lines.push("");
+        }
+
+        // ── Web session models (only if connected) ──────────────────────────
+        const webProviders: Array<{
+          name: string;
+          ctx: BrowserContext | null;
+          models: string[];
+          cmds: string[];
+          loginCmd: string;
+          expiry: string | null;
+        }> = [
+          {
+            name: "Grok",
+            ctx: grokContext,
+            models: ["web-grok/grok-3", "web-grok/grok-3-fast", "web-grok/grok-3-mini", "web-grok/grok-3-mini-fast"],
+            cmds: ["openclaw models set vllm/web-grok/grok-3"],
+            loginCmd: "/grok-login",
+            expiry: (() => { const e = loadGrokExpiry(); return e ? formatExpiryInfo(e) : null; })(),
+          },
+          {
+            name: "Gemini (web)",
+            ctx: geminiContext,
+            models: ["web-gemini/gemini-2-5-pro", "web-gemini/gemini-2-5-flash", "web-gemini/gemini-3-pro", "web-gemini/gemini-3-flash"],
+            cmds: ["openclaw models set vllm/web-gemini/gemini-2-5-pro"],
+            loginCmd: "/gemini-login",
+            expiry: (() => { const e = loadGeminiExpiry(); return e ? formatGeminiExpiry(e) : null; })(),
+          },
+          {
+            name: "Claude.ai (web)",
+            ctx: claudeWebContext,
+            models: ["web-claude/*"],
+            cmds: [],
+            loginCmd: "/claude-login",
+            expiry: (() => { const e = loadClaudeExpiry(); return e ? formatClaudeExpiry(e) : null; })(),
+          },
+          {
+            name: "ChatGPT (web)",
+            ctx: chatgptContext,
+            models: ["web-chatgpt/*"],
+            cmds: [],
+            loginCmd: "/chatgpt-login",
+            expiry: (() => { const e = loadChatGPTExpiry(); return e ? formatChatGPTExpiry(e) : null; })(),
+          },
+        ];
+
+        const connectedWeb = webProviders.filter(p => p.ctx !== null);
+        const disconnectedWeb = webProviders.filter(p => p.ctx === null);
+
+        if (connectedWeb.length > 0) {
+          lines.push("*Web Session Models* (connected)");
+          for (const p of connectedWeb) {
+            const expiryNote = p.expiry ? ` — ${p.expiry}` : "";
+            lines.push(`  🟢 *${p.name}*${expiryNote}`);
+            lines.push(`    Models: ${p.models.join(", ")}`);
+            if (p.cmds.length > 0) {
+              lines.push(`    Example: \`${p.cmds[0]}\``);
+            }
+          }
+          lines.push("");
+        }
+
+        if (disconnectedWeb.length > 0) {
+          lines.push("*Web Session Models* (not connected)");
+          for (const p of disconnectedWeb) {
+            const expiryNote = p.expiry && !p.expiry.startsWith("⚠️ EXPIRED") ? " (cookies valid, auto-connects on use)" : "";
+            lines.push(`  ⚪ *${p.name}*${expiryNote}  →  run \`${p.loginCmd}\``);
+          }
+          lines.push("");
+        }
+
+        // ── BitNet ──────────────────────────────────────────────────────────
+        const bitnetOk = await checkBitNetServer();
+        if (bitnetOk) {
+          lines.push("*Local Inference*");
+          lines.push("  🟢 *BitNet 2B* — running  →  \`/cli-bitnet\`");
+        } else {
+          lines.push("*Local Inference*");
+          lines.push("  ⚪ *BitNet 2B* — not running  →  \`sudo systemctl start bitnet-server\`");
+        }
+        lines.push("");
+
+        // ── Utility commands ────────────────────────────────────────────────
+        lines.push("*Utility Commands*");
+        lines.push("  \`/cli-help\`             This help");
+        lines.push("  \`/cli-list\`             All models (no status check)");
+        lines.push("  \`/cli-test [model]\`     Health check (no model switch)");
+        lines.push("  \`/cli-back\`             Restore previous model");
+        lines.push("  \`/cli-apply\`            Apply staged model switch");
+        lines.push("  \`/bridge-status\`        Full provider diagnostics");
+        lines.push("");
+
+        // ── Quick examples ──────────────────────────────────────────────────
+        lines.push("*Quick Examples*");
+        lines.push("  \`/cli-sonnet\`           Switch to Claude Sonnet (staged)");
+        lines.push("  \`/cli-sonnet --now\`     Switch immediately");
+        lines.push("  \`/cli-gemini\`           Switch to Gemini 2.5 Pro");
+        lines.push("  \`/cli-codex\`            Switch to GPT-5.3 Codex");
+        lines.push("");
+
+        // ── Status page link ────────────────────────────────────────────────
+        lines.push(`📊 Dashboard: http://127.0.0.1:${port}/status`);
+        lines.push(`🔍 Health JSON: http://127.0.0.1:${port}/healthz`);
 
         return { text: lines.join("\n") };
       },
@@ -1975,25 +2339,54 @@ const plugin = {
                 return page.locator("#prompt-textarea").isVisible().catch(() => false);
               } catch { chatgptContext = null; return false; }
             },
-            models: "web-chatgpt/gpt-4o, gpt-4o-mini, gpt-o3, gpt-o4-mini, gpt-5",
+            models: "web-chatgpt/gpt-4o, gpt-4o-mini, gpt-4.1, o3, o4-mini, gpt-5, gpt-5-mini",
             loginCmd: "/chatgpt-login",
             expiry: () => { const e = loadChatGPTExpiry(); return e ? formatChatGPTExpiry(e) : null; },
           },
         ];
 
         for (const c of checks) {
-          const active = c.ctx !== null;
-          const ok = active ? await c.check() : false;
           const expiry = c.expiry();
-          if (ok) {
-            lines.push(`✅ *${c.name}* — active`);
+          const inMemory = c.ctx !== null;
+          const liveOk = inMemory ? await c.check() : false;
+
+          // Cookie-based status: treat as "logged in" if expiry file exists and not expired
+          // ⚠️ EXPIRED = truly expired, 🚨 = expiring soon (still valid), ✅ = fine
+          // This reflects actual login state independent of in-memory context
+          const cookieExpired = expiry !== null && expiry.startsWith("⚠️ EXPIRED");
+          const cookieValid = expiry !== null && !cookieExpired;
+
+          if (liveOk) {
+            // In-memory context active and verified
+            lines.push(`✅ *${c.name}* — active (browser connected)`);
             if (expiry) lines.push(`   🕐 ${expiry}`);
             lines.push(`   Models: ${c.models}`);
+          } else if (cookieValid) {
+            // Not in memory yet, but cookies are valid — will auto-connect on next request
+            lines.push(`🟡 *${c.name}* — logged in, browser not loaded`);
+            lines.push(`   🕐 ${expiry}`);
+            lines.push(`   Models: ${c.models}`);
+            lines.push(`   ℹ️ Browser launches on first request`);
+          } else if (cookieExpired) {
+            // Cookies expired — needs re-login
+            lines.push(`🔴 *${c.name}* — session expired (run \`${c.loginCmd}\`)`);
+            if (expiry) lines.push(`   🕐 ${expiry}`);
           } else {
-            lines.push(`❌ *${c.name}* — not connected (run \`${c.loginCmd}\`)`);
+            // No cookie file at all — never logged in
+            lines.push(`⚪ *${c.name}* — never logged in (run \`${c.loginCmd}\`)`);
           }
           lines.push("");
         }
+
+        // ── BitNet local inference ──────────────────────────────────────────────
+        const bitnetOk = await checkBitNetServer();
+        if (bitnetOk) {
+          lines.push(`✅ *BitNet (local)* — running at 127.0.0.1:8082`);
+          lines.push(`   Models: local-bitnet/bitnet-2b`);
+        } else {
+          lines.push(`❌ *BitNet (local)* — not running (\`sudo systemctl start bitnet-server\`)`);
+        }
+        lines.push("");
 
         lines.push(`🔌 Proxy: \`127.0.0.1:${port}\``);
         return { text: lines.join("\n") };
@@ -2019,6 +2412,7 @@ const plugin = {
       "/chatgpt-status",
       "/chatgpt-logout",
       "/bridge-status",
+      "/cli-help",
     ];
     api.logger.info(`[cli-bridge] registered ${allCommands.length} commands: ${allCommands.join(", ")}`);
   },

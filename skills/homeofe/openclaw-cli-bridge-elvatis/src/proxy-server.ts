@@ -17,6 +17,7 @@ import { geminiComplete, geminiCompleteStream, type ChatMessage as GeminiBrowser
 import { claudeComplete, claudeCompleteStream, type ChatMessage as ClaudeBrowserChatMessage } from "./claude-browser.js";
 import { chatgptComplete, chatgptCompleteStream, type ChatMessage as ChatGPTBrowserChatMessage } from "./chatgpt-browser.js";
 import type { BrowserContext } from "playwright";
+import { renderStatusPage, type StatusProvider } from "./status-template.js";
 
 export type GrokCompleteOptions = Parameters<typeof grokComplete>[1];
 export type GrokCompleteStreamOptions = Parameters<typeof grokCompleteStream>[1];
@@ -60,38 +61,59 @@ export interface ProxyServerOptions {
   _chatgptComplete?: typeof chatgptComplete;
   /** Override for testing — replaces chatgptCompleteStream */
   _chatgptCompleteStream?: typeof chatgptCompleteStream;
+  /** Returns human-readable expiry string for each web provider (null = no login yet) */
+  getExpiryInfo?: () => {
+    grok: string | null;
+    gemini: string | null;
+    claude: string | null;
+    chatgpt: string | null;
+  };
+  /** Plugin version string for the status page */
+  version?: string;
+  /** Returns the BitNet llama-server base URL (default: http://127.0.0.1:8082) */
+  getBitNetServerUrl?: () => string;
+  /** Maps model ID → slash command name for the status page display */
+  modelCommands?: Record<string, string>;
+  /**
+   * Model fallback chain — maps a model prefix to a fallback model.
+   * When a CLI model fails (timeout, error), the request is retried once
+   * with the fallback model. Example: "cli-gemini/gemini-2.5-pro" → "cli-gemini/gemini-2.5-flash"
+   */
+  modelFallbacks?: Record<string, string>;
 }
 
 /** Available CLI bridge models for GET /v1/models */
 export const CLI_MODELS = [
   // ── Claude Code CLI ───────────────────────────────────────────────────────
-  { id: "cli-claude/claude-sonnet-4-6", name: "Claude Sonnet 4.6 (CLI)",  contextWindow: 200_000,   maxTokens: 8_192 },
-  { id: "cli-claude/claude-opus-4-6",   name: "Claude Opus 4.6 (CLI)",    contextWindow: 200_000,   maxTokens: 8_192 },
-  { id: "cli-claude/claude-haiku-4-5",  name: "Claude Haiku 4.5 (CLI)",   contextWindow: 200_000,   maxTokens: 8_192 },
+  { id: "cli-claude/claude-sonnet-4-6", name: "Claude Sonnet 4.6 (CLI)",  contextWindow: 1_000_000, maxTokens: 64_000 },
+  { id: "cli-claude/claude-opus-4-6",   name: "Claude Opus 4.6 (CLI)",    contextWindow: 1_000_000, maxTokens: 128_000 },
+  { id: "cli-claude/claude-haiku-4-5",  name: "Claude Haiku 4.5 (CLI)",   contextWindow: 200_000,   maxTokens: 64_000 },
   // ── Gemini CLI ────────────────────────────────────────────────────────────
-  { id: "cli-gemini/gemini-2.5-pro",      name: "Gemini 2.5 Pro (CLI)",   contextWindow: 1_000_000, maxTokens: 8_192 },
-  { id: "cli-gemini/gemini-2.5-flash",    name: "Gemini 2.5 Flash (CLI)", contextWindow: 1_000_000, maxTokens: 8_192 },
-  { id: "cli-gemini/gemini-3-pro-preview",name: "Gemini 3 Pro (CLI)",     contextWindow: 1_000_000, maxTokens: 8_192 },
+  { id: "cli-gemini/gemini-2.5-pro",      name: "Gemini 2.5 Pro (CLI)",   contextWindow: 1_048_576, maxTokens: 65_535 },
+  { id: "cli-gemini/gemini-2.5-flash",    name: "Gemini 2.5 Flash (CLI)", contextWindow: 1_048_576, maxTokens: 65_535 },
+  { id: "cli-gemini/gemini-3-pro-preview",   name: "Gemini 3 Pro Preview (CLI)",   contextWindow: 1_048_576, maxTokens: 65_536 },
+  { id: "cli-gemini/gemini-3-flash-preview", name: "Gemini 3 Flash Preview (CLI)", contextWindow: 1_048_576, maxTokens: 65_536 },
+  // Codex CLI models (via openai-codex provider, OAuth auth)
+  { id: "openai-codex/gpt-5.3-codex",       name: "GPT-5.3 Codex",            contextWindow: 200_000, maxTokens: 32_768 },
+  { id: "openai-codex/gpt-5.3-codex-spark", name: "GPT-5.3 Codex Spark",      contextWindow: 200_000, maxTokens: 32_768 },
+  { id: "openai-codex/gpt-5.2-codex",       name: "GPT-5.2 Codex",            contextWindow: 200_000, maxTokens: 32_768 },
+  { id: "openai-codex/gpt-5.4",             name: "GPT-5.4",                   contextWindow: 200_000, maxTokens: 32_768 },
+  { id: "openai-codex/gpt-5.1-codex-mini",  name: "GPT-5.1 Codex Mini",       contextWindow: 200_000, maxTokens: 32_768 },
   // Grok web-session models (requires /grok-login)
+  { id: "web-grok/grok-4",           name: "Grok 4 (web session)",           contextWindow: 131_072, maxTokens: 131_072 },
   { id: "web-grok/grok-3",           name: "Grok 3 (web session)",           contextWindow: 131_072, maxTokens: 131_072 },
   { id: "web-grok/grok-3-fast",      name: "Grok 3 Fast (web session)",      contextWindow: 131_072, maxTokens: 131_072 },
   { id: "web-grok/grok-3-mini",      name: "Grok 3 Mini (web session)",      contextWindow: 131_072, maxTokens: 131_072 },
   { id: "web-grok/grok-3-mini-fast", name: "Grok 3 Mini Fast (web session)", contextWindow: 131_072, maxTokens: 131_072 },
   // Gemini web-session models (requires /gemini-login)
-  { id: "web-gemini/gemini-2-5-pro",   name: "Gemini 2.5 Pro (web session)",   contextWindow: 1_000_000, maxTokens: 8192 },
-  { id: "web-gemini/gemini-2-5-flash", name: "Gemini 2.5 Flash (web session)", contextWindow: 1_000_000, maxTokens: 8192 },
-  { id: "web-gemini/gemini-3-pro",     name: "Gemini 3 Pro (web session)",     contextWindow: 1_000_000, maxTokens: 8192 },
-  { id: "web-gemini/gemini-3-flash",   name: "Gemini 3 Flash (web session)",   contextWindow: 1_000_000, maxTokens: 8192 },
-  // Claude web-session models (requires /claude-login)
-  { id: "web-claude/claude-sonnet",     name: "Claude Sonnet (web session)",     contextWindow: 200_000, maxTokens: 8192 },
-  { id: "web-claude/claude-opus",       name: "Claude Opus (web session)",       contextWindow: 200_000, maxTokens: 8192 },
-  { id: "web-claude/claude-haiku",      name: "Claude Haiku (web session)",      contextWindow: 200_000, maxTokens: 8192 },
-  // ChatGPT web-session models (requires /chatgpt-login)
-  { id: "web-chatgpt/gpt-4o",           name: "GPT-4o (web session)",            contextWindow: 128_000, maxTokens: 8192 },
-  { id: "web-chatgpt/gpt-4o-mini",      name: "GPT-4o Mini (web session)",       contextWindow: 128_000, maxTokens: 8192 },
-  { id: "web-chatgpt/gpt-o3",           name: "GPT o3 (web session)",            contextWindow: 200_000, maxTokens: 8192 },
-  { id: "web-chatgpt/gpt-o4-mini",      name: "GPT o4-mini (web session)",       contextWindow: 200_000, maxTokens: 8192 },
-  { id: "web-chatgpt/gpt-5",            name: "GPT-5 (web session)",             contextWindow: 200_000, maxTokens: 8192 },
+  { id: "web-gemini/gemini-2-5-pro",   name: "Gemini 2.5 Pro (web session)",   contextWindow: 1_048_576, maxTokens: 65_535 },
+  { id: "web-gemini/gemini-2-5-flash", name: "Gemini 2.5 Flash (web session)", contextWindow: 1_048_576, maxTokens: 65_535 },
+  { id: "web-gemini/gemini-3-pro",     name: "Gemini 3 Pro (web session)",     contextWindow: 1_048_576, maxTokens: 65_536 },
+  { id: "web-gemini/gemini-3-flash",   name: "Gemini 3 Flash (web session)",   contextWindow: 1_048_576, maxTokens: 65_536 },
+  // Claude → use cli-claude/* instead (web-claude removed in v1.6.x)
+  // ChatGPT → use openai-codex/* or copilot-proxy instead (web-chatgpt removed in v1.6.x)
+  // ── Local BitNet inference ──────────────────────────────────────────────────
+  { id: "local-bitnet/bitnet-2b",       name: "BitNet b1.58 2B (local CPU inference)", contextWindow: 4_096, maxTokens: 2_048 },
 ];
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -146,10 +168,58 @@ async function handleRequest(
 
   const url = req.url ?? "/";
 
-  // Health check
+  // Health check (simple)
   if (url === "/health" || url === "/v1/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "ok", service: "openclaw-cli-bridge" }));
+    return;
+  }
+
+  // Health check (detailed JSON — for monitoring scripts)
+  if (url === "/healthz" && req.method === "GET") {
+    const expiry = opts.getExpiryInfo?.() ?? { grok: null, gemini: null, claude: null, chatgpt: null };
+    const sessionStatus = (provider: string, ctxGetter: (() => import("playwright").BrowserContext | null) | undefined, expiryStr: string | null) => {
+      const connected = ctxGetter?.() !== null && ctxGetter?.() !== undefined;
+      let status: "connected" | "logged_in" | "expired" | "not_configured" = "not_configured";
+      if (connected) status = "connected";
+      else if (expiryStr?.startsWith("⚠️ EXPIRED")) status = "expired";
+      else if (expiryStr) status = "logged_in";
+      return { status, expiry: expiryStr };
+    };
+    const health = {
+      status: "ok",
+      service: "openclaw-cli-bridge",
+      version: opts.version ?? "?",
+      port: opts.port,
+      uptime_s: Math.floor(process.uptime()),
+      providers: {
+        grok: sessionStatus("grok", opts.getGrokContext, expiry.grok),
+        gemini: sessionStatus("gemini", opts.getGeminiContext, expiry.gemini),
+        claude: sessionStatus("claude", opts.getClaudeContext, expiry.claude),
+        chatgpt: sessionStatus("chatgpt", opts.getChatGPTContext, expiry.chatgpt),
+      },
+      models: CLI_MODELS.length,
+    };
+    res.writeHead(200, { "Content-Type": "application/json", ...corsHeaders() });
+    res.end(JSON.stringify(health, null, 2));
+    return;
+  }
+
+  // Browser status page — human-readable HTML dashboard
+  if ((url === "/status" || url === "/") && req.method === "GET") {
+    const expiry = opts.getExpiryInfo?.() ?? { grok: null, gemini: null, claude: null, chatgpt: null };
+    const version = opts.version ?? "?";
+
+    const providers: StatusProvider[] = [
+      { name: "Grok",     icon: "𝕏",  expiry: expiry.grok,    loginCmd: "/grok-login",    ctx: opts.getGrokContext?.() ?? null },
+      { name: "Gemini",   icon: "✦",  expiry: expiry.gemini,  loginCmd: "/gemini-login",  ctx: opts.getGeminiContext?.() ?? null },
+      { name: "Claude",   icon: "◆",  expiry: expiry.claude,  loginCmd: "/claude-login",  ctx: opts.getClaudeContext?.() ?? null },
+      { name: "ChatGPT",  icon: "◉",  expiry: expiry.chatgpt, loginCmd: "/chatgpt-login", ctx: opts.getChatGPTContext?.() ?? null },
+    ];
+
+    const html = renderStatusPage({ version, port: opts.port, providers, models: CLI_MODELS, modelCommands: opts.modelCommands });
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(html);
     return;
   }
 
@@ -165,6 +235,10 @@ async function handleRequest(
           object: "model",
           created: now,
           owned_by: "openclaw-cli-bridge",
+          // CLI-proxy models stream plain text — no tool/function call support
+          capabilities: {
+            tools: !(m.id.startsWith("cli-gemini/") || m.id.startsWith("cli-claude/") || m.id.startsWith("local-bitnet/")),
+          },
         })),
       })
     );
@@ -199,7 +273,8 @@ async function handleRequest(
       return;
     }
 
-    const { model, messages, stream = false } = parsed;
+    const { model, messages, stream = false } = parsed as { model: string; messages: ChatMessage[]; stream?: boolean; tools?: unknown };
+    const hasTools = Array.isArray((parsed as { tools?: unknown }).tools) && (parsed as { tools?: unknown[] }).tools!.length > 0;
 
     if (!model || !messages?.length) {
       res.writeHead(400, { "Content-Type": "application/json" });
@@ -207,7 +282,23 @@ async function handleRequest(
       return;
     }
 
-    opts.log(`[cli-bridge] ${model} · ${messages.length} msg(s) · stream=${stream}`);
+    // CLI-proxy models (cli-gemini/*, cli-claude/*) are plain text completions —
+    // they cannot process tool/function call schemas. Return a clear 400 so
+    // OpenClaw can surface a meaningful error instead of getting a garbled response.
+    const isCliModel = model.startsWith("cli-gemini/") || model.startsWith("cli-claude/"); // local-bitnet/* exempt: llama-server silently ignores tools
+    if (hasTools && isCliModel) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        error: {
+          message: `Model ${model} does not support tool/function calls. Use a native API model (e.g. github-copilot/gpt-5-mini) for agents that need tools.`,
+          type: "invalid_request_error",
+          code: "tools_not_supported",
+        }
+      }));
+      return;
+    }
+
+    opts.log(`[cli-bridge] ${model} · ${messages.length} msg(s) · stream=${stream}${hasTools ? " · tools=unsupported→rejected" : ""}`);
 
     const id = `chatcmpl-cli-${randomBytes(6).toString("hex")}`;
     const created = Math.floor(Date.now() / 1000);
@@ -411,16 +502,120 @@ async function handleRequest(
     }
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── BitNet local inference routing ────────────────────────────────────────
+    if (model.startsWith("local-bitnet/")) {
+      const bitnetUrl = opts.getBitNetServerUrl?.() ?? "http://127.0.0.1:8082";
+      const timeoutMs = opts.timeoutMs ?? 120_000;
+      // llama-server (BitNet build) crashes with std::runtime_error on multi-part
+      // content arrays (ref: https://github.com/ggerganov/llama.cpp/issues/8367).
+      // Flatten all message content to plain strings before forwarding.
+      const flattenContent = (content: unknown): string => {
+        if (typeof content === "string") return content;
+        if (Array.isArray(content)) {
+          return content
+            .filter((c): c is { type: string; text?: string } => typeof c === "object" && c !== null)
+            .map((c) => (c.type === "text" && typeof c.text === "string" ? c.text : ""))
+            .join("");
+        }
+        return String(content ?? "");
+      };
+      // BitNet has a 4096 token context window. Long sessions blow it up and
+      // cause a hard C++ crash (no graceful error). Truncate to system prompt +
+      // last 10 messages (~2k tokens max) to stay safely within the limit.
+      const BITNET_MAX_MESSAGES = 6;
+      // Replace the full system prompt (MEMORY.md etc, ~2k+ tokens) with a
+      // minimal one so BitNet's 4096-token context isn't blown by the system msg alone.
+      const BITNET_SYSTEM = "You are Akido, a concise AI assistant. Answer briefly and directly. Current user: Emre. Timezone: Europe/Berlin.";
+      const allFlat = parsed.messages.map((m) => ({
+        role: m.role,
+        content: flattenContent(m.content),
+      }));
+      const nonSystemMsgs = allFlat.filter((m) => m.role !== "system");
+      const truncated = nonSystemMsgs.slice(-BITNET_MAX_MESSAGES);
+      const bitnetMessages = [{ role: "system", content: BITNET_SYSTEM }, ...truncated];
+      const requestBody = JSON.stringify({ ...parsed, messages: bitnetMessages, tools: undefined });
+
+      try {
+        const targetUrl = new URL("/v1/chat/completions", bitnetUrl);
+        const proxyRes = await new Promise<http.IncomingMessage>((resolve, reject) => {
+          const proxyReq = http.request(
+            {
+              hostname: targetUrl.hostname,
+              port: parseInt(targetUrl.port),
+              path: targetUrl.pathname,
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(requestBody) },
+              timeout: timeoutMs,
+            },
+            resolve
+          );
+          proxyReq.on("error", reject);
+          proxyReq.on("timeout", () => { proxyReq.destroy(new Error("BitNet request timed out")); });
+          proxyReq.write(requestBody);
+          proxyReq.end();
+        });
+
+        // Forward status + headers
+        const fwdHeaders: Record<string, string> = { ...corsHeaders() };
+        const ct = proxyRes.headers["content-type"];
+        if (ct) fwdHeaders["Content-Type"] = ct;
+        if (stream) {
+          fwdHeaders["Cache-Control"] = "no-cache";
+          fwdHeaders["Connection"] = "keep-alive";
+        }
+        res.writeHead(proxyRes.statusCode ?? 200, fwdHeaders);
+        proxyRes.pipe(res);
+      } catch (err) {
+        const msg = (err as Error).message;
+        if (msg.includes("ECONNREFUSED") || msg.includes("ECONNRESET") || msg.includes("ENOTFOUND")) {
+          res.writeHead(503, { "Content-Type": "application/json", ...corsHeaders() });
+          res.end(JSON.stringify({
+            error: {
+              message: "BitNet server not running. Start with: sudo systemctl start bitnet-server",
+              type: "bitnet_error",
+              code: "bitnet_unavailable",
+            },
+          }));
+        } else {
+          opts.warn(`[cli-bridge] BitNet error for ${model}: ${msg}`);
+          if (!res.headersSent) {
+            res.writeHead(500, { "Content-Type": "application/json", ...corsHeaders() });
+            res.end(JSON.stringify({ error: { message: msg, type: "bitnet_error" } }));
+          }
+        }
+      }
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // ── CLI runner routing (Gemini / Claude Code) ─────────────────────────────
     let content: string;
+    let usedModel = model;
     try {
       content = await routeToCliRunner(model, messages, opts.timeoutMs ?? 120_000);
     } catch (err) {
       const msg = (err as Error).message;
-      opts.warn(`[cli-bridge] CLI error for ${model}: ${msg}`);
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: { message: msg, type: "cli_error" } }));
-      return;
+      // ── Model fallback: retry once with a lighter model if configured ────
+      const fallbackModel = opts.modelFallbacks?.[model];
+      if (fallbackModel) {
+        opts.warn(`[cli-bridge] ${model} failed (${msg}), falling back to ${fallbackModel}`);
+        try {
+          content = await routeToCliRunner(fallbackModel, messages, opts.timeoutMs ?? 120_000);
+          usedModel = fallbackModel;
+          opts.log(`[cli-bridge] fallback to ${fallbackModel} succeeded`);
+        } catch (fallbackErr) {
+          const fallbackMsg = (fallbackErr as Error).message;
+          opts.warn(`[cli-bridge] fallback ${fallbackModel} also failed: ${fallbackMsg}`);
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: { message: `${model}: ${msg} | fallback ${fallbackModel}: ${fallbackMsg}`, type: "cli_error" } }));
+          return;
+        }
+      } else {
+        opts.warn(`[cli-bridge] CLI error for ${model}: ${msg}`);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: { message: msg, type: "cli_error" } }));
+        return;
+      }
     }
 
     if (stream) {
@@ -432,7 +627,7 @@ async function handleRequest(
       });
 
       // Role chunk
-      sendSseChunk(res, { id, created, model, delta: { role: "assistant" }, finish_reason: null });
+      sendSseChunk(res, { id, created, model: usedModel, delta: { role: "assistant" }, finish_reason: null });
 
       // Content in chunks (~50 chars each for natural feel)
       const chunkSize = 50;
@@ -440,14 +635,14 @@ async function handleRequest(
         sendSseChunk(res, {
           id,
           created,
-          model,
+          model: usedModel,
           delta: { content: content.slice(i, i + chunkSize) },
           finish_reason: null,
         });
       }
 
       // Stop chunk
-      sendSseChunk(res, { id, created, model, delta: {}, finish_reason: "stop" });
+      sendSseChunk(res, { id, created, model: usedModel, delta: {}, finish_reason: "stop" });
       res.write("data: [DONE]\n\n");
       res.end();
     } else {
@@ -455,7 +650,7 @@ async function handleRequest(
         id,
         object: "chat.completion",
         created,
-        model,
+        model: usedModel,
         choices: [
           {
             index: 0,
