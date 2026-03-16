@@ -1,11 +1,17 @@
 {
   "owner": "j3ffyang",
   "slug": "blog-polisher",
-  "displayName": "blog-polisher",
+  "displayName": "Blog Polisher",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773196152844,
-    "commit": "https://github.com/openclaw/skills/commit/48ef217877a87e93fd14789687c25eac89d916c7"
+    "version": "1.0.1",
+    "publishedAt": 1773461946796,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773196152844,
+      "commit": "https://github.com/openclaw/skills/commit/48ef217877a87e93fd14789687c25eac89d916c7"
+    }
+  ]
 }
