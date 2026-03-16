@@ -3,11 +3,16 @@
   "slug": "instagram-caption",
   "displayName": "Instagram Caption",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1773421422320,
-    "commit": "https://github.com/openclaw/skills/commit/d3c6802f1705d8d5a9f1441f222ce921ae286d77"
+    "version": "2.3.6",
+    "publishedAt": 1773663837187,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1773421422320,
+      "commit": "https://github.com/openclaw/skills/commit/d3c6802f1705d8d5a9f1441f222ce921ae286d77"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773209867140,

@@ -1,9 +1,8 @@
 ---
+version: "2.0.0"
 name: instagram-caption
-version: 1.0.0
-description: "Instagram文案、精准Hashtag(30个)、Story脚本、Reels脚本、简介优化、内容日历。Instagram caption writer with hashtags, Story scripts, Reels scripts, bio optimization, content calendar."
+description: "Instagram文案、精准Hashtag(30个)、Story脚本、Reels脚本、简介优化、内容日历。Instagram caption writer with hashtags, Story scripts, Reels scripts, bio optimization, content calendar. Use when you need instagram caption capabilities. Triggers on: instagram caption."
 author: BytesAgain
-tags: [instagram, social-media, captions, reels, stories, hashtags, content-creation]
 ---
 # instagram-caption
 
@@ -28,7 +27,6 @@ A: 主要输出Markdown格式，方便复制和编辑。
 - **medium** — medium
 - **large** — large
 
-
 ## 专业建议
 
 - Reels > everything** for reach — Instagram is pushing short-form video hard
@@ -39,3 +37,20 @@ A: 主要输出Markdown格式，方便复制和编辑。
 
 ---
 *instagram-caption by BytesAgain*
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
+
+## Examples
+
+```bash
+# Show help
+instagram-caption help
+
+# Run
+instagram-caption run
+```
+
+## Commands
+
+Run `instagram-caption help` to see all available commands.
