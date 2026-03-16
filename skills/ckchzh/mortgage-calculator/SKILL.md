@@ -1,7 +1,9 @@
 ---
+version: "2.0.0"
 name: Mortgage Calculator
-description: >-
+description: "房贷计算器。等额本息、等额本金、提前还款、两种方式对比、贷款能力评估。. Use when you need mortgage calculator capabilities. Triggers on: mortgage calculator."
   房贷计算器。等额本息、等额本金、提前还款、利率对比、月供计算、贷款能力评估。Mortgage calculator with equal principal, prepayment analysis, rate comparison, affordability assessment. 房贷计算、买房、月供、公积金贷款、我能贷多少。Use when calculating mortgage payments.
+author: BytesAgain
 ---
 
 # mortgage-calculator
@@ -50,3 +52,6 @@ bash scripts/mortgage.sh afford 20000 5000
 - 利率单位：年利率百分比（如3.5表示3.5%）
 - 纯本地计算，无需联网
 - Python 3.6+ 兼容
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
