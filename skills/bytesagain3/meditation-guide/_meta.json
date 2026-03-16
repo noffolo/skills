@@ -3,11 +3,16 @@
   "slug": "meditation-guide",
   "displayName": "Meditation Guide",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1773444866909,
-    "commit": "https://github.com/openclaw/skills/commit/3d26b5316235bb578441b1c546c1fda1040f7410"
+    "version": "2.3.6",
+    "publishedAt": 1773666458719,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1773444866909,
+      "commit": "https://github.com/openclaw/skills/commit/3d26b5316235bb578441b1c546c1fda1040f7410"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773242284103,
