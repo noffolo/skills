@@ -3,11 +3,16 @@
   "slug": "derek-bitcoin-intel",
   "displayName": "Bitcoin Market Intelligence",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773456965405,
-    "commit": "https://github.com/openclaw/skills/commit/ce17b6d4faf0f48410bec5c542d96fd81f0655b5"
+    "version": "3.0.0",
+    "publishedAt": 1773456971308,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773456965405,
+      "commit": "https://github.com/openclaw/skills/commit/ce17b6d4faf0f48410bec5c542d96fd81f0655b5"
+    },
     {
       "version": "2.0.1",
       "publishedAt": 1772459640833,
