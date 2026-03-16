@@ -6,7 +6,8 @@
 
 为 AI agent 提供多平台应用一键加固能力
 
-支持 Android、iOS、鸿蒙、H5、SDK、PC 等 6 大平台
+**当前支持**: Android、iOS、鸿蒙
+**计划支持**: H5、SDK、PC
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)](https://github.com)
@@ -24,7 +25,7 @@ YiDunAppDefense 是一个面向 AI agent 的多平台应用加固 skill，封装
 ### ✨ 核心特性
 
 - 🤖 **AI 驱动**: 通过自然语言对话完成加固操作
-- 🎯 **多平台支持**: 支持 Android、iOS、鸿蒙、H5、SDK、PC 等 6 大平台
+- 🎯 **多平台支持**: Android、iOS、鸿蒙已支持；H5、SDK、PC 计划中
 - 🎮 **游戏引擎**: 支持 Unity、Cocos、Unreal Engine、Laya 等主流引擎
 - 🔍 **智能识别**: 自动识别文件类型和平台
 - 🔧 **零配置**: 对话式 AppKey 配置，无需手动编辑文件
@@ -174,18 +175,23 @@ Agent: ✓ AppKey 已更新！
 
 ### 支持的平台和文件类型
 
-#### 移动平台
+#### ✅ 当前支持的平台
+
+**移动平台**：
 - **Android**: APK, AAB, Unity, Cocos, UE, Laya
 - **iOS**: IPA, xcarchive, Cocos
 - **鸿蒙**: HAP, APP, Unity, Cocos
 
-#### 游戏引擎
-- **Unity**: Android/iOS/鸿蒙/H5
-- **Cocos**: Android/iOS/鸿蒙/H5
+**游戏引擎**（跨平台）：
+- **Unity**: Android/iOS/鸿蒙
+- **Cocos**: Android/iOS/鸿蒙
 - **Unreal Engine**: Android
-- **Laya**: Android/H5
+- **Laya**: Android
 
-#### 其他平台
+#### 🔄 计划支持的平台
+
+以下平台正在开发中，敬请期待：
+
 - **H5/小程序**: Unity WebGL, Cocos H5, Laya H5, Web游戏
 - **SDK/组件**: JAR/WAR, Android SDK (.aar), iOS SDK (.framework), SO 动态库
 - **PC应用**: Windows (.exe), macOS (.app)

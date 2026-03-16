@@ -4,11 +4,13 @@
 # 易盾智能加固脚本 - 支持多平台自动识别
 
 set -e
+set -o pipefail  # 确保管道中任何命令失败都会导致整个管道失败
 
 # 配置
 YIDUN_DIR="$HOME/.yidun-defense"
 TOOL_JAR="$YIDUN_DIR/NHPProtect.jar"
 CONFIG_FILE="$YIDUN_DIR/config.ini"
+LOG_FILE="/tmp/yidun-defense-$$.log"  # 使用PID避免并发冲突
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 颜色定义
@@ -61,12 +63,12 @@ show_usage() {
     echo "  .exe      - Windows 应用"
     echo ""
     echo "平台类型:"
-    echo "  android   - Android 平台"
-    echo "  ios       - iOS 平台"
-    echo "  harmony   - 鸿蒙平台"
-    echo "  h5        - H5/小程序"
-    echo "  sdk       - SDK/组件"
-    echo "  pc        - PC 应用"
+    echo "  android   - Android 平台（已支持）"
+    echo "  ios       - iOS 平台（已支持）"
+    echo "  harmony   - 鸿蒙平台（已支持）"
+    echo "  h5        - H5/小程序（计划中）"
+    echo "  sdk       - SDK/组件（计划中）"
+    echo "  pc        - PC 应用（计划中）"
     echo ""
     echo "示例:"
     echo "  $0 /path/to/app.apk"
@@ -97,10 +99,17 @@ detect_file_type() {
             echo "harmony_hap"
             ;;
         app)
-            # 需要进一步判断是鸿蒙还是 macOS
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                echo "harmony_or_mac"
+            # 检查是鸿蒙 APP 还是 macOS .app
+            # 鸿蒙 APP 是压缩包格式，macOS .app 是目录
+            if [ -d "$1" ]; then
+                # 目录：检查是否包含 macOS 应用特征
+                if [ -f "$1/Contents/Info.plist" ]; then
+                    echo "macos_app"
+                else
+                    echo "harmony_app"
+                fi
             else
+                # 文件：鸿蒙 APP 包
                 echo "harmony_app"
             fi
             ;;
@@ -204,7 +213,7 @@ build_android_params() {
     local file="$1"
     local engine="$2"
     local auto_mode="$3"
-    local params="-yunconfig"
+    local -a params_array=("-yunconfig")
 
     # 引擎特定参数
     case "$engine" in
@@ -212,16 +221,16 @@ build_android_params() {
             # Unity 不需要额外参数，使用默认
             ;;
         cocos)
-            params="$params -cocos"
+            params_array+=("-cocos")
             ;;
         ue)
-            params="$params -ue"
+            params_array+=("-ue")
             ;;
         laya)
-            params="$params -laya"
+            params_array+=("-laya")
             ;;
         normal)
-            params="$params -fullapk"
+            params_array+=("-fullapk")
             ;;
     esac
 
@@ -229,42 +238,43 @@ build_android_params() {
     if [ "$auto_mode" != "true" ]; then
         # 对齐选项
         if [ "$(ask_align_option)" = "yes" ]; then
-            params="$params -zipalign"
+            params_array+=("-zipalign")
         fi
 
         # 签名选项
         if [ "$(ask_sign_option android)" = "yes" ]; then
-            params="$params -apksign"
+            params_array+=("-apksign")
         fi
 
         # DEX 加密（仅普通应用）
         if [ "$engine" = "normal" ]; then
             if [ "$(ask_dex_option)" = "yes" ]; then
-                params="$params -dex -antirepack"
+                params_array+=("-dex" "-antirepack")
             fi
         fi
     else
         # 自动模式：使用推荐配置
-        params="$params -zipalign"
+        params_array+=("-zipalign")
     fi
 
-    echo "$params"
+    # 返回数组元素（用于数组展开）
+    printf '%s\n' "${params_array[@]}"
 }
 
 # 构建 iOS 加固参数
 build_ios_params() {
     local file="$1"
     local engine="$2"
-    local params="-iOS -nobitcode -yunconfig"
+    local -a params_array=("-iOS" "-nobitcode" "-yunconfig")
 
     # 引擎特定参数
     case "$engine" in
         cocos)
-            params="$params -cocos"
+            params_array+=("-cocos")
             ;;
     esac
 
-    echo "$params"
+    printf '%s\n' "${params_array[@]}"
 }
 
 # 构建鸿蒙加固参数
@@ -272,7 +282,7 @@ build_harmony_params() {
     local file="$1"
     local engine="$2"
     local auto_mode="$3"
-    local params="-yunconfig -fullapp -harmony"
+    local -a params_array=("-yunconfig" "-fullapp" "-harmony")
 
     # 引擎特定参数
     case "$engine" in
@@ -280,25 +290,28 @@ build_harmony_params() {
             # Unity 鸿蒙
             ;;
         cocos)
-            params="$params -cocos"
+            params_array+=("-cocos")
             ;;
     esac
 
     # 交互式询问签名（非自动模式）
     if [ "$auto_mode" != "true" ]; then
         if [ "$(ask_sign_option harmony)" = "yes" ]; then
-            params="$params -hapsign"
+            params_array+=("-hapsign")
         fi
     fi
 
-    echo "$params"
+    printf '%s\n' "${params_array[@]}"
 }
 
 # 执行加固
 perform_defense() {
     local file="$1"
-    local params="$2"
-    local output_file="$3"
+    shift  # 移除第一个参数
+    local -a params_array=("$@")  # 剩余参数作为数组
+    local last_index=$((${#params_array[@]} - 1))
+    local output_file="${params_array[$last_index]}"  # 最后一个是输出文件
+    unset "params_array[$last_index]"  # 移除最后一个元素
 
     log_step "开始加固..."
     log_info "输入文件: $file"
@@ -309,7 +322,7 @@ perform_defense() {
     cd "$YIDUN_DIR"
 
     # 执行加固
-    if java -jar "$TOOL_JAR" $params -input "$file" -output "$output_file" 2>&1 | tee /tmp/yidun-defense.log; then
+    if java -jar "$TOOL_JAR" "${params_array[@]}" -input "$file" -output "$output_file" 2>&1 | tee "$LOG_FILE"; then
         echo ""
         log_success "加固完成！"
 
@@ -339,14 +352,14 @@ perform_defense() {
             echo "═══════════════════════════════════════"
         else
             log_warning "输出文件未在指定位置生成"
-            log_info "请查看日志: /tmp/yidun-defense.log"
+            log_info "请查看日志: $LOG_FILE"
         fi
 
         return 0
     else
         echo ""
         log_error "加固失败！"
-        log_info "详细日志: /tmp/yidun-defense.log"
+        log_info "详细日志: $LOG_FILE"
         log_info "工具日志: ~/.yidun-defense/Log/"
 
         echo ""
@@ -407,8 +420,13 @@ main() {
         exit 1
     fi
 
-    if [ ! -f "$input_file" ]; then
+    if [ ! -e "$input_file" ]; then
         log_error "文件不存在: $input_file"
+        exit 1
+    fi
+
+    if [ ! -f "$input_file" ] && [ ! -d "$input_file" ]; then
+        log_error "仅支持文件或目录类型的输入: $input_file"
         exit 1
     fi
 
@@ -436,9 +454,9 @@ main() {
             harmony_*)
                 platform="harmony"
                 ;;
-            harmony_or_mac)
+            macos_app)
                 if [ "$auto_mode" = true ]; then
-                    platform="harmony"
+                    platform="pc"
                 else
                     platform=$(ask_platform)
                 fi
@@ -468,25 +486,36 @@ main() {
 
     # 确定引擎类型
     local engine="normal"
-    if [ "$auto_mode" != "true" ] && [ "$platform" = "android" ] || [ "$platform" = "ios" ] || [ "$platform" = "harmony" ]; then
+    if [ "$auto_mode" != "true" ] && { [ "$platform" = "android" ] || [ "$platform" = "ios" ] || [ "$platform" = "harmony" ]; }; then
         engine=$(ask_engine_type "$platform")
         log_info "引擎: $engine"
     fi
 
     # 构建加固参数
-    local params=""
+    local -a params_array=()
     case "$platform" in
         android)
-            params=$(build_android_params "$input_file" "$engine" "$auto_mode")
+            mapfile -t params_array < <(build_android_params "$input_file" "$engine" "$auto_mode")
             ;;
         ios)
-            params=$(build_ios_params "$input_file" "$engine")
+            mapfile -t params_array < <(build_ios_params "$input_file" "$engine")
             ;;
         harmony)
-            params=$(build_harmony_params "$input_file" "$engine" "$auto_mode")
+            mapfile -t params_array < <(build_harmony_params "$input_file" "$engine" "$auto_mode")
             ;;
         *)
-            log_error "暂不支持的平台: $platform"
+            log_error "平台 '$platform' 暂未实现"
+            echo ""
+            echo "当前支持的平台："
+            echo "  • Android (apk, aab)"
+            echo "  • iOS (ipa, xcarchive)"
+            echo "  • 鸿蒙 (hap, app)"
+            echo ""
+            echo "计划支持的平台："
+            echo "  • H5/小程序"
+            echo "  • SDK/组件"
+            echo "  • PC 应用"
+            echo ""
             exit 1
             ;;
     esac
@@ -499,7 +528,7 @@ main() {
     local output_file="${dir}/${name}_protected.${ext}"
 
     # 执行加固
-    perform_defense "$input_file" "$params" "$output_file"
+    perform_defense "$input_file" "${params_array[@]}" "$output_file"
 }
 
 # 执行主函数

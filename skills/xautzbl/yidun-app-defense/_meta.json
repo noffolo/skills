@@ -3,9 +3,15 @@
   "slug": "yidun-app-defense",
   "displayName": "YiDunAppDefense",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772775565625,
-    "commit": "https://github.com/openclaw/skills/commit/7905118099e6899719a2ebbfb44e3bd2e649a678"
+    "version": "1.0.1",
+    "publishedAt": 1773641894656,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772775565625,
+      "commit": "https://github.com/openclaw/skills/commit/7905118099e6899719a2ebbfb44e3bd2e649a678"
+    }
+  ]
 }

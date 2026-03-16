@@ -59,14 +59,19 @@ set_appkey() {
         return 1
     fi
 
-    # 更新配置文件 [appkey] 部分的 key=
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        sed -i '' "/^\[appkey\]/,/^\[/ s/^key=.*/key=$appkey/" "$CONFIG_FILE"
-    else
-        # Linux
-        sed -i "/^\[appkey\]/,/^\[/ s/^key=.*/key=$appkey/" "$CONFIG_FILE"
+    # 验证 AppKey 格式（仅允许字母数字）
+    if ! [[ "$appkey" =~ ^[A-Za-z0-9]+$ ]]; then
+        log_error "AppKey 格式不正确（应仅包含字母和数字）"
+        return 1
     fi
+
+    # 使用 awk 安全更新配置（避免 sed 注入风险）
+    awk -v key="$appkey" '
+        /^\[appkey\]/ { in_section=1 }
+        /^\[/ && !/^\[appkey\]/ { in_section=0 }
+        in_section && /^key=/ { print "key=" key; next }
+        { print }
+    ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
 
     log_success "AppKey 配置成功！"
     return 0
@@ -99,8 +104,9 @@ interactive_configure() {
     echo "注册账号并获取加固服务的 appkey"
     echo ""
 
-    # 读取 AppKey
-    read -p "请输入您的 AppKey: " new_appkey
+    # 读取 AppKey（使用 -s 参数隐藏输入）
+    read -s -p "请输入您的 AppKey: " new_appkey
+    echo ""  # 换行，因为 -s 不会自动换行
 
     if [ -z "$new_appkey" ]; then
         log_error "AppKey 不能为空"

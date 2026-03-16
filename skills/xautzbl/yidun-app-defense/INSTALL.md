@@ -44,14 +44,14 @@ java -version
 1. **下载压缩包**
    ```bash
    # 从 ClawHub 或 GitHub 下载
-   curl -L -o yidun-app-defense-1.0.0.tar.gz \
+   curl -L -o yidun-app-defense-1.0.1.tar.gz \
      https://clawhub.ai/skills/yidun-app-defense/download
    ```
 
 2. **解压到目标目录**
    ```bash
    mkdir -p ~/.openclaw/skills/
-   tar -xzf yidun-app-defense-1.0.0.tar.gz -C ~/.openclaw/skills/
+   tar -xzf yidun-app-defense-1.0.1.tar.gz -C ~/.openclaw/skills/
    cd ~/.openclaw/skills/yidun-app-defense
    ```
 

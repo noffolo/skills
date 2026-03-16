@@ -10,11 +10,11 @@ metadata:
 
 # 易盾应用加固 (YiDunAppDefense)
 
-易盾应用加固 Skill 为 AI agent 提供多平台应用加固能力，支持 Android、iOS、鸿蒙、H5、PC 等 5 大平台，保护应用免受逆向工程和篡改攻击。
+易盾应用加固 Skill 为 AI agent 提供多平台应用加固能力。当前支持 Android、iOS、鸿蒙三大移动平台，H5、SDK、PC 等平台正在开发中，保护应用免受逆向工程和篡改攻击。
 
 ## 功能特性
 
-- 🎯 **多平台支持**: 支持 Android、iOS、鸿蒙、H5、PC 等 5 大平台
+- 🎯 **多平台支持**: Android、iOS、鸿蒙已支持；H5、SDK、PC 计划中
 - 🎮 **游戏引擎**: 支持 Unity、Cocos、Unreal Engine、Laya 等主流引擎
 - 🔍 **智能识别**: 自动识别文件类型和平台
 - 🛡️ **一键加固**: 通过自然语言对话完成应用加固
@@ -36,18 +36,23 @@ metadata:
 
 ## 支持的平台
 
-### 移动平台
+### ✅ 当前支持
+
+**移动平台**：
 - **Android**: APK, AAB, Unity, Cocos, UE, Laya
 - **iOS**: IPA, xcarchive, Cocos
 - **鸿蒙**: HAP, APP, Unity, Cocos
 
-### 游戏引擎（跨平台）
-- **Unity**: Android/iOS/鸿蒙/H5
-- **Cocos**: Android/iOS/鸿蒙/H5
+**游戏引擎**（跨平台）：
+- **Unity**: Android/iOS/鸿蒙
+- **Cocos**: Android/iOS/鸿蒙
 - **Unreal Engine**: Android
-- **Laya**: Android/H5
+- **Laya**: Android
 
-### 其他平台
+### 🔄 计划支持
+
+以下平台正在开发中：
+
 - **H5/小程序**: Unity WebGL, Cocos H5, Laya H5, 通用Web游戏
 - **SDK/组件**: JAR/WAR, Android SDK (.aar), iOS SDK (.framework), SO 动态库
 - **PC 应用**: Windows (.exe), macOS (.app)

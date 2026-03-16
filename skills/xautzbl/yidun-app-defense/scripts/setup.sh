@@ -51,7 +51,19 @@ check_java() {
         exit 1
     fi
 
-    java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+    # 检测 Java 版本（兼容 Java 8 的 "1.8.x" 和 Java 9+ 的 "9.x" 格式）
+    java_version_str=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2)
+    major=$(echo "$java_version_str" | cut -d'.' -f1)
+    minor=$(echo "$java_version_str" | cut -d'.' -f2)
+
+    # Java 8 及以前版本使用 "1.x.y" 格式，major=1，minor 是实际大版本号
+    # Java 9+ 使用 "x.y.z" 格式，major 是实际大版本号
+    if [ "$major" -eq 1 ]; then
+        java_version="$minor"
+    else
+        java_version="$major"
+    fi
+
     if [ "$java_version" -lt 8 ]; then
         log_error "Java 版本过低！需要 JRE 8 或更高版本"
         exit 1
@@ -98,6 +110,20 @@ download_tool() {
         log_info "使用 curl 下载..."
         if curl -L -o "$TOOL_ZIP" "$TOOL_URL"; then
             log_success "工具下载成功！"
+
+            # TODO: 校验文件完整性
+            # 待官方提供 SHA256 哈希后启用：
+            # EXPECTED_SHA256="官方公布的哈希值"
+            # actual_sha=$(shasum -a 256 "$TOOL_ZIP" | cut -d' ' -f1)
+            # if [ "$actual_sha" != "$EXPECTED_SHA256" ]; then
+            #     log_error "工具包完整性校验失败！文件可能已被篡改"
+            #     log_error "预期: $EXPECTED_SHA256"
+            #     log_error "实际: $actual_sha"
+            #     rm -f "$TOOL_ZIP"
+            #     exit 1
+            # fi
+            # log_success "完整性校验通过"
+
             return 0
         else
             log_error "使用 curl 下载失败"
@@ -137,6 +163,14 @@ extract_tool() {
         log_error "未找到 unzip 命令，请先安装"
         log_info "macOS: brew install unzip"
         log_info "Ubuntu: sudo apt install unzip"
+        exit 1
+    fi
+
+    # 检查 zip 文件路径安全性（防止 Zip Slip 攻击）
+    log_info "验证压缩包安全性..."
+    if unzip -l "$TOOL_ZIP" | grep -q '\.\./'; then
+        log_error "检测到恶意压缩包：包含目录遍历路径"
+        rm -f "$TOOL_ZIP"
         exit 1
     fi
 
@@ -262,7 +296,10 @@ t=30
 ##更多功能 config 配置请参考对应官网文档，例如：https://support.dun.163.com/documents/15588074449563648?docId=989347548106215424
 EOF
 
+    # 设置文件权限为 600（仅所有者可读写）
+    chmod 600 "$CONFIG_FILE"
     log_success "配置文件模板创建成功: $CONFIG_FILE"
+    log_success "配置文件权限已设置为 600（仅所有者可读写）"
 }
 
 # 显示后续步骤

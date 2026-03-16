@@ -111,24 +111,54 @@
 ### config.ini
 
 ```ini
-[yidun]
+[appkey]
 # 易盾 AppKey（必需）
-appkey = your_appkey_here
+key=your_appkey_here
 
-# 加固策略（可选，默认 default）
-strategy = default
+[so]
+# 需要保护的 so 文件名称
+so1=
+so2=
 
-# 输出目录（可选，默认为输入文件所在目录）
-output_dir =
+[apksign]
+# Android 签名配置（可选）
+keystore=
+alias=
+pswd=
+aliaspswd=
+signver=v1+v2
+
+[hapsign]
+# 鸿蒙签名配置（可选）
+keystoreFile=
+keystorePwd=
+keyAlias=
+keyPwd=
+appCertFile=
+profileFile=
+mode=
+signAlg=
+
+[update]
+# 自动更新检测
+u=1
+t=30
 ```
 
 **配置项说明**:
 
-| 配置项 | 类型 | 必需 | 说明 |
-|--------|------|------|------|
-| `appkey` | string | 是 | 易盾 AppKey，从控制台获取 |
-| `strategy` | string | 否 | 加固策略，默认 `default` |
-| `output_dir` | string | 否 | 输出目录，默认为输入文件目录 |
+| 配置节 | 配置项 | 类型 | 必需 | 说明 |
+|--------|--------|------|------|------|
+| `[appkey]` | `key` | string | 是 | 易盾 AppKey，从控制台获取 |
+| `[so]` | `so1`, `so2` | string | 否 | 需要保护的 so 文件名称 |
+| `[apksign]` | `keystore` | string | 否 | Android 签名 keystore 路径 |
+| `[apksign]` | `alias` | string | 否 | keystore 别名 |
+| `[apksign]` | `pswd` | string | 否 | keystore 密码 |
+| `[apksign]` | `signver` | string | 否 | 签名版本，默认 v1+v2 |
+| `[hapsign]` | `keystoreFile` | string | 否 | 鸿蒙签名 keystore 文件路径 |
+| `[hapsign]` | `keystorePwd` | string | 否 | keystore 密码 |
+| `[update]` | `u` | int | 否 | 是否检测更新（0=否, 1=是） |
+| `[update]` | `t` | int | 否 | 检测间隔（天） |
 
 ---
 
