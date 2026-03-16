@@ -3,11 +3,16 @@
   "slug": "bilibili-transcript",
   "displayName": "Bilibili Transcript",
   "latest": {
-    "version": "2.8.0",
-    "publishedAt": 1773648468824,
-    "commit": "https://github.com/openclaw/skills/commit/dda0f32f56ae566b35a1025a5af82e42d1d0051a"
+    "version": "2.15.0",
+    "publishedAt": 1773652530400,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.8.0",
+      "publishedAt": 1773648468824,
+      "commit": "https://github.com/openclaw/skills/commit/dda0f32f56ae566b35a1025a5af82e42d1d0051a"
+    },
     {
       "version": "2.7.0",
       "publishedAt": 1773648088837,
