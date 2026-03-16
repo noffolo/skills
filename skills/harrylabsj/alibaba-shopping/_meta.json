@@ -3,9 +3,15 @@
   "slug": "alibaba-shopping",
   "displayName": "Alibaba Shopping",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1773183603987,
-    "commit": "https://github.com/openclaw/skills/commit/25a063fc89daccd7036e2d6dcbf472e241f46bcb"
+    "version": "1.2.0",
+    "publishedAt": 1773579018011,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1773183603987,
+      "commit": "https://github.com/openclaw/skills/commit/25a063fc89daccd7036e2d6dcbf472e241f46bcb"
+    }
+  ]
 }
