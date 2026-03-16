@@ -1,13 +1,18 @@
 {
   "owner": "zhaog100",
   "slug": "context-manager-v2",
-  "displayName": "Context Manager V2",
+  "displayName": "Context Manager",
   "latest": {
-    "version": "2.2.2",
-    "publishedAt": 1772770692680,
-    "commit": "https://github.com/openclaw/skills/commit/4e926525e9e9ce58430ffe4033746413f5c49131"
+    "version": "2.3.0",
+    "publishedAt": 1773538303804,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.2",
+      "publishedAt": 1772770692680,
+      "commit": "https://github.com/openclaw/skills/commit/4e926525e9e9ce58430ffe4033746413f5c49131"
+    },
     {
       "version": "2.1.0",
       "publishedAt": 1772639595653,
