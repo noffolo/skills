@@ -3,9 +3,15 @@
   "slug": "cremonix-signals",
   "displayName": "Cremonix BTC/ETH Regime Intelligence + Trading Signals",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1773145488918,
-    "commit": "https://github.com/openclaw/skills/commit/1fdae678253e7b685529e6727a79ead6886ea98d"
+    "version": "1.2.0",
+    "publishedAt": 1773506800060,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1773145488918,
+      "commit": "https://github.com/openclaw/skills/commit/1fdae678253e7b685529e6727a79ead6886ea98d"
+    }
+  ]
 }

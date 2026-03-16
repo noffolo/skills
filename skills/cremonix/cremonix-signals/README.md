@@ -8,19 +8,16 @@ Tells you the current market regime for BTC and ETH, and whether any high-probab
 
 Most trading tools tell you what happened. This one tells you whether you should be trading at all right now.
 
-## Install
+## Installation
 
-### OpenClaw users
 ```bash
 clawhub install cremonix-signals
 ```
 
-### Manual
-Download the zip from [ClawHub](https://clawhub.com/skills/cremonix-signals) and extract to your agent's `skills/` folder.
+Or with the OpenClaw CLI:
 
-### No agent? Just want the data?
 ```bash
-curl -s "https://blog.cremonix.com/feeds/cremonix-free.json" | jq .
+openclaw install Cremonix/cremonix-regime-intelligence
 ```
 
 ## Quick start
