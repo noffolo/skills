@@ -3,11 +3,16 @@
   "slug": "adb-claw",
   "displayName": "Adb Claw",
   "latest": {
-    "version": "1.5.4",
-    "publishedAt": 1773413820360,
-    "commit": "https://github.com/openclaw/skills/commit/37e9ce6e4bd781eb141d14c37830bd75825758b2"
+    "version": "1.6.1",
+    "publishedAt": 1773516180304,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.5.4",
+      "publishedAt": 1773413820360,
+      "commit": "https://github.com/openclaw/skills/commit/37e9ce6e4bd781eb141d14c37830bd75825758b2"
+    },
     {
       "version": "1.4.1",
       "publishedAt": 1773333517868,
