@@ -3,11 +3,16 @@
   "slug": "email-writer",
   "displayName": "Email Writer",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1773421253938,
-    "commit": "https://github.com/openclaw/skills/commit/956421d264d2831faebd32e5aec4652fdde08f7c"
+    "version": "2.3.3",
+    "publishedAt": 1773665870644,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1773421253938,
+      "commit": "https://github.com/openclaw/skills/commit/956421d264d2831faebd32e5aec4652fdde08f7c"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773361154257,
