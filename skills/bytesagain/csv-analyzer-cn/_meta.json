@@ -3,11 +3,16 @@
   "slug": "csv-analyzer-cn",
   "displayName": "Csv Analyzer Cn",
   "latest": {
-    "version": "2.3.0",
-    "publishedAt": 1773446840348,
-    "commit": "https://github.com/openclaw/skills/commit/da22f4c14dc2bb6187bfb93e01900800caffd130"
+    "version": "2.3.3",
+    "publishedAt": 1773665607778,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.3.0",
+      "publishedAt": 1773446840348,
+      "commit": "https://github.com/openclaw/skills/commit/da22f4c14dc2bb6187bfb93e01900800caffd130"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773256706838,
