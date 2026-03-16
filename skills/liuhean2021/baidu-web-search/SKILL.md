@@ -2,9 +2,8 @@
 name: baidu-web-search
 description: Use Baidu Qianfan web search API for real-time web retrieval. Use when the user needs to search the web, get latest news, verify facts, or expresses intent like "查一下","搜一下","最近","今天","今年", or asks about events/people/products that require looking up.
 metadata:
-  author: 上海雷克顿科技 / LeiAIBot
-  email: liuhean@leikeduntech.com
-  url: https://leiaibot.com
+  author: liuhean
+  email: allsmy.com@gmail.com
   openclaw: {"requires": {"env": ["BAIDU_API_KEY"]}, "primaryEnv": "BAIDU_API_KEY"}
 ---
 
@@ -128,3 +127,13 @@ node scripts/search.js "TypeScript 最新版本" 10
 | 低 | 本地文件 `config.json` → `apiKey` | 本地 / 自托管 |
 
 - 配置异常时，搜索脚本输出通用提示，用户自行检查凭证是否填写正确
+
+## 参与贡献
+
+欢迎提交 Issue 或 Pull Request 改进本技能！
+
+**仓库地址**：[https://github.com/liuhean2021/Anan-Agent-Skills](https://github.com/liuhean2021/Anan-Agent-Skills)
+
+- 本技能位于 `skills/baidu-web-search/` 目录
+- 提交前请确保 `config.json` 不在 git 追踪范围内（已在 `.gitignore` 排除）
+- 本技能采用 [MIT-0](../../LICENSE) 许可协议，可自由使用、修改和重新分发，无需署名
