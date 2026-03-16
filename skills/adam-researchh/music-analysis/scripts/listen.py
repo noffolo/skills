@@ -17,6 +17,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from analyze_music import analyze_with_librosa, ffprobe_meta  # noqa: E402
+from instrument_detect import analyze_instruments  # noqa: E402
 from music_analysis_v2 import format_ts, to_native  # noqa: E402
 from temporal_listen import analyze_temporal  # noqa: E402
 
@@ -439,6 +440,14 @@ def render_text(report: dict[str, Any]) -> str:
     lines.append(f"- Structure: {quick['structure']['structure_summary']}" + (f" | repeats: {', '.join(quick['structure']['repeated_sections'])}" if quick['structure']['repeated_sections'] else ""))
     lines.append(f"- Harmony: {quick['harmony']['key_estimate']} | key clarity {quick['harmony']['key_clarity']} | {quick['harmony']['tension_description']}")
     lines.append(f"- Timbre: {', '.join(quick['timbre']['descriptor_tags'])} | centroid {quick['timbre']['centroid_mean']} | dynamic range {quick['timbre']['dynamic_range']}")
+    # Instrument palette — natural language, not a data dump
+    instruments = report.get("instruments", {})
+    instrument_narrative = instruments.get("narrative", "")
+    if instrument_narrative:
+        lines.append("")
+        lines.append("INSTRUMENT READ")
+        lines.append(f"- {instrument_narrative}")
+
     lines.append("")
     lines.append("TEMPORAL JOURNEY")
     lines.append(f"- Opening {narrative['opening']['mood']} → Middle {narrative['middle']['mood']} → Closing {narrative['closing']['mood']}")
@@ -495,12 +504,18 @@ def build_report(audio_path: Path) -> dict[str, Any]:
     quick = to_native(analyze_with_librosa(audio_path))
     temporal = to_native(analyze_temporal(str(audio_path)))
     lyrics = transcribe_lyrics(audio_path)
+
+    # Instrument detection — uses structure sections for per-section analysis
+    sections = quick.get("structure", {}).get("sections", [])
+    instruments = to_native(analyze_instruments(audio_path, sections))
+
     synthesis = synthesize_report(quick, temporal, lyrics)
     return {
         "file": str(audio_path),
         "meta": meta,
         "quick_analysis": quick,
         "temporal_listen": temporal,
+        "instruments": instruments,
         "lyrics": lyrics,
         "synthesis": synthesis,
     }

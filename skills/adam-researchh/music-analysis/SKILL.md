@@ -29,6 +29,11 @@ python3 skills/music-analysis/scripts/listen.py track.mp3 --json --out report.js
   - structure summary + repeated sections
   - harmony (key clarity + tension)
   - timbre descriptor tags
+- **INSTRUMENT READ**
+  - likely instrument palette (strong/likely/possible confidence)
+  - per-section instrument entrances and exits
+  - how instruments color the emotional feel
+  - written as natural language, not clinical data
 - **TEMPORAL JOURNEY**
   - opening / middle / closing mood-energy-tension read
   - peak / quietest / tensest moments
@@ -80,11 +85,6 @@ Reports:
 - **Emotion is explainable**, derived from pulse + timbre + harmonic tension rather than a black-box mood guess.
 - **Lyrics can override the final vibe** when filtered Whisper text is confident and emotionally clear.
 
-## Reference notes
-
-For the v2 upgrade summary and implementation notes, read:
-- `references/v2-upgrade-notes.md`
-
 ## Audio sourcing
 
 The tool needs a real audio file on disk.
@@ -109,8 +109,7 @@ System:
 - ffmpeg
 - ffprobe
 
-## Sandbox rules
+## Workspace hygiene
 
-- Keep experiments in `skills/music-analysis/` only
-- Audio files go in `skills/music-analysis/tmp/` (gitignored)
-- Do not modify trading scripts, gateway config, or global runtime
+- Keep temporary audio files in a dedicated temp/output folder for the skill.
+- Avoid modifying unrelated project files while working on audio analysis tasks.
