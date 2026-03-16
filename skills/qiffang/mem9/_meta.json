@@ -3,11 +3,16 @@
   "slug": "mem9",
   "displayName": "Mem9",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772943547870,
-    "commit": "https://github.com/openclaw/skills/commit/caa98f49b0cfac7bfbf135ef5f9421e3316c9b2f"
+    "version": "1.0.5",
+    "publishedAt": 1773417053178,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772943547870,
+      "commit": "https://github.com/openclaw/skills/commit/caa98f49b0cfac7bfbf135ef5f9421e3316c9b2f"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1772846019643,
