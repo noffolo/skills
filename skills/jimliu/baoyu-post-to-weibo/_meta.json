@@ -3,11 +3,16 @@
   "slug": "baoyu-post-to-weibo",
   "displayName": "Baoyu Post To Weibo",
   "latest": {
-    "version": "1.60.0",
-    "publishedAt": 1773287147115,
-    "commit": "https://github.com/openclaw/skills/commit/3a1a98d5268501352d182a0181e4290b553f5bc7"
+    "version": "1.69.1",
+    "publishedAt": 1773684116991,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.60.0",
+      "publishedAt": 1773287147115,
+      "commit": "https://github.com/openclaw/skills/commit/3a1a98d5268501352d182a0181e4290b553f5bc7"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773085260386,
