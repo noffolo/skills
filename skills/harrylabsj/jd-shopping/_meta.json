@@ -3,9 +3,15 @@
   "slug": "jd-shopping",
   "displayName": "JD Shopping",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1773189850091,
-    "commit": "https://github.com/openclaw/skills/commit/702d3c58e386c7038b327a45bd373aaf61387a90"
+    "version": "1.2.0",
+    "publishedAt": 1773579024538,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1773189850091,
+      "commit": "https://github.com/openclaw/skills/commit/702d3c58e386c7038b327a45bd373aaf61387a90"
+    }
+  ]
 }
