@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block stats %}
+{% if stats %}
+<div class="stats-bar">
+    <div class="stat-item">📊 素材 <span class="stat-num">{{ stats.total_items }}</span> 条</div>
+    <div class="stat-item">✅ 入选 <span class="stat-num">{{ stats.selected_items }}</span> 条</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% for section in sections %}
+<div class="section">
+    <div class="section-header">
+        <div class="section-icon">{{ section.icon }}</div>
+        <h2>{{ section.title }}</h2>
+    </div>
+    <div class="section-body">
+        {{ section.content | safe }}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

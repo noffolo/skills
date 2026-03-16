@@ -1,0 +1,52 @@
+name: lunaclaw-brief
+version: 3.0.0
+description: |
+  LunaClaw Brief — 插件化智能简报引擎。
+  支持多 preset（周报/日报/金融/OCR），可扩展数据源、编辑器和模板。
+
+triggers:
+  - "生成周报"
+  - "生成日报"
+  - "generate weekly report"
+  - "generate daily brief"
+  - "AI CV 周报"
+  - "帮我写日报"
+
+config:
+  preset:
+    type: string
+    default: "ai_cv_weekly"
+    description: "报告预设名称（ai_cv_weekly / ai_daily）"
+  hint:
+    type: string
+    default: ""
+    description: "给 LLM 的额外提示"
+  send_email:
+    type: boolean
+    default: false
+    description: "是否生成后发送邮件"
+
+outputs:
+  - name: html_path
+    type: string
+    description: "生成的 HTML 报告路径"
+  - name: md_path
+    type: string
+    description: "生成的 Markdown 文件路径"
+  - name: pdf_path
+    type: string
+    description: "生成的 PDF 文件路径（如果 WeasyPrint 可用）"
+  - name: issue_number
+    type: integer
+    description: "报告期号"
+
+entry: run.py
+function: generate_report
+
+dependencies:
+  python: ">=3.10"
+  packages:
+    - aiohttp
+    - requests
+    - jinja2
+    - pyyaml

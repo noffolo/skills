@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block stats %}
+{% if stats %}
+<div class="stats-bar">
+    <div class="stat-item">📊 素材 <span class="stat-num">{{ stats.total_items }}</span> 条</div>
+    <div class="stat-item">🔗 数据源 <span class="stat-num">{{ stats.sources_used }}</span> 个</div>
+    <div class="stat-item">✅ 入选 <span class="stat-num">{{ stats.selected_items }}</span> 条</div>
+    {% if stats.word_count %}
+    <div class="stat-item">📝 <span class="stat-num">{{ stats.word_count }}</span> 字</div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% for section in sections %}
+<div class="section">
+    <div class="section-header">
+        <div class="section-icon">{{ section.icon }}</div>
+        <h2>{{ section.title }}</h2>
+    </div>
+    <div class="section-body">
+        {{ section.content | safe }}
+    </div>
+</div>
+{% endfor %}
+
+<div class="disclaimer">
+    ⚠️ 免责声明：本报告仅供参考，不构成任何投资建议。投资者应独立判断并承担投资风险。
+    <br>
+    Disclaimer: This report is for informational purposes only and does not constitute investment advice.
+</div>
+{% endblock %}
