@@ -9,10 +9,13 @@ case "$CMD" in
 init)
   NAME="${1:-myapp}"
   LANG="${2:-python}"
+  export CLI_NAME="$NAME"
+  export CLI_LANG="$LANG"
   python3 << 'PYEOF'
-import sys
-name = sys.argv[1] if len(sys.argv) > 1 else "myapp"
-lang = sys.argv[2] if len(sys.argv) > 2 else "python"
+import os, sys
+
+name = os.environ.get("CLI_NAME", "myapp")
+lang = os.environ.get("CLI_LANG", "python")
 
 templates = {
     "python": {
@@ -144,11 +147,15 @@ command)
   APP="${1:-myapp}"
   CMDNAME="${2:-serve}"
   DESC="${3:-A new command}"
+  export CLI_APP="$APP"
+  export CLI_CMDNAME="$CMDNAME"
+  export CLI_DESC="$DESC"
   python3 << 'PYEOF'
-import sys
-app = sys.argv[1] if len(sys.argv) > 1 else "myapp"
-cmd = sys.argv[2] if len(sys.argv) > 2 else "serve"
-desc = sys.argv[3] if len(sys.argv) > 3 else "A new command"
+import os
+
+app = os.environ.get("CLI_APP", "myapp")
+cmd = os.environ.get("CLI_CMDNAME", "serve")
+desc = os.environ.get("CLI_DESC", "A new command")
 
 print("=" * 60)
 print("  Add Command: {} -> {}".format(app, cmd))
@@ -181,10 +188,13 @@ PYEOF
 args)
   LANG="${1:-python}"
   ARGS="${2:---name,--port,--verbose}"
+  export CLI_LANG="$LANG"
+  export CLI_ARGS="$ARGS"
   python3 << 'PYEOF'
-import sys
-lang = sys.argv[1] if len(sys.argv) > 1 else "python"
-args_str = sys.argv[2] if len(sys.argv) > 2 else "--name,--port,--verbose"
+import os
+
+lang = os.environ.get("CLI_LANG", "python")
+args_str = os.environ.get("CLI_ARGS", "--name,--port,--verbose")
 args = [a.strip() for a in args_str.split(",")]
 
 print("=" * 60)
@@ -205,7 +215,7 @@ if lang == "python":
     print("args = parser.parse_args()")
 
 elif lang == "node":
-    print("const {{ program }} = require('commander');")
+    print("const { program } = require('commander');")
     print("")
     for a in args:
         clean = a.lstrip("-")
@@ -230,7 +240,7 @@ elif lang == "bash":
     print("done")
 
 elif lang == "go":
-    print("import \"flag\"")
+    print('import "flag"')
     print("")
     for a in args:
         clean = a.lstrip("-")
@@ -248,10 +258,13 @@ PYEOF
 help)
   APP="${1:-myapp}"
   CMDS="${2:-serve,build,test}"
+  export CLI_APP="$APP"
+  export CLI_CMDS="$CMDS"
   python3 << 'PYEOF'
-import sys
-app = sys.argv[1] if len(sys.argv) > 1 else "myapp"
-cmds_str = sys.argv[2] if len(sys.argv) > 2 else "serve,build,test"
+import os
+
+app = os.environ.get("CLI_APP", "myapp")
+cmds_str = os.environ.get("CLI_CMDS", "serve,build,test")
 cmds = [c.strip() for c in cmds_str.split(",")]
 
 print("=" * 60)
@@ -290,10 +303,13 @@ PYEOF
 config)
   LANG="${1:-python}"
   FMT="${2:-yaml}"
+  export CLI_LANG="$LANG"
+  export CLI_FMT="$FMT"
   python3 << 'PYEOF'
-import sys
-lang = sys.argv[1] if len(sys.argv) > 1 else "python"
-fmt = sys.argv[2] if len(sys.argv) > 2 else "yaml"
+import os
+
+lang = os.environ.get("CLI_LANG", "python")
+fmt = os.environ.get("CLI_FMT", "yaml")
 
 print("=" * 60)
 print("  Config File Handler ({} / {})".format(lang, fmt))
@@ -367,9 +383,11 @@ PYEOF
 
 publish)
   PLATFORM="${1:-npm}"
+  export CLI_PLATFORM="$PLATFORM"
   python3 << 'PYEOF'
-import sys
-platform = sys.argv[1] if len(sys.argv) > 1 else "npm"
+import os
+
+platform = os.environ.get("CLI_PLATFORM", "npm")
 
 checklists = {
     "npm": [
@@ -411,10 +429,13 @@ PYEOF
 interactive)
   LANG="${1:-python}"
   PROMPTS="${2:-name,email,confirm}"
+  export CLI_LANG="$LANG"
+  export CLI_PROMPTS="$PROMPTS"
   python3 << 'PYEOF'
-import sys
-lang = sys.argv[1] if len(sys.argv) > 1 else "python"
-prompts_str = sys.argv[2] if len(sys.argv) > 2 else "name,email,confirm"
+import os
+
+lang = os.environ.get("CLI_LANG", "python")
+prompts_str = os.environ.get("CLI_PROMPTS", "name,email,confirm")
 prompts = [p.strip() for p in prompts_str.split(",")]
 
 print("=" * 60)
@@ -470,9 +491,11 @@ PYEOF
 
 color)
   LANG="${1:-python}"
+  export CLI_LANG="$LANG"
   python3 << 'PYEOF'
-import sys
-lang = sys.argv[1] if len(sys.argv) > 1 else "python"
+import os
+
+lang = os.environ.get("CLI_LANG", "python")
 
 print("=" * 60)
 print("  Colored Output Code ({})".format(lang))
@@ -500,7 +523,7 @@ if lang == "python":
     print("def colored(text, color):")
     print("    if not supports_color():")
     print("        return text")
-    print("    return '{{}}{{}}{{}}'.format(color, text, Color.RESET)")
+    print("    return '{}{}{}'.format(color, text, Color.RESET)")
     print("")
     print("# Usage:")
     print("# print(colored('Success!', Color.GREEN))")

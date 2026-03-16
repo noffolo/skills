@@ -1,11 +1,17 @@
 {
   "owner": "ckchzh",
   "slug": "cli-builder",
-  "displayName": "CLI Builder",
+  "displayName": "Cli Builder",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773199071561,
-    "commit": "https://github.com/openclaw/skills/commit/7e7c3dac39631c39aedf00db9a67eb4d9919f0b2"
+    "version": "2.3.4",
+    "publishedAt": 1773665184152,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773199071561,
+      "commit": "https://github.com/openclaw/skills/commit/7e7c3dac39631c39aedf00db9a67eb4d9919f0b2"
+    }
+  ]
 }

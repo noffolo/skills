@@ -1,6 +1,8 @@
 ---
+version: "2.0.0"
 name: CLI Builder
-description: CLI tool generator. Project scaffolding, command adding, argument parsing, help docs, config handling, publish checklist, interactive prompts, colored output. Supports Python, Node.js, Bash, Go. cli, command-line, argparse, commander, scaffolding, developer-tools.
+description: "CLI tool generator. Project scaffolding, command adding, argument parsing, help docs, config handling, publish checklist, interactive prompts, colored output. Supports Python, Node.js, Bash, Go. cli, command-line, argparse, commander, scaffolding, developer-tools. Use when you need cli builder capabilities. Triggers on: cli builder, no-color, verbose, man."
+author: BytesAgain
 ---
 
 # CLI Builder — Command-Line Tool Generator
@@ -38,3 +40,6 @@ bash scripts/cli-builder.sh args python --name,--port,--verbose
 ## Output
 
 All generated code is copy-paste ready with comments and best practices included.
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
