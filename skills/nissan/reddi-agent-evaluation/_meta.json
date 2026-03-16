@@ -1,0 +1,11 @@
+{
+  "owner": "nissan",
+  "slug": "reddi-agent-evaluation",
+  "displayName": "Reddi Agent Evaluation",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1773613183295,
+    "commit": null
+  },
+  "history": []
+}
