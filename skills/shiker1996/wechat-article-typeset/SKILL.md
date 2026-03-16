@@ -26,6 +26,19 @@ author: wework
   - `AI:`（AI 结构化版）
   - `PRESET:`（预设主题版）
 
+## 技能产物（必交，防止 AI 执行时偷懒）
+
+执行本技能时**必须**在用户 Markdown 同目录（或约定工作目录）产出以下三类文件，缺一不可：
+
+| 产物 | 说明 | 约定路径/文件名 |
+|------|------|------------------|
+| **初稿 HTML** | 按「自由模式」生成的第一版 HTML，满足 `SPEC.md` 第 2 节硬约束 | `article.ai.draft.html` |
+| **按 SPEC 排版后的 HTML** | 在初稿基础上按 `SPEC.md`（统一格式/通用长文）规范化改写，用于生成 AI 版预览链接 | `article.ai.html` |
+| **含预览地址的 txt** | 至少包含两条预览链接（AI 版 + 预设版），以脚本输出为准，便于用户直接打开 | `wechat-preview-urls.txt`（双版本）或 `wechat-preview-url.txt`（单版本） |
+
+- 不得仅口头返回链接而不写入 txt；不得跳过初稿或排版后 HTML 的落盘，否则视为未完成技能。
+- 预览链接以**脚本标准输出**或上述 txt 文件内容为准，勿以 AI 转述为准（长 id 易抄错）。
+
 ## 1. 整体流程（Md → 两个预览链接）
 
 1. **读取用户的 Markdown 文件**（用户提供的 .md 路径）。
@@ -33,6 +46,7 @@ author: wework
 3. **生成预设主题版 HTML**：使用预设（`--preset`）对 Markdown 做主题渲染，得到一份 HTML（无需满足 SPEC）。
 4. **分别请求复制页**：对两份 HTML 分别请求 `edit.shiker.tech/api/copy`，得到两条预览链接。
 5. **将两条链接交给用户**：以脚本标准输出或同目录写入的链接文件为准（勿让 AI 自行"转述"链接，否则长 id 易漏数字导致链接错误）；用户浏览器打开 → 点击「复制到剪贴板」→ 粘贴到公众号后台。
+6. **必交产物**：同目录须存在 **初稿 HTML**（`article.ai.draft.html`）、**按 SPEC 排版后的 HTML**（`article.ai.html`）、**含预览地址的 txt**（`wechat-preview-urls.txt` 或 `wechat-preview-url.txt`），详见上文「技能产物（必交）」表。
 
 HTML 生成规范（必读）：**`SPEC.md`** 是 Markdown →（AI 结构化版）HTML 的**唯一约定**。生成 AI 结构化版 HTML 时必须严格按 SPEC 输出，脚本才能稳定产出 AI 版预览链接。
 
@@ -40,6 +54,7 @@ HTML 生成规范（必读）：**`SPEC.md`** 是 Markdown →（AI 结构化版
 
 - `html-to-wechat-copy.js`：将"输入 HTML"转为公众号兼容 HTML 并请求复制页，输出单条预览链接（同时写入 `wechat-preview-url.txt`）。
 - **`wechat-dual-copy.js`（推荐）**：输入一个 `.md`，一次输出两条预览链接（`AI:` / `PRESET:`），并写入 `wechat-preview-urls.txt`。
+- **`wechat-md-to-beauty.js`（一步完成）**：输入一个 `.md`，生成精美 HTML + 预览链接，一步完成！
 
 ## 3. 文章类型与推荐格式（便于从 Md 选格式）
 
@@ -59,7 +74,7 @@ HTML 生成规范（必读）：**`SPEC.md`** 是 Markdown →（AI 结构化版
 
 - 图片：内容中的图片需为可公网访问的 URL，否则公众号内无法显示。
 - 公众号粘贴时，仅**引用（blockquote）**和**表格**会保留背景色与边框；脚本已按此规则将需强调的块转为 blockquote。
-- **预览链接勿以 AI 转述为准**：长 id 容易被 AI 抄错或漏数字，导致链接失效。请以**脚本标准输出**或**同目录下生成的 `wechat-preview-url.txt`** 中的链接为准；若 AI 提供了链接，请与上述两者核对。
+- **预览链接勿以 AI 转述为准**：长 id 容易被 AI 抄错或漏数字，导致链接失效。请以**脚本标准输出**或**同目录下生成的 `wechat-preview-urls.txt` / `wechat-preview-url.txt`** 中的链接为准；若 AI 提供了链接，请与上述文件内容核对。
 
 ## 6. 兼容策略（HTML 未严格按 SPEC 时）
 
@@ -101,5 +116,25 @@ HTML 生成规范（必读）：**`SPEC.md`** 是 Markdown →（AI 结构化版
      node html-to-wechat-copy.js <path-to-article.ai.html>
      ```
    - 读出脚本输出的链接 / `wechat-preview-url.txt` 中的链接，返回给用户。
+5. **确认必交产物已落盘**：`article.ai.draft.html`、`article.ai.html`、含预览地址的 txt（如 `wechat-preview-urls.txt` 或 `wechat-preview-url.txt`）三者缺一不可。
 
 > 对话中的“一步完成”含义是：**用户只提供 Markdown，AI 自动完成「两版 HTML + 预览链接」整个流程**，而不是让用户自己手动跑多条命令。
+
+
+## 简要流程小结
+
+**一步完成模式（新手推荐）：**
+1. 执行 **`node wechat-md-to-beauty.js <input.md>`**
+2. 得到精美 HTML + 预览链接
+3. 打开链接复制后粘贴到公众号
+
+**双版本模式：**
+1. **输入**：用户的 **Markdown 文件**（如 article.md）。
+2. 执行（推荐用纯英文参数，避免终端对中文参数的兼容问题）：
+   - **推荐**：`node wechat-dual-copy.js <input.md> --theme <themeId> --layout <layoutId> [--ai-html path]`
+   - 可选：`node wechat-dual-copy.js <input.md> --preset <预设名> [--ai-html path]`
+   得到两条链接：`AI:` 与 `PRESET:`（并写入 `wechat-preview-urls.txt`）。
+3. 将两条链接交给用户，在浏览器打开后复制再粘贴到公众号。
+
+> 可选辅助：若你不想让 AI 从零生成 HTML，可先加 `--emit-ai-draft` 由脚本兜底生成 `article.ai.draft.html`，再用 `--ai-html` 指向改写后的 `article.ai.html`。
+

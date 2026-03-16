@@ -46,21 +46,22 @@ function extractInnerAndMode(raw) {
   return { inner: inner || '', useGeneric }
 }
 
-// 内联样式：公众号仅对「引用 blockquote」和「表格」保留背景色与边框，整篇用统一背景
+// 内联样式：公众号对「表格」和「引用」保留背景色与边框，此处统一用单行单列表格表达
+const tableWrap = "border-collapse:collapse;width:100%;margin:16px 0;"
 const styles = {
   // 整篇文章统一背景
   section: "margin:0;padding:16px 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Microsoft YaHei',sans-serif;font-size:16px;color:#333;line-height:1.6;word-break:break-word;background:#f5f5f5;box-sizing:border-box",
   h1: "font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:15px;line-height:1.4;text-align:center",
-  // 引用：intro（公众号引用支持背景+边框）
-  blockquoteIntro: "margin:20px 0 25px;padding:18px;border-left:4px solid #667eea;background:#f0f4ff;font-size:14px;color:#555;line-height:1.7;box-sizing:border-box",
-  // 引用：每条资讯卡片
-  blockquoteItem: "margin:22px 0;padding:18px;border-left:4px solid #ff6b6b;background:#fafafa;box-sizing:border-box",
+  // 单行单列表格单元格：intro
+  cellIntro: "margin:0;padding:18px;border-left:4px solid #667eea;background:#f0f4ff;font-size:14px;color:#555;line-height:1.7;box-sizing:border-box",
+  // 单行单列表格单元格：每条资讯卡片
+  cellItem: "margin:0;padding:18px;border-left:4px solid #ff6b6b;background:#fafafa;box-sizing:border-box",
   itemTitle: "font-size:15px;font-weight:600;color:#333;margin-bottom:10px",
   itemContent: "font-size:14px;color:#555;line-height:1.7;margin-bottom:8px",
-  // 引用：影响（嵌套在 item 内的小引用块）
-  blockquoteImpact: "margin-top:10px;padding:10px;border-left:3px solid #ff9500;background:#fff;font-size:13px;color:#666;box-sizing:border-box",
-  // 引用：今日思考（深色块）
-  blockquoteThinking: "margin:25px 0;padding:18px;border-left:4px solid #764ba2;background:#667eea;color:#fff;font-size:14px;line-height:1.7;box-sizing:border-box",
+  // 单行单列表格单元格：影响（嵌套在 item 内）
+  cellImpact: "margin-top:10px;padding:10px;border-left:3px solid #ff9500;background:#fff;font-size:13px;color:#666;box-sizing:border-box",
+  // 单行单列表格单元格：今日思考（深色块）
+  cellThinking: "margin:0;padding:18px;border-left:4px solid #764ba2;background:#667eea;color:#fff;font-size:14px;line-height:1.7;box-sizing:border-box",
   thinkingP: "margin:0 0 8px 0",
   // 分割线：无背景/边框的 div 可能被吞，用段落间距代替
   divider: "margin:25px 0;font-size:0;line-height:0",
@@ -78,7 +79,7 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
 }
 
-// 将原文结构转为公众号兼容 HTML：仅用 blockquote（引用）和整篇统一背景保留背景/边框
+// 将原文结构转为公众号兼容 HTML：用单行单列表格保留背景/边框，整篇统一背景
 function convertToWechatHtml(html) {
   let out = ''
   // 标题（无背景无边框）
@@ -86,28 +87,28 @@ function convertToWechatHtml(html) {
   if (h1Match) {
     out += `<h1 style="${styles.h1}">${h1Match[1].trim()}</h1>\n`
   }
-  // intro → 引用（支持背景+边框）
+  // intro → 单行单列表格
   const introMatch = html.match(/<div class="intro">\s*([\s\S]*?)\s*<\/div>/)
   if (introMatch) {
-    out += `<blockquote style="${styles.blockquoteIntro}">${introMatch[1].trim()}</blockquote>\n`
+    out += `<table style="${tableWrap}"><tr><td style="${styles.cellIntro}">${introMatch[1].trim()}</td></tr></table>\n`
   }
-  // items → 每条一条引用，内里「影响」再包一层引用
+  // items → 每条单行单列表格，内里「影响」再包一层单行单列表格
   const itemReg = /<div class="item">\s*<div class="item-title">([\s\S]*?)<\/div>\s*<div class="item-content">([\s\S]*?)<\/div>\s*<div class="item-impact">([\s\S]*?)<\/div>\s*<\/div>/g
   let m
   while ((m = itemReg.exec(html)) !== null) {
-    out += `<blockquote style="${styles.blockquoteItem}">`
+    out += `<table style="${tableWrap}"><tr><td style="${styles.cellItem}">`
     out += `<div style="${styles.itemTitle}">${m[1].trim()}</div>`
     out += `<div style="${styles.itemContent}">${m[2].trim()}</div>`
-    out += `<blockquote style="${styles.blockquoteImpact}">${m[3].trim()}</blockquote>`
-    out += `</blockquote>\n`
+    out += `<table style="${tableWrap}"><tr><td style="${styles.cellImpact}">${m[3].trim()}</td></tr></table>`
+    out += `</td></tr></table>\n`
   }
-  // thinking → 引用（深色背景+边框）
+  // thinking → 单行单列表格（深色块）
   const thinkingMatch = html.match(/<div class="thinking">\s*([\s\S]*?)\s*<\/div>/)
   if (thinkingMatch) {
     const inner = thinkingMatch[1].trim()
       .replace(/<p>/g, `<p style="${styles.thinkingP}">`)
       .replace(/<p style="[^"]*">/g, `<p style="${styles.thinkingP}">`)
-    out += `<blockquote style="${styles.blockquoteThinking}">${inner}</blockquote>\n`
+    out += `<table style="${tableWrap}"><tr><td style="${styles.cellThinking}">${inner}</td></tr></table>\n`
   }
   // divider：仅留间距，不用带背景的 div
   if (/<div class="divider">/.test(html)) {
@@ -125,10 +126,13 @@ function convertToWechatHtml(html) {
   return out
 }
 
-// 通用 HTML：带样式的 section 改为 blockquote（公众号保留引用背景/边框），表格不动，整篇包一层统一背景
+// 通用 HTML：带样式的 section 改为单行单列表格（公众号保留表格背景/边框），原有表格不动
 function convertGenericToWechatHtml(html) {
-  // section → blockquote，以便公众号保留背景与边框
-  let out = html.replace(/<section\s/g, '<blockquote ').replace(/<\/section>/g, '</blockquote>')
+  // section → <table><tr><td ...>...</td></tr></table>，保留 section 原有属性到 td
+  let out = html.replace(
+    /<section\s+([^>]*)>([\s\S]*?)<\/section>/g,
+    (_, attrs, content) => `<table style="${tableWrap}"><tr><td ${attrs.trim()}>${content}</td></tr></table>`
+  )
   return out
 }
 
