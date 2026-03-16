@@ -1,0 +1,11 @@
+{
+  "owner": "adahubble",
+  "slug": "cf-workers-logs",
+  "displayName": "Cf Workers Logs",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1773654100349,
+    "commit": null
+  },
+  "history": []
+}
