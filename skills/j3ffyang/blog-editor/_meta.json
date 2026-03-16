@@ -1,11 +1,17 @@
 {
   "owner": "j3ffyang",
   "slug": "blog-editor",
-  "displayName": "blog-editor",
+  "displayName": "Blog Editor",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772883377698,
-    "commit": "https://github.com/openclaw/skills/commit/38574d85b714278b102ed66d54f8038462252892"
+    "version": "1.0.3",
+    "publishedAt": 1773461941479,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772883377698,
+      "commit": "https://github.com/openclaw/skills/commit/38574d85b714278b102ed66d54f8038462252892"
+    }
+  ]
 }
