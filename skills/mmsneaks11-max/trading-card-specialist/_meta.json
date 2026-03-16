@@ -3,11 +3,16 @@
   "slug": "trading-card-specialist",
   "displayName": "Trading Card Analysis & eBay Listing Specialist",
   "latest": {
-    "version": "2.0.3",
-    "publishedAt": 1773165320276,
-    "commit": "https://github.com/openclaw/skills/commit/6095d57d74c513ba2aa544321569c8f8bfc3f356"
+    "version": "2.0.5",
+    "publishedAt": 1773443916717,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.3",
+      "publishedAt": 1773165320276,
+      "commit": "https://github.com/openclaw/skills/commit/6095d57d74c513ba2aa544321569c8f8bfc3f356"
+    },
     {
       "version": "1.3.0",
       "publishedAt": 1772476068015,
