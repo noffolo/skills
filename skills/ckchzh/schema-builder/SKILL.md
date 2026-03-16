@@ -1,6 +1,8 @@
 ---
+version: "2.0.0"
 name: schema-builder
-description: "Database schema designer. Design table structures, generate SQL DDL, migration scripts, seed data, ER diagrams, optimization reports, NoSQL schemas, and schema diffs. Commands: design, sql, migrate, seed, erd, optimize, nosql, compare. Use for database design, table structure, SQL generation."
+description: "Database schema designer. Design table structures, generate SQL DDL, migration scripts, seed data, ER diagrams, optimization reports, NoSQL schemas, and schema diffs. Commands: design, sql, migrate, seed, erd, optimize, nosql, compare. Use for database design, table structure, SQL generation. Use when you need schema builder capabilities. Triggers on: schema builder."
+author: BytesAgain
 ---
 
 # 🗃️ Schema Builder
@@ -50,3 +52,6 @@ design → sql → migrate → seed
 
 - Relational: MySQL, PostgreSQL, SQLite
 - NoSQL: MongoDB, Redis (via `nosql` command)
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
