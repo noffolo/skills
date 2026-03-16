@@ -1,0 +1,2873 @@
+[
+  {
+    "timestamp": "2026-03-13T05:59:24.130159",
+    "old_version": "1.1.0",
+    "new_version": "1.1.1",
+    "analysis": {
+      "version": "1.1.0",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持",
+      "创建 CHANGELOG.md",
+      "添加性能监控模块"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T06:01:20.379239",
+    "old_version": "1.1.1",
+    "new_version": "1.1.2",
+    "analysis": {
+      "version": "1.1.1",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T06:31:20.439067",
+    "old_version": "1.1.2",
+    "new_version": "1.1.3",
+    "analysis": {
+      "version": "1.1.2",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T07:01:20.496648",
+    "old_version": "1.1.3",
+    "new_version": "1.1.4",
+    "analysis": {
+      "version": "1.1.3",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T07:31:20.553120",
+    "old_version": "1.1.4",
+    "new_version": "1.1.5",
+    "analysis": {
+      "version": "1.1.4",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T08:01:20.656294",
+    "old_version": "1.1.5",
+    "new_version": "1.1.6",
+    "analysis": {
+      "version": "1.1.5",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T08:31:20.712207",
+    "old_version": "1.1.6",
+    "new_version": "1.1.7",
+    "analysis": {
+      "version": "1.1.6",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T09:01:20.790342",
+    "old_version": "1.1.7",
+    "new_version": "1.1.8",
+    "analysis": {
+      "version": "1.1.7",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T09:31:20.868451",
+    "old_version": "1.1.8",
+    "new_version": "1.1.9",
+    "analysis": {
+      "version": "1.1.8",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T10:01:20.929879",
+    "old_version": "1.1.9",
+    "new_version": "1.1.10",
+    "analysis": {
+      "version": "1.1.9",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T10:31:21.065380",
+    "old_version": "1.1.10",
+    "new_version": "1.1.11",
+    "analysis": {
+      "version": "1.1.10",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T11:01:21.163430",
+    "old_version": "1.1.11",
+    "new_version": "1.1.12",
+    "analysis": {
+      "version": "1.1.11",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T11:31:21.279939",
+    "old_version": "1.1.12",
+    "new_version": "1.1.13",
+    "analysis": {
+      "version": "1.1.12",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T12:01:21.356371",
+    "old_version": "1.1.13",
+    "new_version": "1.1.14",
+    "analysis": {
+      "version": "1.1.13",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T12:31:21.436318",
+    "old_version": "1.1.14",
+    "new_version": "1.1.15",
+    "analysis": {
+      "version": "1.1.14",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T13:01:21.578917",
+    "old_version": "1.1.15",
+    "new_version": "1.1.16",
+    "analysis": {
+      "version": "1.1.15",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T13:31:21.640725",
+    "old_version": "1.1.16",
+    "new_version": "1.1.17",
+    "analysis": {
+      "version": "1.1.16",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T14:01:21.706871",
+    "old_version": "1.1.17",
+    "new_version": "1.1.18",
+    "analysis": {
+      "version": "1.1.17",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T14:31:21.764864",
+    "old_version": "1.1.18",
+    "new_version": "1.1.19",
+    "analysis": {
+      "version": "1.1.18",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T15:01:21.822942",
+    "old_version": "1.1.19",
+    "new_version": "1.1.20",
+    "analysis": {
+      "version": "1.1.19",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T15:31:21.877213",
+    "old_version": "1.1.20",
+    "new_version": "1.1.21",
+    "analysis": {
+      "version": "1.1.20",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T16:01:21.936255",
+    "old_version": "1.1.21",
+    "new_version": "1.1.22",
+    "analysis": {
+      "version": "1.1.21",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T16:31:21.982646",
+    "old_version": "1.1.22",
+    "new_version": "1.1.23",
+    "analysis": {
+      "version": "1.1.22",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T17:01:22.035883",
+    "old_version": "1.1.23",
+    "new_version": "1.1.24",
+    "analysis": {
+      "version": "1.1.23",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T17:31:22.084853",
+    "old_version": "1.1.24",
+    "new_version": "1.1.25",
+    "analysis": {
+      "version": "1.1.24",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T18:01:22.144692",
+    "old_version": "1.1.25",
+    "new_version": "1.1.26",
+    "analysis": {
+      "version": "1.1.25",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T18:31:22.208951",
+    "old_version": "1.1.26",
+    "new_version": "1.1.27",
+    "analysis": {
+      "version": "1.1.26",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T19:01:22.262681",
+    "old_version": "1.1.27",
+    "new_version": "1.1.28",
+    "analysis": {
+      "version": "1.1.27",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T19:31:22.311293",
+    "old_version": "1.1.28",
+    "new_version": "1.1.29",
+    "analysis": {
+      "version": "1.1.28",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T20:01:22.371651",
+    "old_version": "1.1.29",
+    "new_version": "1.1.30",
+    "analysis": {
+      "version": "1.1.29",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T20:31:22.425735",
+    "old_version": "1.1.30",
+    "new_version": "1.1.31",
+    "analysis": {
+      "version": "1.1.30",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T21:01:22.476450",
+    "old_version": "1.1.31",
+    "new_version": "1.1.32",
+    "analysis": {
+      "version": "1.1.31",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T21:31:22.543831",
+    "old_version": "1.1.32",
+    "new_version": "1.1.33",
+    "analysis": {
+      "version": "1.1.32",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T22:01:22.597288",
+    "old_version": "1.1.33",
+    "new_version": "1.1.34",
+    "analysis": {
+      "version": "1.1.33",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T22:31:22.654671",
+    "old_version": "1.1.34",
+    "new_version": "1.1.35",
+    "analysis": {
+      "version": "1.1.34",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T23:01:22.709659",
+    "old_version": "1.1.35",
+    "new_version": "1.1.36",
+    "analysis": {
+      "version": "1.1.35",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-13T23:31:22.762595",
+    "old_version": "1.1.36",
+    "new_version": "1.1.37",
+    "analysis": {
+      "version": "1.1.36",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T00:01:22.823275",
+    "old_version": "1.1.37",
+    "new_version": "1.1.38",
+    "analysis": {
+      "version": "1.1.37",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T00:31:22.876005",
+    "old_version": "1.1.38",
+    "new_version": "1.1.39",
+    "analysis": {
+      "version": "1.1.38",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T01:01:22.931923",
+    "old_version": "1.1.39",
+    "new_version": "1.1.40",
+    "analysis": {
+      "version": "1.1.39",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T01:31:22.990223",
+    "old_version": "1.1.40",
+    "new_version": "1.1.41",
+    "analysis": {
+      "version": "1.1.40",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T02:01:23.047667",
+    "old_version": "1.1.41",
+    "new_version": "1.1.42",
+    "analysis": {
+      "version": "1.1.41",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T02:31:23.099383",
+    "old_version": "1.1.42",
+    "new_version": "1.1.43",
+    "analysis": {
+      "version": "1.1.42",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T03:01:23.158490",
+    "old_version": "1.1.43",
+    "new_version": "1.1.44",
+    "analysis": {
+      "version": "1.1.43",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T03:31:23.208447",
+    "old_version": "1.1.44",
+    "new_version": "1.1.45",
+    "analysis": {
+      "version": "1.1.44",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T04:01:23.264925",
+    "old_version": "1.1.45",
+    "new_version": "1.1.46",
+    "analysis": {
+      "version": "1.1.45",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T04:31:23.329218",
+    "old_version": "1.1.46",
+    "new_version": "1.1.47",
+    "analysis": {
+      "version": "1.1.46",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T05:01:23.385081",
+    "old_version": "1.1.47",
+    "new_version": "1.1.48",
+    "analysis": {
+      "version": "1.1.47",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T05:31:23.440994",
+    "old_version": "1.1.48",
+    "new_version": "1.1.49",
+    "analysis": {
+      "version": "1.1.48",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T06:01:23.500060",
+    "old_version": "1.1.49",
+    "new_version": "1.1.50",
+    "analysis": {
+      "version": "1.1.49",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T06:31:23.558039",
+    "old_version": "1.1.50",
+    "new_version": "1.1.51",
+    "analysis": {
+      "version": "1.1.50",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T07:01:23.608156",
+    "old_version": "1.1.51",
+    "new_version": "1.1.52",
+    "analysis": {
+      "version": "1.1.51",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T07:31:23.665183",
+    "old_version": "1.1.52",
+    "new_version": "1.1.53",
+    "analysis": {
+      "version": "1.1.52",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T08:01:23.723441",
+    "old_version": "1.1.53",
+    "new_version": "1.1.54",
+    "analysis": {
+      "version": "1.1.53",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T08:31:23.775402",
+    "old_version": "1.1.54",
+    "new_version": "1.1.55",
+    "analysis": {
+      "version": "1.1.54",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T09:01:23.828880",
+    "old_version": "1.1.55",
+    "new_version": "1.1.56",
+    "analysis": {
+      "version": "1.1.55",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T09:31:23.886073",
+    "old_version": "1.1.56",
+    "new_version": "1.1.57",
+    "analysis": {
+      "version": "1.1.56",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T10:01:23.940392",
+    "old_version": "1.1.57",
+    "new_version": "1.1.58",
+    "analysis": {
+      "version": "1.1.57",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T10:31:23.996276",
+    "old_version": "1.1.58",
+    "new_version": "1.1.59",
+    "analysis": {
+      "version": "1.1.58",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T11:01:24.046275",
+    "old_version": "1.1.59",
+    "new_version": "1.1.60",
+    "analysis": {
+      "version": "1.1.59",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T11:31:24.098504",
+    "old_version": "1.1.60",
+    "new_version": "1.1.61",
+    "analysis": {
+      "version": "1.1.60",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T12:01:24.153815",
+    "old_version": "1.1.61",
+    "new_version": "1.1.62",
+    "analysis": {
+      "version": "1.1.61",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T12:31:24.205234",
+    "old_version": "1.1.62",
+    "new_version": "1.1.63",
+    "analysis": {
+      "version": "1.1.62",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T13:01:24.258527",
+    "old_version": "1.1.63",
+    "new_version": "1.1.64",
+    "analysis": {
+      "version": "1.1.63",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T13:31:24.316595",
+    "old_version": "1.1.64",
+    "new_version": "1.1.65",
+    "analysis": {
+      "version": "1.1.64",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T14:01:24.381885",
+    "old_version": "1.1.65",
+    "new_version": "1.1.66",
+    "analysis": {
+      "version": "1.1.65",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T14:31:24.444345",
+    "old_version": "1.1.66",
+    "new_version": "1.1.67",
+    "analysis": {
+      "version": "1.1.66",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T15:01:24.521901",
+    "old_version": "1.1.67",
+    "new_version": "1.1.68",
+    "analysis": {
+      "version": "1.1.67",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T15:31:24.590408",
+    "old_version": "1.1.68",
+    "new_version": "1.1.69",
+    "analysis": {
+      "version": "1.1.68",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T16:01:24.656257",
+    "old_version": "1.1.69",
+    "new_version": "1.1.70",
+    "analysis": {
+      "version": "1.1.69",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T16:31:24.711679",
+    "old_version": "1.1.70",
+    "new_version": "1.1.71",
+    "analysis": {
+      "version": "1.1.70",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T17:01:24.768922",
+    "old_version": "1.1.71",
+    "new_version": "1.1.72",
+    "analysis": {
+      "version": "1.1.71",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T17:31:24.818936",
+    "old_version": "1.1.72",
+    "new_version": "1.1.73",
+    "analysis": {
+      "version": "1.1.72",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T18:01:24.872985",
+    "old_version": "1.1.73",
+    "new_version": "1.1.74",
+    "analysis": {
+      "version": "1.1.73",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T18:31:24.952785",
+    "old_version": "1.1.74",
+    "new_version": "1.1.75",
+    "analysis": {
+      "version": "1.1.74",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T19:01:25.006755",
+    "old_version": "1.1.75",
+    "new_version": "1.1.76",
+    "analysis": {
+      "version": "1.1.75",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T19:31:25.058414",
+    "old_version": "1.1.76",
+    "new_version": "1.1.77",
+    "analysis": {
+      "version": "1.1.76",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T20:01:25.109514",
+    "old_version": "1.1.77",
+    "new_version": "1.1.78",
+    "analysis": {
+      "version": "1.1.77",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T20:31:25.165187",
+    "old_version": "1.1.78",
+    "new_version": "1.1.79",
+    "analysis": {
+      "version": "1.1.78",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T21:01:25.216547",
+    "old_version": "1.1.79",
+    "new_version": "1.1.80",
+    "analysis": {
+      "version": "1.1.79",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T21:31:25.269523",
+    "old_version": "1.1.80",
+    "new_version": "1.1.81",
+    "analysis": {
+      "version": "1.1.80",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T22:01:25.324533",
+    "old_version": "1.1.81",
+    "new_version": "1.1.82",
+    "analysis": {
+      "version": "1.1.81",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T22:31:25.379731",
+    "old_version": "1.1.82",
+    "new_version": "1.1.83",
+    "analysis": {
+      "version": "1.1.82",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T23:01:25.431563",
+    "old_version": "1.1.83",
+    "new_version": "1.1.84",
+    "analysis": {
+      "version": "1.1.83",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-14T23:31:25.481343",
+    "old_version": "1.1.84",
+    "new_version": "1.1.85",
+    "analysis": {
+      "version": "1.1.84",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T00:01:25.534314",
+    "old_version": "1.1.85",
+    "new_version": "1.1.86",
+    "analysis": {
+      "version": "1.1.85",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T00:31:25.593121",
+    "old_version": "1.1.86",
+    "new_version": "1.1.87",
+    "analysis": {
+      "version": "1.1.86",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T01:01:25.650383",
+    "old_version": "1.1.87",
+    "new_version": "1.1.88",
+    "analysis": {
+      "version": "1.1.87",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T01:31:25.702192",
+    "old_version": "1.1.88",
+    "new_version": "1.1.89",
+    "analysis": {
+      "version": "1.1.88",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T02:01:25.754499",
+    "old_version": "1.1.89",
+    "new_version": "1.1.90",
+    "analysis": {
+      "version": "1.1.89",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T02:31:25.809029",
+    "old_version": "1.1.90",
+    "new_version": "1.1.91",
+    "analysis": {
+      "version": "1.1.90",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T03:01:25.859165",
+    "old_version": "1.1.91",
+    "new_version": "1.1.92",
+    "analysis": {
+      "version": "1.1.91",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T03:31:25.912752",
+    "old_version": "1.1.92",
+    "new_version": "1.1.93",
+    "analysis": {
+      "version": "1.1.92",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T04:01:25.961752",
+    "old_version": "1.1.93",
+    "new_version": "1.1.94",
+    "analysis": {
+      "version": "1.1.93",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T04:31:26.018878",
+    "old_version": "1.1.94",
+    "new_version": "1.1.95",
+    "analysis": {
+      "version": "1.1.94",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T05:01:26.068278",
+    "old_version": "1.1.95",
+    "new_version": "1.1.96",
+    "analysis": {
+      "version": "1.1.95",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T05:31:26.124930",
+    "old_version": "1.1.96",
+    "new_version": "1.1.97",
+    "analysis": {
+      "version": "1.1.96",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T06:01:26.183003",
+    "old_version": "1.1.97",
+    "new_version": "1.1.98",
+    "analysis": {
+      "version": "1.1.97",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T06:31:26.250741",
+    "old_version": "1.1.98",
+    "new_version": "1.1.99",
+    "analysis": {
+      "version": "1.1.98",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T07:01:26.308095",
+    "old_version": "1.1.99",
+    "new_version": "1.1.100",
+    "analysis": {
+      "version": "1.1.99",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T07:31:26.358439",
+    "old_version": "1.1.100",
+    "new_version": "1.1.101",
+    "analysis": {
+      "version": "1.1.100",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T08:01:26.409086",
+    "old_version": "1.1.101",
+    "new_version": "1.1.102",
+    "analysis": {
+      "version": "1.1.101",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T08:31:26.463024",
+    "old_version": "1.1.102",
+    "new_version": "1.1.103",
+    "analysis": {
+      "version": "1.1.102",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T09:01:26.525300",
+    "old_version": "1.1.103",
+    "new_version": "1.1.104",
+    "analysis": {
+      "version": "1.1.103",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T09:31:26.592946",
+    "old_version": "1.1.104",
+    "new_version": "1.1.105",
+    "analysis": {
+      "version": "1.1.104",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T10:01:26.651381",
+    "old_version": "1.1.105",
+    "new_version": "1.1.106",
+    "analysis": {
+      "version": "1.1.105",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T10:31:26.701875",
+    "old_version": "1.1.106",
+    "new_version": "1.1.107",
+    "analysis": {
+      "version": "1.1.106",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T11:01:26.751481",
+    "old_version": "1.1.107",
+    "new_version": "1.1.108",
+    "analysis": {
+      "version": "1.1.107",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T11:31:26.819760",
+    "old_version": "1.1.108",
+    "new_version": "1.1.109",
+    "analysis": {
+      "version": "1.1.108",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T12:01:26.876090",
+    "old_version": "1.1.109",
+    "new_version": "1.1.110",
+    "analysis": {
+      "version": "1.1.109",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T12:31:26.927588",
+    "old_version": "1.1.110",
+    "new_version": "1.1.111",
+    "analysis": {
+      "version": "1.1.110",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T13:01:26.981872",
+    "old_version": "1.1.111",
+    "new_version": "1.1.112",
+    "analysis": {
+      "version": "1.1.111",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T13:31:27.037210",
+    "old_version": "1.1.112",
+    "new_version": "1.1.113",
+    "analysis": {
+      "version": "1.1.112",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T14:01:27.091352",
+    "old_version": "1.1.113",
+    "new_version": "1.1.114",
+    "analysis": {
+      "version": "1.1.113",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T14:31:27.170811",
+    "old_version": "1.1.114",
+    "new_version": "1.1.115",
+    "analysis": {
+      "version": "1.1.114",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T15:01:27.230305",
+    "old_version": "1.1.115",
+    "new_version": "1.1.116",
+    "analysis": {
+      "version": "1.1.115",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T15:31:27.285511",
+    "old_version": "1.1.116",
+    "new_version": "1.1.117",
+    "analysis": {
+      "version": "1.1.116",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T16:01:27.347664",
+    "old_version": "1.1.117",
+    "new_version": "1.1.118",
+    "analysis": {
+      "version": "1.1.117",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T16:31:27.407117",
+    "old_version": "1.1.118",
+    "new_version": "1.1.119",
+    "analysis": {
+      "version": "1.1.118",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T17:01:27.464824",
+    "old_version": "1.1.119",
+    "new_version": "1.1.120",
+    "analysis": {
+      "version": "1.1.119",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T17:31:27.520378",
+    "old_version": "1.1.120",
+    "new_version": "1.1.121",
+    "analysis": {
+      "version": "1.1.120",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T18:01:27.579257",
+    "old_version": "1.1.121",
+    "new_version": "1.1.122",
+    "analysis": {
+      "version": "1.1.121",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T18:31:27.637321",
+    "old_version": "1.1.122",
+    "new_version": "1.1.123",
+    "analysis": {
+      "version": "1.1.122",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T19:01:27.688671",
+    "old_version": "1.1.123",
+    "new_version": "1.1.124",
+    "analysis": {
+      "version": "1.1.123",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T19:31:27.740750",
+    "old_version": "1.1.124",
+    "new_version": "1.1.125",
+    "analysis": {
+      "version": "1.1.124",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T20:01:27.795142",
+    "old_version": "1.1.125",
+    "new_version": "1.1.126",
+    "analysis": {
+      "version": "1.1.125",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T20:31:27.850492",
+    "old_version": "1.1.126",
+    "new_version": "1.1.127",
+    "analysis": {
+      "version": "1.1.126",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T21:01:27.951665",
+    "old_version": "1.1.127",
+    "new_version": "1.1.128",
+    "analysis": {
+      "version": "1.1.127",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T21:31:28.009763",
+    "old_version": "1.1.128",
+    "new_version": "1.1.129",
+    "analysis": {
+      "version": "1.1.128",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T22:01:28.070274",
+    "old_version": "1.1.129",
+    "new_version": "1.1.130",
+    "analysis": {
+      "version": "1.1.129",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T22:31:28.123572",
+    "old_version": "1.1.130",
+    "new_version": "1.1.131",
+    "analysis": {
+      "version": "1.1.130",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T23:01:28.177977",
+    "old_version": "1.1.131",
+    "new_version": "1.1.132",
+    "analysis": {
+      "version": "1.1.131",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-15T23:31:28.230118",
+    "old_version": "1.1.132",
+    "new_version": "1.1.133",
+    "analysis": {
+      "version": "1.1.132",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T00:01:28.285560",
+    "old_version": "1.1.133",
+    "new_version": "1.1.134",
+    "analysis": {
+      "version": "1.1.133",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T00:31:28.339657",
+    "old_version": "1.1.134",
+    "new_version": "1.1.135",
+    "analysis": {
+      "version": "1.1.134",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T01:01:28.393572",
+    "old_version": "1.1.135",
+    "new_version": "1.1.136",
+    "analysis": {
+      "version": "1.1.135",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T01:31:28.447345",
+    "old_version": "1.1.136",
+    "new_version": "1.1.137",
+    "analysis": {
+      "version": "1.1.136",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T02:01:28.520745",
+    "old_version": "1.1.137",
+    "new_version": "1.1.138",
+    "analysis": {
+      "version": "1.1.137",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T02:31:28.574370",
+    "old_version": "1.1.138",
+    "new_version": "1.1.139",
+    "analysis": {
+      "version": "1.1.138",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T03:01:28.641307",
+    "old_version": "1.1.139",
+    "new_version": "1.1.140",
+    "analysis": {
+      "version": "1.1.139",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T03:31:28.699868",
+    "old_version": "1.1.140",
+    "new_version": "1.1.141",
+    "analysis": {
+      "version": "1.1.140",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T04:01:28.755294",
+    "old_version": "1.1.141",
+    "new_version": "1.1.142",
+    "analysis": {
+      "version": "1.1.141",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T04:31:28.809387",
+    "old_version": "1.1.142",
+    "new_version": "1.1.143",
+    "analysis": {
+      "version": "1.1.142",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T05:01:28.861535",
+    "old_version": "1.1.143",
+    "new_version": "1.1.144",
+    "analysis": {
+      "version": "1.1.143",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T05:31:28.911388",
+    "old_version": "1.1.144",
+    "new_version": "1.1.145",
+    "analysis": {
+      "version": "1.1.144",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T06:01:28.967631",
+    "old_version": "1.1.145",
+    "new_version": "1.1.146",
+    "analysis": {
+      "version": "1.1.145",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T06:31:29.021560",
+    "old_version": "1.1.146",
+    "new_version": "1.1.147",
+    "analysis": {
+      "version": "1.1.146",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T07:01:29.077407",
+    "old_version": "1.1.147",
+    "new_version": "1.1.148",
+    "analysis": {
+      "version": "1.1.147",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T07:31:29.159139",
+    "old_version": "1.1.148",
+    "new_version": "1.1.149",
+    "analysis": {
+      "version": "1.1.148",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T08:01:29.216710",
+    "old_version": "1.1.149",
+    "new_version": "1.1.150",
+    "analysis": {
+      "version": "1.1.149",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  },
+  {
+    "timestamp": "2026-03-16T08:31:29.269305",
+    "old_version": "1.1.150",
+    "new_version": "1.1.151",
+    "analysis": {
+      "version": "1.1.150",
+      "issues": [],
+      "improvements": [
+        "可添加文件输入支持",
+        "可添加多语言支持支持",
+        "可添加错误处理支持",
+        "可添加日志记录支持"
+      ],
+      "score": 75
+    },
+    "changes": [
+      "添加 LRU 缓存支持"
+    ]
+  }
+]

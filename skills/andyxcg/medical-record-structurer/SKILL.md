@@ -1,15 +1,16 @@
 ---
 name: medical-record-structurer
 description: Medical record structuring and standardization tool. Converts doctor's oral or handwritten medical records into standardized electronic medical records (EMR). Supports voice/text input, automatic field recognition, and structured output. Use when processing medical records, clinical notes, patient histories, or converting unstructured medical data into standardized formats. Includes skillpay.me payment integration for pay-per-use monetization.
-version: 1.0.4
+version: 1.2.0
 ---
 
 # Medical Record Structurer
 
-> **Version**: 1.0.4  
+> **Version**: 1.1.0  
 > **Category**: Healthcare / Medical  
 > **Billing**: SkillPay (0.001 USDT per call)  
-> **Free Trial**: 10 free calls per user
+> **Free Trial**: 10 free calls per user  
+> **Demo Mode**: ✅ Available (no API key required)
 
 A professional medical record processing tool that transforms unstructured medical notes (voice or text) into standardized electronic medical records.
 
@@ -20,6 +21,22 @@ A professional medical record processing tool that transforms unstructured medic
 3. **Standardized EMR Output** - Generates structured electronic medical records
 4. **Payment Integration** - skillpay.me integration for monetization (0.001 USDT per use)
 5. **Free Trial** - 10 free calls for every new user
+6. **Demo Mode** - Try without API key, returns simulated data
+7. **Batch Processing** - Process multiple records at once
+8. **File Input Support** - Read medical records from files
+9. **Multi-language Support** - Chinese and English output
+
+## Demo Mode
+
+Try the skill without any API key:
+
+```bash
+python scripts/process_record.py --demo
+```
+
+Or simply don't set any API key - the skill will automatically enter demo mode.
+
+Demo mode returns realistic simulated medical records to demonstrate the output format.
 
 ## Free Trial
 
@@ -42,7 +59,13 @@ After 10 free calls, normal billing applies.
 
 ## Quick Start
 
-### Process a medical record:
+### Demo Mode (No API Key):
+
+```bash
+python scripts/process_record.py --demo --input "患者张三，男，45岁，主诉头痛3天..."
+```
+
+### Process a Single Record:
 
 ```python
 from scripts.process_record import process_medical_record
@@ -50,6 +73,7 @@ import os
 
 # Set API key via environment variable (only needed after trial)
 os.environ["SKILLPAY_API_KEY"] = "your-api-key"
+os.environ["SKILLPAY_SKILL_ID"] = "your-skill-id"
 
 # Process with user_id for billing/trial tracking
 result = process_medical_record(
@@ -70,16 +94,36 @@ else:
         print("充值链接:", result["paymentUrl"])
 ```
 
-### API Usage:
+### Batch Processing:
 
 ```bash
-# Set API key via environment variable (only needed after trial)
-export SKILLPAY_API_KEY="your-api-key"
+# Process multiple files
+python scripts/process_record.py --batch file1.txt file2.txt file3.txt --user-id "user_123"
+```
 
-# Run with user_id for billing/trial tracking
-python scripts/process_record.py \
-  --input "患者张三，男，45岁，主诉头痛3天..." \
-  --user-id "user_123"
+```python
+from scripts.process_record import process_medical_records_batch
+
+results = process_medical_records_batch(
+    input_texts=["记录1...", "记录2...", "记录3..."],
+    user_id="user_123"
+)
+```
+
+### File Input:
+
+```bash
+python scripts/process_record.py --file record.txt --user-id "user_123"
+```
+
+### Language Selection:
+
+```bash
+# Chinese output (default)
+python scripts/process_record.py --input "..." --user-id "user_123" --language zh
+
+# English output
+python scripts/process_record.py --input "..." --user-id "user_123" --language en
 ```
 
 ## Environment Variables
@@ -114,6 +158,7 @@ The skill uses SkillPay billing integration:
 - Price: 0.001 USDT per request
 - Chain: BNB Chain
 - Free Trial: 10 calls per user
+- Demo Mode: Available without API key
 - API Key: Set via `SKILLPAY_API_KEY` environment variable
 - Skill ID: Set via `SKILLPAY_SKILL_ID` environment variable
 
@@ -135,9 +180,10 @@ Structured medical record includes:
 ```python
 {
     "success": True,
+    "demo_mode": False,         # True if in demo mode
     "trial_mode": False,        # True during free trial
     "trial_remaining": 0,       # Remaining free calls
-    "balance": 95.5,            # User balance (None during trial)
+    "balance": 95.5,            # User balance (None during trial/demo)
     "structured_record": {
         "emr_version": "1.0",
         "record_id": "EMR_20240306120000",
@@ -196,3 +242,18 @@ Configure the respective API keys in your `.env` file to enable these features.
 - For detailed field specifications: see [references/emr-schema.md](references/emr-schema.md)
 - For payment API details: see [references/skillpay-api.md](references/skillpay-api.md)
 - For full documentation: see [README.md](README.md)
+
+## Changelog
+
+### v1.1.0
+- Added demo mode (no API key required)
+- Added batch processing support
+- Added file input support
+- Added multi-language support (zh/en)
+- Unified environment variable naming to `SKILLPAY_API_KEY` and `SKILLPAY_SKILL_ID`
+- Improved error messages with bilingual support
+
+### v1.0.4
+- Initial stable release
+- SkillPay billing integration
+- Free trial support
