@@ -3,11 +3,16 @@
   "slug": "bnbot",
   "displayName": "Bnbot Skill",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773594515701,
-    "commit": "https://github.com/openclaw/skills/commit/a001a01d03aa8973679a50cd38455f6c11ac1e36"
+    "version": "1.4.0",
+    "publishedAt": 1773634316790,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773594515701,
+      "commit": "https://github.com/openclaw/skills/commit/a001a01d03aa8973679a50cd38455f6c11ac1e36"
+    },
     {
       "version": "0.5.3",
       "publishedAt": 1772782577467,

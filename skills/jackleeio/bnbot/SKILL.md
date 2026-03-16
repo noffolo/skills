@@ -1,7 +1,7 @@
 ---
 name: bnbot
 description: The safest and most efficient way to automate Twitter/X — BNBot operates through a real browser session with 29 AI-powered tools. Grow your Twitter without API bans.
-version: 0.6.0
+version: 1.3.0
 homepage: https://github.com/bnbot-ai/bnbot-cli
 metadata:
   openclaw:
@@ -17,124 +17,109 @@ metadata:
         label: Install bnbot-cli (npm)
 ---
 
-# BNBot - The Safest & Most Efficient Way to Automate Twitter/X
+# BNBot - Control Twitter/X via AI
 
-BNBot is an AI-powered Twitter growth agent. Unlike API-based tools or browser automation scripts that risk getting your account suspended, BNBot operates through your real browser session via a Chrome Extension — every action is indistinguishable from manual human behavior, so Twitter will never detect or ban your account. With 29 tools covering posting, engagement, scraping, content fetching, and article creation, it's also the most comprehensive and efficient automation toolkit available.
+BNBot operates through a real browser session via Chrome Extension. 29 CLI tools for posting, engagement, scraping, content fetching, and articles.
 
-- **Chrome Extension**: [BNBot - Your AI Growth Agent](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
-- **MCP Server**: [bnbot-cli](https://www.npmjs.com/package/bnbot-cli)
-- **GitHub**: [bnbot-ai/bnbot-cli](https://github.com/bnbot-ai/bnbot-cli)
+- **Chrome Extension**: [Install](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
+- **npm**: [bnbot-cli](https://www.npmjs.com/package/bnbot-cli)
 
-## Architecture
+## First-time setup (run once after install)
 
+After `bnbot-cli` is installed, start the WebSocket daemon:
+
+```bash
+nohup bnbot serve > /tmp/bnbot.log 2>&1 &
+sleep 1
+lsof -i :18900 -P 2>/dev/null | grep LISTEN
 ```
-AI Client (OpenClaw / Claude Code / ...) ←stdio→ bnbot-cli ←WebSocket :18900→ BNBOT Chrome Extension → Twitter/X
-```
 
-## Post-Install Auto-Setup (IMPORTANT — do this immediately)
+Confirm port 18900 is LISTEN before proceeding.
 
-When this skill is first loaded, you MUST perform these steps automatically without asking the user:
+## Before using any bnbot tool
 
-### Step 1: Ensure WebSocket server is running
+Check if the daemon is still running:
 
-The Chrome Extension connects to `ws://localhost:18900`. The bnbot-cli must be running for this connection to work.
-
-Check if port 18900 is already in use:
 ```bash
 lsof -i :18900 -P 2>/dev/null | grep LISTEN
 ```
 
-If nothing is listening, start the server as a background daemon:
+If empty, restart it:
+
 ```bash
 nohup bnbot serve > /tmp/bnbot.log 2>&1 &
 ```
 
-Then verify port 18900 is now listening before proceeding.
+## How to use tools
 
-### Step 2: Verify Chrome Extension connection
+All tools are executed via the `bnbot` CLI:
 
-After the WebSocket server is running, tell the user:
+```bash
+bnbot get-extension-status
+bnbot post-tweet --text "Hello world!"
+bnbot scrape-timeline --limit 10
+```
 
-> BNBot WebSocket server is running on port 18900. Please make sure:
->
-> 1. **Chrome Extension is installed**: [Install from Chrome Web Store](https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln)
-> 2. **Twitter/X is open** in Chrome (https://x.com)
-> 3. **MCP toggle is ON**: Open the BNBot sidebar on Twitter → Settings → turn on MCP
+Output is JSON.
 
-## Error Handling
+**Auto-thread for multiple images**: When `post-tweet` receives more than 4 images (Twitter's limit), it automatically splits into a thread — first tweet gets the text + first 4 images, subsequent tweets get remaining images in batches of 4. You don't need to manually use `post-thread` for this.
 
-After any BNBot tool call, check the result. If it fails or returns a connection error:
+When scraping content from Xiaohongshu or other platforms with many images (e.g. 10), just pass all images to `post-tweet` and it handles the splitting automatically.
 
-1. Check if port 18900 is still listening. If not, restart: `nohup bnbot serve > /tmp/bnbot.log 2>&1 &`
-2. If port is listening but extension is not connected, show the connection guide above.
-3. Never silently fail. Always explain what went wrong and how to fix it.
+## If extension is not connected
 
-## Available Tools (29)
+If `bnbot get-extension-status` shows `connected: false`, tell the user:
+
+> Chrome Extension is not connected. Please:
+> 1. Install extension: https://chromewebstore.google.com/detail/bnbot-your-ai-growth-agen/haammgigdkckogcgnbkigfleejpaiiln
+> 2. Open https://x.com in Chrome
+> 3. Open BNBot sidebar → Settings → turn on MCP
+
+## Available CLI commands
 
 ### Status
-
-- `get_extension_status` - Check if extension is connected
-- `get_current_page_info` - Get info about the current Twitter/X page
+- `bnbot get-extension-status` — Check if extension is connected
+- `bnbot get-current-page-info` — Get current Twitter/X page info
 
 ### Navigation
-
-- `navigate_to_tweet` - Go to a specific tweet (params: `tweetUrl`)
-- `navigate_to_search` - Go to search page (params: `query`, optional `sort`)
-- `navigate_to_bookmarks` - Go to bookmarks
-- `navigate_to_notifications` - Go to notifications
-- `navigate_to_following` - Go to following list
-- `return_to_timeline` - Go back to home timeline
+- `bnbot navigate-to-tweet --tweetUrl <url>`
+- `bnbot navigate-to-search --query "..." [--sort ...]`
+- `bnbot navigate-to-bookmarks`
+- `bnbot navigate-to-notifications`
+- `bnbot navigate-to-following`
+- `bnbot return-to-timeline`
 
 ### Posting
-
-- `post_tweet` - Post a tweet (params: `text`, optional `images`, optional `draftOnly`)
-- `post_thread` - Post a thread (params: `tweets` array of `{text, images?}`)
-- `submit_reply` - Reply to a tweet (params: `text`, optional `tweetUrl`, optional `image`)
+- `bnbot post-tweet --text "..."`
+- `bnbot post-thread --tweets '[{"text":"..."},{"text":"..."}]'`
+- `bnbot submit-reply --text "..." [--tweetUrl <url>]`
+- `bnbot quote-tweet --tweetUrl <url> --text "..."`
 
 ### Engagement
-
-- `like_tweet` - Like a tweet (params: `tweetUrl`)
-- `retweet` - Retweet a tweet (params: `tweetUrl`)
-- `quote_tweet` - Quote tweet (params: `tweetUrl`, `text`, optional `draftOnly`)
-- `follow_user` - Follow a user (params: `username`)
+- `bnbot like-tweet [--tweetUrl <url>]`
+- `bnbot retweet [--tweetUrl <url>]`
+- `bnbot follow-user --username <handle>`
 
 ### Scraping
-
-- `scrape_timeline` - Scrape tweets from the timeline (params: `limit`, `scrollAttempts`)
-- `scrape_bookmarks` - Scrape bookmarked tweets (params: `limit`)
-- `scrape_search_results` - Search and scrape results (params: `query`, `limit`)
-- `scrape_current_view` - Scrape currently visible tweets
-- `scrape_thread` - Scrape a full tweet thread (params: `tweetUrl`)
-- `account_analytics` - Get account analytics (params: `startDate`, `endDate` in YYYY-MM-DD)
+- `bnbot scrape-timeline --limit <n> --scrollAttempts <n>`
+- `bnbot scrape-bookmarks --limit <n>`
+- `bnbot scrape-search-results --query "..." --limit <n>`
+- `bnbot scrape-current-view`
+- `bnbot scrape-thread --tweetUrl <url>`
+- `bnbot account-analytics --startDate YYYY-MM-DD --endDate YYYY-MM-DD`
 
 ### Content Fetching
-
-- `fetch_wechat_article` - Fetch a WeChat article (params: `url`)
-- `fetch_tiktok_video` - Fetch a TikTok video (params: `url`)
-- `fetch_xiaohongshu_note` - Fetch a Xiaohongshu note (params: `url`)
+- `bnbot fetch-wechat-article --url <url>`
+- `bnbot fetch-tiktok-video --url <url>`
+- `bnbot fetch-xiaohongshu-note --url <url>`
 
 ### Articles
-
-- `open_article_editor` - Open the Twitter/X article editor
-- `fill_article_title` - Fill article title (params: `title`)
-- `fill_article_body` - Fill article body (params: `content`, optional `format`: plain/markdown/html, optional `bodyImages`)
-- `upload_article_header_image` - Upload header image (params: `headerImage`)
-- `publish_article` - Publish or save as draft (params: optional `publish`, optional `asDraft`)
-- `create_article` - Full article creation flow (params: `title`, `content`, optional `format`, optional `headerImage`, optional `bodyImages`, optional `publish`)
+- `bnbot open-article-editor`
+- `bnbot fill-article-title --title "..."`
+- `bnbot fill-article-body --content "..." [--format markdown]`
+- `bnbot upload-article-header-image --headerImage <path>`
+- `bnbot publish-article [--publish true]`
+- `bnbot create-article --title "..." --content "..." [--format markdown]`
 
 ### Jobs
-
-- `search_jobs` - Search for available jobs with crypto rewards (params: optional `type`: boost/hire/all, optional `status`, `sort`, `limit`, `keyword`, `endingSoon`, `token`)
-
-## Usage Examples
-
-- "Scrape my Twitter timeline and summarize the top topics"
-- "Search for tweets about AI agents and collect the most engaging ones"
-- "Post a tweet saying: Just discovered an amazing AI tool!"
-- "Navigate to my bookmarks and export them"
-- "Go to @elonmusk's latest tweet and reply with a thoughtful comment"
-- "Post a thread about the top 5 productivity tips"
-- "Like and retweet this tweet: https://x.com/..."
-- "Follow @username"
-- "Create an article about AI trends with markdown formatting"
-- "Fetch this WeChat article and repost it as a tweet thread"
+- `bnbot search-jobs [--type boost] [--limit 10]`
