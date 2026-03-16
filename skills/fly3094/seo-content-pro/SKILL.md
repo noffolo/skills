@@ -2,8 +2,13 @@
 name: seo-content-pro
 description: Advanced SEO content creation with multi-language support, content refresh, SEO scoring, and competitor analysis. Perfect for content creators and agencies.
 author: fly3094
-version: 1.0.0
+version: 1.0.2
 tags: [seo, content, writing, article, blog, marketing, multi-language, research]
+support: 
+  paypal: 492227637@qq.com
+  wechat: "请扫码打赏（微信支付）"
+  alipay: "请扫码打赏（支付宝）"
+  email: 492227637@qq.com
 metadata:
   clawdbot:
     emoji: 📝
@@ -33,23 +38,49 @@ metadata:
 
 # SEO Content Pro 📝
 
-Advanced SEO content creation skill with multi-language support, content refresh, and AI-powered optimization.
+**Rank higher on Google. Write faster.** AI-powered SEO content that competes with top 10 results.
+
+**Time saved:** 5 hours/article → 30 minutes/article  
+**Result:** 1500-3000 word articles with SEO score 80+
 
 ## What It Does
 
-- 🔍 **Topic Research**: Analyzes top-ranking content using SearXNG (privacy-respecting)
-- 📋 **Outline Generation**: Creates SEO-optimized article structures
-- ✍️ **First Draft**: Writes 1500-3000 word articles with proper heading hierarchy
-- 🎯 **Keyword Integration**: Suggests and integrates primary/secondary keywords
+- 🔍 **Topic Research**: Analyzes top-ranking content using SearXNG (privacy-respecting, no tracking)
+- 📋 **Outline Generation**: Creates SEO-optimized article structures (H1/H2/H3 hierarchy)
+- ✍️ **First Draft**: Writes 1500-3000 word articles in 6 languages
+- 🎯 **Keyword Integration**: Suggests and integrates primary/secondary keywords naturally
 - 📊 **Competitor Analysis**: Identifies content gaps vs top 10 ranking pages
 - 🌐 **Multi-language**: English, Chinese, Spanish, French, German, Japanese
 - 🔄 **Content Refresh**: Update old articles with new data and insights
-- 📈 **SEO Score**: Get content quality score (0-100) with improvement suggestions
+- 📈 **SEO Score**: Get content quality score (0-100) with specific improvement suggestions
 
-## Installation
+## Quick Start (2 minutes)
 
 ```bash
+# 1. Install
 clawhub install seo-content-pro
+
+# 2. Create your first article
+# Just ask: "Write a 2000-word SEO article about AI automation tools"
+```
+
+**Full workflow example:**
+```
+User: Create SEO article about "best AI automation tools" - 2500 words
+
+AI: 
+1. 🔍 Researching top 10 ranking pages...
+2. 📋 Generating SEO-optimized outline...
+3. ✍️ Writing 2500-word draft...
+4. 📊 Analyzing SEO score: 85/100
+5. 🎯 Keyword density: 2.1% (optimal)
+6. ✅ Article ready!
+
+Word count: 2,547
+Reading time: 11 minutes
+SEO Score: 85/100
+Primary keyword: "AI automation tools" (18 mentions)
+Secondary keywords: automation software, AI tools, workflow automation
 ```
 
 ## Commands
@@ -287,3 +318,19 @@ Contact: PayPal 492227637@qq.com
 - Competitor analysis
 - SearXNG integration
 - Integrations with social-media-automator and rss-to-social
+
+---
+
+## 💖 支持作者
+
+如果你觉得这个技能有用，请考虑打赏支持：
+
+- **PayPal**: 492227637@qq.com
+- **微信支付**: 请扫码打赏
+- **支付宝**: 请扫码打赏
+- **邮箱**: 492227637@qq.com
+
+你的支持是我持续改进的动力！
+
+![微信支付收款码](../assets/wechat-qr.png)
+![支付宝收款码](../assets/alipay-qr.png)

@@ -1,11 +1,17 @@
 {
   "owner": "fly3094",
   "slug": "seo-content-pro",
-  "displayName": "SEO Content Pro",
+  "displayName": "Seo Content Pro",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772859486196,
-    "commit": "https://github.com/openclaw/skills/commit/d3c73a69709cefa16d2aef8d65b553a38c548071"
+    "version": "1.0.2",
+    "publishedAt": 1773634787710,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772859486196,
+      "commit": "https://github.com/openclaw/skills/commit/d3c73a69709cefa16d2aef8d65b553a38c548071"
+    }
+  ]
 }
