@@ -5,12 +5,12 @@ description: >-
   Use when creating mandates, answering intake questions, reviewing matches,
   or integrating OpenMandate into applications. Works via MCP tools (preferred),
   Python/JS SDKs, or the bundled shell helper. Requires OPENMANDATE_API_KEY.
-version: 0.5.0
+version: 0.5.1
 homepage: https://openmandate.ai
 license: MIT
 metadata:
   author: openmandate
-  version: "0.5.0"
+  version: "0.5.1"
   openclaw:
     emoji: "handshake"
     requires:
@@ -82,7 +82,7 @@ All tools are prefixed with `openmandate_`:
 | `openmandate_submit_answers` | Submit answers to intake questions. Check response for more `pending_questions`. |
 | `openmandate_close_mandate` | Permanently close a mandate. |
 | `openmandate_list_matches` | List all matches. |
-| `openmandate_get_match` | Get match details — score, strengths, concerns. Contact info after mutual accept. |
+| `openmandate_get_match` | Get match details — grade, strengths, concerns. Contact info after mutual accept. |
 | `openmandate_respond_to_match` | Accept or decline a match. Pass `action`: `"accept"` or `"decline"`. |
 
 ## Shell Commands Reference
@@ -180,5 +180,5 @@ python3 {baseDir}/scripts/openmandate.py match m_xyz789
 - The user gets emailed when a match is found. No need to poll.
 - Intake typically takes 2-3 rounds. OpenMandate adapts based on answer quality.
 - Detailed answers → fewer rounds, better matches. Vague answers → more follow-ups.
-- Compatibility score 60+ is a strong match. Review strengths and concerns before accepting.
+- Matches are graded: Good Match, Strong Match, or Exceptional Match. Review strengths and concerns before accepting.
 - For SDK usage patterns and API reference, see the `references/` directory.

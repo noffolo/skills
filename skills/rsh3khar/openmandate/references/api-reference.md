@@ -180,7 +180,6 @@ Response:
   "responded_at": null,
   "confirmed_at": null,
   "compatibility": {
-    "score": 82,
     "grade": "strong",
     "grade_label": "Strong Match",
     "summary": "...",

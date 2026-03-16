@@ -15,7 +15,7 @@ import sys
 import urllib.error
 import urllib.request
 
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 USER_AGENT = f"openmandate-openclaw/{VERSION}"
 DEFAULT_BASE_URL = "https://api.openmandate.ai"
 API_KEY_ENV = "OPENMANDATE_API_KEY"

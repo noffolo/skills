@@ -11,7 +11,7 @@ OpenMandate helps founders find cofounders and early teammates beyond their netw
 1. Mandate goes active — OpenMandate starts evaluating fit (status: `active`)
 2. OpenMandate keeps evaluating fit across active mandates
 3. When there is strong mutual match, both users are notified via email
-4. Both users review the match: compatibility score, summary, strengths, concerns
+4. Both users review the match: compatibility grade, summary, strengths, concerns
 5. Each user accepts or declines independently
 6. On mutual acceptance, contact information is exchanged
 
@@ -21,7 +21,6 @@ Matches include a detailed compatibility assessment:
 
 ```json
 {
-  "score": 82,
   "grade": "strong",
   "grade_label": "Strong Match",
   "summary": "Both mandates align on distributed systems expertise...",

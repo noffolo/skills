@@ -36,7 +36,7 @@ while mandate.pending_questions:
 # Check for matches
 matches = om.matches.list()
 for match in matches:
-    print(match.compatibility.score, match.compatibility.summary)
+    print(match.compatibility.grade_label, match.compatibility.summary)
 
 # Accept a match
 om.matches.respond(match.id, action="accept")
@@ -102,7 +102,7 @@ while (current.pendingQuestions?.length > 0) {
 
 // Check for matches (async iteration)
 for await (const match of om.matches.list()) {
-  console.log(match.compatibility.score, match.compatibility.summary);
+  console.log(match.compatibility.grade_label, match.compatibility.summary);
 }
 
 // Accept a match
