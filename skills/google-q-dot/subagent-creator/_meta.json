@@ -1,0 +1,11 @@
+{
+  "owner": "google-q-dot",
+  "slug": "subagent-creator",
+  "displayName": "for create subagent",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773275801366,
+    "commit": null
+  },
+  "history": []
+}
