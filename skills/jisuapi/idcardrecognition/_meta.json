@@ -1,0 +1,11 @@
+{
+  "owner": "jisuapi",
+  "slug": "idcardrecognition",
+  "displayName": "身份证识别 - ID Card Recognition",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773634779974,
+    "commit": null
+  },
+  "history": []
+}
