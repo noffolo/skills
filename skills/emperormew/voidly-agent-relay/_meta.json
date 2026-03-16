@@ -3,9 +3,15 @@
   "slug": "voidly-agent-relay",
   "displayName": "Voidly Agent Relay",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1773186525806,
-    "commit": "https://github.com/openclaw/skills/commit/c9cc14160c86d953934f165ecdf57755e1db7999"
+    "version": "1.0.11",
+    "publishedAt": 1773661680405,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1773186525806,
+      "commit": "https://github.com/openclaw/skills/commit/c9cc14160c86d953934f165ecdf57755e1db7999"
+    }
+  ]
 }
