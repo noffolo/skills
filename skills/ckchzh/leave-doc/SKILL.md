@@ -1,7 +1,9 @@
 ---
+version: "2.0.0"
 name: Leave Doc
-description: >-
+description: "请假条生成器。支持多种请假类型、多天请假自动计算工作日、紧急请假模板、年假最优规划。. Use when you need leave doc capabilities. Triggers on: leave doc."
   请假条生成器。事假、病假、年假、婚假、产假模板、多天请假自动计算工作日、紧急请假、年假规划。Leave application generator for personal, sick, annual, marriage, maternity leave with workday calculation, emergency templates, annual leave planning. 请假模板、请假理由、OA审批。Use when writing leave applications.
+author: BytesAgain
 ---
 
 # leave-doc
@@ -44,3 +46,6 @@ bash scripts/doc.sh annual-plan "10"
 
 - Python 3.6+
 - No external dependencies
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
