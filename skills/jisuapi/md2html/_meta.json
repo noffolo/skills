@@ -3,9 +3,15 @@
   "slug": "md2html",
   "displayName": "Markdown和HTML、PDF互转 - Convert Markdown To HTML And PDF",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773309002533,
-    "commit": "https://github.com/openclaw/skills/commit/fc708e295973dba331d0d78be9367e0daa02a534"
+    "version": "1.0.2",
+    "publishedAt": 1773632352871,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773309002533,
+      "commit": "https://github.com/openclaw/skills/commit/fc708e295973dba331d0d78be9367e0daa02a534"
+    }
+  ]
 }

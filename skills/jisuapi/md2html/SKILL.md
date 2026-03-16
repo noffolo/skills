@@ -22,7 +22,7 @@ pip install markdown xhtml2pdf html2text
 
 ## 脚本路径
 
-脚本文件：`skill/md2html/md2html.py`
+脚本文件：`skills/md2html/md2html.py`
 
 ## 使用方式
 
@@ -31,8 +31,8 @@ pip install markdown xhtml2pdf html2text
 从**文件**或**内容**转 HTML，可选 `title`：
 
 ```bash
-python3 skill/md2html/md2html.py html '{"path":"README.md"}'
-python3 skill/md2html/md2html.py html '{"content":"# 标题\n\n段落。","title":"我的文档"}'
+python3 skills/md2html/md2html.py html '{"path":"README.md"}'
+python3 skills/md2html/md2html.py html '{"content":"# 标题\n\n段落。","title":"我的文档"}'
 ```
 
 返回：`{"html": "<!DOCTYPE html>..."}`
@@ -42,20 +42,20 @@ python3 skill/md2html/md2html.py html '{"content":"# 标题\n\n段落。","title
 从**文件**或**内容**转 PDF，返回 base64：
 
 ```bash
-python3 skill/md2html/md2html.py pdf '{"path":"README.md"}'
-python3 skill/md2html/md2html.py pdf '{"content":"# Hello\n\nWorld.","title":"Report"}'
+python3 skills/md2html/md2html.py pdf '{"path":"README.md"}'
+python3 skills/md2html/md2html.py pdf '{"content":"# Hello\n\nWorld.","title":"Report"}'
 ```
 
 返回：`{"pdf_base64": "JVBERi0xLjQKJ..."}`。解码保存示例：  
-`python3 skill/md2html/md2html.py pdf '{"path":"a.md"}' | jq -r '.pdf_base64' | base64 -d > out.pdf`
+`python3 skills/md2html/md2html.py pdf '{"path":"a.md"}' | jq -r '.pdf_base64' | base64 -d > out.pdf`
 
 ### 3. HTML → Markdown
 
 从**文件**或**内容**将 HTML 转为 Markdown：
 
 ```bash
-python3 skill/md2html/md2html.py html2md '{"path":"page.html"}'
-python3 skill/md2html/md2html.py html2md '{"content":"<h1>标题</h1><p>段落</p>"}'
+python3 skills/md2html/md2html.py html2md '{"path":"page.html"}'
+python3 skills/md2html/md2html.py html2md '{"content":"<h1>标题</h1><p>段落</p>"}'
 ```
 
 返回：`{"markdown": "# 标题\n\n段落"}`
