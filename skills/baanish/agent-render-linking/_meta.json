@@ -3,9 +3,15 @@
   "slug": "agent-render-linking",
   "displayName": "Agent Render Linking",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1773041843459,
-    "commit": "https://github.com/openclaw/skills/commit/138ca2d862a550fe8fb9ece2142ef3dadf266d89"
+    "version": "1.2.0",
+    "publishedAt": 1773431722154,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1773041843459,
+      "commit": "https://github.com/openclaw/skills/commit/138ca2d862a550fe8fb9ece2142ef3dadf266d89"
+    }
+  ]
 }
