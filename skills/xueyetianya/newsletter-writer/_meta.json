@@ -3,11 +3,16 @@
   "slug": "newsletter-writer",
   "displayName": "Newsletter Writer",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1773421575243,
-    "commit": "https://github.com/openclaw/skills/commit/5006973beb5a3c76552e5d549a79d46f8195acbc"
+    "version": "1.0.6",
+    "publishedAt": 1773666574287,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1773421575243,
+      "commit": "https://github.com/openclaw/skills/commit/5006973beb5a3c76552e5d549a79d46f8195acbc"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773206280547,
