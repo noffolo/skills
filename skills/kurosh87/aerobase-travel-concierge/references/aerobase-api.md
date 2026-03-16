@@ -30,14 +30,14 @@ Authorization: Bearer YOUR_API_KEY
 - `GET /api/hotels/near-airport/{code}` - Airport-adjacent hotels
 
 ### Activities
-- `GET /api/v1/tours` - Viator tours and activities
+- `GET /api/v1/tours` - Tours and activities
 
 ### Deals
 - `GET /api/v1/deals` - Flight deals with filters
 
 ### Wallet
 - `GET /api/v1/credit-cards` - Credit card transfer partners
-- `GET /api/v1/loyalty/balances` - Gmail-scanned loyalty balances (Premium)
+- `GET /api/v1/loyalty/balances` - Loyalty balances from connected profiles (Premium)
 
 ### Recovery
 - `POST /api/v1/recovery/plan` - Generate jetlag recovery plan (Premium)
@@ -49,7 +49,7 @@ Authorization: Bearer YOUR_API_KEY
 ## Rate Limits
 
 - Free tier: 5 API calls/day
-- Premium: Unlimited
+- Premium: 500 API calls/month (Pro or Lifetime at $149.99)
 
 ## Errors
 

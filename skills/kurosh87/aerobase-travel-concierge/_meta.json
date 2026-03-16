@@ -3,11 +3,16 @@
   "slug": "aerobase-travel-concierge",
   "displayName": "Aerobase Travel Concierge",
   "latest": {
-    "version": "3.0.13",
-    "publishedAt": 1772859401857,
-    "commit": "https://github.com/openclaw/skills/commit/891f58b5d0976d0fae7d01044e93bb142d4c012e"
+    "version": "3.0.19",
+    "publishedAt": 1773443415137,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.13",
+      "publishedAt": 1772859401857,
+      "commit": "https://github.com/openclaw/skills/commit/891f58b5d0976d0fae7d01044e93bb142d4c012e"
+    },
     {
       "version": "1.2.0",
       "publishedAt": 1772832847093,
