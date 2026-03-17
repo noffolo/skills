@@ -1,11 +1,17 @@
 {
   "owner": "tttael",
   "slug": "wisdom-claw",
-  "displayName": "Wisdom-Claw",
+  "displayName": "Wisdom Claw",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1773454831706,
-    "commit": "https://github.com/openclaw/skills/commit/9128ea230f05a21c3dea680b7ea4606c0ad06c66"
+    "version": "1.2.0",
+    "publishedAt": 1773573580919,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1773454831706,
+      "commit": "https://github.com/openclaw/skills/commit/9128ea230f05a21c3dea680b7ea4606c0ad06c66"
+    }
+  ]
 }
