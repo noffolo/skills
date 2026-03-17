@@ -3,9 +3,15 @@
   "slug": "nostrcalendar",
   "displayName": "NostrCalendar",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1773431802215,
-    "commit": "https://github.com/openclaw/skills/commit/87ccb7851c33cac303292d93ebc5a80f3f004f86"
+    "version": "0.2.1",
+    "publishedAt": 1773700514223,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1773431802215,
+      "commit": "https://github.com/openclaw/skills/commit/87ccb7851c33cac303292d93ebc5a80f3f004f86"
+    }
+  ]
 }
