@@ -3,9 +3,15 @@
   "slug": "youtube-channel-section",
   "displayName": "YouTube Channel Section",
   "latest": {
-    "version": "0.10.6-3",
-    "publishedAt": 1773327815871,
-    "commit": "https://github.com/openclaw/skills/commit/2a22930ae6a8e0d2c11b2d83d0216d1162423d14"
+    "version": "0.10.7-dev",
+    "publishedAt": 1773496745558,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.10.6-3",
+      "publishedAt": 1773327815871,
+      "commit": "https://github.com/openclaw/skills/commit/2a22930ae6a8e0d2c11b2d83d0216d1162423d14"
+    }
+  ]
 }
