@@ -3,9 +3,15 @@
   "slug": "famou-artifact-generator",
   "displayName": "伐谋 - 任务定义与评估器生成",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773381927310,
-    "commit": "https://github.com/openclaw/skills/commit/ddfee1cd6fe5d30851e4be1d858d40eee766485b"
+    "version": "1.0.1",
+    "publishedAt": 1773383484129,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773381927310,
+      "commit": "https://github.com/openclaw/skills/commit/ddfee1cd6fe5d30851e4be1d858d40eee766485b"
+    }
+  ]
 }
