@@ -3,9 +3,15 @@
   "slug": "prompt-crafter",
   "displayName": "Prompt Crafter",
   "latest": {
-    "version": "2.1.0",
-    "publishedAt": 1773437584875,
-    "commit": "https://github.com/openclaw/skills/commit/f4627dd10fd181a9faa962de4b0c25d48c674012"
+    "version": "3.0.1",
+    "publishedAt": 1773612118616,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.1.0",
+      "publishedAt": 1773437584875,
+      "commit": "https://github.com/openclaw/skills/commit/f4627dd10fd181a9faa962de4b0c25d48c674012"
+    }
+  ]
 }
