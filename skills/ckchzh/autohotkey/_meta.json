@@ -3,9 +3,15 @@
   "slug": "autohotkey",
   "displayName": "Autohotkey",
   "latest": {
-    "version": "2.3.0",
-    "publishedAt": 1773447030342,
-    "commit": "https://github.com/openclaw/skills/commit/d351435f8977eb3b517f3c1b6ce79c457cfc0ddb"
+    "version": "2.3.7",
+    "publishedAt": 1773664646006,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.3.0",
+      "publishedAt": 1773447030342,
+      "commit": "https://github.com/openclaw/skills/commit/d351435f8977eb3b517f3c1b6ce79c457cfc0ddb"
+    }
+  ]
 }
