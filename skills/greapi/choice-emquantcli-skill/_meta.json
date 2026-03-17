@@ -1,0 +1,11 @@
+{
+  "owner": "greapi",
+  "slug": "choice-emquantcli-skill",
+  "displayName": "Emq",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1773583667601,
+    "commit": null
+  },
+  "history": []
+}
