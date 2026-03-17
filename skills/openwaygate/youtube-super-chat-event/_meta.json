@@ -3,9 +3,15 @@
   "slug": "youtube-super-chat-event",
   "displayName": "YouTube Super Chat Event",
   "latest": {
-    "version": "0.10.6-3",
-    "publishedAt": 1773364837757,
-    "commit": "https://github.com/openclaw/skills/commit/96993d912b57251f0880d9cfb74e499b16cbfa21"
+    "version": "0.10.7-dev",
+    "publishedAt": 1773497497040,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.10.6-3",
+      "publishedAt": 1773364837757,
+      "commit": "https://github.com/openclaw/skills/commit/96993d912b57251f0880d9cfb74e499b16cbfa21"
+    }
+  ]
 }
