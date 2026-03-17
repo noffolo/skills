@@ -2,13 +2,21 @@
  * 滴滴出行优惠券自动领取脚本 v5
  * 策略：打开页面 → 调用 MPX 组件 autoGetCoupon() → 读取结果
  * 与手工点击等价，耗时约 3~5s
+ *
+ * 依赖说明：
+ *   ws 模块由 OpenClaw workspace 的 node_modules 提供（与脚本同仓库）。
+ *   路径 ../../../node_modules/ws/wrapper.mjs 指向 workspace 根目录的 node_modules，
+ *   这是本技能设计的运行环境（skills/didi-coupon-auto/scripts/ 目录下执行）。
+ *   如需独立运行，请在脚本目录执行 `npm install ws` 后修改为 `import { WebSocket } from 'ws'`。
  */
-import { WebSocket } from '../../../node_modules/ws/wrapper.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __dir   = path.dirname(fileURLToPath(import.meta.url));
+// 优先使用 workspace 内置 ws；若不可用则降级到全局安装的 ws
+const __dir = path.dirname(fileURLToPath(import.meta.url));
+const wsPath = path.resolve(__dir, '../../../node_modules/ws/wrapper.mjs');
+const { WebSocket } = await import(wsPath).catch(() => import('ws'));
 const COUPON_URL = 'https://vv.didi.cn/a8ZdG0j?source_id=88446DIDI88446tkmmchild1001&ref_from=dunion';
 const LOG_DIR    = path.join(__dir, '../logs');
 const DELAY      = ms => new Promise(r => setTimeout(r, ms));
@@ -147,19 +155,39 @@ function saveLog(data) {
 // ─── 格式化券摘要（用于定时推送） ─────────────────────────────────────────────
 function buildSummary(rewards = [], message = '') {
   if (!rewards.length) return message || '无券信息';
+
+  // 统计金额：元券直接累加，折扣券计最高抵扣值
   const total = rewards.reduce((s, r) => {
     const cap = r.coupon?.max_benefit_capacity;
-    if (cap?.unit === '元') return s + Number(cap.value || 0);
-    return s;
+    if (!cap) return s;
+    return s + Number(cap.value || 0);
   }, 0);
-  const lines = rewards.slice(0, 6).map(r => {
+
+  // 按券名关键词分组
+  const groups = {};
+  for (const r of rewards) {
     const c = r.coupon;
     const cap = c.max_benefit_capacity;
-    return `  · ${c.name}  ${cap.value}${cap.unit}${c.usage_limit ? ' '+c.usage_limit : ''}`;
-  });
-  if (rewards.length > 6) lines.push(`  · ...共 ${rewards.length} 张`);
+    const label = `${cap.value}${cap.unit}${c.usage_limit ? ' ' + c.usage_limit : ''}`;
+    const key = c.name.includes('快车') ? '🚗 快车'
+              : c.name.includes('顺风') ? '🤝 顺风车'
+              : c.name.includes('火车') ? '🚄 火车票'
+              : c.name.includes('代驾') ? '🌙 代驾'
+              : c.name.includes('包车') || c.name.includes('跨城') ? '🛣 跨城/包车'
+              : c.name.includes('取货') || c.name.includes('单独') ? '📦 取送件'
+              : '🎟 其他';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(`    · ${c.name}  ${label}`);
+  }
+
+  const lines = [];
+  for (const [group, items] of Object.entries(groups)) {
+    lines.push(group);
+    lines.push(...items);
+  }
+
   return [
-    `🎫 今日已领 ${rewards.length} 张优惠券（立减合计约 ¥${total}）`,
+    `🎫 共 ${rewards.length} 张券，最高立减合计 ¥${total}`,
     ...lines
   ].join('\n');
 }
