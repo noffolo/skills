@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { DIRECT_KEYWORDS, MIRROR_KEYWORDS, PROMPT_SCENE_BY_TAG, detectSceneTag, hasAny, hasRelativeInstruction, normalizeRequest } from './claw-xiaoai-request-rules.mjs';
+import { DIRECT_KEYWORDS, MIRROR_KEYWORDS, PROMPT_SCENE_BY_TAG, detectSceneTag, hasAny, hasRelativeInstruction, normalizeRequest, resolveWeekendDaySceneTag } from './claw-xiaoai-request-rules.mjs';
 
 const STATE_PATH = resolve(process.env.HOME || '/root', '.openclaw', 'claw-xiaoai-state.json');
 const IDENTITY = '(young woman, female, same face, same Claw Xiaoai appearance, highly realistic photo, East Asian ethnicity)';
@@ -20,7 +20,14 @@ const SCENE_PRESETS = {
 function loadState(){ try{ return existsSync(STATE_PATH)? JSON.parse(readFileSync(STATE_PATH,'utf8')):{};}catch{return{};}}
 function saveState(state){ mkdirSync(dirname(STATE_PATH),{recursive:true}); writeFileSync(STATE_PATH, JSON.stringify(state,null,2)+'\n','utf8'); }
 function getBeijingParts(){ const d=new Date(); const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',hour:'2-digit',weekday:'short',hour12:false}).formatToParts(d); const hour=Number(parts.find(p=>p.type==='hour')?.value||'0'); const weekday=parts.find(p=>p.type==='weekday')?.value||'Mon'; return {hour,weekday,isWeekend:['Sat','Sun'].includes(weekday)}; }
-function timeSlot(){ const {hour,isWeekend}=getBeijingParts(); if(hour>=8&&hour<10) return {slot:'morning',scene:isWeekend?'cafe':'commute coffee'}; if(hour>=10&&hour<18) return {slot:'work',scene:'office'}; if(hour>=18&&hour<21) return {slot:'offwork',scene:'city street'}; if(hour>=21&&hour<24) return {slot:'night-active',scene:isWeekend?'dance studio':'gym'}; return {slot:'deep-night',scene:'bedroom'}; }
+function timeSlot(){
+  const {hour,isWeekend}=getBeijingParts();
+  if(hour>=8&&hour<10) return {slot:'morning',scene:isWeekend?'cafe':'commute coffee'};
+  if(hour>=10&&hour<18) return {slot:isWeekend?'weekend-day':'work',scene:isWeekend?'bedroom':'office'};
+  if(hour>=18&&hour<21) return {slot:'offwork',scene:'city street'};
+  if(hour>=21&&hour<24) return {slot:'night-active',scene:isWeekend?'dance studio':'gym'};
+  return {slot:'deep-night',scene:'bedroom'};
+}
 function inferMode(text, state){
   const normalized=normalizeRequest(text);
   if(hasAny(normalized, MIRROR_KEYWORDS)) return 'mirror';
@@ -29,9 +36,11 @@ function inferMode(text, state){
   return 'direct';
 }
 function inferScene(text, state, slotInfo){
+  const { hour, isWeekend } = getBeijingParts();
   const sceneTag=detectSceneTag(text);
   const mappedScene=sceneTag ? PROMPT_SCENE_BY_TAG[sceneTag] : undefined;
   if(mappedScene) return mappedScene;
+  if(slotInfo.slot === 'weekend-day' && isWeekend) return PROMPT_SCENE_BY_TAG[resolveWeekendDaySceneTag(hour, text)];
   if(hasRelativeInstruction(text)) return state.scene || slotInfo.scene;
   return slotInfo.scene;
 }

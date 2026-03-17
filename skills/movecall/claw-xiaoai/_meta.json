@@ -3,9 +3,15 @@
   "slug": "claw-xiaoai",
   "displayName": "Claw Xiaoai",
   "latest": {
-    "version": "0.0.8",
-    "publishedAt": 1773483279706,
-    "commit": "https://github.com/openclaw/skills/commit/0fcfacd46f0fac624b05606122307d4fed1b5a11"
+    "version": "0.0.9",
+    "publishedAt": 1773549853624,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.0.8",
+      "publishedAt": 1773483279706,
+      "commit": "https://github.com/openclaw/skills/commit/0fcfacd46f0fac624b05606122307d4fed1b5a11"
+    }
+  ]
 }
