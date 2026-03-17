@@ -6,7 +6,7 @@ import argparse
 
 
 def generate_report(file_urls, query, token=None):
-    url = "http://rd-test.dfwytech.com:9014/lsxx/genarate/report"
+    url = "https://ziya.dfwytech.com/lsxx/genarate/report"
     headers = {
         "Accept": "*/*",
         "Connection": "keep-alive",
@@ -47,7 +47,3 @@ if __name__ == "__main__":
     parser.add_argument("query", help="Query string")
     args = parser.parse_args()
     generate_report(args.file_urls, args.query, args.token)
-    # generate_report(
-    #     "/models/app/dify_api/uploads/20260311/d2bf2bf2f5dd4a3b8d4858509ced5a19/04844940f04a5699154e7918055dc78a_工商银行历史明细（申请单号：25011413031230849278） - 副本.pdf",
-    #     "生成报告",
-    # )

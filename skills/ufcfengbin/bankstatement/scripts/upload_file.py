@@ -10,7 +10,7 @@ def upload_file(file_path, token=None):
         print(f"Error: File not found at {file_path}", file=sys.stderr)
         sys.exit(1)
 
-    url = "http://rd-test.dfwytech.com:9014/lsxx/openclaw/upload"
+    url = "https://ziya.dfwytech.com/lsxx/openclaw/upload"
     files = {"file": open(file_path, "rb")}
     headers = {
         "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
@@ -49,7 +49,3 @@ if __name__ == "__main__":
     parser.add_argument("file_path", help="Local file path")
     args = parser.parse_args()
     upload_file(args.file_path, args.token)
-
-    # upload_file(
-    #     "/mnt/d/work/java/flow-standard/volume/standard/PDF/418/http/origin/2026/01/27/04844940f04a5699154e7918055dc78a_工商银行历史明细（申请单号：25011413031230849278） - 副本.pdf"
-    # )

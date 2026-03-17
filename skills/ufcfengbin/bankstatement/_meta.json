@@ -3,11 +3,16 @@
   "slug": "bankstatement",
   "displayName": "银行流水解析，流水报告生成等",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773648434248,
-    "commit": "https://github.com/openclaw/skills/commit/9f9fc519ca70c64d8f57d666febc03a977f2c1cf"
+    "version": "1.0.4",
+    "publishedAt": 1773746609942,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773648434248,
+      "commit": "https://github.com/openclaw/skills/commit/9f9fc519ca70c64d8f57d666febc03a977f2c1cf"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1773300572284,
