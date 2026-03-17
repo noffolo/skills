@@ -1,0 +1,41 @@
+{
+  "slug": "nse",
+  "name": "NSE Orchestrator",
+  "version": "0.2.0",
+  "summary": "The nervous system for sovereign AI entities — wires identity, wallet, calendar, relationships, and alignment into a coherent whole",
+  "author": {
+    "name": "Humanjava Enterprises",
+    "url": "https://nse.dev"
+  },
+  "license": "MIT",
+  "acceptLicenseTerms": true,
+  "repository": "https://github.com/HumanjavaEnterprises/nse-orchestrator.app.OC-python.src",
+  "tags": [
+    "nostr",
+    "sovereign",
+    "ai",
+    "orchestrator",
+    "identity",
+    "alignment",
+    "social-os",
+    "nervous-system"
+  ],
+  "install": {
+    "pip": "nse-orchestrator"
+  },
+  "requires": {
+    "python": ">=3.10"
+  },
+  "dependencies": [
+    "nostrkey",
+    "nostrwalletconnect",
+    "nostrcalendar",
+    "nostrsocial",
+    "social-alignment"
+  ],
+  "categories": [
+    "ai",
+    "identity",
+    "orchestration"
+  ]
+}
