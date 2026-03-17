@@ -3,9 +3,15 @@
   "slug": "context-hub-openclaw",
   "displayName": "Context Hub for OpenClaw",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1773695082548,
-    "commit": "https://github.com/openclaw/skills/commit/4b45c36f561a3d794863260de4713da0106a72b8"
+    "version": "0.1.1",
+    "publishedAt": 1773696224561,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1773695082548,
+      "commit": "https://github.com/openclaw/skills/commit/4b45c36f561a3d794863260de4713da0106a72b8"
+    }
+  ]
 }

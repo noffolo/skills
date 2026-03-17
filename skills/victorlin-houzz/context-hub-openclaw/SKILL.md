@@ -19,6 +19,58 @@ Trigger this skill when the user asks to:
 
 Do **not** rely only on memorized API shapes. Fetch current docs first.
 
+## OpenClaw trigger heuristics (explicit)
+
+Use this decision rule before coding:
+
+- **HIGH confidence trigger (use Context Hub immediately):**
+  - Request mentions an external API/SDK by name (`openai`, `anthropic`, `stripe`, `supabase`, etc.)
+  - Task includes auth, webhooks, function calling, streaming, uploads, pagination, or retries
+  - User asks for production-ready integration code/tests
+
+- **MEDIUM confidence trigger (use Context Hub unless local repo docs are clearly authoritative and current):**
+  - Refactor/migrate API client code
+  - Fix runtime errors that look like contract drift (`400 invalid param`, schema mismatch, deprecated endpoint)
+  - Add features across multiple languages/runtimes where SDK behavior may differ
+
+- **LOW confidence trigger (Context Hub optional):**
+  - Pure business logic with no third-party integration
+  - Trivial formatting/renaming changes
+  - Internal-only modules with stable local docs
+
+### Fast OpenClaw checklist
+
+If **2+** of these are true, run `chub` first:
+1. External API/SDK involved
+2. Version-specific behavior likely
+3. Endpoint/schema uncertainty exists
+4. Failure cost is high (payments/auth/data integrity)
+5. Existing code recently broke after dependency updates
+
+### Concrete trigger examples by provider
+
+**Stripe — trigger Context Hub first when:**
+- Implementing or fixing webhook signature verification
+- Creating subscription/payment-intent flows with idempotency requirements
+- Handling API version mismatch errors or changed field semantics
+
+Example:
+```bash
+chub search "stripe webhooks" --json
+chub get stripe/api --lang js --json
+```
+
+**OpenAI — trigger Context Hub first when:**
+- Implementing chat/responses APIs with tool/function calling
+- Streaming responses or migrating from older endpoints/SDK patterns
+- Debugging model parameter mismatches, structured output schemas, or file/tool workflows
+
+Example:
+```bash
+chub search "openai chat responses function calling" --json
+chub get openai/chat --lang js --json
+```
+
 ## Core workflow (doc-first coding)
 
 1) Search candidates
