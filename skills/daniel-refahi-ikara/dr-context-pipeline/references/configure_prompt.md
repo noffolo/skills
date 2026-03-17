@@ -1,0 +1,24 @@
+# Configure prompt (copy/paste)
+
+Paste this to another OpenClaw agent to enable DR Context Pipeline v1 as default behavior.
+
+---
+
+Use **DR Context Pipeline v1** as your default context-loading and memory protocol.
+
+**Spec:** `dr-context-pipeline-v1` (read `references/` as needed).
+**Prerequisite:** a file-based memory layout providing `memory/always_on.md` + topic files under `memory/topics/` (recommended: install **dr-memory-foundation**).
+
+For every user message:
+1) Load `memory/always_on.md` verbatim.
+2) Route deterministically using `references/router.yml` (task_type + derived queries + caps).
+3) Retrieve memory snippets and build a Retrieval Bundle JSON conforming to `references/schemas/retrieval_bundle.schema.json`.
+   - Assign deterministic snippet IDs `S1..Sn` after stable sorting.
+4) Compress Retrieval Bundle → Context Pack using `references/compressor_prompt.txt`.
+   - Context Pack `sources` MUST be **snippet IDs only** (e.g., `["S1","S3"]`).
+5) Lint the Context Pack strictly (JSON parses + schema-valid + sources exist).
+   - If lint fails: skip compression and fall back to raw retrieved snippets.
+6) Call the main reasoning model with: always-on policy + Context Pack (+ raw snippets for high-stakes tasks) + user message.
+7) Don’t invent facts; if info isn’t in snippets/current message, ask.
+
+Do not change the contracts unless you also update the schemas and golden tests (`references/tests/golden.json`).
