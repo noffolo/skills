@@ -141,7 +141,7 @@ async function importTracking(trackingNumber, carrierCode) {
   const url = `${API_BASE}/track/import`;
   const params = [{
     trackNo: trackingNumber,
-    courierCode: carrierCode
+    courierCode: carrierCode || ''
   }];
   
   try {
@@ -152,8 +152,6 @@ async function importTracking(trackingNumber, carrierCode) {
       },
       timeout: 10000
     });
-    
-    return response.data;
     
     return response.data;
   } catch (error) {
@@ -199,23 +197,31 @@ async function queryRealtime(trackingNumber, carrierCode, language = 'zh') {
  */
 async function detectCarrier(trackingNumber) {
   const config = loadConfig();
-  const { app_key } = config.track123;
+  const apiSecret = config.track123.api_secret;
   
-  if (!app_key || app_key === 'your_track123_api_key_here') {
+  if (!apiSecret || apiSecret === 'your_track123_api_key_here') {
     throw new Error('Track123 API Key 未配置');
   }
   
   const url = `${API_BASE}/courier/detection`;
   const params = {
-    app_key: app_key,
     number: trackingNumber
   };
   
-  const response = await axios.post(url, params, {
-    timeout: 10000
-  });
-  
-  return response.data;
+  try {
+    const response = await axios.post(url, params, {
+      headers: {
+        'Track123-Api-Secret': apiSecret,
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('[DEBUG] Detection Error:', error.response?.data);
+    throw error;
+  }
 }
 
 /**
@@ -223,19 +229,24 @@ async function detectCarrier(trackingNumber) {
  */
 async function getCarriers(language = 'zh') {
   const config = loadConfig();
-  const { app_key } = config.track123;
+  const apiSecret = config.track123.api_secret;
   
-  if (!app_key || app_key === 'your_track123_api_key_here') {
+  if (!apiSecret || apiSecret === 'your_track123_api_key_here') {
     throw new Error('Track123 API Key 未配置');
   }
   
   const url = `${API_BASE}/courier/list`;
   const params = {
-    app_key: app_key,
     language: language
   };
   
-  const response = await axios.get(url, { params, timeout: 10000 });
+  const response = await axios.get(url, {
+    params,
+    headers: {
+      'Track123-Api-Secret': apiSecret
+    },
+    timeout: 10000
+  });
   return response.data;
 }
 
@@ -401,14 +412,7 @@ async function query(trackingNumber, carrierCode, options = {}) {
         carrierCode = identified.code;
         carrier = CARRIER_MAP[identified.code] || { name: identified.name, nameEn: '' };
       } else {
-        // 使用 API 识别
-        const detection = await detectCarrier(trackingNumber);
-        if (detection.code === 200 && detection.data && detection.data.length > 0) {
-          carrierCode = detection.data[0].carrier_code;
-          carrier = CARRIER_MAP[carrierCode] || { name: detection.data[0].carrier_name, nameEn: detection.data[0].carrier_name_en };
-        } else {
-          throw new Error('无法识别快递公司，请指定快递公司代码');
-        }
+        throw new Error('无法识别快递公司，请指定快递公司代码\n可用代码：sf, yto, zto, yunda, sto, ems, jd, jt, dhl, fedex, ups, tnt, auto, carriers');
       }
     } else {
       carrier = CARRIER_MAP[carrierCode];

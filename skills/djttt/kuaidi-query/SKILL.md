@@ -77,6 +77,11 @@ node scripts/query.js carriers
 
 ### 文本格式
 
+```bash
+node scripts/query.js sf SF1234567890123
+```
+
+输出：
 ```
 📦 顺丰速运 SF Express
 运单号：SF1234567890123
@@ -95,6 +100,48 @@ node scripts/query.js carriers
 node scripts/query.js sf SF1234567890123 --format json
 ```
 
+输出：
+```json
+{
+  "tracking_number": "SF1234567890123",
+  "carrier": {
+    "code": "sf",
+    "name": "顺丰速运",
+    "nameEn": "SF Express"
+  },
+  "status": "002",
+  "status_description": "运输中",
+  "origin": "北京市朝阳区",
+  "destination": "上海市浦东新区",
+  "weight": null,
+  "signed_by": null,
+  "tracks": [
+    {
+      "checkpoint_time": "2024-03-14 08:30:00",
+      "tracking_detail": "已发出，下一站【上海转运中心]",
+      "location": "北京转运中心"
+    },
+    {
+      "checkpoint_time": "2024-03-13 22:15:00",
+      "tracking_detail": "已到达【北京转运中心]",
+      "location": "北京转运中心"
+    }
+  ]
+}
+```
+
+### Compact 格式（简洁模式）
+
+```bash
+node scripts/query.js sf SF1234567890123 --format compact
+```
+
+输出：
+```
+📦 SF1234567890123 (顺丰速运) - 运输中
+最新：2024-03-14 08:30:00 已发出，下一站【上海转运中心】
+```
+
 ## 配置
 
 ### 1. 复制配置模板
@@ -107,10 +154,13 @@ cp config.example.json config.json
 
 在 [Track123](https://www.track123.com/) 注册账号获取 API Key。
 
+⚠️ **重要**：下面的示例值（`your_api_key_here`）需要替换为你真实的 API Key！
+
 ```json
 {
   "track123": {
-    "api_secret": "你的 API_Key"
+    "app_key": "your_api_key_here",
+    "api_secret": "your_api_key_here"
   },
   "cache_duration": 3600000,
   "debug": false
@@ -124,10 +174,11 @@ cp config.example.json config.json
 cp config.example.json config.json
 
 # 编辑 config.json，填入你的 API Key
-# 例如：
+# 例如（❌ 下面的值只是示例格式，不是真实可用的 API Key）：
 # {
 #   "track123": {
-#     "api_secret": "5d9e90a4acfb4c1abfba5cf75ee6dfdc"
+#     "app_key": "your_real_api_key",
+#     "api_secret": "your_real_api_key"
 #   },
 #   "cache_duration": 3600000,
 #   "debug": false
