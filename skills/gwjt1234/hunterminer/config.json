@@ -1,0 +1,11 @@
+{
+  "software_name": "HunterMiner",
+  "billing_api_url": "https://skillpay.me",
+  "skill_id": "a4e775ef-bb62-434c-9179-54f8a3964691",
+  "scan_price_usdt": 0.1,
+  "api_key_env": "SKILLPAY_API_KEY",
+  "default_scan_max_file_size_mb": 20,
+  "default_text_read_limit_kb": 512,
+  "report_dir": "output",
+  "quarantine_dir": "output/quarantine"
+}
