@@ -1,11 +1,17 @@
 {
   "owner": "vassiliylakhonin",
   "slug": "agent-evals-lab",
-  "displayName": "Agent Evals Lab",
+  "displayName": "AI Agent Evals Lab",
   "latest": {
-    "version": "0.3.0",
-    "publishedAt": 1773418694760,
-    "commit": "https://github.com/openclaw/skills/commit/f7b2964f6d3b51c75543072d7369d99b8c91db7d"
+    "version": "0.3.2",
+    "publishedAt": 1773638534347,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.3.0",
+      "publishedAt": 1773418694760,
+      "commit": "https://github.com/openclaw/skills/commit/f7b2964f6d3b51c75543072d7369d99b8c91db7d"
+    }
+  ]
 }
