@@ -1,0 +1,11 @@
+{
+  "owner": "bytesagain1",
+  "slug": "htpasswd",
+  "displayName": "Htpasswd",
+  "latest": {
+    "version": "1.0.5",
+    "publishedAt": 1773663828027,
+    "commit": null
+  },
+  "history": []
+}
