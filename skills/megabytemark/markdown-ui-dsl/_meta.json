@@ -3,9 +3,15 @@
   "slug": "markdown-ui-dsl",
   "displayName": "Markdown-UI DSL: Zero-Hallucination UI Generation",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773511313504,
-    "commit": "https://github.com/openclaw/skills/commit/12bff7c4985f2c5ec38ea720fc5f39ca1c496248"
+    "version": "1.0.3",
+    "publishedAt": 1773524496819,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773511313504,
+      "commit": "https://github.com/openclaw/skills/commit/12bff7c4985f2c5ec38ea720fc5f39ca1c496248"
+    }
+  ]
 }
