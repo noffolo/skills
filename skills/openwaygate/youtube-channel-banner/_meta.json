@@ -3,9 +3,15 @@
   "slug": "youtube-channel-banner",
   "displayName": "YouTube Channel Banner",
   "latest": {
-    "version": "0.10.6-3",
-    "publishedAt": 1773327778091,
-    "commit": "https://github.com/openclaw/skills/commit/cb2e84bc0c41a2549336abf9eb139ca8b07fa9d3"
+    "version": "0.10.7-dev",
+    "publishedAt": 1773496699764,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.10.6-3",
+      "publishedAt": 1773327778091,
+      "commit": "https://github.com/openclaw/skills/commit/cb2e84bc0c41a2549336abf9eb139ca8b07fa9d3"
+    }
+  ]
 }
