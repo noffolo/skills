@@ -3,11 +3,16 @@
   "slug": "cli-toolkit-cn",
   "displayName": "Cli Toolkit Cn",
   "latest": {
-    "version": "1.0.44",
-    "publishedAt": 1773632055417,
-    "commit": "https://github.com/openclaw/skills/commit/9d9ceb7639c6ebbaac28154a7b53ae35bb058b91"
+    "version": "1.1.0",
+    "publishedAt": 1773643781471,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.44",
+      "publishedAt": 1773632055417,
+      "commit": "https://github.com/openclaw/skills/commit/9d9ceb7639c6ebbaac28154a7b53ae35bb058b91"
+    },
     {
       "version": "1.0.40",
       "publishedAt": 1773631534969,
