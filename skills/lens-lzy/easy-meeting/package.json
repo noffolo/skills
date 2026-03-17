@@ -19,5 +19,21 @@
     "scheduler"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "openclaw": {
+    "required_envs": [
+      "FEISHU_APP_ID",
+      "FEISHU_APP_SECRET",
+      "FEISHU_VERIFICATION_TOKEN",
+      "OPENCLAW_WAKE_ENDPOINT"
+    ],
+    "env": {
+      "FEISHU_APP_ID": "飞书应用 App ID",
+      "FEISHU_APP_SECRET": "飞书应用 App Secret",
+      "FEISHU_VERIFICATION_TOKEN": "飞书 Verification Token",
+      "FEISHU_ENCRYPT_KEY": "飞书加密密钥 (用于签名校验，强烈建议配置)",
+      "OPENCLAW_WAKE_ENDPOINT": "Agent 唤醒地址"
+    }
+  }
 }
+

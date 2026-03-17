@@ -1,7 +1,17 @@
 ---
 name: feishu-scheduler
 description: "飞书一句话智能排期与日程协调助手，基于事件驱动架构"
+env:
+  - FEISHU_APP_ID: "飞书应用 ID"
+  - FEISHU_APP_SECRET: "飞书应用密钥"
+  - FEISHU_VERIFICATION_TOKEN: "验证令牌"
+  - FEISHU_ENCRYPT_KEY: "可选加密密钥，用于 X-Lark-Signature 签名校验"
+  - OPENCLAW_WAKE_ENDPOINT: "Agent 唤醒地址"
+
+config:
+  - store.json: "本地 Session 会话记录存储"
 ---
+
 
 # 📅 飞书智能排期助手 (Feishu Scheduler)
 

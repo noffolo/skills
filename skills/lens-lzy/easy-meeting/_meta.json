@@ -3,9 +3,15 @@
   "slug": "easy-meeting",
   "displayName": "feishu-meeting-scheduler",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773399491188,
-    "commit": "https://github.com/openclaw/skills/commit/cb76622e0cd7b5cd247cdf3b5f1bb8ddaf773e2f"
+    "version": "1.0.2",
+    "publishedAt": 1773650792338,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773399491188,
+      "commit": "https://github.com/openclaw/skills/commit/cb76622e0cd7b5cd247cdf3b5f1bb8ddaf773e2f"
+    }
+  ]
 }
