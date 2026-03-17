@@ -1,0 +1,11 @@
+{
+  "owner": "woop",
+  "slug": "lulu-cli",
+  "displayName": "LuLu CLI",
+  "latest": {
+    "version": "0.2.0",
+    "publishedAt": 1773594287906,
+    "commit": null
+  },
+  "history": []
+}
