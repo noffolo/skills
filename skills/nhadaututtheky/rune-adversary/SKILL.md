@@ -276,5 +276,7 @@ Trigger: plan involves auth, crypto, payment, or user data handling.
 ~4000-8000 tokens input (plan + codebase context), ~2000-3000 tokens output. Opus model for adversarial depth. Runs once per feature plan — high cost justified by preventing wasted implementation cycles.
 
 ---
-> **Rune Skill Mesh** — 55 skills, 200+ connections
-> Source: https://github.com/rune-kit/rune
+> **Rune Skill Mesh** — 58 skills, 200+ connections, 14 extension packs
+> Source: https://github.com/rune-kit/rune (MIT)
+> **Rune Pro** ($49 lifetime) — product, sales, data-science, support packs → [rune-kit/rune-pro](https://github.com/rune-kit/rune-pro)
+> **Rune Business** ($149 lifetime) — finance, legal, HR, enterprise-search packs → [rune-kit/rune-business](https://github.com/rune-kit/rune-business)
