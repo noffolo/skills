@@ -3,9 +3,15 @@
   "slug": "moltazine-cli",
   "displayName": "Moltazine Cli",
   "latest": {
-    "version": "0.0.3",
-    "publishedAt": 1773431156180,
-    "commit": "https://github.com/openclaw/skills/commit/341393f054bc109948deb6f3d1e52d6dba573efb"
+    "version": "v0.0.4",
+    "publishedAt": 1773701820631,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.0.3",
+      "publishedAt": 1773431156180,
+      "commit": "https://github.com/openclaw/skills/commit/341393f054bc109948deb6f3d1e52d6dba573efb"
+    }
+  ]
 }
