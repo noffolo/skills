@@ -1,11 +1,17 @@
 {
   "owner": "ai-scarlett",
   "slug": "lingxi-ai",
-  "displayName": "Lingxi-新手小白的养虾助手",
+  "displayName": "Lingxi",
   "latest": {
-    "version": "0.1.4",
-    "publishedAt": 1773396488509,
-    "commit": "https://github.com/openclaw/skills/commit/3c94987eb295823506d7b86eeb0aa08b274db757"
+    "version": "0.1.5",
+    "publishedAt": 1773499942552,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.4",
+      "publishedAt": 1773396488509,
+      "commit": "https://github.com/openclaw/skills/commit/3c94987eb295823506d7b86eeb0aa08b274db757"
+    }
+  ]
 }
