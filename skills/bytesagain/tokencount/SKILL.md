@@ -1,8 +1,10 @@
 ---
 name: TokenCount
-description: "Text and token counter for AI and NLP. Count words, characters, sentences, paragraphs, and estimate GPT tokens. Analyze text complexity and readability scores."
+description: "Text and token counter for AI and NLP. Use when you need tokencount."
 version: "2.0.0"
 author: "BytesAgain"
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 tags: ["token","word","count","text","nlp","ai","gpt"]
 categories: ["Developer Tools", "Utility"]
 ---

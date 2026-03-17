@@ -3,9 +3,15 @@
   "slug": "tokencount",
   "displayName": "Tokencount",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773661776555,
-    "commit": "https://github.com/openclaw/skills/commit/0ee792c1d18b07c52328cbc40c11b654d25e4424"
+    "version": "2.0.0",
+    "publishedAt": 1773774771439,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773661776555,
+      "commit": "https://github.com/openclaw/skills/commit/0ee792c1d18b07c52328cbc40c11b654d25e4424"
+    }
+  ]
 }
