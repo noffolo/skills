@@ -1,11 +1,17 @@
 {
   "owner": "xiaoqiangjava",
   "slug": "tencentcloud-faceid-compareface",
-  "displayName": "tencentcloud-faceid-compareface",
+  "displayName": "TencentCloud FaceID CompareFace",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773390799433,
-    "commit": "https://github.com/openclaw/skills/commit/d7c8593deb030bfeb6a6933947a2643a7f612536"
+    "version": "1.0.1",
+    "publishedAt": 1773655131001,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773390799433,
+      "commit": "https://github.com/openclaw/skills/commit/d7c8593deb030bfeb6a6933947a2643a7f612536"
+    }
+  ]
 }
