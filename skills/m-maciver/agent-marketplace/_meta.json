@@ -1,0 +1,11 @@
+{
+  "owner": "m-maciver",
+  "slug": "agent-marketplace",
+  "displayName": "AgentYard",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773325445064,
+    "commit": null
+  },
+  "history": []
+}
