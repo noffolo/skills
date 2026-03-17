@@ -18,9 +18,10 @@ from _common import get_token, parse_issue_url, api_get, init_windows_encoding, 
 def main():
     parser = argparse.ArgumentParser(description="Fetch one GitCode issue (title + body)")
     parser.add_argument("--issue-url", required=True, help="Full issue URL")
+    parser.add_argument("--token", help="GitCode API token (optional, will use GITCODE_TOKEN env var if not provided)")
     args = parser.parse_args()
     init_windows_encoding()
-    token = get_token()
+    token = get_token(args.token)
     if not token:
         print_json({"error": "GITCODE_TOKEN not set"})
         sys.exit(1)

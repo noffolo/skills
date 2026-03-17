@@ -21,6 +21,7 @@ from _common import get_token, print_json, parse_issue_url, api_post, init_windo
 def main():
     parser = argparse.ArgumentParser(description="Post a comment to a GitCode issue")
     parser.add_argument("--issue-url", required=True, help="Full issue URL")
+    parser.add_argument("--token", help="GitCode API token (optional, will use GITCODE_TOKEN env var if not provided)")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--body", help="Comment body text")
     group.add_argument("--body-file",
@@ -40,7 +41,7 @@ def main():
         print_json({"status": "error", "message": "Comment body is empty"})
         sys.exit(1)
 
-    token = get_token()
+    token = get_token(args.token)
     if not token:
         print_json({"status": "error", "message": "GITCODE_TOKEN not configured"})
         sys.exit(1)

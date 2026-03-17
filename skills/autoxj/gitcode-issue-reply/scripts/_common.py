@@ -21,15 +21,41 @@ def init_windows_encoding():
     """Reconfigure stdout/stderr to UTF-8 on Windows."""
     if sys.platform == "win32":
         try:
+            import locale
             sys.stdout.reconfigure(encoding="utf-8")
             sys.stderr.reconfigure(encoding="utf-8")
+            if sys.stdin:
+                sys.stdin.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            kernel32.SetConsoleOutputCP(65001)
+            kernel32.SetConsoleCP(65001)
         except Exception:
             pass
 
 
-def print_json(data):
-    """UTF-8 safe JSON output, bypassing Windows stdout encoding issues."""
+def print_json(data, output_file: str = None):
+    """UTF-8 safe JSON output, bypassing Windows stdout encoding issues.
+    
+    Args:
+        data: 要输出的数据
+        output_file: 可选的文件路径，如果提供则同时写入文件
+    """
     text = json.dumps(data, ensure_ascii=False, indent=2)
+    
+    # 写入文件（如果指定）
+    if output_file:
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(text)
+                f.write('\n')
+        except Exception as e:
+            sys.stderr.write(f"Warning: Failed to write to {output_file}: {e}\n")
+    
+    # 输出到 stdout
     try:
         sys.stdout.buffer.write(text.encode("utf-8"))
         sys.stdout.buffer.write(b"\n")
@@ -38,8 +64,16 @@ def print_json(data):
         print(text)
 
 
-def get_token():
-    """Read GITCODE_TOKEN: process env -> Windows User -> Windows Machine."""
+def get_token(user_provided_token=None):
+    """
+    Read GITCODE_TOKEN with priority:
+    1. User directly provided token (user_provided_token parameter)
+    2. Process environment variable GITCODE_TOKEN
+    3. Windows User environment variable
+    4. Windows Machine environment variable
+    """
+    if user_provided_token:
+        return user_provided_token.strip()
     token = os.environ.get("GITCODE_TOKEN")
     if token:
         return token.strip()
