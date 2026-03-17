@@ -1,9 +1,10 @@
 ---
 name: sms
-version: 1.0.0
+version: "2.0.0"
 author: BytesAgain
 license: MIT-0
 tags: [sms, tool, utility]
+description: "Sms - command-line tool for everyday use"
 ---
 
 # SMS
@@ -44,16 +45,18 @@ sms status
 sms export json
 ```
 
-## How It Works
-
-Processes input with built-in logic and outputs structured results. All data stays local.
-
-## Tips
-
 - Run `sms help` for all commands
 - Data stored in `~/.local/share/sms/`
-- No API keys required for basic features
-- Works offline
+
+## When to Use
+
+- for batch processing sms operations
+- as part of a larger automation pipeline
+
+## Output
+
+Returns formatted output to stdout. Redirect to a file with `sms run > output.txt`.
 
 ---
 *Powered by BytesAgain | bytesagain.com*
+*Feedback & Feature Requests: https://bytesagain.com/feedback*
