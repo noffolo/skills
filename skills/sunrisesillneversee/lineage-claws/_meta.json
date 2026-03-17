@@ -3,11 +3,16 @@
   "slug": "lineage-claws",
   "displayName": "Lineage Claws",
   "latest": {
-    "version": "0.4.3",
-    "publishedAt": 1773428146062,
-    "commit": "https://github.com/openclaw/skills/commit/b1b123112348eb37faf2b0dc27d39e467a9df1c2"
+    "version": "0.4.4",
+    "publishedAt": 1773505911340,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.4.3",
+      "publishedAt": 1773428146062,
+      "commit": "https://github.com/openclaw/skills/commit/b1b123112348eb37faf2b0dc27d39e467a9df1c2"
+    },
     {
       "version": "0.1.5",
       "publishedAt": 1773347866834,

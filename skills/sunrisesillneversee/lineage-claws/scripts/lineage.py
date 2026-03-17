@@ -81,7 +81,7 @@ def cmd_init(_args):
         "lineage_anchor": MOSES_ANCHOR,
         "patent_serial": "63/877,177",
         "doi": "https://zenodo.org/records/18792459",
-        "author": "Deric McHenry / Ello Cello LLC",
+        "author": "Ello Cello LLC",
         "system": "MO§ES™ Constitutional Governance",
         "previous_hash": MOSES_ANCHOR,  # chain roots to the anchor, not zeros
         "anchored_at": datetime.now(timezone.utc).isoformat(),
