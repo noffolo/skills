@@ -1,7 +1,7 @@
 ---
 name: ai-task-hub
 description: AI task hub for image analysis, background removal, speech-to-text, text-to-speech, markdown conversion, points balance/ledger lookup, and async execute/poll/presentation orchestration. Use when users need hosted AI outcomes while host runtime manages identity, credits, payment, and risk control.
-version: 3.2.10
+version: 3.2.11
 metadata:
   openclaw:
     skillKey: ai-task-hub
@@ -255,7 +255,7 @@ Attachment normalization:
 - `attachment.url` is mapped to target media field by capability.
 - Local `file_path` is disabled in the published package.
 - Host must upload chat attachments first, then pass URL fields.
-- Example host upload endpoint: `/api/blob/upload-file`.
+- Example host upload endpoint: `/agent/skill/bridge/upload-file`.
 
 ## Error Contract
 

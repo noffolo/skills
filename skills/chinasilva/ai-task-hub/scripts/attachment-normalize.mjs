@@ -1,7 +1,7 @@
 import { extname } from 'node:path';
 
-export const DEFAULT_SITE_BASE_URL = 'https://gateway.binaryworks.app';
-const DIRECT_UPLOAD_PATH = '/api/blob/upload-file';
+export const DEFAULT_SITE_BASE_URL = 'https://gateway-api.binaryworks.app';
+const DIRECT_UPLOAD_PATH = '/agent/skill/bridge/upload-file';
 
 const IMAGE_CAPABILITIES = new Set([
   'human_detect',

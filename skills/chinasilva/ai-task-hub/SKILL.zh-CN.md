@@ -1,7 +1,7 @@
 ---
 name: ai-task-hub
 description: AI Task Hub 用于图像检测与分析、去背景与抠图、语音转文字、文本转语音、文档转 Markdown、积分余额/流水查询和异步任务编排。适用于用户需要通过 execute/poll/presentation 与账户积分查询完成结果交付，且由宿主统一管理身份、积分、支付和风控的场景。
-version: 3.2.10
+version: 3.2.11
 metadata:
   openclaw:
     skillKey: ai-task-hub
@@ -253,7 +253,7 @@ agent 侧决策流程：
 - 若存在 `attachment.url`，脚本会按 capability 自动映射到目标字段。
 - 发布包禁用本地 `file_path`。
 - 聊天附件需由宿主先上传，再把 URL 注入 skill 输入。
-- 宿主可使用上传接口（示例）：`/api/blob/upload-file`。
+- 宿主可使用上传接口（示例）：`/agent/skill/bridge/upload-file`。
 
 ## 错误约定
 
