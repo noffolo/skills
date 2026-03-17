@@ -1,0 +1,11 @@
+{
+  "owner": "noah-1106",
+  "slug": "rss-fetcher",
+  "displayName": "RSS采集器 | RSS Fetcher",
+  "latest": {
+    "version": "1.1.0",
+    "publishedAt": 1773612673856,
+    "commit": null
+  },
+  "history": []
+}
