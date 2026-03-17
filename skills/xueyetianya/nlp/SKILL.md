@@ -1,7 +1,7 @@
 ---
 name: nlp
-description: "Tokenize text, analyze sentiment, extract entities, summarize documents, and measure text similarity."
-version: "3.2.0"
+description: "Process text with NLP. Use when tokenizing, analyzing sentiment, extracting entities, summarizing documents, or measuring similarity."
+version: "3.4.0"
 author: BytesAgain
 homepage: https://bytesagain.com
 source: https://github.com/bytesagain/ai-skills

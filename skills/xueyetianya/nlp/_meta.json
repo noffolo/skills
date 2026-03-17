@@ -3,11 +3,16 @@
   "slug": "nlp",
   "displayName": "Nlp",
   "latest": {
-    "version": "3.2.0",
-    "publishedAt": 1773716896443,
-    "commit": "https://github.com/openclaw/skills/commit/80e07287b8c198be47998d1f5c4d23c94b8299cc"
+    "version": "3.4.1",
+    "publishedAt": 1773774832613,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.2.0",
+      "publishedAt": 1773716896443,
+      "commit": "https://github.com/openclaw/skills/commit/80e07287b8c198be47998d1f5c4d23c94b8299cc"
+    },
     {
       "version": "1.0.5",
       "publishedAt": 1773662805999,
