@@ -1,0 +1,11 @@
+{
+  "owner": "sen-platotech",
+  "slug": "sen-openclaw-backup",
+  "displayName": "OpenClaw Backup",
+  "latest": {
+    "version": "1.1.2",
+    "publishedAt": 1773839960865,
+    "commit": null
+  },
+  "history": []
+}
