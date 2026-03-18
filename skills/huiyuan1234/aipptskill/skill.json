@@ -1,0 +1,41 @@
+{
+  "name": "aippt",
+  "version": "2.1.0",
+  "description": "通过 AiPPT.cn 开放平台 API 智能生成专业 PPT 演示文稿，支持标题生成、文件导入、URL导入、模板选择、自动导出下载",
+  "author": "小龙 🐉",
+  "triggers": [
+    "PPT", "ppt", "演示文稿", "幻灯片",
+    "aippt", "AiPPT", "AIPPT",
+    "做PPT", "生成PPT", "创建PPT", "写PPT",
+    "做个PPT", "帮我做PPT", "PPT生成",
+    "make a PPT", "create PPT", "generate PPT",
+    "presentation", "slideshow", "slides"
+  ],
+  "env": {
+    "AIPPT_APP_KEY": {
+      "required": true,
+      "description": "AiPPT 开放平台 API Key"
+    },
+    "AIPPT_SECRET_KEY": {
+      "required": true,
+      "description": "AiPPT 开放平台 Secret Key"
+    },
+    "AIPPT_UID": {
+      "required": false,
+      "default": "openclaw_default",
+      "description": "用户标识 (多用户隔离)"
+    }
+  },
+  "dependencies": ["curl", "python3", "openssl"],
+  "scripts": {
+    "main": "scripts/aippt.sh"
+  },
+  "capabilities": [
+    "智能生成PPT (输入标题)",
+    "文件导入生成 (Word/PDF/Markdown/TXT/PPTX/XMind)",
+    "网页URL导入生成",
+    "15000+模板选择",
+    "导出PPTX/PDF/Word/PNG",
+    "自动下载到本地"
+  ]
+}
