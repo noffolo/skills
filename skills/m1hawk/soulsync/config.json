@@ -1,0 +1,9 @@
+{
+  "levelUpSpeed": "normal",
+  "dailyMaxIncrease": 2,
+  "dailyDecay": 0,
+  "decayThresholdDays": 14,
+  "personalityType": "warm",
+  "language": "en",
+  "customLevels": {}
+}
