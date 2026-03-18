@@ -1,0 +1,11 @@
+{
+  "owner": "kuaidi100-api",
+  "slug": "kuaidi100-skill",
+  "displayName": "Kuaidi100 Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773744249093,
+    "commit": null
+  },
+  "history": []
+}
