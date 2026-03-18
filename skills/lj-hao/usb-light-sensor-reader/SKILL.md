@@ -1,7 +1,7 @@
 ---
 name: USB Light Sensor Reader
 slug: usb-light-sensor-reader
-version: 1.0.0
+version: 1.0.2
 description: Read light intensity from USB sensors with real-time monitoring, filtering, and threshold detection.
 metadata: {"clawdbot":{"emoji":"☀️","requires":{"bins":["python3"]},"os":["linux"]}}
 ---
