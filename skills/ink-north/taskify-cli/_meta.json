@@ -1,0 +1,11 @@
+{
+  "owner": "ink-north",
+  "slug": "taskify-cli",
+  "displayName": "Taskify CLI",
+  "latest": {
+    "version": "1.0.3",
+    "publishedAt": 1773797125934,
+    "commit": null
+  },
+  "history": []
+}
