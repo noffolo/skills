@@ -1,0 +1,11 @@
+{
+  "owner": "roryyu",
+  "slug": "sre-log-analytics",
+  "displayName": "SRE Log Analytics",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1773806952223,
+    "commit": null
+  },
+  "history": []
+}
