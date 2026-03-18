@@ -1,0 +1,11 @@
+{
+  "owner": "wmattadeen-gif",
+  "slug": "satgate-cli",
+  "displayName": "Satgate",
+  "latest": {
+    "version": "2.0.0",
+    "publishedAt": 1773844195877,
+    "commit": null
+  },
+  "history": []
+}
