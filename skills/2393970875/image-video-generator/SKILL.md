@@ -4,6 +4,7 @@ description: |
   AI 图片与视频异步生成技能，调用 AI Artist API 根据文本提示词生成图片或视频，自动轮询直到任务完成。
 
   ⚠️ 使用前必须设置环境变量 AI_ARTIST_TOKEN 为你自己的 API Key！
+  获取 API Key：访问 https://staging.kocgo.vip/index 注册登录后创建。
 
   支持图片模型：SEEDREAM5_0（默认高质量图片）、NANO_BANANA_2（轻量快速）。
   支持视频模型：SEEDANCE_1_5_PRO（文生视频，支持音频）、SORA2（文生视频或首尾帧图生视频，支持 firstImageUrl/lastImageUrl）。
@@ -20,6 +21,12 @@ description: |
 
 ## ⚠️ 首次使用必读
 
+### 1. 获取 API Key
+
+访问 [https://staging.kocgo.vip/index](https://staging.kocgo.vip/index) 注册并登录，然后创建你的 API Key。
+
+### 2. 设置环境变量
+
 **在使用前，你必须先设置自己的 API Key：**
 
 ```bash
@@ -29,6 +36,8 @@ export AI_ARTIST_TOKEN="sk-your_api_key_here"
 # Windows PowerShell
 $env:AI_ARTIST_TOKEN="sk-your_api_key_here"
 ```
+
+### 3. 验证配置
 
 **验证配置是否正确：**
 
@@ -239,6 +248,13 @@ if result and result["status"] == "SUCCESS":
 ### 必需配置 - API Key
 
 **重要：使用前必须设置你自己的 API Key！**
+
+#### 获取 API Key
+
+1. 访问 [https://staging.kocgo.vip/index](https://staging.kocgo.vip/index)
+2. 注册并登录账号
+3. 在控制台创建你的 API Key
+4. 复制生成的 API Key（格式：`sk-xxxxxx...`）
 
 #### 方式 1：使用 .env 文件（推荐）
 

@@ -4,19 +4,23 @@
 
 ## 🚀 快速开始
 
-### 1. 设置 API Key
+### 1. 获取 API Key
+
+访问 [https://staging.kocgo.vip/index](https://staging.kocgo.vip/index) 注册并登录，然后在控制台创建你的 API Key。
+
+### 2. 设置 API Key
 
 ```bash
 export AI_ARTIST_TOKEN="sk-your_api_key_here"
 ```
 
-### 2. 验证配置
+### 3. 验证配置
 
 ```bash
 python3 scripts/test_config.py
 ```
 
-### 3. 生成图片
+### 4. 生成图片
 
 ```bash
 python3 scripts/generate_image.py "一只可爱的猫"
