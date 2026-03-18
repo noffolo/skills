@@ -3,9 +3,15 @@
   "slug": "ielts-speaking-coach",
   "displayName": "IELTS Speaking Coach",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773798840543,
-    "commit": "https://github.com/openclaw/skills/commit/de36265cc02f3fbc7030591d4f0ae6f1e053e45a"
+    "version": "1.1.0",
+    "publishedAt": 1773839336343,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773798840543,
+      "commit": "https://github.com/openclaw/skills/commit/de36265cc02f3fbc7030591d4f0ae6f1e053e45a"
+    }
+  ]
 }
