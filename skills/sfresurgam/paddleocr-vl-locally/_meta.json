@@ -1,0 +1,11 @@
+{
+  "owner": "sfresurgam",
+  "slug": "paddleocr-vl-locally",
+  "displayName": "paddleocr-vl-locally",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1773741184205,
+    "commit": null
+  },
+  "history": []
+}
