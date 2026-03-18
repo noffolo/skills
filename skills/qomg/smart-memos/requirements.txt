@@ -1,0 +1,9 @@
+# requirements.txt
+# 必需依赖：无（使用 Python 标准库）
+
+# 可选依赖（PDF 导入，三选一）
+# 推荐方案：
+pdfplumber>=0.10.0
+
+# 备选方案：
+# PyPDF2>=3.0.0

@@ -1,0 +1,11 @@
+{
+  "owner": "qomg",
+  "slug": "smart-memos",
+  "displayName": "smart notes using sqlite3",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773837866152,
+    "commit": null
+  },
+  "history": []
+}

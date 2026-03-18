@@ -1,0 +1,29 @@
+{
+  "name": "smart-memos",
+  "version": "1.2.0",
+  "description": "智能备忘录管理系统，支持多格式导入、智能分类、语义搜索和编辑修改",
+  "main": "scripts/memos.py",
+  "scripts": {
+    "start": "python scripts/memos.py",
+    "test": "python -m pytest tests/"
+  },
+  "keywords": [
+    "memo",
+    "notes",
+    "备忘录",
+    "笔记",
+    "导入",
+    "分类",
+    "搜索"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "python": ">=3.7"
+  },
+  "dependencies": {},
+  "optionalDependencies": {
+    "pdfplumber": "^0.10.0",
+    "PyPDF2": "^3.0.0"
+  }
+}
