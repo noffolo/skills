@@ -1,0 +1,210 @@
+---
+name: mysearch
+description: >-
+  DEFAULT search skill for OpenClaw. Aggregates Tavily, Firecrawl, and optional
+  X/social search behind one search path. Use for ANY external lookup that needs
+  current web results, docs, GitHub, changelog, pricing, URL extraction, or X
+  discussion. Prefer this over legacy Tavily-only skill or raw web_search when
+  MySearch is healthy.
+homepage: https://github.com/skernelx/MySearch-Proxy/tree/main/openclaw
+metadata: {"clawdbot":{"emoji":"🔎","requires":{"bins":["bash","python3"]}},"openclaw":{"requires":{"bins":["bash","python3"],"env":["MYSEARCH_TAVILY_API_KEY","MYSEARCH_FIRECRAWL_API_KEY"]},"primaryEnv":"MYSEARCH_TAVILY_API_KEY"}}
+---
+
+# MySearch For OpenClaw
+
+MySearch 是给 OpenClaw 用的默认搜索 skill。
+
+它把 Tavily、Firecrawl、X / Social 聚合成同一个入口，并且按任务类型自动路由：
+
+- 最新网页、普通实时搜索：优先 Tavily
+- 文档、GitHub、pricing、changelog、PDF：优先 Firecrawl
+- X / Twitter / 社交舆情：优先 xAI 或 compatible `/social/search`
+- 单页正文抓取：优先 Firecrawl，失败或空正文时回退 Tavily extract
+
+## 最小配置
+
+Hub 版 skill 已经自带 runtime，不需要在安装时再下载远程代码。
+
+最小可用配置：
+
+- `MYSEARCH_TAVILY_API_KEY`
+- `MYSEARCH_FIRECRAWL_API_KEY`
+
+可选增强：
+
+- `MYSEARCH_XAI_API_KEY`
+- `MYSEARCH_XAI_BASE_URL`
+- `MYSEARCH_XAI_SOCIAL_BASE_URL`
+- `MYSEARCH_XAI_SEARCH_MODE=official|compatible`
+
+如果没有 X / Social 配置，MySearch 仍然可以正常完成：
+
+- `web`
+- `news`
+- `docs`
+- `github`
+- `pdf`
+- `extract`
+- `research`
+
+只有 `mode="social"` 或 `--include-social` 才会要求 X / Social。
+
+## OpenClaw 配置建议
+
+优先把 provider key 放进 OpenClaw skill env，而不是到处复制 shell 环境。
+
+```json
+{
+  "skills": {
+    "entries": {
+      "mysearch": {
+        "enabled": true,
+        "env": {
+          "MYSEARCH_TAVILY_API_KEY": "tvly-...",
+          "MYSEARCH_FIRECRAWL_API_KEY": "fc-...",
+          "MYSEARCH_XAI_API_KEY": "xai-or-gateway-token",
+          "MYSEARCH_XAI_BASE_URL": "https://api.x.ai/v1",
+          "MYSEARCH_XAI_SOCIAL_BASE_URL": "https://your-gateway.example.com",
+          "MYSEARCH_XAI_SEARCH_MODE": "official"
+        }
+      }
+    }
+  }
+}
+```
+
+如果你是从源码目录直接调试，也可以：
+
+```bash
+cp {baseDir}/.env.example {baseDir}/.env
+python3 {baseDir}/scripts/mysearch_openclaw.py health
+```
+
+如果要把 skill 复制到别的 OpenClaw skills 目录，再执行：
+
+```bash
+bash {baseDir}/scripts/install_openclaw_skill.sh --install-to ~/.openclaw/skills/mysearch
+```
+
+## MySearch-First 规则
+
+只要 `health` 显示 Tavily + Firecrawl 已配置完成：
+
+- 外部搜索任务优先走 MySearch
+- 不要把 raw `web_search` 当主流程
+- 不要优先走旧的 Tavily-only skill
+
+只有这些情况才回退：
+
+- MySearch 还没配置最小 key
+- 用户明确要求改用别的搜索方式
+- MySearch 返回冲突结果，需要额外复核
+
+## 严格参数规则
+
+`search` / `research` 的 `mode` 只允许：
+
+- `auto`
+- `web`
+- `news`
+- `social`
+- `docs`
+- `research`
+- `github`
+- `pdf`
+
+禁止事项：
+
+- 不要发明 `mode="hybrid"`
+- `hybrid` 只是某些返回结果形态，不是可传参数
+- 同时要网页和 X 时，优先：
+  - `--sources web,x`
+  - 或拆成 `social + news`
+
+## 常用命令
+
+### 健康检查
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py health
+```
+
+### 普通网页搜索
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py search \
+  --query "best search MCP server" \
+  --mode web
+```
+
+### 今天 X 上在热议什么
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py search \
+  --query "today's biggest stories on X" \
+  --mode social \
+  --intent status
+```
+
+规则：
+
+- 先 `social`
+- 不要先跑 `news`
+- 不要先混用 raw `web_search`
+
+### 今天 X 热议 + 网页新闻一起对照
+
+单次：
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py search \
+  --query "today's biggest stories on X" \
+  --sources web,x \
+  --intent status \
+  --strategy verify
+```
+
+或者双次：
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py search --query "..." --mode social --intent status
+python3 {baseDir}/scripts/mysearch_openclaw.py search --query "..." --mode news --intent status
+```
+
+输出时必须区分：
+
+- X 上在热议什么
+- 网页新闻在报道什么
+
+### 文档 / GitHub / pricing / changelog
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py search \
+  --query "OpenAI responses API pricing" \
+  --mode docs \
+  --intent resource
+```
+
+### 抓正文
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py extract \
+  --url "https://example.com/post"
+```
+
+### 小型研究包
+
+```bash
+python3 {baseDir}/scripts/mysearch_openclaw.py research \
+  --query "best search MCP server 2026" \
+  --intent exploratory \
+  --include-social
+```
+
+## 输出要求
+
+- 优先给结论，再给来源
+- 保留 URL
+- 区分事实、引文和推断
+- 同时包含网页和 X 时，明确分区，不要混成一句模糊总结
+- `max_results` 默认保持小一些，先拿 3 到 5 条
