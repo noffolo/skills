@@ -1,0 +1,11 @@
+{
+  "owner": "farmerboybi-bot",
+  "slug": "email-analyzer",
+  "displayName": "Email Analyzer",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773779391658,
+    "commit": null
+  },
+  "history": []
+}
