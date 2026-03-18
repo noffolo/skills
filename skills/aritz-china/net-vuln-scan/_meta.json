@@ -1,0 +1,11 @@
+{
+  "owner": "aritz-china",
+  "slug": "net-vuln-scan",
+  "displayName": "net-vuln-scan",
+  "latest": {
+    "version": "1.2.0",
+    "publishedAt": 1773818442485,
+    "commit": null
+  },
+  "history": []
+}
