@@ -3,9 +3,15 @@
   "slug": "anyvideos",
   "displayName": "anyvideos",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773841122539,
-    "commit": "https://github.com/openclaw/skills/commit/b7ca3249f8100a0cd099630b241377ab8dcaaa3f"
+    "version": "1.0.3",
+    "publishedAt": 1773843079740,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773841122539,
+      "commit": "https://github.com/openclaw/skills/commit/b7ca3249f8100a0cd099630b241377ab8dcaaa3f"
+    }
+  ]
 }
