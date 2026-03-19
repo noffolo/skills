@@ -1,128 +1,417 @@
 ---
-name: fitness-coach
-description: >-
-  Evidence-based fitness coaching from workout/health screenshots and user context.
-  Use for training plans, nutrition guidance, sleep/recovery optimization, trend
-  analysis, and week-by-week progression with safety guardrails.
+name: beginner-fitness-transformation-coach
+description: Create simple, safe, beginner-friendly fitness plans for weight loss, muscle gain, or general fitness. Use when users want a workout plan, weekly routine, home or gym program, or a structured transformation plan. Also covers progression, recovery, basic nutrition guidance, and beginner-safe exercise selection.
+user-invocable: true
+metadata: {"openclaw":{"emoji":"💪","os":["linux","darwin","win32"]}}
 ---
 
-# Fitness Coach
+# Beginner Fitness Transformation Coach
 
-## Objective
+Create simple, safe, beginner-friendly fitness plans for people
+starting or restarting training.
 
-Convert fitness data (screenshots + context) into practical, safe, and sustainable coaching guidance.
+Focus on consistency, realistic progression, clear routines, and
+practical guidance. Avoid extreme training advice, unsafe progression,
+or medical nutrition claims.
 
-## Scope and Safety
+## Quick Start
 
-- Do not diagnose disease or provide medical treatment.
-- Escalate to licensed care for chest pain, syncope, severe shortness of breath, persistent abnormal vitals, eating-disorder risk, or medication interactions.
-- Prefer low-risk, progressive changes over aggressive protocols.
+Install:
 
-## Inputs
+```bash
+clawhub install beginner-fitness-transformation-coach
+Start with a simple request:
 
-- Fitness screenshots (Garmin/Apple/Whoop/Strava/etc.): sessions, sleep, recovery, HR/HRV, readiness, trends
-- Optional user context: goal, timeline, training age, injury history, equipment, schedule, climate, food preferences
+text
+fitness beginner home workout plan for fat loss, 3 days per week, no equipment
+Or request a longer plan:
 
-## Workflow
+text
+fitness --12-week beginner gym routine for muscle gain, 4 days per week
+Best For
+This skill is especially useful for:
 
-1. Intake
-- Identify goal, timeframe, constraints, and current load
-- Ask up to 6 clarifying questions only if critical data is missing
+beginners starting exercise for the first time
 
-2. Extract and structure data
-- Read all visible text/numbers/units/dates
-- Reconstruct key tables and summarize chart trends
-- Label confidence for uncertain values
+people returning after a long break
 
-3. Normalize and validate
-- Use metric first; include imperial only if present in source
-- Use ISO dates (`YYYY-MM-DD`)
-- Flag impossible/improbable values and assumptions
+users who want a home workout plan
 
-4. Interpret signals
-- Prioritize trends (7/14/28-day) over one-day spikes
-- Evaluate training stress, recovery quality, sleep sufficiency, and consistency
+users who want a simple gym routine
 
-5. Build plan
-- Deliver actionable Week 1 plan
-- Include progression logic for 8-12 weeks
-- Add deload and adjustment triggers
+users focused on fat loss, muscle gain, or general fitness
 
-6. Tracking loop
-- Define metrics, cadence, and thresholds for plan changes
-- Include clear referral/safety thresholds
+people who need structure more than intensity
 
-## Data Extraction Targets
+Quick Reference
+If you need...	Use...
+A simple beginner plan	fitness [goal]
+A home workout	fitness --home [goal]
+A gym workout	fitness --gym [goal]
+A 4-week starter plan	fitness --4-week [goal]
+A longer transformation plan	fitness --8-week [goal] or fitness --12-week [goal]
+A fat loss routine	fitness --fat-loss [goal]
+A muscle gain routine	fitness --muscle-gain [goal]
+A general fitness plan	fitness --general-fitness [goal]
+A weekly schedule only	fitness --weekly [goal]
+Structured export	fitness --json [goal]
+When to Use
+Use this skill when the user asks for:
 
-Extract when available:
-- Session: date, duration, distance, pace, power, cadence, elevation, temperature
-- Intensity: HR/power zones, time in zone, splits/laps
-- Recovery: resting HR, HRV, sleep duration/stages, readiness/body battery, SpO2
-- Weekly load: volume, intensity minutes, strength count, step totals
+a beginner workout plan
 
-Use this table in output:
+a weekly training schedule
 
-| Source | Field | Value | Unit | Date | Confidence | Notes |
-| --- | --- | --- | --- | --- | --- | --- |
+a home workout routine
 
-If confidence is low and decision-critical, request clarification instead of guessing.
+a gym workout plan
 
-## Personalization Rules
+a weight loss exercise program
 
-Tailor recommendations to:
-- Training age (beginner/intermediate/advanced)
-- Sport type and event demands
-- Weekly availability and equipment access
-- Injury constraints and recovery status
-- Climate, travel, and dietary constraints
+a muscle gain beginner routine
 
-## Coaching Principles
+a transformation plan
 
-- Stimulus -> recovery -> adaptation
-- Progressive overload within recoverable limits
-- Consistency beats intensity spikes
-- Minimum effective dose beats unsustainable perfection
-- Uncertainty is normal; act on trends, not noise
+a restart plan after a long break
 
-## Required Output Format
+Modes
+text
+fitness [goal]
 
-1. Initial Assessment
-- Goal interpretation
-- Baseline signals
-- Assumptions and data quality notes
+fitness --home [goal]
+fitness --gym [goal]
 
-2. Key Findings
-- Training load signal
-- Recovery/sleep signal
-- Top 3 constraints
+fitness --4-week [goal]
+fitness --8-week [goal]
+fitness --12-week [goal]
 
-3. Week 1 Plan (table)
-- Day, session type, duration, intensity target, purpose
+fitness --fat-loss [goal]
+fitness --muscle-gain [goal]
+fitness --general-fitness [goal]
 
-4. Nutrition and Hydration
-- Energy strategy (maintenance/deficit/surplus intent)
-- Protein target range (g/kg), carbs around training, hydration/electrolytes
+fitness --weekly [goal]
+fitness --json [goal]
+If the user gives only a general request, default to a safe beginner
+plan.
 
-5. Recovery and Sleep Protocol
-- Sleep target window
-- Caffeine/light timing
-- Recovery micro-actions
+Intake
+Before generating a plan, determine:
 
-6. Progression and Deload Logic
-- What increases each week
-- When to hold/reduce load
+text
+Fitness level:        | beginner / intermediate / advanced
+Main goal:            | fat loss / muscle gain / general fitness
+Training location:    | home / gym
+Available equipment:  |
+Training days/week:   |
+Session length:       |
+Injuries or limits:   | optional
+If information is missing, ask only the minimum needed to produce a safe
+starter plan.
 
-7. Tracking Dashboard
-- Metrics to track weekly
-- Thresholds that trigger adjustment
-- Safety referral thresholds
+What This Skill Produces
+text
+- beginner workout programs
+- home workout plans
+- gym workout plans
+- fat loss routines
+- muscle gain routines
+- 4-week plans
+- 8-week plans
+- 12-week transformation programs
+- weekly workout schedules
+- basic nutrition guidance
+- recovery and progression guidance
+Core Rules
+text
+1. Keep plans beginner-friendly and realistic.
+2. Prioritize consistency over intensity.
+3. Use simple exercise selection and clear instructions.
+4. Progress gradually.
+5. Avoid medical, extreme diet, or unsafe training advice.
+6. Adapt to location, equipment, frequency, and goal.
+7. Favor habits the user can sustain.
+8. If pain, injury, or medical issues are mentioned, keep guidance general.
+User Profile Detection
+Always identify:
 
-8. OCR/Data Appendix
-- Extraction table
-- Clarifications needed
+text
+- training experience
+- primary goal
+- training location
+- available equipment
+- weekly frequency
+- session duration
+- recovery limitations if mentioned
+Use this to adjust exercise choice, volume, and progression.
 
-## Default Behavior
+Training Structure
+Each workout should usually include:
 
-If context is incomplete:
-- Ask concise high-impact questions first.
-- Then provide a conservative provisional 7-day plan clearly marked as draft pending user answers.
+text
+1. Warm-up
+2. Main exercises
+3. Accessory work
+4. Cooldown
+Warm-up
+
+text
+Use light cardio, mobility, or movement prep.
+Main Exercises
+
+text
+Use simple compound or foundational exercises.
+Accessory Work
+
+text
+Add supporting exercises for posture, balance, and basic conditioning.
+Cooldown
+
+text
+Include light stretching, breathing, or simple recovery work.
+Program Length
+4 Weeks
+
+text
+Goal:
+- build consistency
+- learn technique
+- establish routine
+8 Weeks
+
+text
+Goal:
+- improve work capacity
+- increase workload gradually
+- reinforce training habits
+12 Weeks
+
+text
+Goal:
+- improve strength and endurance
+- build visible progress through consistency
+- create a stable long-term routine
+Goal Logic
+Fat Loss
+
+Focus on:
+
+text
+- regular training frequency
+- full-body strength work
+- optional cardio
+- basic calorie awareness
+- sustainable activity volume
+Muscle Gain
+
+Focus on:
+
+text
+- progressive resistance training
+- adequate recovery
+- enough protein
+- gradual overload
+General Fitness
+
+Focus on:
+
+text
+- consistency
+- movement quality
+- basic strength
+- mobility
+- cardiovascular support
+Weekly Plan Template
+Example beginner structure:
+
+text
+Day 1 — Full body workout
+Day 2 — Light cardio or rest
+Day 3 — Strength-focused workout
+Day 4 — Rest
+Day 5 — Full body workout
+Day 6 — Optional cardio or mobility
+Day 7 — Rest
+Adapt frequency to the user’s available training days.
+
+Quick Start Workout
+Use simple entry-level programming when the user wants something fast.
+
+text
+Beginner full-body workout:
+- Squats — 3 x 10
+- Push-ups — 3 x 8
+- Dumbbell rows — 3 x 10
+- Plank — 3 x 30 sec
+
+Rest:
+- 60–90 seconds between sets
+Adjust exercises if the user trains at home or lacks equipment.
+
+Progression Rules
+Keep progression simple:
+
+text
+- add reps before adding load
+- add load only when form is stable
+- increase volume gradually
+- reduce intensity if recovery drops sharply
+For beginners, prefer consistency and technique over aggressive overload.
+
+Recovery Guidance
+Always encourage:
+
+text
+- rest days
+- adequate sleep
+- hydration
+- gradual progression
+- avoiding overtraining
+If the user reports fatigue or inconsistency, simplify rather than intensify.
+
+Nutrition Guidance
+Only provide simple beginner-friendly guidance such as:
+
+text
+- balanced meals
+- adequate protein intake
+- hydration
+- basic calorie awareness
+- regular meal habits
+Do not provide medical nutrition advice or extreme dieting protocols.
+
+Workflow
+Step 1 — Identify the Starting Point
+
+Determine:
+
+text
+- current fitness level
+- primary goal
+- training location
+- available equipment
+- available days
+Step 2 — Choose Program Shape
+
+Select:
+
+text
+- weekly frequency
+- plan length
+- home or gym structure
+- fat loss / muscle gain / general fitness emphasis
+Step 3 — Build the Weekly Plan
+
+Provide:
+
+text
+- workout days
+- exercise list
+- sets and reps
+- optional cardio or active recovery
+Step 4 — Add Progression
+
+Explain:
+
+text
+- how to progress weekly
+- when to increase reps or load
+- when to repeat a week instead of pushing harder
+Step 5 — Add Recovery and Nutrition
+
+Include:
+
+text
+- sleep and rest guidance
+- basic recovery tips
+- optional nutrition basics
+Output Template
+text
+## Goal Summary
+- Goal:
+- Experience level:
+- Training location:
+- Equipment:
+- Days per week:
+
+## Weekly Training Plan
+Day 1:
+Day 2:
+Day 3:
+Day 4:
+Day 5:
+Day 6:
+Day 7:
+
+## Exercise Details
+- Exercise
+- Sets
+- Reps
+- Rest
+
+## Progression Guidance
+- Week-to-week progression rules
+
+## Recovery Tips
+- Sleep
+- Rest
+- Hydration
+- Recovery pacing
+
+## Optional Nutrition Guidance
+- Protein
+- Meals
+- Hydration
+- Calorie awareness
+JSON Output
+json
+{
+  "goal_summary": {
+    "goal": "",
+    "experience_level": "beginner",
+    "training_location": "",
+    "equipment": [],
+    "days_per_week": 0
+  },
+  "weekly_plan": [],
+  "exercises": [
+    {
+      "name": "",
+      "sets": 0,
+      "reps": "",
+      "rest_seconds": 0
+    }
+  ],
+  "progression_guidance": [],
+  "recovery_tips": [],
+  "nutrition_guidance": []
+}
+Limits
+This skill does not:
+
+diagnose medical conditions
+
+replace professional medical or coaching advice
+
+prescribe extreme diets
+
+recommend unsafe exercise intensity for beginners
+
+text
+
+If the user mentions pain, injury, or a medical condition, keep advice
+general and recommend qualified professional guidance.
+
+## Quick Tips
+
+- Start with 2–4 training days per week for most beginners.
+- Keep exercise selection simple before adding variety.
+- Home plans should use bodyweight or minimal equipment when possible.
+- Gym plans should still stay simple in the first phase.
+- For fat loss, combine strength work with basic activity and consistency.
+- For muscle gain, prioritize progressive strength work and recovery.
+- A plan the user can follow beats an “optimal” plan they cannot sustain.
+- If the user is returning after a long break, treat them like a beginner at first.
+
+## Author
+
+**Vassiliy Lakhonin**
