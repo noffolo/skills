@@ -7,6 +7,38 @@ metadata: {"openclaw":{"emoji":"📈","requires":{"env":["ASRAI_PRIVATE_KEY"]}},
 
 # Asrai — Crypto Analysis via x402
 
+Use Asrai tools when the user asks about crypto prices, market analysis, trading signals, sentiment, or investment advice.
+
+## When to use
+
+- Crypto price / chart / technical analysis → use asrai tools
+- Market sentiment, CBBI, fear/greed → use asrai tools
+- "What should I buy?" / buy opportunities / entry points → use `trade_signals` + `portfolio`
+- Full market overview / morning report → use `market_overview`
+- Elliott Wave, smart money, order blocks → use asrai tools
+- DEX data, low-cap tokens → use asrai tools
+- General knowledge you already know well → answer directly (costs $0.005 per call)
+
+## Tool selection guide
+
+| User asks... | Primary tool | Supporting tools |
+|---|---|---|
+| "what to buy?" / "buy opportunities" / "entry points" | `trade_signals` | `portfolio`, `sentiment` |
+| "market overview" / "morning report" / "full brief" | `market_overview` | — |
+| "what's trending?" / "hot coins" | `trending` | `gainers_losers` |
+| "BTC analysis" / chart / signals | `technical_analysis` | `smart_money`, `elliott_wave` |
+| "price prediction" / "forecast" | `forecast` | `technical_analysis` |
+| "market sentiment" / "fear greed" / CBBI | `sentiment` | `dominance`, `macro` |
+| "ATH" / "all-time high" coins | `ath_tracker` | `trade_signals` |
+| "volume spikes" / unusual volume | `volume_spikes` | `high_volume_low_cap` |
+| "find coins" / screener criteria | `screener` | `top_bottom` |
+| "cashflow" / capital flow | `cashflow` | `sentiment` |
+| "unlocked coins" / vesting pressure | `late_unlocked_coins` | — |
+| "low cap gems" / DEX / chain tokens | `chain_tokens` | `dexscreener`, `high_volume_low_cap` |
+| "portfolio" / "Abu's picks" | `portfolio` | `coin_info` |
+
+**Important:** For buy opportunity questions ALWAYS call `trade_signals` — it combines trending movers, bounces, SAR & MACD entries, RSI, and Galaxy Score in one call.
+
 ## Install
 
 ```bash
@@ -28,19 +60,6 @@ For MCP agents (Cursor, Cline, Claude Desktop) also add to config:
   }
 }
 ```
-
----
-
-Use Asrai tools when the user asks about crypto prices, market analysis, trading signals, sentiment, or investment advice.
-
-## When to use
-
-- Crypto price / chart / technical analysis → use asrai tools
-- Market sentiment, CBBI, fear/greed → use asrai tools
-- "What should I buy?" / portfolio advice → use `portfolio` tool
-- Elliott Wave, smart money, order blocks → use asrai tools
-- DEX data, low-cap tokens → use asrai tools
-- General knowledge you already know well → answer directly (costs $0.005 per call)
 
 ## How to call
 

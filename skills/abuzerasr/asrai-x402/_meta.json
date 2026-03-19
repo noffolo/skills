@@ -3,11 +3,16 @@
   "slug": "asrai-x402",
   "displayName": "Asrai Crypto Analysis (x402)",
   "latest": {
-    "version": "2.1.1",
-    "publishedAt": 1773603542158,
-    "commit": "https://github.com/openclaw/skills/commit/a2d9779ad6aa89ea9dffbf27b529fb692f62bc0e"
+    "version": "2.1.2",
+    "publishedAt": 1773650327566,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.1.1",
+      "publishedAt": 1773603542158,
+      "commit": "https://github.com/openclaw/skills/commit/a2d9779ad6aa89ea9dffbf27b529fb692f62bc0e"
+    },
     {
       "version": "2.0.0",
       "publishedAt": 1773125593717,

@@ -51,7 +51,7 @@ x402 automatic — $0.005 USDC per endpoint on Base mainnet ($0.01 for `/ai`)
 - `GET /api/late-unlocked-coins/`
 - `GET /api/rsi/` — RSI heatmap
 - `GET /api/ao/` — Awesome Oscillator screener
-- `GET /api/indicator/today` — today's triggered ALSAT & indicator signals (TD9, AlphaTrend, etc.) — today's triggered ALSAT & indicator signals (TD9, AlphaTrend, etc.)
+- `GET /api/indicator/today` — today's triggered ALSAT & indicator signals (TD9, AlphaTrend, etc.)
 
 ### Coin Info
 - `GET /api/coinstats/<symbol>` — market cap, volume, supply
