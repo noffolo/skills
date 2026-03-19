@@ -1,13 +1,18 @@
 {
   "owner": "jobzhao15",
   "slug": "huo15-doc-template",
-  "displayName": "Huo15 Doc Template",
+  "displayName": "火一五文档模板",
   "latest": {
-    "version": "1.0.6",
-    "publishedAt": 1773584620969,
-    "commit": "https://github.com/openclaw/skills/commit/7b1fa89532e2d777115d7f003e75ea9cb9217144"
+    "version": "1.1.0",
+    "publishedAt": 1773897663110,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.6",
+      "publishedAt": 1773584620969,
+      "commit": "https://github.com/openclaw/skills/commit/7b1fa89532e2d777115d7f003e75ea9cb9217144"
+    },
     {
       "version": "1.0.5",
       "publishedAt": 1773494011627,
