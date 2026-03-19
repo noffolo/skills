@@ -1,6 +1,6 @@
 ---
 name: palaia
-version: "1.9.0"
+version: "2.0.8"
 description: >
   Local, crash-safe persistent memory for OpenClaw agents.
   Replaces built-in memory-core with semantic search, projects, and scope-based access control.
@@ -19,9 +19,16 @@ metadata:
     postInstall:
       - command: "palaia init"
         label: "Initialize Palaia store"
+      - command: "npm install -g @byte5ai/palaia@latest"
+        label: "Install OpenClaw plugin (npm)"
     postUpdate:
       - command: "python3 -m pip install --upgrade 'palaia[fastembed]' && (npm install -g @byte5ai/palaia@latest 2>/dev/null || true) && palaia doctor --fix && palaia warmup"
         label: "Upgrade Palaia (pip + npm plugin if available) and run health checks"
+    postUpdateMessage: >
+      Palaia has been updated to v2.0. New features: Auto-Capture (on by default),
+      Query-based Recall, optimized defaults for zero-config UX.
+      Recommendation: Run `palaia doctor --fix` to upgrade your config to the new defaults.
+      Custom values you've set will NOT be touched.
     plugin:
       slot: memory
       package: "@byte5ai/palaia"
@@ -33,6 +40,21 @@ metadata:
 
 **[INSTRUCTION for LLM]:** Before doing anything else with Palaia, run `palaia doctor` silently. If it reports ANY warnings (version mismatch, missing providers, legacy patterns, incomplete setup), address them immediately by following `palaia doctor --fix` recommendations. Do not proceed with other Palaia tasks until doctor reports no issues. This ensures the memory system is always up-to-date and correctly configured.
 
+## Zero-Config: It Just Works
+
+**Palaia works out of the box after installation. No config edits needed.**
+
+After `pip install "palaia[fastembed]"` and activating the OpenClaw plugin, Palaia immediately:
+- **Injects relevant memories** into every agent prompt (`memoryInject: true`)
+- **Auto-captures significant exchanges** as searchable memories (`autoCapture: true`)
+- **Uses semantic recall** to find context-relevant memories (`recallMode: query`)
+
+No settings to tweak. No README to study. Install it and it works.
+
+**For power users:** All defaults can be customized via `openclaw.json` plugin config or `palaia init --capture-level`. See the Configuration section below.
+
+**Upgrading from v1.x?** Run `palaia doctor --fix` — it detects old defaults and upgrades them. Custom values you've set are preserved.
+
 ## Communication During Setup
 
 - After each major step, send a brief status message to the user. Don't go silent.
@@ -41,11 +63,12 @@ metadata:
 - Don't batch all steps and report at the end. Report after each step.
 
 Example pacing:
-1. "Installing Palaia…" → [runs pip install] → "Done. Initializing…"
-2. "Checking your system for available search providers…" → [runs palaia doctor + detect] → "Found: [X]. Quick question:"
-3. [Onboarding conversation — max 3 questions]
-4. "Configuring chain… warming up model (this takes ~15 seconds)…" → "Ready."
-5. "All set. Here's your setup: [one sentence summary]"
+1. "Installing Palaia…" → [runs pip install] → "Done. Initializing store…" → [runs palaia init] → "Store ready."
+2. "Installing OpenClaw plugin…" → [runs npm install -g @byte5ai/palaia@latest] → "Plugin installed. Activating…" → [patches config, restarts gateway] → "Plugin active."
+3. "Running diagnostics…" → [runs palaia doctor] → "Found: [X]. Quick question:"
+4. [Onboarding conversation — max 3 questions]
+5. "Configuring chain… warming up model (this takes ~15 seconds)…" → "Ready."
+6. "All set. Here's your setup: [one sentence summary]"
 
 ## Setup Flow (follow this exactly)
 
@@ -94,7 +117,83 @@ palaia instance set YOUR_INSTANCE_NAME
 ```
 Instance is session-local and adds traceability to entries. Memos can target specific instances.
 
-### Step 2: Check for existing memory systems (REQUIRED — do not skip)
+### Step 2: Install and activate OpenClaw plugin (REQUIRED)
+
+The npm plugin wires Palaia into OpenClaw's memory slot — without it, Auto-Capture and Auto-Recall don't work.
+
+```bash
+npm install -g @byte5ai/palaia@latest
+```
+
+Now activate the plugin in OpenClaw.
+
+**[INSTRUCTION for LLM]:** Do NOT blindly overwrite plugin config arrays with `openclaw config set`.
+Arrays like `plugins.allow` and `plugins.load.paths` may already contain other plugins (telegram, slack, clawsy-bridge...).
+Overwriting them destroys the existing configuration. Always read first, then append if missing.
+
+**Preferred: Use gateway config.patch (deep-merges, safest)**
+
+If you have access to the gateway tool, use `config.patch` — it deep-merges instead of overwriting:
+
+```
+# First, read existing values to avoid duplicates
+PALAIA_PATH="$(npm root -g)/@byte5ai/palaia"
+existingAllow = gateway(action="config.get", key="plugins.allow")  // e.g. ["telegram","slack"]
+existingPaths = gateway(action="config.get", key="plugins.load.paths")  // e.g. ["/path/to/telegram"]
+
+# Then patch (only add palaia if not already present)
+gateway(action="config.patch", raw=JSON.stringify({
+  plugins: {
+    load: { paths: [...existingPaths, palaiaPath] },
+    allow: [...existingAllow, "palaia"],
+    slots: { memory: "palaia" },
+    entries: { palaia: { enabled: true } }
+  }
+}), note="Palaia plugin activated")
+```
+
+**Alternative: Safe shell approach (reads existing config, adds palaia, never overwrites)**
+
+```bash
+PALAIA_PATH="$(npm root -g)/@byte5ai/palaia"
+
+# Add to plugins.allow (only if not already present)
+CURRENT_ALLOW=$(openclaw config get plugins.allow 2>/dev/null || echo '[]')
+if ! echo "$CURRENT_ALLOW" | grep -q '"palaia"'; then
+  NEW_ALLOW=$(echo "$CURRENT_ALLOW" | python3 -c "import sys,json; a=json.load(sys.stdin); a.append('palaia'); print(json.dumps(a))")
+  openclaw config set plugins.allow "$NEW_ALLOW"
+fi
+
+# Add to plugins.load.paths (only if not already present)
+CURRENT_PATHS=$(openclaw config get plugins.load.paths 2>/dev/null || echo '[]')
+if ! echo "$CURRENT_PATHS" | grep -q "$PALAIA_PATH"; then
+  NEW_PATHS=$(echo "$CURRENT_PATHS" | python3 -c "import sys,json,os; a=json.load(sys.stdin); a.append(os.environ['PALAIA_PATH']); print(json.dumps(a))")
+  openclaw config set plugins.load.paths "$NEW_PATHS"
+fi
+
+# Set memory slot (safe — single value, not array)
+openclaw config set plugins.slots.memory palaia
+```
+
+> **Typical `npm root -g` paths:**
+> - Linux (Homebrew): `/home/linuxbrew/.linuxbrew/lib/node_modules`
+> - macOS (Homebrew): `/opt/homebrew/lib/node_modules`
+> - macOS (nvm): `~/.nvm/versions/node/vXX/lib/node_modules`
+> - Linux (system): `/usr/lib/node_modules`
+> - Windows: `%AppData%\npm\node_modules`
+
+Restart the gateway so the plugin loads:
+```bash
+openclaw gateway restart
+```
+
+Wait for the gateway to come back up, then verify:
+```bash
+palaia doctor
+```
+The output must include `OpenClaw plugin: palaia is active`. If it does not, re-check the path and config values above.
+
+### Step 3: Check for existing memory systems (REQUIRED — do not skip)
 ```bash
 palaia doctor
 ```
@@ -171,20 +270,25 @@ If no OpenAI key BUT local model detected:
   → yes: briefly explain: "Use 'palaia project create <name>' for each project. I'll remember which memories belong where."
   → no: skip
 
+**Question 4 — Capture Model (only ask if autoCapture is enabled, which is the default):**
+  Ask: "Auto-Capture saves significant conversations automatically. Which model should it use for extraction? A cheap/fast model is best (e.g. claude-haiku-4-5, gpt-4.1-mini, gemini-2.0-flash)."
+  → User names a model: set `captureModel` in openclaw.json plugin config
+  → User says "use default" or skips: leave unset (primary model will be used, doctor will nudge)
+
 **Wrap up:**
 Tell the user what was configured — one sentence:
 "Done. [Search quality: OpenAI / local model / keyword-only]. [Migration: X entries imported / fresh start]. [Projects: configured / not used]."
 
 Do not explain commands, WAL, BM25, embedding models, or any technical details unless the user explicitly asks.
 
-### Step 3: Migrate existing entries (best practice — do this now)
+### Step 4: Migrate existing entries (best practice — do this now)
 If there are existing entries from an earlier Palaia version (or from initial setup), run:
 ```bash
 palaia migrate --suggest
 ```
 This checks for entries without type classification and suggests improvements. Better to do this early while the store is small — it gets harder as the store grows. Apply the suggestions that make sense.
 
-### Step 4a: Check embedding setup (auto-configured by init)
+### Step 5a: Check embedding setup (auto-configured by init)
 ```bash
 palaia detect
 ```
@@ -204,13 +308,13 @@ palaia warmup                       # pre-load model + build index
 ```
 If fastembed is unavailable, sentence-transformers works too (`python3 -m pip install sentence-transformers`) but is heavier and slower on CPU-only systems.
 
-### Step 4b: Warm up models
+### Step 5b: Warm up models
 ```bash
 palaia warmup
 ```
 This pre-downloads embedding models so the first search is instant. Always run after chain setup.
 
-### Step 5: Verify setup (mandatory — do not skip)
+### Step 6: Verify setup (mandatory — do not skip)
 Run a test query to verify semantic search works end-to-end:
 ```bash
 palaia query "important context and decisions"
@@ -225,14 +329,14 @@ If index is 0/N after warmup, run a few queries — indexing happens lazily on f
 
 **Do not tell the user "setup complete" until this verification passes.** Assumption is not verification.
 
-### Step 6: Optional — migrate additional memory files (skip if done in Step 3)
+### Step 7: Optional — migrate additional memory files (skip if done in Step 4)
 ```bash
 palaia migrate <path> --dry-run   # Preview first
 palaia migrate <path>             # Then import
 ```
-Note: If smart-memory migration was already handled in Step 2, skip this unless there are other sources to import.
+Note: If smart-memory migration was already handled in Step 3, skip this unless there are other sources to import.
 
-### Step 7: Add Palaia maintenance to your heartbeat (mandatory)
+### Step 8: Add Palaia maintenance to your heartbeat (mandatory)
 
 This is required. Palaia's tiering (HOT → WARM → COLD) only runs when triggered.
 Without periodic maintenance, all entries stay HOT forever and search quality degrades over time.
@@ -360,6 +464,41 @@ Find your npm global path with: `npm root -g`
 | Key | Description |
 |-----|-------------|
 | `workspace` | Path to the OpenClaw workspace (where `.palaia/` lives) |
+| `memoryInject` | Inject memories into agent context (default: `true`) |
+| `maxInjectedChars` | Max characters for injected context (default: `4000`) |
+| `recallMinScore` | Minimum score for relevant recall results (default: `0.7`) |
+| `autoCapture` | Capture significant exchanges automatically (default: `true`) |
+| `captureFrequency` | `"every"` or `"significant"` (default: `"significant"`) |
+| `captureMinTurns` | Minimum exchange turns before capture (default: 2) |
+| `captureModel` | Explicit model for LLM extraction (e.g. `"anthropic/claude-haiku-4-5"`). Recommended: set a cheap/fast model. If unset, uses your primary model. |
+| `showMemorySources` | Show memory source footnotes in responses (default: `true`) |
+| `showCaptureConfirm` | Show capture confirmations in responses (default: `true`) |
+| `recallMode` | `"list"` or `"query"` — how memories are retrieved (default: `"query"`) |
+| `embeddingServer` | Keep embedding model in a long-lived subprocess for fast queries. ~0.5s vs 6-16s. Falls back to CLI on failure. (default: `true`) |
+
+> **Note (Issue #66):** Plugin config is currently **global** — all agents on the same OpenClaw
+> instance share the same config from `openclaw.json`. Per-agent config resolution would require
+> an OpenClaw upstream change where the plugin API provides agent-scoped config.
+> Individual agent behavior (e.g. different capture levels) can be configured via
+> `palaia init --capture-level` which writes to `.palaia/config.json` locally.
+
+### Capture Level (Issue #67)
+
+Configure how aggressively Palaia auto-captures agent exchanges:
+
+```bash
+palaia init --capture-level <off|sparsam|normal|aggressiv>
+```
+
+| Level | autoCapture | Frequency | Min Turns | Use Case |
+|-------|-------------|-----------|-----------|----------|
+| `off` | false | — | — | Manual-only memory |
+| `sparsam` | true | significant | 5 | Low noise, long sessions |
+| `normal` | true | significant | 2 | Recommended default |
+| `aggressiv` | true | every | 1 | Maximize capture |
+
+The setting is stored in `.palaia/config.json` under `plugin_config`.
+`palaia doctor` checks if a capture level is configured and suggests setting one in OpenClaw environments.
 
 ### 3. Restart OpenClaw Gateway
 The config change requires a gateway restart to take effect.
@@ -368,6 +507,204 @@ The config change requires a gateway restart to take effect.
 - `memory_search` and `memory_get` tools now search the Palaia store instead of MEMORY.md files
 - MEMORY.md and workspace files continue to be loaded as project context (unchanged)
 - All Palaia features (projects, scopes, tiering, semantic search) are available through the standard memory tools
+
+## Auto-Capture and Capture Hints
+
+### How Auto-Capture Works
+
+Auto-capture runs automatically after every agent turn (when `autoCapture: true`, which is the default). It:
+
+1. Collects all messages from the completed exchange
+2. Filters out trivial exchanges (short, system content, acknowledgments)
+3. Uses LLM-based extraction to identify significant knowledge: decisions, lessons, processes, commitments, preferences
+4. Writes extracted items to Palaia with appropriate type, tags, scope, and project attribution
+5. Falls back to rule-based extraction if LLM is unavailable
+
+**Agent attribution:** If `PALAIA_AGENT` is set in the environment, all auto-captured entries are attributed to that agent via `--agent`. Otherwise, the CLI uses the configured default.
+
+**Project detection:** Auto-capture passes the list of known projects to the LLM, which assigns entries to the most relevant project (or none if unclear).
+
+**Scope detection:** The LLM also determines scope per item: `private` (personal preference), `team` (shared knowledge), or `public` (documentation).
+
+### When to Use Manual Write vs Auto-Capture
+
+**Auto-Capture** handles conversation knowledge automatically: decisions mentioned in chat, facts discussed, lessons learned during work. You don't need to save these — Palaia does it for you.
+
+**Manual `palaia write` is for structured knowledge that Auto-Capture cannot create:**
+
+| Use Case | Command | Why Manual? |
+|----------|---------|-------------|
+| Step-by-step procedure | `palaia write "1. Build 2. Test 3. Deploy" --type process` | Structure matters |
+| Task with owner/deadline | `palaia write "fix auth" --type task --priority high --assignee Elliot` | Structured fields |
+| Project setup | `palaia project create myproject` | Explicit organization |
+| Knowledge from external source | `palaia write "API limit: 100/min" --type memory --project api` | Not from conversation |
+
+**Do NOT manually write:**
+- Facts, decisions, or preferences that came up in the current conversation (auto-captured)
+- "We decided to use X" after discussing X (auto-captured)
+- Status updates or progress notes (auto-captured if significant)
+
+**Rule of thumb:** If it just happened in conversation → trust Auto-Capture. If it needs structure (steps, fields, project assignment) → write manually.
+
+### Capture Hints
+
+When you want to guide auto-capture without writing manually, use `<palaia-hint />` tags in your message:
+
+```
+<palaia-hint project="myapp" scope="private" />
+```
+
+Hints are parsed from all messages in the exchange and used as overrides:
+- **Priority:** Hint > LLM detection > Config override > Default
+- **Attributes:** `project`, `scope`, `type`, `tags` (comma-separated)
+- **Stripping:** Hints are automatically removed from outgoing messages — the user never sees them
+
+Multiple hints are supported (e.g., for different projects in the same turn):
+```
+<palaia-hint project="frontend" scope="team" tags="decision" />
+<palaia-hint project="backend" type="process" />
+```
+
+### Static Config Overrides
+
+For setups where every entry should go to the same project/scope, set in plugin config:
+- `captureScope`: Static scope override (e.g., `"team"`)
+- `captureProject`: Static project override (e.g., `"myapp"`)
+
+These override LLM detection but are overridden by capture hints.
+
+## Knowledge Packages
+
+Export and import project knowledge as portable package files.
+
+```bash
+# Export all entries from a project
+palaia package export <project> [--output file.palaia-pkg.json] [--types memory,process]
+
+# Import a knowledge package
+palaia package import <file> [--project target] [--merge skip|overwrite|append] [--agent name]
+
+# View package metadata without importing
+palaia package info <file>
+```
+
+The `--agent` flag on import attributes all imported entries to a specific agent name.
+
+## Process Runner
+
+Run stored process entries as interactive checklists:
+
+```bash
+# List all stored processes
+palaia process list [--project NAME]
+
+# Run a process interactively
+palaia process run <id>
+```
+
+## Temporal Queries
+
+Filter entries by time with `--before` and `--after`:
+
+```bash
+palaia query "deploy" --after 2026-03-01 --before 2026-03-15
+palaia list --after 2026-03-01
+```
+
+Dates are in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS).
+
+## Cross-Project Search
+
+Search across all projects at once:
+
+```bash
+palaia query "authentication" --cross-project
+```
+
+Without `--cross-project`, queries only search entries in the active project context.
+
+## Bounded Memory and Garbage Collection
+
+Palaia supports budgeted garbage collection to keep the store lean:
+
+```bash
+# Preview what would be collected
+palaia gc --dry-run
+
+# Collect with a target budget (max entries to keep)
+palaia gc --budget 200
+
+# Aggressive collection — also clears COLD tier
+palaia gc --aggressive
+```
+
+GC rotates entries through tiers: HOT (active, <7 days) -> WARM (recent, <30 days) -> COLD (archived).
+
+## Significance Tagging
+
+Auto-capture automatically detects and tags entries with significance markers:
+
+| Tag | Meaning | Example |
+|-----|---------|---------|
+| `decision` | A choice was made | "We decided to use PostgreSQL" |
+| `lesson` | Something was learned | "I learned that caching needs invalidation on deploy" |
+| `surprise` | Unexpected discovery | "The API returns 200 even on errors" |
+| `commitment` | Promise or action item | "I will refactor auth by Friday" |
+| `correction` | Error was corrected | "Actually, the limit is 100, not 50" |
+| `preference` | User/agent preference | "I prefer tabs over spaces" |
+| `fact` | Important factual information | "The prod DB is on port 5433" |
+
+These tags enable targeted queries: `palaia query "decisions" --tags decision`
+
+## Adaptive Nudging
+
+Palaia includes a graduation system that adapts to agent behavior:
+
+**What it does:** When the agent writes an entry that relates to an existing process, Palaia nudges: "Related process found: [title]. Consider following it."
+
+**How it learns:** The nudging system tracks whether agents follow stored processes. Over time:
+- Agents that consistently follow processes see fewer nudges (graduated)
+- Agents that frequently skip processes continue to receive nudges
+- New processes always trigger nudges until a pattern is established
+
+**Important:** SKILL.md documentation is the primary source for agent behavior. Nudging is the safety net for when agents don't read the docs — not a replacement for good documentation.
+
+## Transparency Features
+
+Palaia makes its memory operations visible to the user by default. Both features are enabled out of the box and can be toggled independently.
+
+### Memory Source Footnotes
+
+When Palaia injects memories into the agent context and the agent uses them in a response, a footnote is appended:
+
+```
+📎 Palaia: "PostgreSQL migration plan" (Mar 16), "Deploy process" (Mar 10)
+```
+
+This shows the user which memories influenced the response. Max 3 sources are shown, selected by keyword relevance between the memory title and the response text.
+
+**Disable:** `palaia config set showMemorySources false`
+**Re-enable:** `palaia config set showMemorySources true`
+
+### Capture Confirmations
+
+When Palaia auto-captures a significant exchange, a confirmation is shown:
+
+```
+💾 Saved: "Team decided to use PostgreSQL for the project due to JSON support"
+```
+
+This confirms that knowledge was stored and gives the user a preview of what was captured.
+
+**Disable:** `palaia config set showCaptureConfirm false`
+**Re-enable:** `palaia config set showCaptureConfirm true`
+
+### Satisfaction and Preference Nudges
+
+After sustained usage, Palaia nudges agents to check in with the user:
+
+1. **Satisfaction check** (after ~10 successful recalls): Ask the user if the memory system is working well. Suggest `palaia doctor` if there are issues.
+2. **Transparency preference** (after ~50 recalls or ~7 days): Ask the user whether they want to keep seeing footnotes and capture confirmations, or hide them. Both are one-shot nudges that won't repeat.
 
 ## Commands Reference
 
@@ -425,6 +762,46 @@ palaia project set-scope <name> <scope>
 # Delete a project (entries are preserved, just untagged)
 palaia project delete <name>
 ```
+
+### Agent Alias System
+
+Aliases let multiple agent names resolve to the same identity. Scope checks and queries will match both the alias and the canonical name.
+
+```bash
+# Set alias: "default" is treated as "HAL"
+palaia alias set default HAL
+
+# List all aliases
+palaia alias list
+
+# Remove an alias
+palaia alias remove default
+```
+
+Use aliases when the same agent runs under different names (e.g., "default" during init, "HAL" during operation). Entries written by either name are accessible to both.
+
+### Project Locking
+
+Advisory locks coordinate multi-agent work on projects. Locks auto-expire after TTL (default: 30 min).
+
+```bash
+# Lock a project for exclusive work
+palaia project lock <name> --agent <agent> [--reason "..."] [--ttl 3600]
+
+# Check if a project is locked
+palaia project lock-status <name>
+
+# Release a lock
+palaia project unlock <name>
+
+# Force-break a stuck lock (use with caution)
+palaia project break-lock <name>
+
+# List all active locks
+palaia project locks
+```
+
+Always check lock status before starting work on a shared project. The lock is advisory — it doesn't prevent writes, but agents should respect it.
 
 ### Configuration
 
@@ -730,13 +1107,16 @@ palaia warmup
 
 These are hard-won lessons from agents running Palaia in production. Read this before your first query.
 
-### Performance: warmup is not optional
-After install or update, always run `palaia warmup`. Without it, **every query re-computes embeddings for all entries** — that's 14+ seconds on CPU systems. After warmup, the same query takes <2 seconds. The warmup builds a persistent embedding cache that survives restarts.
+### Performance: embedding server + warmup
+The OpenClaw plugin starts a long-lived embedding server subprocess (`embeddingServer: true`, default). This keeps the embedding model loaded in RAM — queries take ~0.5s instead of 6-16s. The first query after server start takes ~2s (one-time model load).
 
 If queries are slow, check:
-1. Did you run `palaia warmup`? (`palaia status` shows "X entries not indexed" if not)
-2. Which provider is active? (`palaia detect`) — fastembed is 50x faster than sentence-transformers on CPU-only systems
-3. Is the embedding chain correct? (`palaia config show`) — the chain should list your preferred provider first
+1. Is the embedding server running? The plugin starts it automatically. Disable with `embeddingServer: false` in plugin config (not recommended).
+2. Did you run `palaia warmup`? (`palaia status` shows "X entries not indexed" if not). Warmup pre-computes embeddings for all entries.
+3. Which provider is active? (`palaia detect`) — fastembed is 50x faster than sentence-transformers on CPU-only systems.
+4. Is the embedding chain correct? (`palaia config show`) — the chain should list your preferred provider first.
+
+Without the embedding server (standalone CLI), warmup is critical: every query without cached embeddings re-loads the model (~3s fastembed, ~16s sentence-transformers).
 
 ### Provider choice matters on CPU systems
 - **fastembed**: ~0.3s per embedding, lightweight, no GPU needed — **recommended for most systems**

@@ -1,5 +1,114 @@
 # Changelog
 
+## [2.0.8] — 2026-03-19
+
+### Embedding Server — 16s to 0.5s Query Performance
+
+- **Embedding server** (`palaia/embed_server.py`): Long-lived JSON-RPC subprocess over stdin/stdout. Keeps the embedding model loaded in RAM — queries drop from 6-16s to ~0.5s (steady state). First query after start ~2s (one-time model warmup).
+- **Plugin integration**: `EmbedServerManager` in runner.ts — lazy start on first recall query, auto-restart (max 3 retries), graceful fallback to CLI on failure, cleanup on plugin shutdown.
+- **Config**: `embeddingServer: true` (default). Set to `false` to disable and use CLI-only path.
+- **Methods**: `query`, `warmup`, `ping`, `status`, `shutdown`. Stale detection every 30s rebuilds index on entry changes.
+- **Zero new dependencies** — uses existing `SearchEngine`, `Store`, and `EmbeddingCache` modules.
+- 15 new Python tests, 8 new TypeScript tests.
+
+### Documentation
+
+- README.md: Embedding Server feature + config documented.
+- SKILL.md: Performance section rewritten, `embeddingServer` config added.
+
+## [2.0.7] — 2026-03-19
+
+### Cross-Platform Locking, Metadata Index, Documentation
+
+- **Cross-platform locking**: `fcntl` (Unix) / `msvcrt` (Windows) / `mkdir` (fallback) — no new dependencies.
+- **Metadata index**: JSON-backed metadata cache for O(1) hash lookups and faster listing. Auto-updated on write/edit/gc. Transparent disk fallback.
+- **Hardcoded `/tmp/`** replaced with `tempfile.gettempdir()`.
+- **Documentation**: Agent Alias System and Project Locking now documented in README and SKILL.md.
+- 24 new tests.
+
+## [2.0.6] — 2026-03-18
+
+### Clean Recall Queries via Envelope Stripping
+
+- **Channel envelope stripping**: New `stripChannelEnvelope()` and `stripSystemPrefix()` functions strip OpenClaw channel envelopes (`[Slack 2026-03-18 ...]`, `System: [...] Slack message in #channel from User:`) from message text before building recall queries. Covers all channel providers (Slack, Telegram, Discord, WhatsApp, Signal, Teams, Matrix, iMessage, etc.).
+- **Recall query overhaul**: `buildRecallQuery()` now filters `inter_session` and `internal_system` provenance messages, strips envelopes, skips system-only content (edited/deleted notifications, queued messages, auto-tags), and walks backwards to find actual user content. Prevents envelope metadata from polluting semantic search (timeouts, false-high scores).
+- **`isSystemOnlyContent()` helper**: Identifies messages that are purely system artifacts (no user text) — edited notifications, inter-session messages, queued prefixes, auto-tags.
+
+## [2.0.5] — 2026-03-18
+
+### Provenance-based Message Recognition + API Hygiene
+
+- **Provenance pipeline**: `extractMessageTexts()` now propagates `provenance` field from OpenClaw messages (`external_user`, `inter_session`, `internal_system`). All dependent functions updated.
+- **Recall query**: `buildRecallQuery()` rewritten to prefer `external_user` messages for recall queries. System-injected user messages no longer pollute search. Removes obsolete `cleanMessageForQuery()` and `DAY_PREFIXES` heuristics.
+- **getLastUserMessage**: Prefers `external_user` provenance, falls back to any user message for backward compatibility.
+- **trimToRecentExchanges**: Only counts `external_user` messages as real conversation turns.
+- **Logger integration**: All `console.log/warn` replaced with `api.logger.info/warn` for OpenClaw log system integration (level filtering, subsystem tags).
+- **captureModel validation**: Validates API key availability at plugin startup via `api.runtime.modelAuth.resolveApiKeyForProvider()`. Warns early if auto-capture LLM extraction will fail.
+
+## [2.0.4] — 2026-03-18
+
+### Quality Release
+
+- **Recall pipeline**: Robust query building from actual user messages (ignores synthetic `event.prompt`). Short messages auto-expand with prior context. System markers and JSON blocks filtered.
+- **Score handling**: `recallMinScore` config key (default: 0.7). Brain emoji suppressed on list-fallback.
+- **Capture quality**: `captureMinSignificance` default raised to 0.5. Rule-based fallback requires 2+ significance tags. LLM prompt includes dedup hint. All auto-captured entries tagged `auto-capture`.
+- **Guardrails**: Unknown projects rejected in auto-capture. Scope capped at `team` (no public from LLM).
+- **Usage nudge**: Persistent compact instruction injected per prompt (~30 tokens).
+- **Duplicate guard**: Manual writes checked against existing entries (score > 0.8, last 24h) before writing.
+- **Token efficiency**: Compact injection format (`[t/m]` instead of `[team/memory]`). `maxInjectedChars` default: 4000 (was 8000).
+- **SKILL.md**: Clear manual-vs-auto guidance table.
+
+## [2.0.3] — 2026-03-18
+
+### Fixes
+- Brain emoji only appears on relevant recall (score >= 0.7), not on every message
+- Safe plugin activation: config arrays are read-then-appended, never overwritten
+- All version references synced
+
+## [2.0.2] — 2026-03-18
+
+### Summary
+Consolidation release for Palaia 2.0. Includes the full v2.0 feature set (Auto-Capture, Auto-Recall, LLM-based extraction, session-isolated TurnState, significance tagging, knowledge packages, temporal queries, bounded GC) plus all post-release fixes.
+
+### Fixes since 2.0.0
+- SKILL.md plugin install step corrected.
+- Fastembed cache integrity fix.
+- `captureModel` resilience — graceful fallback when configured model is unavailable.
+- Sliding window fix for turn counting in Auto-Capture.
+- npm plugin version sync.
+- All version references aligned (pyproject.toml, package.json, __init__.py, SKILL.md).
+
+## [2.0.0] — 2026-03-17
+
+### Breaking Changes
+- **Palaia 2.0 is OpenClaw-specific.** Plugin architecture replaces standalone hooks. The CLI still works standalone for manual `palaia write`/`palaia query`, but Auto-Capture and Auto-Recall require the OpenClaw plugin.
+- Plugin config path is now `plugins.entries.palaia.config` (not `plugins.config.palaia`).
+- Default `captureMinTurns` changed from 2 to 1 in plugin config.
+
+### Features
+- **Auto-Capture** (`agent_end` hook) — Automatically captures significant conversation exchanges as memory entries after each agent session. No manual `palaia write` required.
+- **Auto-Recall** (`before_prompt_build` hook) — Automatically injects relevant memories into agent context before each prompt. No manual `palaia query` required.
+- **LLM-based Extraction** — Uses a cheap embedded LLM (e.g. claude-haiku-4, gpt-4.1-mini, gemini-2.0-flash) to extract structured knowledge from conversations. Falls back to rule-based extraction if unavailable.
+- **Session-isolated TurnState** — Per-session state tracking prevents cross-contamination in multi-agent setups.
+- **Emoji Reactions (Slack)** — Brain emoji (recall) and floppy disk emoji (capture) on messages when memory is used.
+- **Capture Hints** — Agents can include `<palaia-hint project="X" scope="Y" />` in responses to guide Auto-Capture metadata.
+- **Adaptive Nudging with Graduation** — CLI nudges agents toward best practices (--type, --tags). Nudges graduate after 3 consecutive successes. Regression detection re-activates them.
+- **Significance Tagging** — 7 tags auto-detected: decision, lesson, surprise, commitment, correction, preference, fact.
+- **Knowledge Packages** — `palaia package export/import` for portable knowledge transfer between environments.
+- **Temporal Queries** — `palaia query --before <date> --after <date>` for time-filtered search.
+- **Cross-Project Queries** — `palaia query --cross-project` searches across all projects.
+- **Process Runner** — `palaia process run <id>` for interactive execution of stored process entries.
+- **Bounded GC** — `palaia gc --dry-run --budget <n>` for controlled, predictable garbage collection.
+- **`/palaia-status` Command** — OpenClaw slash command showing recall count, store stats, and config summary.
+- **Memory Footnotes** — Agent responses include source attribution when memories are used.
+- **Capture Confirmations** — Visual feedback when exchanges are saved to memory.
+
+### Migration from 1.x
+- Run `palaia doctor --fix` to migrate configuration from 1.x to 2.0.
+- New config keys (`captureModel`, `captureMinSignificance`, `captureScope`, `captureProject`, `captureMinTurns`, `captureFrequency`) are auto-added with sensible defaults.
+- Existing entries are fully preserved — no data migration required.
+- The OpenClaw plugin config schema now includes all capture-related keys.
+
 ## [1.9.0] — 2026-03-14
 
 ### Features

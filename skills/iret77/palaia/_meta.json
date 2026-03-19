@@ -3,11 +3,16 @@
   "slug": "palaia",
   "displayName": "Palaia",
   "latest": {
-    "version": "1.9.0",
-    "publishedAt": 1773530167147,
-    "commit": "https://github.com/openclaw/skills/commit/77ed0f63b4175d44a26af0a74a560d5dabcb8171"
+    "version": "2.0.8",
+    "publishedAt": 1773932050167,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.9.0",
+      "publishedAt": 1773530167147,
+      "commit": "https://github.com/openclaw/skills/commit/77ed0f63b4175d44a26af0a74a560d5dabcb8171"
+    },
     {
       "version": "1.8.1-fix5",
       "publishedAt": 1773430434003,
