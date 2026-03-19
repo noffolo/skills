@@ -1,0 +1,39 @@
+{
+  "name": "wechat-mp-article-push",
+  "version": "1.5.1",
+  "description": "微信公众号图文生成与推送技能。支持通过AI生成符合公众号规范的文章,并推送到公众号草稿箱或直接发布。",
+  "main": "push-article-https.js",
+  "scripts": {
+    "push": "node push-article-https.js"
+  },
+  "keywords": [
+    "wechat",
+    "mp",
+    "article",
+    "push",
+    "公众号",
+    "图文推送",
+    "ai",
+    "openclaw",
+    "skill"
+  ],
+  "author": "@lihengdao",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://clawhub.ai/lihengdao/wechat-mp-article-push"
+  },
+  "homepage": "https://clawhub.ai/lihengdao/wechat-mp-article-push",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "design.md",
+    "push-article-https.js",
+    "config.example.json",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
+}

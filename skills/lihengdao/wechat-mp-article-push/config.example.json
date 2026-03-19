@@ -1,0 +1,40 @@
+{
+  "_fileRole": "本文件 = 字段说明 + 示例。正式 config.json 须放在 wechat-mp-article-push 目录内（与 SKILL.md 同级）。写入时只保留向导 JSON 的键，删除 _fileRole 与 fieldsHelp。",
+  "fieldsHelp": {
+    "version": "配置结构版本，向导一般为 1。",
+    "description": "可选说明文字，无业务作用。",
+    "meta": "可选。含 generatedAt、source 等，由向导生成，推送接口不读。",
+    "apiBase": "可选。推送接口完整 URL。缺省时大模型应使用 https://api.pcloud.ac.cn/openClawService 。仅 POST JSON。",
+    "openId": "必填。微信用户 openId，由配置向导扫码登录后得到；推送 sendToWechat 必须携带。禁止编造。",
+    "pushMode": "必填。可选值仅两种：「default」= 系统默认公众号；「custom」= 用户自己的已绑定公众号。",
+    "accountId": "当 pushMode 为 custom 时必填其一：云数据库里该公众号记录 _id，或向导保存后返回的 id。default 模式为 null。",
+    "wechatAppId": "用户授权的公众号的 AppID（wx 开头）；default 为 null。",
+    "accountName": "可选。公众号显示名，仅给人看，推送可不传。",
+    "sn": "用户授权的公众号的 sn ；default 为 null；default 为 null。",
+    "sendToWechatExample": "可选。演示 POST Body 形状，便于大模型照抄改 title/content；接口不读取本对象。"
+  },
+  "sendToWechatExample_fieldsHelp": {
+    "action": "固定写 sendToWechat",
+    "openId": "与根级 openId 相同",
+    "title": "文章标题，≤64 字，来自HTML的title",
+    "content": "HTML字符串",
+    "sendMode": "可选值：draft（默认，草稿箱，未认证号适用）| send | masssend。未确认认证前禁止用 send/masssend。",
+    "accountId": "custom 模式时与根级 accountId 一致；default 可省略。"
+  },
+  "version": 1,
+  "description": "由配置向导生成；示例占位。",
+  "apiBase": "https://api.pcloud.ac.cn/openClawService",
+  "openId": "oXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "pushMode": "default",
+  "accountId": null,
+  "wechatAppId": null,
+  "accountName": null,
+  "sn": null,
+  "sendToWechatExample": {
+    "action": "sendToWechat",
+    "openId": "oXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "title": "文章标题",
+    "content": "<p>大模型生成的 HTML</p>",
+    "sendMode": "draft"
+  }
+}
