@@ -3,9 +3,15 @@
   "slug": "xint-rs",
   "displayName": "Xint Rs",
   "latest": {
-    "version": "2026.2.25",
-    "publishedAt": 1772895818768,
-    "commit": "https://github.com/openclaw/skills/commit/d4c6d7df11fbe4efd99991bb57fa316f5404a1f9"
+    "version": "2026.2.26",
+    "publishedAt": 1773658283123,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2026.2.25",
+      "publishedAt": 1772895818768,
+      "commit": "https://github.com/openclaw/skills/commit/d4c6d7df11fbe4efd99991bb57fa316f5404a1f9"
+    }
+  ]
 }

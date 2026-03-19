@@ -253,7 +253,7 @@ impl MCPServer {
                     "type": "object",
                     "properties": {
                         "query": { "type": "string", "description": "Question or analysis request" },
-                        "model": { "type": "string", "description": "Grok model (grok-3-mini, grok-3)" },
+                        "model": { "type": "string", "description": "Grok model (grok-4-1-fast, grok-4, grok-3, grok-3-mini)" },
                     },
                     "required": ["query"]
                 }),
@@ -448,7 +448,7 @@ impl MCPServer {
                     "properties": {
                         "topic": { "type": "string", "description": "Report topic or query" },
                         "sentiment": { "type": "boolean", "description": "Include sentiment analysis (default: false)" },
-                        "model": { "type": "string", "description": "Grok model (default: grok-3-mini)" },
+                        "model": { "type": "string", "description": "Grok model (default: grok-4-1-fast)" },
                         "pages": { "type": "number", "description": "Search pages (default: 2)" },
                     },
                     "required": ["topic"]
@@ -1282,10 +1282,21 @@ impl MCPServer {
                     .and_then(|v| v.as_str())
                     .unwrap_or("grok-4");
                 let http = reqwest::Client::new();
-                let (results, summary) =
-                    xai::x_search(&http, &api_key, query, max_results, None, None, model, 45)
-                        .await
-                        .map_err(|e| format!("x_search failed: {e}"))?;
+                let (results, summary, _citations) = xai::x_search(
+                    &http,
+                    &api_key,
+                    query,
+                    max_results,
+                    None,
+                    None,
+                    model,
+                    45,
+                    None,
+                    None,
+                    false,
+                )
+                .await
+                .map_err(|e| format!("x_search failed: {e}"))?;
 
                 json_content(serde_json::json!({
                     "type": "success",
@@ -1323,7 +1334,7 @@ impl MCPServer {
                 let model = args
                     .get("model")
                     .and_then(|v| v.as_str())
-                    .unwrap_or("grok-3-mini")
+                    .unwrap_or("grok-4-1-fast")
                     .to_string();
                 let opts = crate::models::GrokOpts {
                     model: model.clone(),
@@ -1334,13 +1345,27 @@ impl MCPServer {
                 let response = if let Some(tweets_raw) = args.get("tweets") {
                     let tweets: Vec<Tweet> = serde_json::from_value(tweets_raw.clone())
                         .map_err(|e| format!("Invalid tweets payload for analyze: {e}"))?;
-                    grok::analyze_tweets_tracked(&http, &api_key, &tweets, Some(query), &opts, Some(&self.costs_path))
-                        .await
-                        .map_err(|e| format!("Analyze tweets failed: {e}"))?
+                    grok::analyze_tweets_tracked(
+                        &http,
+                        &api_key,
+                        &tweets,
+                        Some(query),
+                        &opts,
+                        Some(&self.costs_path),
+                    )
+                    .await
+                    .map_err(|e| format!("Analyze tweets failed: {e}"))?
                 } else {
-                    grok::analyze_query_tracked(&http, &api_key, query, None, &opts, Some(&self.costs_path))
-                        .await
-                        .map_err(|e| format!("Analyze query failed: {e}"))?
+                    grok::analyze_query_tracked(
+                        &http,
+                        &api_key,
+                        query,
+                        None,
+                        &opts,
+                        Some(&self.costs_path),
+                    )
+                    .await
+                    .map_err(|e| format!("Analyze query failed: {e}"))?
                 };
 
                 json_content(serde_json::json!({
@@ -1742,9 +1767,15 @@ impl MCPServer {
                         .map_err(|e| format!("Invalid tweets payload for sentiment: {e}"))?;
                     let model = args.get("model").and_then(|v| v.as_str());
                     let http = reqwest::Client::new();
-                    let results = sentiment::analyze_sentiment(&http, &api_key, &tweets, model, Some(&self.costs_path))
-                        .await
-                        .map_err(|e| format!("Sentiment analysis failed: {e}"))?;
+                    let results = sentiment::analyze_sentiment(
+                        &http,
+                        &api_key,
+                        &tweets,
+                        model,
+                        Some(&self.costs_path),
+                    )
+                    .await
+                    .map_err(|e| format!("Sentiment analysis failed: {e}"))?;
                     let stats = sentiment::compute_stats(&results);
                     serde_json::to_string_pretty(&serde_json::json!({
                         "type": "success",
@@ -2178,5 +2209,92 @@ mod tests {
 
         assert!(err.contains("XAI_API_KEY"));
         restore_env("XAI_API_KEY", prev_key);
+    }
+
+    #[tokio::test]
+    async fn mcp_compatibility_matrix_tracks_breakage_rate() {
+        let mut server = MCPServer::new(
+            PolicyMode::ReadOnly,
+            false,
+            PathBuf::from("/tmp/xint-rs-test-costs.json"),
+            PathBuf::from("/tmp/xint-rs-test-reliability.json"),
+        );
+
+        let scenarios: Vec<(&str, &str, bool)> = vec![
+            (
+                "initialize-minimal",
+                r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#,
+                true,
+            ),
+            (
+                "initialize-legacy-version",
+                r#"{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{}}}"#,
+                true,
+            ),
+            (
+                "initialized-notification",
+                r#"{"jsonrpc":"2.0","method":"initialized","params":{}}"#,
+                false,
+            ),
+            (
+                "tools-list-with-extra-params",
+                r#"{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{"legacy":true}}"#,
+                true,
+            ),
+            (
+                "tools-call-omitted-arguments",
+                r#"{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"xint_costs"}}"#,
+                true,
+            ),
+            (
+                "tools-call-snake-case-args",
+                r#"{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"xint_costs","arguments":{"period":"today"}}}"#,
+                true,
+            ),
+            (
+                "tools-call-camel-case-args",
+                r#"{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"xint_search","arguments":{"query":"ai","noReplies":true,"noRetweets":true,"limit":1}}}"#,
+                true,
+            ),
+        ];
+
+        let mut failed = 0usize;
+        let total = scenarios.len();
+
+        for (id, payload, expect_some) in scenarios {
+            let result = server.handle_message(payload).await;
+            match result {
+                Ok(maybe_response) => {
+                    if expect_some {
+                        if maybe_response.is_none() {
+                            eprintln!("[mcp-compat][rs] scenario '{id}' returned no response");
+                            failed += 1;
+                            continue;
+                        }
+                        let parsed = serde_json::from_str::<serde_json::Value>(
+                            maybe_response.as_deref().unwrap_or("{}"),
+                        );
+                        match parsed {
+                            Ok(v) => {
+                                if v.get("jsonrpc").and_then(|x| x.as_str()) != Some("2.0") {
+                                    failed += 1;
+                                }
+                            }
+                            Err(_) => failed += 1,
+                        }
+                    } else if maybe_response.is_some() {
+                        failed += 1;
+                    }
+                }
+                Err(_) => failed += 1,
+            }
+        }
+
+        let breakage_rate = failed as f64 / total as f64;
+        eprintln!(
+            "[mcp-compat][rs] total={total} failed={failed} breakage_rate={:.4}",
+            breakage_rate
+        );
+        assert!(breakage_rate <= 0.05, "breakage_rate exceeded threshold");
     }
 }
