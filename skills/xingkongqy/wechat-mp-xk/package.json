@@ -1,6 +1,6 @@
 {
   "name": "wechat-mp-xk",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "微信公众号发布工具 - 安全版，支持 Knowledge-Base 主题、分步流程、一键发布",
   "main": "wxgzh_step_by_step.py",
   "scripts": {

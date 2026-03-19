@@ -3,9 +3,15 @@
   "slug": "wechat-mp-xk",
   "displayName": "Wechat Mp Xk",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1773937660165,
-    "commit": "https://github.com/openclaw/skills/commit/6d126530d9e355f6de7d04ce80c7b5e0fd0478d3"
+    "version": "1.2.0",
+    "publishedAt": 1773938139781,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1773937660165,
+      "commit": "https://github.com/openclaw/skills/commit/6d126530d9e355f6de7d04ce80c7b5e0fd0478d3"
+    }
+  ]
 }

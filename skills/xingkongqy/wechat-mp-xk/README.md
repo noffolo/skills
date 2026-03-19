@@ -3,18 +3,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![ClawHub](https://img.shields.io/badge/clawhub-wechat--mp--xk-green.svg)](https://clawhub.ai)
-[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/xingkongqy/wechat-mp-xk)
-[![Security](https://img.shields.io/badge/security-first-green.svg)](SECURITY.md)
-
-**安全版 - 一键将 Markdown 文章发布到微信公众号草稿箱**
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/xingkongqy/wechat-mp-xk)
+**一键将 Markdown 文章发布到微信公众号草稿箱**
 
 ---
 
-## ⚠️ 安全提示
+## ⚠️ 配置提示
 
 **重要：** 本工具使用环境变量管理敏感信息，请勿在代码中硬编码 AppID/Secret！
-
-详细安全说明请参考 [SECURITY.md](SECURITY.md)
 
 ---
 
@@ -141,7 +137,6 @@ wechat-mp-xk/
 ├── wechat_mp.py              # 核心 API 模块
 ├── wechat_style_template.py  # 排版模板
 ├── README.md                 # 使用文档
-├── SECURITY.md               # 安全说明
 ├── .env.example              # 环境变量示例
 ├── .gitignore                # Git 忽略配置
 ├── package.json              # 包配置

@@ -1,7 +1,7 @@
 ---
 name: wechat-mp-xk
 description: 微信公众号发布工具 - 安全版，支持 Knowledge-Base 主题、分步流程、一键发布
-version: 1.1.1
+version: 1.2.0
 author: 九章快手团队
 license: MIT
 tags:
@@ -21,7 +21,7 @@ metadata:
 
 **安全版 - 一键将 Markdown 文章发布到微信公众号草稿箱**
 
-## ⚠️ 安全提示
+## ⚠️ 配置提示
 
 **重要：** 本工具使用环境变量管理敏感信息，请勿在代码中硬编码 AppID/Secret！
 
