@@ -4,6 +4,8 @@ name: official-doc
 description: "📄 公文生成器（标准格式）. Use when you need official doc capabilities. Triggers on: official doc."
   公文写作助手。通知、报告、请示、批复、会议纪要、工作总结、格式检查、语气检查、模板库。Official document writer for notices, reports, requests, meeting minutes with format check, tone check, template library. 公文模板、行政公文、政府文件。Use when writing official documents.
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 ---
 
 # 公文生成器
