@@ -1,5 +1,5 @@
 #!/bin/bash
-# Daily Health-Mate report runner.
+# Weekly Health-Mate report runner.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -19,25 +19,31 @@ fi
 export TZ=Asia/Shanghai
 CURRENT_DATE=$(date +"%Y-%m-%d")
 CURRENT_TIME=$(date +"%H:%M:%S")
-MEMORY_DIR="${MEMORY_DIR:-/root/.openclaw/workspace/memory}"
-TODAY_FILE="${MEMORY_DIR}/${CURRENT_DATE}.md"
-LOG_FILE="${LOG_FILE:-${LOGS_DIR}/health_report_pro.log}"
+LOG_FILE="${LOG_FILE:-${LOGS_DIR}/weekly_health_report_pro.log}"
+
+TARGET_DATE=$(python3 -c "
+from datetime import datetime, timedelta
+yesterday = datetime.now() - timedelta(days=1)
+days_since_sunday = yesterday.weekday()
+if days_since_sunday == 6:
+    target = yesterday
+else:
+    days_back = (days_since_sunday + 1) % 7
+    target = yesterday - timedelta(days=days_back)
+print(target.strftime('%Y-%m-%d'))
+")
 
 echo "========================================" >> "$LOG_FILE"
 echo "Run time: ${CURRENT_DATE} ${CURRENT_TIME}" >> "$LOG_FILE"
+echo "Weekly anchor date: ${TARGET_DATE}" >> "$LOG_FILE"
 
-if [ ! -f "$TODAY_FILE" ]; then
-    echo "Error: missing memory file - ${TODAY_FILE}" >> "$LOG_FILE"
-    exit 1
-fi
-
-result=$(python3 "${SCRIPT_DIR}/health_report_pro.py" "$TODAY_FILE" "$CURRENT_DATE" 2>&1)
+result=$(python3 "${SCRIPT_DIR}/weekly_report_pro.py" "$TARGET_DATE" 2>&1)
 echo "$result" >> "$LOG_FILE"
 
 delivery_message=$(echo "$result" | sed -n '/=== DELIVERY_MESSAGE_START ===/,/=== DELIVERY_MESSAGE_END ===/p' | sed '1d;$d')
 
 if [ -z "$delivery_message" ]; then
-    echo "Error: report delivery payload was not produced." >> "$LOG_FILE"
+    echo "Error: weekly delivery payload was not produced." >> "$LOG_FILE"
     exit 1
 fi
 
@@ -109,7 +115,7 @@ def send_telegram():
     except Exception as error:
         return f'fail:{error}'
 
-print(f"Daily report sent [DingTalk:{send_dingtalk()} Feishu:{send_feishu()} Telegram:{send_telegram()}]")
+print(f"Weekly report sent [DingTalk:{send_dingtalk()} Feishu:{send_feishu()} Telegram:{send_telegram()}]")
 PYTHON_SCRIPT
 
 echo "========================================" >> "$LOG_FILE"

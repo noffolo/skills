@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-食物常量数据库
-包含：默认份量、食物营养成分
-数据来源：中国食物成分表 + 用户自定义
+Food constants used by the nutrition parser.
+Includes default serving sizes and nutrition references.
+Data source: Chinese food composition tables plus project-specific additions.
 """
 
-# 常见食物份量默认值（克/毫升）
+# Common default portions in grams or milliliters.
 DEFAULT_PORTIONS = {
-    # ==================== 主食类 ====================
+    # ==================== Staples ====================
     "1 份米饭": 150, "1 份米饭（蒸）": 150,
     "1 个馒头": 100, "1 根煮玉米棒": 200,
     "1 碗小米粥": 250, "1 碗粥": 250,
@@ -45,7 +45,7 @@ DEFAULT_PORTIONS = {
     "1 个烧麦": 50, "1 大个杂粮煎饼": 150,
     "1 块鸡蛋饼": 100, "1 碗鸡蛋面": 300,
     
-    # ==================== 蛋白质类 ====================
+    # ==================== Proteins ====================
     "1 份水煮鱼": 300, "1 盘凉拌鸡丝": 200,
     "1 份酱牛肉": 100, "1 盘轻煎三文鱼": 200,
     "1 盘炒蛤蜊": 200, "1 盘糖醋里脊": 300,
@@ -92,16 +92,16 @@ DEFAULT_PORTIONS = {
     "1 盘炸鸡排": 250, "1 盘红烧翅根": 250,
     "1 盘红烧鸭掌": 250,
     
-    # ==================== 水果类 ====================
+    # ==================== Fruits ====================
     "1 个桂圆": 10, "1 份甜瓜": 200, "1 小个杏": 30,
     
-    # ==================== 蔬菜类 ====================
+    # ==================== Vegetables ====================
     "1 盘炒丝瓜": 250, "1 盘水煮秋葵": 200,
     "1 盘清炒黄豆芽": 200, "1 盘清炒绿豆芽": 200,
     "1 盘清炒荷兰豆": 200, "1 盘芥菜炒虾米": 200,
     "1 盘清炒茼蒿": 200,
     
-    # ==================== 豆类坚果类 ====================
+    # ==================== Beans and nuts ====================
     "1 杯豆浆": 250, "1 杯豆奶": 250,
     "1 个核桃": 10, "1 盘煎豆腐": 250,
     "1 份花生仁": 30, "1 份腰果": 30,
@@ -112,7 +112,7 @@ DEFAULT_PORTIONS = {
     "1 个碧根果": 10, "1 个夏威夷果": 10,
     "1 盘凉拌千张丝": 250, "1 杯黑豆浆": 250,
     
-    # ==================== 基础份量 ====================
+    # ==================== Generic portions ====================
     "一碗米饭": 150, "半碗米饭": 75,
     "一碗饭": 150, "半碗饭": 75,
     "米饭一碗": 150, "米饭半碗": 75,
@@ -123,6 +123,8 @@ DEFAULT_PORTIONS = {
     "一碗燕麦粥": 200, "一碗有机燕麦片": 40,
     "1 碗有机燕麦片": 40, "一片全麦面包": 40,
     "一个蛋白": 30, "一个鸡蛋": 50,
+    "一个鸡蛋白": 30, "1 个鸡蛋白": 30,
+    "一个鸡蛋蛋白": 30, "1 个鸡蛋蛋白": 30,
     "一个蛋黄": 20, "一盒牛奶": 250,
     "一盒脱脂牛奶": 250, "一杯牛奶": 250,
     "一杯脱脂牛奶": 250, "一盒华西娟姗鲜牛乳": 200,
@@ -139,8 +141,11 @@ DEFAULT_PORTIONS = {
     "一个西红柿": 150, "一份菠菜": 100,
     "一份白菜": 100, "一份莴笋": 100,
     "一份莴笋叶": 100, "一个苹果": 200,
+    "一个糯玉米": 200, "1 个糯玉米": 200,
+    "一个去皮卤鸡腿": 100, "1 个去皮卤鸡腿": 100,
     "一个梨": 200, "一个香蕉": 150,
     "一个橙子": 150, "一个耙耙柑": 150,
+    "1 个耙耙柑": 200,
     "一个柑橘": 150, "一碗汤": 200,
     "一碗肉片汤": 200, "一碗瘦肉汤": 200,
     "一碗鸡汤": 200, "一碗牛肉汤": 200,
@@ -149,9 +154,9 @@ DEFAULT_PORTIONS = {
     "多油": 15, "一勺油": 10,
 }
 
-# 食物热量估算数据库（每 100g/100ml）
+# Estimated nutrition values per 100g / 100ml.
 FOOD_CALORIES = {
-    # ==================== 主食类 ====================
+    # ==================== Staples ====================
     "米饭": {"calories": 116, "protein": 2.6, "fat": 0.3, "carb": 26, "fiber": 0.3},
     "米饭（蒸）": {"calories": 116, "protein": 2.6, "fat": 0.3, "carb": 26, "fiber": 0.3},
     "馒头": {"calories": 223, "protein": 7, "fat": 1, "carb": 47, "fiber": 1},
@@ -222,7 +227,7 @@ FOOD_CALORIES = {
     "鸡蛋饼": {"calories": 185, "protein": 8, "fat": 8, "carb": 22, "fiber": 1},
     "鸡蛋面": {"calories": 138, "protein": 6, "fat": 3, "carb": 24, "fiber": 1.5},
     
-    # ==================== 蛋白质类 ====================
+    # ==================== Proteins ====================
     "水煮鱼": {"calories": 100, "protein": 18, "fat": 2, "carb": 2, "fiber": 0.5},
     "凉拌鸡丝": {"calories": 120, "protein": 20, "fat": 3, "carb": 4, "fiber": 1},
     "酱牛肉": {"calories": 180, "protein": 28, "fat": 6, "carb": 3, "fiber": 0},
@@ -235,6 +240,7 @@ FOOD_CALORIES = {
     "煎蛋": {"calories": 180, "protein": 13, "fat": 14, "carb": 1, "fiber": 0},
     "荷包蛋": {"calories": 160, "protein": 13, "fat": 12, "carb": 1, "fiber": 0},
     "煮鸡蛋": {"calories": 155, "protein": 13, "fat": 11, "carb": 1, "fiber": 0},
+    "鸡蛋白": {"calories": 52, "protein": 10.9, "fat": 0.2, "carb": 0.7, "fiber": 0},
     "纯牛奶": {"calories": 54, "protein": 3.2, "fat": 3.2, "carb": 4.8, "fiber": 0},
     "全脂牛奶": {"calories": 60, "protein": 3, "fat": 3.5, "carb": 4.5, "fiber": 0},
     "脱脂牛奶": {"calories": 35, "protein": 3.5, "fat": 0.2, "carb": 5, "fiber": 0},
@@ -257,6 +263,7 @@ FOOD_CALORIES = {
     "盐水鸡": {"calories": 160, "protein": 20, "fat": 8, "carb": 2, "fiber": 0},
     "可乐鸡翅": {"calories": 200, "protein": 18, "fat": 10, "carb": 12, "fiber": 0},
     "白切鸡": {"calories": 165, "protein": 20, "fat": 8, "carb": 2, "fiber": 0},
+    "去皮卤鸡腿": {"calories": 180, "protein": 24, "fat": 8, "carb": 1, "fiber": 0},
     "酸菜鱼": {"calories": 120, "protein": 18, "fat": 4, "carb": 4, "fiber": 1},
     "回锅肉": {"calories": 350, "protein": 18, "fat": 28, "carb": 8, "fiber": 1},
     "照烧鸡腿排": {"calories": 180, "protein": 18, "fat": 8, "carb": 10, "fiber": 0.5},
@@ -289,7 +296,7 @@ FOOD_CALORIES = {
     "红烧翅根": {"calories": 220, "protein": 18, "fat": 14, "carb": 6, "fiber": 0.5},
     "红烧鸭掌": {"calories": 200, "protein": 18, "fat": 12, "carb": 6, "fiber": 0.5},
     
-    # ==================== 蔬菜类 ====================
+    # ==================== Vegetables ====================
     "青菜": {"calories": 20, "protein": 2, "fat": 0.3, "carb": 3, "fiber": 1.5},
     "菠菜": {"calories": 23, "protein": 2.9, "fat": 0.4, "carb": 3.6, "fiber": 2.2},
     "白菜": {"calories": 18, "protein": 1.5, "fat": 0.2, "carb": 3.5, "fiber": 1},
@@ -305,8 +312,10 @@ FOOD_CALORIES = {
     "生菜": {"calories": 15, "protein": 1.4, "fat": 0.2, "carb": 3, "fiber": 1},
     "卷心菜": {"calories": 25, "protein": 1.3, "fat": 0.2, "carb": 6, "fiber": 2},
     "土豆丝": {"calories": 77, "protein": 2, "fat": 0.1, "carb": 17, "fiber": 2.2},
+    "豆腐": {"calories": 82, "protein": 8.1, "fat": 4.2, "carb": 1.9, "fiber": 0.5},
+    "卤豆干": {"calories": 80, "protein": 8.5, "fat": 3, "carb": 4, "fiber": 1},
     
-    # ==================== 水果类 ====================
+    # ==================== Fruits ====================
     "苹果": {"calories": 52, "protein": 0.3, "fat": 0.2, "carb": 14, "fiber": 2.4},
     "梨": {"calories": 57, "protein": 0.4, "fat": 0.1, "carb": 15, "fiber": 3},
     "香蕉": {"calories": 89, "protein": 1.1, "fat": 0.3, "carb": 23, "fiber": 2.6},
@@ -316,4 +325,57 @@ FOOD_CALORIES = {
     "桂圆": {"calories": 70, "protein": 1, "fat": 0.2, "carb": 17, "fiber": 1},
     "甜瓜": {"calories": 34, "protein": 0.8, "fat": 0.2, "carb": 8, "fiber": 0.8},
     "杏": {"calories": 48, "protein": 1.4, "fat": 0.4, "carb": 11, "fiber": 2},
+}
+
+# English aliases point to the canonical food names already covered by the
+# nutrition database above. The parser uses this map before estimation so
+# English memory files can still receive better nutrition matching.
+FOOD_NAME_ALIASES = {
+    "oatmeal": "燕麦片",
+    "organic oatmeal": "有机燕麦片",
+    "rice": "米饭",
+    "brown rice": "糙米饭",
+    "multigrain rice": "杂粮饭",
+    "bread": "面包",
+    "whole wheat bread": "全麦面包",
+    "sweet potato": "蒸红薯",
+    "potato": "土豆",
+    "corn": "煮玉米棒",
+    "egg": "煮鸡蛋",
+    "egg white": "鸡蛋白",
+    "fried egg": "煎蛋",
+    "poached egg": "荷包蛋",
+    "egg custard": "鸡蛋羹",
+    "milk": "纯牛奶",
+    "skim milk": "脱脂牛奶",
+    "low fat milk": "低脂牛奶",
+    "yogurt": "酸奶",
+    "soy milk": "豆浆",
+    "black soy milk": "黑豆浆",
+    "chicken breast": "鸡胸肉",
+    "lean beef": "牛肉",
+    "braised beef": "卤牛肉",
+    "steamed fish": "清蒸鲈鱼",
+    "lettuce": "生菜",
+    "spinach": "菠菜",
+    "cabbage": "卷心菜",
+    "bok choy": "青菜",
+    "cucumber": "黄瓜",
+    "tomato": "西红柿",
+    "okra": "秋葵",
+    "potato shreds": "土豆丝",
+    "tofu": "豆腐",
+    "tofu skin": "炒豆皮",
+    "apple": "苹果",
+    "pear": "梨",
+    "banana": "香蕉",
+    "orange": "橙子",
+    "citrus": "柑橘",
+    "melon": "甜瓜",
+    "braised tofu": "卤豆干",
+    "鸡蛋蛋白": "鸡蛋白",
+    "蛋白": "鸡蛋白",
+    "糯玉米": "煮玉米棒",
+    "去皮卤鸡腿": "去皮卤鸡腿",
+    "卤豆干": "卤豆干",
 }
