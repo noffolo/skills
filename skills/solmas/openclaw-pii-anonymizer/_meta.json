@@ -3,11 +3,16 @@
   "slug": "openclaw-pii-anonymizer",
   "displayName": "Openclaw Pii Anonymizer",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1772398106945,
-    "commit": "https://github.com/openclaw/skills/commit/fb61c0bb0ddd0e5e6e68b0c615f1b6e7cbe3a58d"
+    "version": "2.0.0",
+    "publishedAt": 1773792539387,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1772398106945,
+      "commit": "https://github.com/openclaw/skills/commit/fb61c0bb0ddd0e5e6e68b0c615f1b6e7cbe3a58d"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772393018908,

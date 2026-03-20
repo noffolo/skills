@@ -1,7 +1,5 @@
 #!/bin/bash
-# OpenClaw PII Anonymizer (Ollama phi3:mini)
-# OLLAMA_URL defaults to localhost:11434; override for host (10.0.2.2:11434)
-
+# OpenClaw PII Anonymizer v1.0.2 (Ollama phi3:mini) - Anti-hallucination
 OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
 MODEL="${MODEL:-phi3:mini}"
 MAX_INPUT=10000
@@ -24,7 +22,7 @@ prompt_anonymize() {
     -d "{
       \"model\": \"$MODEL\",
       \"messages\": [
-        {\"role\": \"system\", \"content\": \"Anonymize PII only: Replace names/emails/paths/IPs/phones/SSNs/URLs/companies with [PERSON], [EMAIL], [PATH], [IP], [PHONE], [SSN], [URL], [ORG]. Keep all else verbatim. No hallucinations, additions, or changes to structure. Output only the cleaned text.\"},
+        {\"role\": \"system\", \"content\": \"Strict anonymize ONLY. Replace PII with [PERSON]/[EMAIL]/[PATH]/[IP]/[PHONE]/[SSN]/[URL]/[ORG]. Output RAW cleaned text ONLY. No explanations/sentences/additions/changes. Example: 'Seth at /home' → '[PERSON] at [PATH]'.\"},
         {\"role\": \"user\", \"content\": \"$input\"}
       ],
       \"stream\": false,
