@@ -3,9 +3,15 @@
   "slug": "prototype",
   "displayName": "Prototype",
   "latest": {
-    "version": "3.2.0",
-    "publishedAt": 1773716955632,
-    "commit": "https://github.com/openclaw/skills/commit/c7af50fe62084dc0b37e89cb7fc67290f085e80d"
+    "version": "3.4.1",
+    "publishedAt": 1773774815370,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "3.2.0",
+      "publishedAt": 1773716955632,
+      "commit": "https://github.com/openclaw/skills/commit/c7af50fe62084dc0b37e89cb7fc67290f085e80d"
+    }
+  ]
 }

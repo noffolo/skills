@@ -1,7 +1,7 @@
 ---
 name: prototype
-description: "Create interactive HTML prototypes with UI components, CSS animations, and page navigation."
-version: "3.2.0"
+description: "Build interactive HTML prototypes. Use when creating clickable mockups, adding animations, linking pages, or exporting HTML."
+version: "3.4.0"
 author: BytesAgain
 homepage: https://bytesagain.com
 source: https://github.com/bytesagain/ai-skills
