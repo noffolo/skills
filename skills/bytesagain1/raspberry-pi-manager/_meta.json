@@ -3,11 +3,16 @@
   "slug": "raspberry-pi-manager",
   "displayName": "Raspberry Pi Manager",
   "latest": {
-    "version": "2.3.6",
-    "publishedAt": 1773664057249,
-    "commit": "https://github.com/openclaw/skills/commit/15f5386a04fb895403f71da361d1f5059c28d913"
+    "version": "2.0.1",
+    "publishedAt": 1773830960575,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.3.6",
+      "publishedAt": 1773664057249,
+      "commit": "https://github.com/openclaw/skills/commit/15f5386a04fb895403f71da361d1f5059c28d913"
+    },
     {
       "version": "2.3.5",
       "publishedAt": 1773661679739,
