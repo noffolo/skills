@@ -1,19 +1,13 @@
 {
   "emoji": "🌡️",
   "requires": {
-    "pip": [
-      "simmer-sdk",
-      "pytz",
-      "requests",
-      "python-dotenv"
-    ],
-    "env": [
-      "SIMMER_API_KEY"
-    ]
+    "env": ["SIMMER_API_KEY", "TELEGRAM_BOT_TOKEN"],
+    "pip": ["simmer-sdk", "requests", "python-dotenv", "pytz"]
   },
-  "cron": "*/4 * * * *",
+  "cron": null,
+  "autostart": false,
   "automaton": {
     "managed": true,
-    "entrypoint": "sniper.py"
+    "entrypoint": "scripts/sniper.py"
   }
 }
