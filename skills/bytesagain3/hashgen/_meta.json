@@ -3,11 +3,16 @@
   "slug": "hashgen",
   "displayName": "Hashgen",
   "latest": {
-    "version": "1.0.6",
-    "publishedAt": 1773663813556,
-    "commit": "https://github.com/openclaw/skills/commit/a05756389b5ff73fd776d047f4b9bfd4125be5bd"
+    "version": "3.0.0",
+    "publishedAt": 1773916886587,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.6",
+      "publishedAt": 1773663813556,
+      "commit": "https://github.com/openclaw/skills/commit/a05756389b5ff73fd776d047f4b9bfd4125be5bd"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773575727026,
