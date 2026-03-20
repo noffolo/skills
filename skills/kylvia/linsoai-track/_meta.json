@@ -1,11 +1,17 @@
 {
   "owner": "kylvia",
   "slug": "linsoai-track",
-  "displayName": "linsoai-track",
+  "displayName": "Linsoai Track",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773052423286,
-    "commit": "https://github.com/openclaw/skills/commit/35cfbcf6a8cba3f185ce54e6bc34b7a159714636"
+    "version": "1.0.1",
+    "publishedAt": 1773903747678,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773052423286,
+      "commit": "https://github.com/openclaw/skills/commit/35cfbcf6a8cba3f185ce54e6bc34b7a159714636"
+    }
+  ]
 }
