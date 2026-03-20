@@ -1,11 +1,17 @@
 {
   "owner": "jisuapi",
   "slug": "jisu-news",
-  "displayName": "热门新闻 - Hot News",
+  "displayName": "News - 热门新闻",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772611942253,
-    "commit": "https://github.com/openclaw/skills/commit/366d13c95af122d6ea91f5422b4ef3d5e6207ddb"
+    "version": "1.0.2",
+    "publishedAt": 1773728931390,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772611942253,
+      "commit": "https://github.com/openclaw/skills/commit/366d13c95af122d6ea91f5422b4ef3d5e6207ddb"
+    }
+  ]
 }
