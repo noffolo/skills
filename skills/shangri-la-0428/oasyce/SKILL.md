@@ -1,21 +1,24 @@
 ---
 name: oasyce
-version: 3.1.0
+version: 3.2.0
 description: >
-  Oasyce Protocol — register data assets, invoke AI capabilities, query oracle feeds,
-  manage agent identities, trade shares, and run your node on the decentralized data
-  rights clearing network. Also supports local data inventory via DataVault (optional).
+  Oasyce Protocol — decentralized AI capability marketplace. Register data assets
+  with manual pricing, list AI capabilities, run autonomous agent tasks, trade shares
+  on bonding curves, and operate your node on the network. Supports scheduled
+  scan-register-trade cycles, capability delivery with escrow settlement, PoS consensus,
+  governance, and fingerprint watermarking.
   Use when user mentions Oasyce, data rights, data registration, bonding curve,
-  capabilities, agent services, oracle feeds, agent identity, OAS tokens, staking,
-  data scanning, or wants to monetize/protect their data.
+  AI capabilities, agent scheduler, capability marketplace, OAS tokens, staking,
+  data scanning, manual pricing, or wants to monetize/protect their data.
 read_when:
   - User mentions Oasyce, OAS, data rights, or data registration
-  - User wants to register, protect, or monetize data
-  - User asks about bonding curves, shares, or staking
-  - User wants to invoke or register AI capabilities/services
+  - User wants to register, protect, price, or monetize data
+  - User asks about bonding curves, shares, manual pricing, or staking
+  - User wants to invoke, list, or register AI capabilities/services
+  - User asks about agent scheduler, autonomous trading, or periodic tasks
   - User asks about oracle feeds, real-time data, or price feeds
   - User asks about agent identity, trust tiers, or reputation
-  - User mentions "确权", "上链", "数据资产", or agent services
+  - User mentions "确权", "上链", "数据资产", "能力市场", or agent services
   - User wants to run a protocol demo or start a node
   - User wants to scan, inventory, or classify local data assets
 metadata: {"emoji":"⚡","requires":{"bins":["python3","oasyce"]}}
@@ -23,7 +26,7 @@ metadata: {"emoji":"⚡","requires":{"bins":["python3","oasyce"]}}
 
 # Oasyce Protocol Skill
 
-One skill for the entire Oasyce ecosystem — data rights + AI capabilities + oracle feeds + agent identity + P2P node + local data inventory.
+Decentralized AI capability marketplace — data rights + AI capabilities + autonomous agent + oracle feeds + agent identity + P2P node.
 
 ## Prerequisites
 
@@ -35,98 +38,125 @@ oasyce doctor                   # verify everything is ready
 
 ---
 
-## Local Data Inventory (Optional — DataVault)
+## Agent Scheduler (Autonomous Mode)
 
-> Know what you have before you decide what to share.
+> Install the plugin, configure once, let it earn OAS on its own.
 
-If `datavault` is installed, you can scan and classify local files before registering them on the network. **This step is optional** — users may use their own tools or skip straight to registration.
+The agent scheduler runs periodic cycles: **scan → classify → auto-register → auto-trade** based on your trust level settings.
 
-### Scan a directory
-
-```bash
-datavault scan [path] [--no-recursive]
-```
-
-### Classify a single file
+### Commands
 
 ```bash
-datavault classify <file>
+oasyce agent start                          # enable scheduler (persists)
+oasyce agent stop                           # disable scheduler
+oasyce agent status                         # show status, last run, next run, stats
+oasyce agent run                            # trigger one immediate cycle
+oasyce agent config                         # show current config
+oasyce agent config --interval 12           # run every 12 hours (default: 24)
+oasyce agent config --scan-paths ~/data,~/models  # directories to scan
+oasyce agent config --auto-trade            # enable auto-buying capabilities
+oasyce agent config --no-auto-trade         # disable auto-buying (default)
+oasyce agent config --trade-tags nlp,vision # only buy capabilities matching tags
+oasyce agent config --trade-max-spend 20.0  # max OAS per trade cycle
 ```
 
-### Generate a report
+### How It Works
 
-```bash
-datavault report [path] [--format text|json]
-```
+1. **Scan**: scans configured directories for registerable assets
+2. **Classify**: evaluates sensitivity (public/internal/sensitive), assigns confidence
+3. **Register**: auto-approves based on trust level (manual / semi-auto / full-auto)
+4. **Trade**: if enabled, searches for capabilities matching trade tags and buys within budget
 
-### Typical workflow
+All runs are logged to SQLite. View history via Dashboard (Automation page) or `oasyce agent status --json`.
 
-```bash
-datavault scan ~/Documents        # 1. See what you have
-datavault report ~/Documents      # 2. Get a summary
-oasyce register ~/Documents/report.pdf  # 3. Register what matters
-```
+### Trust Levels
 
-If `datavault` is not installed, suggest: `pip install datavault`
+| Level | Behavior |
+|-------|----------|
+| Manual (0) | Every action needs your approval |
+| Semi-Auto (1) | Low-value + public sensitivity auto-approved |
+| Full-Auto (2) | Everything auto-approved, notifies on anomalies |
 
 ---
 
-## Data Assets (Phase 1)
+## Data Assets
 
-### Register
+### Register with Pricing Control
 
 ```bash
 oasyce register <file> --owner <NAME> --tags tag1,tag2
+
+# Pricing strategies
+oasyce register data.csv --price-model auto           # bonding curve (default)
+oasyce register data.csv --price-model fixed --price 5.0   # fixed price: 5 OAS
+oasyce register data.csv --price-model floor --price 2.0   # bonding curve, min 2 OAS
+
+# Rights declaration
+oasyce register data.csv --rights-type original       # 1.0x multiplier (default)
+oasyce register data.csv --rights-type co_creation \
+  --co-creators '[{"address":"A","share":60},{"address":"B","share":40}]'
+oasyce register data.csv --rights-type licensed        # 0.7x multiplier
+oasyce register data.csv --rights-type collection      # 0.3x multiplier
+
+oasyce register data.csv --free                        # attribution only, no pricing
 ```
 
-Add `--free` for attribution-only (no Bonding Curve pricing).
-Add `--json` for machine-readable output.
+**Pricing Models:**
+- `auto` — Bonding Curve: price rises with demand, factors in scarcity, quality, freshness
+- `fixed` — Creator sets exact price, buyers pay this amount
+- `floor` — Bonding Curve with minimum: market pricing, but never below your floor
 
-### Search
+### Search & Quote
 
 ```bash
-oasyce search <tag>
+oasyce search <tag>                    # search by tag/keyword
+oasyce quote <asset_id>                # bonding curve spot price
+oasyce price <asset_id>                # detailed pricing factors
+oasyce price-factors <asset_id>        # factor breakdown
 ```
 
-### Price Quote
-
-```bash
-oasyce quote <asset_id>
-```
-
-Shows Bonding Curve spot price, supply, reserve.
-
-### Buy Shares
+### Trade
 
 ```bash
 oasyce buy <asset_id> --buyer <ID> --amount 10.0
+oasyce shares <owner_id>              # check holdings
 ```
 
-### Check Holdings
+### Asset Info
 
 ```bash
-oasyce shares <owner_id>
-```
-
-### Asset Info (OAS-DAS 5-Layer Standard)
-
-```bash
-oasyce asset-info <asset_id>        # full 5-layer breakdown
-oasyce asset-validate <asset_id>    # validate against standard
-```
-
-### Pricing Factors
-
-```bash
-oasyce price <asset_id> --queries 100 --similar 5 --days 30
-oasyce price-factors <asset_id>     # detailed factor breakdown
+oasyce asset-info <asset_id>           # full 5-layer breakdown (OAS-DAS)
+oasyce asset-validate <asset_id>       # validate against standard
 ```
 
 ---
 
-## AI Capabilities (Phase 2)
+## AI Capability Marketplace
 
-Capabilities are callable AI services registered on the network. They use the same Bonding Curve economics as data assets.
+List your AI capability on the market. Others discover and invoke it. Settlement via escrow: lock → call → settle (5% protocol fee).
+
+### Register (List) a Capability
+
+```bash
+oasyce capability register --name "Translation API" \
+  --endpoint https://api.example.com/translate \
+  --api-key sk-xxx --price 0.5 --tags nlp,translation
+```
+
+### Browse & Invoke
+
+```bash
+oasyce capability list [--tag nlp] [--provider addr]
+oasyce capability invoke CAP_ID --input '{"text":"hello"}'
+oasyce capability earnings --provider addr      # provider earnings
+oasyce capability earnings --consumer addr      # consumer spending
+```
+
+### Discovery (4-Layer Recall→Rank)
+
+```bash
+oasyce discover --intents "翻译" --tags nlp    # broad recall + trust-ranked results
+```
 
 ### Dashboard
 
@@ -134,153 +164,102 @@ Capabilities are callable AI services registered on the network. They use the sa
 oasyce start    # opens http://localhost:8420
 ```
 
-Navigate to **Explore** → filter by **Services** to browse and invoke capabilities.
+Navigate to **Market** tab to browse, invoke, and trade capabilities.
 
-### Programmatic (via API)
-
-```
-GET  /api/capabilities                    # list all capabilities
-GET  /api/capability/<id>                 # detail
-POST /api/capability/register             # register new capability
-POST /api/capability/invoke               # invoke (escrow → execute → settle)
-GET  /api/capability/shares?holder=<id>   # check capability share holdings
-```
+Deep links: `http://localhost:8420/#explore/CAP_ID` to directly view a capability.
 
 ---
 
-## Oracle Feeds (Phase 2.5)
+## Oracle Feeds
 
-The network itself is an oracle. Oracle feeds bridge real-world data into the Oasyce network with economic guarantees (provider bonding, quality SLAs, slashing).
+Oracle feeds bridge real-world data into the network with economic guarantees.
 
 ### Feed Types
 
-| Type | Description | Risk Factor | Recommended Bond |
-|------|-------------|-------------|------------------|
-| weather | Meteorological data | 0.5× | 50 OAS |
-| price | Asset/token prices | 3.0× | 300 OAS |
-| time | World clock/timezone | 0.3× | 30 OAS |
-| event | Discrete events (releases, matches) | 2.0× | 200 OAS |
-| sensor | IoT/hardware readings | 1.5× | 150 OAS |
-| internal | Oasyce self-referential data | 0.5× | 50 OAS |
-| aggregator | Multi-feed composite | 1.0× | 100 OAS |
+| Type | Risk Factor | Recommended Bond |
+|------|-------------|------------------|
+| weather | 0.5× | 50 OAS |
+| price | 3.0× | 300 OAS |
+| time | 0.3× | 30 OAS |
+| event | 2.0× | 200 OAS |
+| sensor | 1.5× | 150 OAS |
 
-### Programmatic (via Python)
+### Programmatic
 
 ```python
 from oasyce_core.oracle import OracleRegistry
-from oasyce_core.oracle.feeds import WeatherFeed, TimeFeed, RandomFeed
-from oasyce_core.oracle.internal import DataAssetFeed, AggregatorFeed
+from oasyce_core.oracle.feeds import WeatherFeed, TimeFeed
 
-# Register feeds
 registry = OracleRegistry(provider_id="my_node")
 registry.register_feed(WeatherFeed())
-registry.register_feed(TimeFeed())
-
-# Query
 result = registry.execute("weather", {"location": "Shanghai"})
-print(result.data)  # {'location': 'Shanghai', 'temperature_c': 22, ...}
-
-# Aggregator: combine multiple feeds in one query
-agg = AggregatorFeed(feeds={"weather": WeatherFeed(), "time": TimeFeed()})
-result = agg.fetch({"queries": {"weather": {"location": "Tokyo"}, "time": {"timezone": "Asia/Tokyo"}}})
 ```
-
-### OAS-Oracle Standard
-
-Oracle feeds are registered as OAS assets with `asset_type="oracle"`:
-
-```python
-from oasyce_core.standards import OasAsset, OracleLayer, FeedType
-
-asset = OasAsset(
-    asset_type="oracle",
-    oracle_layer=OracleLayer(
-        feed_type="weather",
-        feed_uri="oracle://weather/shanghai",
-    ),
-)
-assert asset.validate() == []
-```
-
-Key concepts:
-- **Provider Bond**: OAS staked as guarantee of data quality (slashed on SLA breach)
-- **Freshness Tiers**: realtime (<1min), near (<10min), periodic (<1hr), daily, static
-- **Quality Metrics**: uptime %, latency, success rate, verification type
-- **Aggregation**: Multi-source consensus (median/mean/weighted) for critical data
 
 ---
 
-## Agent Identity (Phase 2.5)
+## Agent Identity
 
-Every participant in the network has an identity that carries reputation across all asset types.
-
-### Identity Types
-
-| Type | Description | Anti-Sybil Deposit |
-|------|-------------|-------------------|
-| agent | AI agent / bot | 100 OAS |
-| node | Network infrastructure node | 100 OAS |
-| human | Human participant (DID/Passkey) | 100 OAS |
-| org | Organization (formal verification) | 100 OAS |
+Every participant carries portable reputation across all asset types.
 
 ### Trust Tiers
 
-| Tier | Min Reputation | Max Access | How to Reach |
-|------|---------------|------------|--------------|
-| sandbox | R < 20 | L0 only | New identity (default) |
-| basic | R ≥ 20 | L0-L1 | ~0.7 days of good behavior |
+| Tier | Min Rep | Max Access | Time to Reach |
+|------|---------|------------|---------------|
+| sandbox | R < 20 | L0 | New (default) |
+| basic | R ≥ 20 | L0-L1 | ~0.7 days |
 | verified | R ≥ 50 | L0-L2 | ~2.7 days |
 | trusted | R ≥ 75 | L0-L3 | ~4.3 days |
-| institutional | R ≥ 50 + org verification | L0-L3 | ORG type only |
 
-### Programmatic (via Python)
-
-```python
-from oasyce_core.standards import (
-    OasAsset, IdentityExtLayer, CredentialBinding,
-    ReputationBinding, sybil_attack_cost, time_to_trust,
-)
-
-# Create an agent identity
-identity = OasAsset(
-    asset_type="identity",
-    identity_ext_layer=IdentityExtLayer(
-        identity_type="agent",
-        display_name="joi",
-        credentials=CredentialBinding(pubkey="ed25519:abc123"),
-    ),
-)
-assert identity.validate() == []
-
-# Sybil attack cost analysis
-print(sybil_attack_cost(1000))      # 100,000 OAS for 1000 fake identities
-print(time_to_trust("trusted"))      # 4.3 days to reach trusted tier
-
-# Cross-asset reputation
-rep = ReputationBinding(
-    data_access_score=80.0,
-    capability_invoke_score=60.0,
-    oracle_provider_score=40.0,
-)
-print(rep.composite_score)           # 63.0 (weighted: data 40% + cap 35% + oracle 25%)
-print(rep.derive_trust_tier("agent"))  # "verified"
-```
-
-Key concepts:
-- **Reputation is portable but not transferable**: follows you across asset types, can't be sold
-- **Cross-asset composite score**: data access (40%) + capability invocation (35%) + oracle provision (25%)
-- **Anti-Sybil**: 100 OAS minimum per identity, all start in sandbox (R=10, L0 only)
-- **Trust tier progression**: reputation earned through successful interactions, lost through violations
+Cross-asset composite score: data access (40%) + capability invocation (35%) + oracle provision (25%).
 
 ---
 
-## P2P Node
+## Consensus (PoS)
 
 ```bash
-oasyce node start [--port 9527]    # start P2P node
-oasyce node info                   # show identity
-oasyce node peers                  # list known peers
-oasyce node ping <host:port>       # ping another node
+oasyce consensus status                              # epoch, slot, validators
+oasyce consensus validators [--all]                  # list validators
+oasyce consensus register --stake 10000              # become validator
+oasyce consensus delegate <validator_id> --amount 500
+oasyce consensus undelegate <validator_id> --amount 200
+oasyce consensus rewards [--epoch N]
+oasyce consensus slashing [--validator X]
+oasyce consensus exit                                # voluntary exit
+oasyce consensus unjail                              # unjail after penalty
+```
+
+---
+
+## Governance
+
+```bash
+oasyce governance propose --title "..." --description "..." --changes '[...]' --deposit 1000
+oasyce governance vote <proposal_id> --option yes|no|abstain
+oasyce governance tally <proposal_id>
+oasyce governance list [--status voting|passed|rejected]
+oasyce governance params [--module consensus]
+```
+
+---
+
+## Dispute & Resolution
+
+```bash
+oasyce dispute <asset_id> --reason "..."
+oasyce resolve <asset_id> --remedy delist|transfer|rights_correction|share_adjustment
+```
+
+---
+
+## P2P Node & Sync
+
+```bash
+oasyce start                           # Core + Dashboard (recommended)
+oasyce node info                       # show identity (Ed25519 pubkey)
+oasyce node peers                      # list connected peers
+oasyce node ping <host:port>           # ping another node
+oasyce sync --status                   # sync status
+oasyce sync --peers http://host:9528   # sync from peers
 ```
 
 ---
@@ -288,20 +267,9 @@ oasyce node ping <host:port>       # ping another node
 ## Testnet
 
 ```bash
-oasyce testnet onboard     # one-click: generate identity + faucet + register + stake
+oasyce testnet onboard     # one-click: identity + faucet + register + stake
 oasyce testnet faucet      # claim free OAS
-oasyce testnet status      # node + chain + balance
-oasyce testnet start       # start testnet node (port 9528)
-```
-
----
-
-## Staking & Reputation
-
-```bash
-oasyce stake <validator_id> <amount>
-oasyce reputation check <agent_id>
-oasyce reputation update <agent_id> --success
+oasyce testnet init --validators 4 --output ./testnet
 ```
 
 ---
@@ -309,10 +277,10 @@ oasyce reputation update <agent_id> --success
 ## Fingerprint Watermarking
 
 ```bash
-oasyce fingerprint embed <file> --caller <id>    # embed watermark
-oasyce fingerprint extract <file>                 # extract
-oasyce fingerprint trace <fingerprint_hex>        # trace to distribution
-oasyce fingerprint list <asset_id>                # list all distributions
+oasyce fingerprint embed <file> --caller <id>
+oasyce fingerprint extract <file>
+oasyce fingerprint trace <fingerprint_hex>
+oasyce fingerprint list <asset_id>
 ```
 
 ---
@@ -320,34 +288,49 @@ oasyce fingerprint list <asset_id>                # list all distributions
 ## Access Control (L0-L3)
 
 ```bash
-oasyce access query <asset_id> --agent <id>               # L0: aggregated stats
-oasyce access sample <asset_id> --agent <id> --size 10     # L1: redacted sample
-oasyce access compute <asset_id> --agent <id> --code "..." # L2: TEE compute
-oasyce access deliver <asset_id> --agent <id>              # L3: full delivery
-oasyce access bond <asset_id> --agent <id> --level L2      # calculate bond
+oasyce access query <asset_id> --agent <id>                # L0: aggregated stats
+oasyce access sample <asset_id> --agent <id> --size 10      # L1: redacted sample
+oasyce access compute <asset_id> --agent <id> --code "..."  # L2: TEE compute
+oasyce access deliver <asset_id> --agent <id>               # L3: full delivery
 ```
 
 ---
 
-## Dashboard & Explorer
+## Dashboard
 
 ```bash
-oasyce start              # Core + Dashboard (recommended)
-oasyce gui                # Dashboard only (port 8420)
-oasyce explorer           # Block explorer (port 8421)
+oasyce start              # Core + Dashboard (port 8420)
 ```
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Home | `#home` | Register data assets and list capabilities |
+| My Data | `#mydata` | Manage your assets and capability earnings |
+| Market | `#explore` | Browse, trade, invoke capabilities |
+| Automation | `#auto` | Agent scheduler, approval queue, trust rules |
+| Network | `#network` | Node identity, AI config, consensus, watermark |
+
+Deep links: `#explore/ASSET_ID`, `#network/consensus`, `#network/watermark`
 
 ---
 
-## Security Check
+## Local Data Inventory (Optional — DataVault)
 
 ```bash
-oasyce doctor
+datavault scan [path]                  # scan directory
+datavault classify <file>              # classify single file
+datavault report [path] [--format json]  # generate report
 ```
 
-Checks: Ed25519 keys, ports, dependencies, seed node connectivity, firewall, Python version.
-
 ---
+
+## Diagnostics
+
+```bash
+oasyce doctor              # health check
+oasyce demo                # run full pipeline demo
+oasyce info                # project info and links
+```
 
 ## All Commands Support `--json`
 
@@ -355,12 +338,13 @@ Every command accepts `--json` for programmatic output, making it easy for agent
 
 ## When to Use
 
-- Local data scanning and inventory (with DataVault)
-- Data registration, pricing, trading, provenance verification
-- AI capability discovery, invocation, quality disputes
-- Oracle feed registration, querying, and aggregation
-- Agent identity management, trust tier progression, reputation tracking
-- Node management, staking, reputation
+- Autonomous agent operation (scheduled scan/register/trade)
+- Data registration with manual pricing control (auto/fixed/floor)
+- AI capability listing, discovery, invocation, settlement
+- Oracle feed registration and querying
+- Agent identity and reputation management
+- Consensus participation, staking, governance voting
+- Fingerprint watermarking and provenance verification
 - Testnet onboarding and demos
 
 ## When NOT to Use
