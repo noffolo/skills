@@ -3,11 +3,16 @@
   "slug": "github-development-standard",
   "displayName": "GitHub Development Standard",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773398031647,
-    "commit": "https://github.com/openclaw/skills/commit/dd4404c6b5e2270f2548d158c9d618772bb038bc"
+    "version": "2.0.0",
+    "publishedAt": 1773767852309,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773398031647,
+      "commit": "https://github.com/openclaw/skills/commit/dd4404c6b5e2270f2548d158c9d618772bb038bc"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773395207538,
