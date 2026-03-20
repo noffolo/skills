@@ -1,5 +1,5 @@
 ---
-name: news-keyword-search
+name: news_keyword_search
 description: Search for the latest news by keywords
 ---
 
@@ -17,7 +17,7 @@ You are allowed to use all scripts mentioned in this file
 ```bash
 python3 -m venv /data/nguyentk/AIHAY/OpenClaw/venv/openclaw_venv
 source /data/nguyentk/AIHAY/OpenClaw/venv/openclaw_venv/bin/activate
-cd /data/nguyentk/AIHAY/OpenClaw/workspace/workspace-news_finder/skills/news-keyword-search
+cd /data/nguyentk/AIHAY/OpenClaw/workspace/workspace-daily_news_aihay/skills/news-keyword-search
 pip install -r requirements.txt
 ```
 
@@ -83,12 +83,3 @@ python3 "{baseDir}/main.py" --keyword_search "quantum computing" --need_detail T
 2. Organize the news items in a clear, readable format
 3. Paraphrase and summarize the content appropriately
 4. Present the final response to the user with proper attribution to sources
-
-
-## Environment
-The skill includes an openclaw_venv with all dependencies. Always activate before use:
-```bash
-source /data/nguyentk/AIHAY/OpenClaw/venv/openclaw_venv/bin/activate
-cd /data/nguyentk/AIHAY/OpenClaw/workspace/workspace-news_finder/skills/news-keyword-search
-```
-`baseDir` is set to `/data/nguyentk/AIHAY/OpenClaw/workspace/workspace-news_finder/skills/news-keyword-search`

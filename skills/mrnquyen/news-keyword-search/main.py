@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import argparse
 import logging
+import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -15,11 +16,12 @@ sys.stdout.reconfigure(encoding='utf-8')
 api_endpoint = "http://10.30.22.33:29222/searchGoogle"
 
 # Function
-def get_news(textSearch, isParseDetailContent, limit=1):
+def get_news(textSearch, isParseDetailContent, limit=3):
+    now = datetime.datetime.now()
     params = {
         "searchKind": 12,
         "isParseDetailContent": isParseDetailContent,
-        "textSearch": textSearch
+        "textSearch": textSearch + ",{now}"
     }
     response = requests.get(api_endpoint, params=params, timeout=30)
     response.raise_for_status()
