@@ -139,6 +139,41 @@ def extract_telegram_target_from_text(txt: str) -> Optional[str]:
     return None
 
 
+def extract_group_chat_id_from_text(txt: str) -> Optional[str]:
+    """Extract Telegram group chat id from envelope-like text.
+
+    For forum/group sessions we often need the supergroup id from either
+    `chat_id` or a `conversation_label` string containing `id:<chat_id>`.
+    """
+    if not txt:
+        return None
+
+    m = re.search(r'"chat_id"\s*:\s*"?(-?\d+)"?', txt)
+    if m:
+        return m.group(1)
+
+    m = re.search(r'"conversation_label"\s*:\s*"[^"]*\bid:(-?\d+)\b', txt)
+    if m:
+        return m.group(1)
+
+    try:
+        start = txt.find("{")
+        end = txt.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            meta = json.loads(txt[start:end + 1])
+            chat_id = meta.get("chat_id")
+            if chat_id is not None and str(chat_id) != "":
+                return str(chat_id)
+            label = str(meta.get("conversation_label") or "")
+            m = re.search(r'\bid:(-?\d+)\b', label)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+
+    return None
+
+
 def detect_channel(session_key: str):
     """Return (channel, target) for notifications based on session key or CLI overrides."""
     # Explicit internally-resolved overrides take priority
@@ -308,6 +343,7 @@ def resolve_thread_meta_from_local_files(thread_id: str) -> Optional[dict]:
     p = candidates[0]
     session_id = p.name.rsplit("-topic-", 1)[0]
     telegram_target = None
+    group_chat_target = None
 
     # Try to extract Telegram target from early user envelope messages.
     # For forum groups the envelope target is `chat_id`; for DM threads it's `sender_id`.
@@ -325,6 +361,9 @@ def resolve_thread_meta_from_local_files(thread_id: str) -> Optional[dict]:
                 blocks = msg.get("content") or []
                 for b in blocks:
                     txt = b.get("text", "") if isinstance(b, dict) else ""
+                    group_target = extract_group_chat_id_from_text(txt)
+                    if group_target:
+                        group_chat_target = group_target
                     target = extract_telegram_target_from_text(txt)
                     if target:
                         telegram_target = target
@@ -334,7 +373,8 @@ def resolve_thread_meta_from_local_files(thread_id: str) -> Optional[dict]:
     except Exception:
         pass
 
-    return {"sessionId": session_id, "telegramTarget": telegram_target, "key": f"agent:main:main:thread:{thread_id}"}
+    effective_target = group_chat_target or telegram_target
+    return {"sessionId": session_id, "telegramTarget": effective_target, "key": f"agent:main:main:thread:{thread_id}"}
 
 
 def get_telegram_bot_token() -> Optional[str]:
@@ -384,7 +424,10 @@ def send_telegram_direct(
         }
         if parse_mode:
             payload["parse_mode"] = parse_mode
-        if thread_id:
+        # Forum general topic (`topic:1`) is a special case: Telegram often rejects
+        # `message_thread_id=1` with "message thread not found". In that case send
+        # to the chat without message_thread_id so the message lands in General.
+        if thread_id and str(thread_id) != "1":
             payload["message_thread_id"] = int(thread_id)
         if reply_to:
             payload["reply_to_message_id"] = int(reply_to)

@@ -3,9 +3,15 @@
   "slug": "codex-cli-task",
   "displayName": "OpenAI Codex CLI Runner",
   "latest": {
-    "version": "1.1.2",
-    "publishedAt": 1773079199038,
-    "commit": "https://github.com/openclaw/skills/commit/58344c0493427de2bd886a9aa71360f8f52957a8"
+    "version": "1.1.4",
+    "publishedAt": 1773918885714,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.2",
+      "publishedAt": 1773079199038,
+      "commit": "https://github.com/openclaw/skills/commit/58344c0493427de2bd886a9aa71360f8f52957a8"
+    }
+  ]
 }
