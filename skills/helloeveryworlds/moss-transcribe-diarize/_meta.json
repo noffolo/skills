@@ -1,13 +1,18 @@
 {
   "owner": "helloeveryworlds",
   "slug": "moss-transcribe-diarize",
-  "displayName": "Moss Transcribe Diarize",
+  "displayName": "moss-transcribe-diarize",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1773359086537,
-    "commit": "https://github.com/openclaw/skills/commit/a315f2ae1e7df8f31c9193fb9e9e23829dc4654a"
+    "version": "1.0.5",
+    "publishedAt": 1773717854773,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1773359086537,
+      "commit": "https://github.com/openclaw/skills/commit/a315f2ae1e7df8f31c9193fb9e9e23829dc4654a"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1773217163665,
