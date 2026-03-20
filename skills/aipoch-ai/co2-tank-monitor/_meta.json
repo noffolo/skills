@@ -3,9 +3,15 @@
   "slug": "co2-tank-monitor",
   "displayName": "Co2 Tank Monitor",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1773393997561,
-    "commit": "https://github.com/openclaw/skills/commit/954f658decf007869d1c574b00636cc5d695ec13"
+    "version": "0.1.1",
+    "publishedAt": 1773725925427,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1773393997561,
+      "commit": "https://github.com/openclaw/skills/commit/954f658decf007869d1c574b00636cc5d695ec13"
+    }
+  ]
 }
