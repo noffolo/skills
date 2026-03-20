@@ -406,34 +406,21 @@ Open the WALVIS web app and paste this ID to browse your vault.
 **Trigger:** `/walvis run` or `/walvis -run`
 
 **Action:**
-Start the local web dashboard to preview your data before syncing to Walrus:
-1. Check if the web directory exists at the project root
-2. Run the following command:
+Reply with the exact local preview steps:
+1. If the runtime can resolve the WALVIS project root, include:
    ```bash
-   cd web
-   npm run dev
+   cd {walvisProjectRoot}
+   npm run dev:web
    ```
-3. Reply:
+   Otherwise reply with:
+   ```bash
+   npm run dev:web
    ```
-   🐋 Starting local dashboard...
+2. Include the local URL: `http://localhost:5173`
+3. Mention that the dashboard automatically loads data from `~/.walvis/`
+4. Mention that tags and notes can be edited directly in local mode
 
-   📊 Dashboard running at: http://localhost:5173
-   🔧 Local API enabled via Vite plugin
-
-   Features in local mode:
-   • Browse all spaces and items
-   • Edit tags inline (🏷 button)
-   • Edit notes inline (📝 button)
-   • Search and filter
-   • Preview before syncing to Walrus
-
-   Press Ctrl+C to stop the server.
-   ```
-4. The dashboard will automatically load data from `~/.walvis/`
-5. Users can edit tags and notes directly in the UI
-6. Changes are saved immediately to local files
-
-**Note:** The Vite dev server includes a custom plugin that provides `/api/local/*` endpoints for reading and writing local data.
+**Note:** `/walvis run` is a Telegram shortcut for local preview instructions. The actual Vite server runs on the user's machine, not inside the bot runtime.
 
 ### Filter by Tag
 **Trigger:** `/walvis -tag <tagName>` or `/walvis #<tagName>`
@@ -525,7 +512,7 @@ Manually trigger the same daily organization flow that runs automatically at 10 
 
 **Action:**
 1. Read the active space. If already encrypted, reply: `🔒 Space "{name}" is already encrypted.`
-2. Check `manifest.sealPackageId` is set. If not, reply: `⚠ Seal not configured. Set sealPackageId in manifest.json after deploying the walvis_seal contract.`
+2. Check `manifest.sealPackageId`. If it is missing on `testnet`, auto-fill it with `0x299d7d7592c84d08a25ec26c777933d6ab72e51b31a615027186a0a377fe75cb`. If it is still missing, reply: `⚠ Seal is not configured for this network yet.`
 3. Run the seal enable script:
    ```bash
    node --import tsx/esm /path/to/scripts/seal-crypto.ts enable {activeSpaceId}
@@ -635,6 +622,7 @@ The manifest serves as a **master index** of all items across all spaces.
   "agent": "walvis",
   "activeSpace": "abc12345",
   "network": "testnet",
+  "sealPackageId": "0x299d7d7592c84d08a25ec26c777933d6ab72e51b31a615027186a0a377fe75cb",
   "walrusPublisher": "https://publisher.walrus-testnet.walrus.space",
   "walrusAggregator": "https://aggregator.walrus-testnet.walrus.space",
   "spaces": {

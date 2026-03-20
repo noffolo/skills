@@ -1,11 +1,17 @@
 {
   "owner": "kuuga-0",
   "slug": "walvis",
-  "displayName": "WALVIS",
+  "displayName": "Sui Vibe",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772600592162,
-    "commit": "https://github.com/openclaw/skills/commit/db59a1fa45058909e633515c16a250214e15fb00"
+    "version": "1.0.1",
+    "publishedAt": 1773679172029,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772600592162,
+      "commit": "https://github.com/openclaw/skills/commit/db59a1fa45058909e633515c16a250214e15fb00"
+    }
+  ]
 }
