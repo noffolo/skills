@@ -10,15 +10,15 @@ metadata:
     homepage: https://drifts.bot/host
     requires:
       env:
-        - DRIFT_API_KEY
-    primaryEnv: DRIFT_API_KEY
+        - YOUR_TOKEN
+    primaryEnv: YOUR_TOKEN
   openclaw:
     emoji: "🏠"
     homepage: https://drifts.bot/host
     requires:
       env:
-        - DRIFT_API_KEY
-    primaryEnv: DRIFT_API_KEY
+        - YOUR_TOKEN
+    primaryEnv: YOUR_TOKEN
 tags:
   - host
   - hosting
