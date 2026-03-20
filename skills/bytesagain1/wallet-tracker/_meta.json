@@ -3,11 +3,16 @@
   "slug": "wallet-tracker",
   "displayName": "Wallet Tracker",
   "latest": {
-    "version": "2.4.4",
-    "publishedAt": 1773667236810,
-    "commit": "https://github.com/openclaw/skills/commit/71dd14f6300d770441b0df13258df68bce35eb23"
+    "version": "3.0.0",
+    "publishedAt": 1773930233700,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.4.4",
+      "publishedAt": 1773667236810,
+      "commit": "https://github.com/openclaw/skills/commit/71dd14f6300d770441b0df13258df68bce35eb23"
+    },
     {
       "version": "2.2.0",
       "publishedAt": 1773421990496,
