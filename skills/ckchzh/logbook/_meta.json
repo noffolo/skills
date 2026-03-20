@@ -3,11 +3,16 @@
   "slug": "logbook",
   "displayName": "Logbook",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1773666406937,
-    "commit": "https://github.com/openclaw/skills/commit/ed74bd7a4c848a90ae75dba2aec6f36bee39940c"
+    "version": "2.0.1",
+    "publishedAt": 1773830783261,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1773666406937,
+      "commit": "https://github.com/openclaw/skills/commit/ed74bd7a4c848a90ae75dba2aec6f36bee39940c"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773522009525,
