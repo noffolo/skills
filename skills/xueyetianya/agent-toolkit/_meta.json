@@ -3,11 +3,16 @@
   "slug": "agent-toolkit",
   "displayName": "Agent Toolkit",
   "latest": {
-    "version": "2.3.6",
-    "publishedAt": 1773663353072,
-    "commit": "https://github.com/openclaw/skills/commit/3ac05841bb8daf4058d11385697f14f0a49179c3"
+    "version": "2.0.2",
+    "publishedAt": 1773830048195,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.3.6",
+      "publishedAt": 1773663353072,
+      "commit": "https://github.com/openclaw/skills/commit/3ac05841bb8daf4058d11385697f14f0a49179c3"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773191919467,
