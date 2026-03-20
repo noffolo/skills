@@ -3,11 +3,16 @@
   "slug": "business-plan-cn",
   "displayName": "Business Plan Cn",
   "latest": {
-    "version": "2.4.6",
-    "publishedAt": 1773664953626,
-    "commit": "https://github.com/openclaw/skills/commit/55effe3043f3ac246b9e153f0cb99d1fa845e62b"
+    "version": "2.0.0",
+    "publishedAt": 1773773892892,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.4.6",
+      "publishedAt": 1773664953626,
+      "commit": "https://github.com/openclaw/skills/commit/55effe3043f3ac246b9e153f0cb99d1fa845e62b"
+    },
     {
       "version": "2.3.0",
       "publishedAt": 1773447709346,
