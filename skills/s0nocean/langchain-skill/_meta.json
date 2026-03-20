@@ -3,9 +3,15 @@
   "slug": "langchain-skill",
   "displayName": "Langchain Skill",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773737524216,
-    "commit": "https://github.com/openclaw/skills/commit/30157532c5ef5ad895d07b12643f217102b88a88"
+    "version": "1.0.2",
+    "publishedAt": 1773759688176,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773737524216,
+      "commit": "https://github.com/openclaw/skills/commit/30157532c5ef5ad895d07b12643f217102b88a88"
+    }
+  ]
 }

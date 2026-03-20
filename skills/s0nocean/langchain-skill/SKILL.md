@@ -3,7 +3,7 @@
 Skill này sử dụng thư viện LangChain (Python) để xử lý query thông minh, hỗ trợ memory dài hạn, RAG trên PDF, tool calling (search, calculator), và agent tự suy luận.
 
 ## Tính năng chính
-- Backend: Python + LangChain (có thể dùng Gemini 1.5 Flash, DeepSeek-chat, hoặc Groq fallback).
+- Backend: Python + LangChain (có thể dùng Gemini 2.0 Flash, DeepSeek-chat, hoặc Groq fallback).
 - Memory: Nhớ ngữ cảnh chat trong session (ConversationBufferMemory hoặc Summary).
 - RAG: Hỗ trợ upload PDF → hỏi đáp chính xác trên tài liệu.
 - Tool calling: Tự gọi web search, tính toán, đọc file...
