@@ -3,11 +3,16 @@
   "slug": "seo-content-pro",
   "displayName": "Seo Content Pro",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773634787710,
-    "commit": "https://github.com/openclaw/skills/commit/0d56358c3274e6c071da2cbad5feac7b1bb53cab"
+    "version": "1.2.0",
+    "publishedAt": 1773827825721,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773634787710,
+      "commit": "https://github.com/openclaw/skills/commit/0d56358c3274e6c071da2cbad5feac7b1bb53cab"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772859486196,

@@ -1,13 +1,11 @@
 ---
 name: seo-content-pro
-description: Advanced SEO content creation with multi-language support, content refresh, SEO scoring, and competitor analysis. Perfect for content creators and agencies.
+description: Advanced SEO content creation with AI humanization, image generation, multi-language support, content refresh, SEO scoring, and competitor analysis. Perfect for content creators and agencies.
 author: fly3094
-version: 1.0.2
+version: 1.2.0
 tags: [seo, content, writing, article, blog, marketing, multi-language, research]
 support: 
   paypal: 492227637@qq.com
-  wechat: "请扫码打赏（微信支付）"
-  alipay: "请扫码打赏（支付宝）"
   email: 492227637@qq.com
 metadata:
   clawdbot:
@@ -53,6 +51,8 @@ metadata:
 - 🌐 **Multi-language**: English, Chinese, Spanish, French, German, Japanese
 - 🔄 **Content Refresh**: Update old articles with new data and insights
 - 📈 **SEO Score**: Get content quality score (0-100) with specific improvement suggestions
+- 🤖 **AI Humanization** (v1.2 NEW): Detect and transform AI-generated text to bypass AI detectors
+- 🖼️ **Image Generation** (v1.2 NEW): Generate featured images using Google Gemini 3 Pro Image API
 
 ## Quick Start (2 minutes)
 
@@ -81,6 +81,74 @@ Reading time: 11 minutes
 SEO Score: 85/100
 Primary keyword: "AI automation tools" (18 mentions)
 Secondary keywords: automation software, AI tools, workflow automation
+```
+
+
+## New Features in v1.2.0
+
+### 🤖 AI Content Humanization
+
+Detect and transform AI-generated text to make it more natural and bypass AI detectors.
+
+**Usage:**
+```bash
+# Humanize existing content
+python3 scripts/humanize.py --input article.md --output article-humanized.md
+
+# Detect AI content
+python3 scripts/detect_ai.py --input article.md
+
+# Compare before/after
+python3 scripts/compare.py --input article.md
+```
+
+**AI Detection Patterns (16 types):**
+- 🔴 Critical: Citation bugs, knowledge cutoff, chatbot artifacts
+- 🟠 High: AI vocabulary, significance inflation, promotional language
+- 🟡 Medium: Superficial analysis, filler phrases
+- 🟢 Style: Curly quotes, em-dashes overuse
+
+### 🖼️ Featured Image Generation
+
+Generate custom featured images for your articles using Google Gemini 3 Pro Image API.
+
+**Usage:**
+```bash
+# Generate new image
+python3 scripts/generate_image.py --prompt "AI automation technology" --filename featured.png
+
+# With resolution option
+python3 scripts/generate_image.py --prompt "SEO dashboard" --filename seo-image.png --resolution 2K
+
+# Edit existing image
+python3 scripts/generate_image.py --prompt "Make it more professional" --input-image old.png --filename new.png
+```
+
+**Resolution Options:**
+- 1K (default) - ~1024px, fast iteration
+- 2K - ~2048px, standard quality
+- 4K - ~4096px, high resolution
+
+**API Key:**
+Set `GEMINI_API_KEY` environment variable or use `--api-key` argument.
+
+### Complete Workflow (v1.2)
+
+```bash
+# 1. Generate SEO content
+# Ask AI: "Create SEO article about AI automation tools - 2500 words"
+
+# 2. Humanize content (optional)
+python3 scripts/humanize.py --input article.md --output article-humanized.md
+
+# 3. Generate featured image
+python3 scripts/generate_image.py --prompt "AI automation dashboard" --filename featured.png --resolution 2K
+
+# 4. Detect AI content (optional, for quality check)
+python3 scripts/detect_ai.py --input article.md
+
+# 5. Review SEO score
+# AI will provide SEO analysis with score and suggestions
 ```
 
 ## Commands
@@ -326,11 +394,34 @@ Contact: PayPal 492227637@qq.com
 如果你觉得这个技能有用，请考虑打赏支持：
 
 - **PayPal**: 492227637@qq.com
-- **微信支付**: 请扫码打赏
-- **支付宝**: 请扫码打赏
 - **邮箱**: 492227637@qq.com
 
 你的支持是我持续改进的动力！
 
-![微信支付收款码](../assets/wechat-qr.png)
-![支付宝收款码](../assets/alipay-qr.png)
+
+---
+
+## 🆕 新增功能（v1.1.0）
+
+### AI 标题生成器
+- 5 种标题模板（How-to、List、Question、Secret、Comparison）
+- A/B 测试支持，生成 3-10 个变体
+- 标题评分系统（0-100 分）
+- 爆款标题特征分析
+
+### 使用示例
+```bash
+# 生成标题
+python3 scripts/title_generator.py "SEO 内容写作" "写出爆款文章" 10
+
+# 输出示例：
+1. [85 分] 如何在 30 分钟内写出爆款文章（完整指南）
+2. [90 分] 3 个 SEO 内容写作技巧，第 3 个太实用了
+3. [80 分] 为什么你的 SEO 内容总是失败？原因在这里
+```
+
+### A/B 测试工作流
+1. 生成 5-10 个标题变体
+2. 选择评分最高的 3 个
+3. 在不同平台/时间测试
+4. 分析数据，选择最佳标题
