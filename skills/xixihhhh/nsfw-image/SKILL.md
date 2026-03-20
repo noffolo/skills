@@ -3,10 +3,12 @@ name: nsfw-image
 description: "Generate AI images for mature creative projects using Wan 2.6, Seedream, and other models with relaxed content policies via Atlas Cloud API. Designed for adult (18+) artistic and professional use cases including figure drawing, fashion photography, fine art, and mature illustration. Models include Alibaba Wan 2.6 (recommended, $0.021/image), ByteDance Seedream v5.0/v4.5/v4, and Wan 2.5. Supports text-to-image and image editing. Use this skill when the user explicitly requests NSFW or mature image generation for legitimate adult creative work."
 source: "https://github.com/AtlasCloudAI/nano-banana-2-skill"
 homepage: "https://github.com/AtlasCloudAI/nano-banana-2-skill"
-env_vars:
-  ATLASCLOUD_API_KEY:
-    description: "Atlas Cloud API key for accessing image generation models with relaxed content policies"
-    required: true
+metadata:
+  openclaw:
+    requires:
+      env:
+        - ATLASCLOUD_API_KEY
+    primaryEnv: ATLASCLOUD_API_KEY
 ---
 
 # NSFW Image Generation — Adult Creative AI Image Models
@@ -23,13 +25,65 @@ Generate AI images for mature creative projects using models with relaxed conten
 
 ---
 
+## Required Environment Variables
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `ATLASCLOUD_API_KEY` | **Yes** | Atlas Cloud API key for accessing image generation models |
+
 ## Setup
 
 1. Sign up at https://www.atlascloud.ai
 2. Console → API Keys → Create new key
 3. Set env: `export ATLASCLOUD_API_KEY="your-key"`
 
-The API key is tied to your Atlas Cloud account and its pay-as-you-go balance.
+The API key is tied to your Atlas Cloud account and its pay-as-you-go balance. All usage is billed to this account.
+
+### Credential Safety
+
+- **Use a dedicated key**: Create a separate API key for this skill rather than reusing keys from other applications. Revoke it when no longer needed.
+- **Do not hardcode keys**: Always use environment variables (`export ATLASCLOUD_API_KEY="..."`) — never embed keys in scripts, code, or prompts.
+- **Monitor usage**: Check Console → Usage regularly to track spending and detect anomalies.
+- **Control your balance**: Atlas Cloud uses pay-as-you-go billing — only recharge the amount you plan to use to limit potential exposure.
+- Atlas Cloud does not currently support scoped/limited keys — each key grants access to all models on your account. Use balance control as the primary safeguard.
+
+---
+
+## Script Usage
+
+This skill includes a Python script for image generation. Zero external dependencies required.
+
+### List available image models
+
+```bash
+python scripts/generate_image.py list-models
+```
+
+### Generate an image
+
+```bash
+python scripts/generate_image.py generate \
+  --model "MODEL_ID" \
+  --prompt "Your prompt here" \
+  --output ./output
+```
+
+### Upload a local image (for editing)
+
+```bash
+python scripts/generate_image.py upload ./local-image.jpg
+```
+
+### Edit an image
+
+```bash
+python scripts/generate_image.py generate \
+  --model "MODEL_ID" \
+  --prompt "Edit instruction" \
+  --image "https://...uploaded-url..."
+```
+
+Run `python scripts/generate_image.py generate --help` for all options. Extra model params can be passed as key=value (e.g. `aspect_ratio=16:9 resolution=2k`).
 
 ---
 
@@ -139,7 +193,7 @@ curl -s -X POST "https://api.atlascloud.ai/api/v1/model/generateImage" \
 # Returns: { "code": 200, "data": { "id": "prediction-id" } }
 
 # Step 2: Poll (every 3-5 seconds)
-curl -s "https://api.atlascloud.ai/api/v1/model/result/{prediction-id}" \
+curl -s "https://api.atlascloud.ai/api/v1/model/prediction/{prediction-id}" \
   -H "Authorization: Bearer $ATLASCLOUD_API_KEY"
 # Returns: { "code": 200, "data": { "status": "completed", "outputs": ["https://...url..."] } }
 
