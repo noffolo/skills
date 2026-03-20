@@ -26,17 +26,27 @@ This skill provides per-model scripts that validate parameters and call shared r
 
 When a user wants to use this skill, follow these steps:
 
-1.  **Check for Token**: Check if `HIDREAM_AUTHORIZATION` is set or if a config file exists (using `scripts/configure.py` which saves to `~/.config/openclaw/hidream_config.json`).
-2.  **Request Token**: If the token is missing, instruct the user to:
-    *   Go to `https://vivago.ai/platform/token` to generate a token.
-    *   Run `python3 scripts/configure.py` to save it locally.
-3.  **Configure**: Once the user provides the token, use it in subsequent calls (or set it as an env var if possible).
+1.  **Check for Token**: The system automatically checks for the API key in the following order:
+    *   Local Env File (Primary): `~/.openclaw/.env` (reads `HIDREAM_AUTHORIZATION=sk-...`)
+    *   Environment Variable: `HIDREAM_AUTHORIZATION`
+    *   Config File: `~/.config/openclaw/hidream_config.json`
+
+2.  **Request Token (If Missing or 401)**: Instruct the user to update their credentials:
+    *   **Recommended**: Provide their API Key (starts with `sk-`) and ask the agent to save it: `echo "HIDREAM_AUTHORIZATION=sk-..." > ~/.openclaw/.env`
+    *   **Interactive**: Run `python3 scripts/configure.py` to interactively save the token.
+3.  **Handle Missing Prompts**: If the user asks to generate an image or video but does not provide a specific prompt, **DO NOT generate a random test image**. Instead, politely ask the user what they would like to generate.
 4.  **Generate**: Use the Python interface to generate content based on user requests.
+5.  **Save Output**: When generation is complete and returns a media URL (image or video), **ALWAYS download and save the file to the `assets/` directory within this skill's folder (e.g., `assets/generated_image.png`)**. Do NOT use `~/.openclaw/workspace/output/` as it may have permission issues. Create the `assets/` directory if it does not exist.
+6.  **Present Results**: When showing generated images or videos to the user, **ALWAYS** use the following Markdown formats to ensure proper rendering in the Claw interface. Use the local path if downloaded, or the remote URL:
 
-### Error Handling
+### Error Handling & Troubleshooting
 
-- **Insufficient Credits**: If the API returns `{"code": 2007, "message": "No credits available"}`, instruct the user to:
-    *   Go to `https://vivago.ai/platform/info` to recharge credits.
+- **Resolution too small (ValueError)**: Seedream M2 requires high resolution (at least `2560*1440` or `2048*2048`). If you get this error, increase the `resolution` parameter.
+- **401 Unauthorized (invalid token)**: The token is invalid or expired. Update it by writing the new token to `~/.openclaw/.env`:
+    ```bash
+    echo "HIDREAM_AUTHORIZATION=sk-..." > ~/.openclaw/.env
+    ```
+- **Insufficient Credits (Code 2007)**: Instruct the user to go to `https://vivago.ai/platform/info` to recharge credits.
 
 
 ## Python Interface (Recommended)

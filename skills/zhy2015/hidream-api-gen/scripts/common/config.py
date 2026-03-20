@@ -23,14 +23,31 @@ def get_token() -> str | None:
     Priority:
     1. HIDREAM_AUTHORIZATION env var
     2. OPENCLAW_AUTHORIZATION env var (legacy)
-    3. ~/.config/openclaw/hidream_config.json (unified config)
+    3. ~/.openclaw/.env (Fallback)
+    4. ~/.config/openclaw/hidream_config.json (unified config)
     """
     # 1. Check Env
     token = os.getenv("HIDREAM_AUTHORIZATION") or os.getenv("OPENCLAW_AUTHORIZATION")
     if token:
         return token
 
-    # 2. Check Config File
+    # 2. Check ~/.openclaw/.env (Fallback)
+    openclaw_env = Path.home() / ".openclaw" / ".env"
+    if openclaw_env.exists():
+        try:
+            with open(openclaw_env, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("HIDREAM_AUTHORIZATION="):
+                        parts = line.split("=", 1)
+                        if len(parts) == 2:
+                            val = parts[1].strip().strip("'").strip('"')
+                            if val:
+                                return val
+        except Exception:
+            pass
+
+    # 3. Check Config File
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE, "r") as f:

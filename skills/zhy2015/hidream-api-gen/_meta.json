@@ -3,11 +3,16 @@
   "slug": "hidream-api-gen",
   "displayName": "Hidream Aigc",
   "latest": {
-    "version": "0.1.8",
-    "publishedAt": 1773652654424,
-    "commit": "https://github.com/openclaw/skills/commit/7499e1fc1aa813a5c43c710c2579e277cff699dc"
+    "version": "0.1.9",
+    "publishedAt": 1773907769426,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.1.8",
+      "publishedAt": 1773652654424,
+      "commit": "https://github.com/openclaw/skills/commit/7499e1fc1aa813a5c43c710c2579e277cff699dc"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1773371063692,
