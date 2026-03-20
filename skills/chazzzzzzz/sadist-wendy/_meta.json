@@ -3,11 +3,16 @@
   "slug": "sadist-wendy",
   "displayName": "Sadist Wendy",
   "latest": {
-    "version": "2.0.12",
-    "publishedAt": 1773517434089,
-    "commit": "https://github.com/openclaw/skills/commit/5a0822d861af81def28ec23e8c8e5ba15b19ea26"
+    "version": "2.0.13",
+    "publishedAt": 1773818945074,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.12",
+      "publishedAt": 1773517434089,
+      "commit": "https://github.com/openclaw/skills/commit/5a0822d861af81def28ec23e8c8e5ba15b19ea26"
+    },
     {
       "version": "2.0.3",
       "publishedAt": 1772876722617,
