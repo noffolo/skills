@@ -3,11 +3,16 @@
   "slug": "crypto-market-cli",
   "displayName": "Crypto Market Cli",
   "latest": {
-    "version": "2.4.6",
-    "publishedAt": 1773673686516,
-    "commit": "https://github.com/openclaw/skills/commit/b46779f114fe66b891ce211cd8f8894b4ea58ee8"
+    "version": "5.0.0",
+    "publishedAt": 1773883183406,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.4.6",
+      "publishedAt": 1773673686516,
+      "commit": "https://github.com/openclaw/skills/commit/b46779f114fe66b891ce211cd8f8894b4ea58ee8"
+    },
     {
       "version": "1.4.1",
       "publishedAt": 1773140841855,
