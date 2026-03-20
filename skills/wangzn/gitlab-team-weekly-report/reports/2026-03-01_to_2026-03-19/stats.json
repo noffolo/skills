@@ -1,0 +1,69 @@
+{
+  "period": {
+    "start": "2026-03-01",
+    "end": "2026-03-19"
+  },
+  "commits_by_user": {
+    "张辉": 1189,
+    "李华儒": 1570,
+    "许京爽": 580,
+    "曹现峰": 621,
+    "张惠施": 371
+  },
+  "mr_stats": {
+    "merged": 122,
+    "opened": 23,
+    "closed": 9
+  },
+  "daily_activity": {
+    "2026-03-02": 371,
+    "2026-03-03": 318,
+    "2026-03-04": 266,
+    "2026-03-05": 505,
+    "2026-03-06": 27,
+    "2026-03-07": 206,
+    "2026-03-08": 47,
+    "2026-03-09": 343,
+    "2026-03-10": 256,
+    "2026-03-11": 304,
+    "2026-03-12": 478,
+    "2026-03-13": 190,
+    "2026-03-14": 180,
+    "2026-03-15": 3,
+    "2026-03-16": 278,
+    "2026-03-17": 357,
+    "2026-03-18": 341,
+    "2026-03-19": 15
+  },
+  "projects": {
+    "engineering/kimi-darkmatter": 3241,
+    "engineering/devops/kimi-secret": 191,
+    "protos/kimi": 617,
+    "engineering/secrets/kimi-secret-prod": 87,
+    "zhanghuishi/cdn": 93,
+    "engineering/kimi/kimi-bigbang": 56,
+    "lihuaru/kimiim-py": 9,
+    "delivery/canary": 18,
+    "search-engine/bridge_kimi_openclaw": 8,
+    "lihuaru/gizmo": 1,
+    "engineering/user-center": 32,
+    "zhanghuishi/multi-exec": 116,
+    "zhanghuishi/bot": 2,
+    "zhanghuishi/bot-cli": 5,
+    "zhanghuishi/openclaw-gwcheck": 7,
+    "agentic/kimiclaw-image": 2
+  },
+  "dashboard": {
+    "start": "2026-03-01",
+    "end": "2026-03-19",
+    "mr_total": 154,
+    "commit_total": 4331,
+    "repo_total": 16,
+    "user_total": 5,
+    "mr_merged": 122,
+    "mr_opened": 23,
+    "mr_closed": 9,
+    "busiest_day": "2026-03-05",
+    "top_repo": "engineering/kimi-darkmatter"
+  }
+}

@@ -1,0 +1,421 @@
+{
+  "priority": [
+    "repo",
+    "label",
+    "title",
+    "branch",
+    "classification",
+    "default"
+  ],
+  "default_category": {
+    "category": "KimiClaw 主营业务",
+    "subcategory": "资源供应商与实例编排"
+  },
+  "repo_rules": [
+    {
+      "match": [
+        "zhanghuishi/cdn",
+        "cdn"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "CDN 与边缘网络",
+      "notes": "CDN 项目单独归类"
+    },
+    {
+      "match": [
+        "engineering/secrets/kimi-secret-prod",
+        "engineering/devops/kimi-secret"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "资源供应商与实例编排"
+    },
+    {
+      "match": [
+        "user-center",
+        "account",
+        "passport",
+        "auth"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "账号、身份与登录"
+    },
+    {
+      "match": [
+        "billing",
+        "subscription",
+        "payment"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "订阅、计费与配额"
+    },
+    {
+      "match": [
+        "outsight",
+        "admin",
+        "console",
+        "gitdash"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "运营后台与管理工具"
+    },
+    {
+      "match": [
+        "bridge_kimi_openclaw"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "会话连接与恢复"
+    },
+    {
+      "match": [
+        "kimi-bigbang"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "多端体验与交互改版"
+    },
+    {
+      "match": [
+        "protos/kimi"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "运营后台与管理工具",
+      "notes": "协议仓默认偏管理/接口能力，标题规则可覆盖"
+    },
+    {
+      "match": [
+        "plugin",
+        "mcp",
+        "skill",
+        "channel",
+        "wecom",
+        "feishu",
+        "whatsapp"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "插件、工具与 Skill 框架"
+    }
+  ],
+  "keyword_rules": [
+    {
+      "field": "title",
+      "match": [
+        "腾讯云",
+        "火山",
+        "阿里云",
+        "机型",
+        "镜像",
+        "image id",
+        "provider",
+        "ecs",
+        "实例",
+        "创建机器"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "资源供应商与实例编排"
+    },
+    {
+      "field": "title",
+      "match": [
+        "workspace",
+        "备份",
+        "恢复",
+        "快照",
+        "清理",
+        "销毁",
+        "backup",
+        "restore"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "工作空间与数据生命周期"
+    },
+    {
+      "field": "title",
+      "match": [
+        "ssh",
+        "探活",
+        "卡死",
+        "metrics",
+        "指标",
+        "监控",
+        "日志",
+        "log",
+        "fallback",
+        "graceful",
+        "reconnect",
+        "ping",
+        "error"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "稳定性、容灾与观测"
+    },
+    {
+      "field": "title",
+      "match": [
+        "proxy",
+        "rewrite",
+        "权限",
+        "鉴权",
+        "secret",
+        "config",
+        "env"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "权限代理与环境配置"
+    },
+    {
+      "field": "title",
+      "match": [
+        "cdn",
+        "域名",
+        "边缘",
+        "ingress",
+        "网络"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "CDN 与边缘网络"
+    },
+    {
+      "field": "title",
+      "match": [
+        "账号",
+        "登录",
+        "注册",
+        "邮箱",
+        "验证",
+        "身份",
+        "vest",
+        "account",
+        "auth"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "账号、身份与登录"
+    },
+    {
+      "field": "title",
+      "match": [
+        "会员",
+        "过期",
+        "权益",
+        "7天",
+        "销毁",
+        "membership"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "会员权益与生命周期"
+    },
+    {
+      "field": "title",
+      "match": [
+        "billing",
+        "计费",
+        "订阅",
+        "支付",
+        "套餐",
+        "rate limit",
+        "按量",
+        "quota"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "订阅、计费与配额"
+    },
+    {
+      "field": "title",
+      "match": [
+        "admin",
+        "后台",
+        "管理",
+        "审批",
+        "debug",
+        "gitdash",
+        "outsight",
+        "restartinstance",
+        "recreatebot"
+      ],
+      "category": "KimiClaw 主营业务",
+      "subcategory": "运营后台与管理工具"
+    },
+    {
+      "field": "title",
+      "match": [
+        "增长",
+        "转化",
+        "留存",
+        "活动",
+        "运营",
+        "文案",
+        "模板",
+        "马甲号",
+        "websites"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "增长活动与内容运营"
+    },
+    {
+      "field": "title",
+      "match": [
+        "session",
+        "conversation",
+        "resume",
+        "reconnect",
+        "连接",
+        "恢复",
+        "chat room"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "会话连接与恢复"
+    },
+    {
+      "field": "title",
+      "match": [
+        "chat",
+        "message",
+        "消息",
+        "save msg",
+        "stream",
+        "websocket",
+        "im",
+        "protocol",
+        "msg"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "消息收发与状态同步"
+    },
+    {
+      "field": "title",
+      "match": [
+        "web",
+        "移动端",
+        "ios",
+        "android",
+        "button",
+        "交互",
+        "体验",
+        "ui",
+        "ux"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "多端体验与交互改版"
+    },
+    {
+      "field": "title",
+      "match": [
+        "file",
+        "文件",
+        "download",
+        "drive",
+        "ppt",
+        "slides",
+        "filesystem",
+        "附件"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "文件、媒体与附件能力"
+    },
+    {
+      "field": "title",
+      "match": [
+        "template",
+        "模板",
+        "preset",
+        "onboarding",
+        "content"
+      ],
+      "category": "对话与交互体验",
+      "subcategory": "模板与内容生产"
+    },
+    {
+      "field": "title",
+      "match": [
+        "plugin",
+        "插件",
+        "tool",
+        "工具",
+        "skill",
+        "mcp",
+        "datasource"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "插件、工具与 Skill 框架"
+    },
+    {
+      "field": "title",
+      "match": [
+        "企微",
+        "企业微信",
+        "飞书",
+        "lark",
+        "wecom",
+        "whatsapp",
+        "channel"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "渠道接入与消息投递"
+    },
+    {
+      "field": "title",
+      "match": [
+        "bot",
+        "快捷指令",
+        "欢迎语",
+        "画像",
+        "人设",
+        "prompt"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "Bot 配置、人设与快捷指令"
+    },
+    {
+      "field": "title",
+      "match": [
+        "workflow",
+        "heartbeat",
+        "runtime",
+        "openclaw",
+        "cron",
+        "phase",
+        "shard"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "OpenClaw Runtime 与 Workflow"
+    },
+    {
+      "field": "title",
+      "match": [
+        "google drive",
+        "stock",
+        "bridge",
+        "数据源",
+        "集成"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "外部数据源与集成能力"
+    },
+    {
+      "field": "label",
+      "match": [
+        "billing",
+        "payment"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "订阅、计费与配额"
+    },
+    {
+      "field": "label",
+      "match": [
+        "agent",
+        "tool",
+        "plugin"
+      ],
+      "category": "Agent 与渠道生态",
+      "subcategory": "插件、工具与 Skill 框架"
+    },
+    {
+      "field": "branch",
+      "match": [
+        "billing-",
+        "pay-"
+      ],
+      "category": "用户体系与商业化",
+      "subcategory": "订阅、计费与配额"
+    }
+  ]
+}

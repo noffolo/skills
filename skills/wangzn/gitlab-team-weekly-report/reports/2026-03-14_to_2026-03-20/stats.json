@@ -1,0 +1,98 @@
+{
+  "period": {
+    "start": "2026-03-14",
+    "end": "2026-03-20"
+  },
+  "commits_by_user": {
+    "张辉": 604,
+    "李华儒": 275,
+    "许京爽": 108,
+    "曹现峰": 102,
+    "张惠施": 142
+  },
+  "mr_stats": {
+    "merged": 40,
+    "opened": 15,
+    "closed": 5
+  },
+  "daily_activity": {
+    "2026-03-14": 2,
+    "2026-03-15": 3,
+    "2026-03-16": 278,
+    "2026-03-17": 357,
+    "2026-03-18": 341,
+    "2026-03-19": 308,
+    "2026-03-20": 2
+  },
+  "projects": {
+    "engineering/devops/kimi-secret": 57,
+    "engineering/kimi-darkmatter": 892,
+    "protos/kimi": 197,
+    "engineering/secrets/kimi-secret-prod": 23,
+    "zhanghuishi/cdn": 71,
+    "lihuaru/kimiim-py": 9,
+    "engineering/kimi/kimi-bigbang": 9,
+    "lihuaru/gizmo": 1,
+    "engineering/user-center": 2,
+    "zhanghuishi/multi-exec": 16,
+    "agentic/kimiclaw-image": 14
+  },
+  "dashboard": {
+    "start": "2026-03-14",
+    "end": "2026-03-20",
+    "mr_total": 60,
+    "commit_total": 1231,
+    "repo_total": 11,
+    "user_total": 5,
+    "mr_merged": 40,
+    "mr_opened": 15,
+    "mr_closed": 5,
+    "busiest_day": "2026-03-17",
+    "top_repo": "engineering/kimi-darkmatter"
+  },
+  "top_contributors": [
+    {
+      "name": "张辉",
+      "mr_total": 17,
+      "commit_total": 604
+    },
+    {
+      "name": "许京爽",
+      "mr_total": 16,
+      "commit_total": 108
+    },
+    {
+      "name": "张惠施",
+      "mr_total": 10,
+      "commit_total": 142
+    },
+    {
+      "name": "李华儒",
+      "mr_total": 9,
+      "commit_total": 275
+    },
+    {
+      "name": "曹现峰",
+      "mr_total": 8,
+      "commit_total": 102
+    }
+  ],
+  "top_categories": [
+    {
+      "name": "KimiClaw 主营业务",
+      "mr_total": 20
+    },
+    {
+      "name": "对话与交互体验",
+      "mr_total": 15
+    },
+    {
+      "name": "用户体系与商业化",
+      "mr_total": 3
+    },
+    {
+      "name": "Agent 与渠道生态",
+      "mr_total": 1
+    }
+  ]
+}
