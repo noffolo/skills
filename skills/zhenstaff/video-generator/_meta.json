@@ -3,11 +3,16 @@
   "slug": "video-generator",
   "displayName": "Video Generator | 视频生成器",
   "latest": {
-    "version": "1.0.24",
-    "publishedAt": 1773630990541,
-    "commit": "https://github.com/openclaw/skills/commit/f3406e1ee9e2c8878fbab861dbd863c4740f6aed"
+    "version": "1.0.26",
+    "publishedAt": 1773769221305,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.24",
+      "publishedAt": 1773630990541,
+      "commit": "https://github.com/openclaw/skills/commit/f3406e1ee9e2c8878fbab861dbd863c4740f6aed"
+    },
     {
       "version": "1.0.10",
       "publishedAt": 1773374049063,
