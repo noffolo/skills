@@ -1,78 +1,120 @@
 ---
 name: serpshot
-description: >
-  Use Serpshot Google Search API to perform web searches and image searches.
-  Use when user needs to search Google for information, research topics, or get search results.
-  Supports up to 100 queries per request, various locations and languages.
+description: Use Serpshot Google Search API to perform web searches and image searches.
+version: "1.1.0"
+license: MIT-0
+metadata:
+  openclaw:
+    primaryEnv: SERPSHOT_API_KEY
+    requires:
+      env:
+        - SERPSHOT_API_KEY
+    homepage: https://serpshot.com
+    docs: https://serpshot.com/docs
 ---
 
 # Skill: Serpshot Google Search API
 
-Perform Google searches using Serpshot API.
+Perform Google web searches and image searches using the Serpshot API.
 
 ## When to Use
 
-- User asks to "search", "google", "查一下", "调研" something
-- Need to get web search results for a topic
+- User says: search / find / google / lookup / research / look up / browse
+- User says: 查 / 搜 / 找 / 调研 / 查一下 / 搜索 / 查询 / 找一下 / 查资料
+- Need real-time web information not in training data
+- Need current news, prices, documentation, or any live data
 - Need image search results
+
+## Setup (run once)
+
+1. Get API key: https://serpshot.com/dashboard
+2. Set environment variable:
+   - Mac/Linux: `export SERPSHOT_API_KEY=your_key`
+   - Windows CMD: `set SERPSHOT_API_KEY=your_key`
+   - Windows PowerShell: `$env:SERPSHOT_API_KEY="your_key"`
 
 ## Tools
 
-- `exec` - Run Python to call Serpshot API
+- `exec` — Run Python to call Serpshot API
 
 ## How to Use
 
-### Basic Search
+### Web Search
 
 ```python
 import requests
-import json
 import os
 
-# Get API key - YOU MUST ASK USER FOR API KEY
-api_key = os.environ.get("SERPSHOT_API_KEY", "YOUR_API_KEY")
+api_key = os.environ.get("SERPSHOT_API_KEY")
+if not api_key:
+    raise ValueError("SERPSHOT_API_KEY is not set. Get your key at https://serpshot.com/dashboard")
 
-url = "https://api.serpshot.com/api/search/google"
+response = requests.post(
+    "https://api.serpshot.com/api/search/google",
+    headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+    json={
+        "queries": ["your search query here"],
+        "type": "search",
+        "num": 10,       # results per page (1-100)
+        "gl": "us",      # country: us/cn/gb/jp/de/ca/fr/...
+        "hl": "en",      # language: en/zh-Hans/ja/...
+    }
+)
 
-headers = {
-    "X-API-Key": api_key,
-    "Content-Type": "application/json"
-}
-
-payload = {
-    "queries": ["your search query here"],
-    "type": "search",  # or "image"
-    "num": 10,  # results per page (1-100)
-    "page": 1,
-    "location": "US",  # US, CN, JP, GB, DE, etc.
-    "lr": "en",  # language restriction
-    "gl": "us"  # geolocation
-}
-
-response = requests.post(url, headers=headers, json=payload)
 data = response.json()
+if data.get("code") != 200:
+    raise RuntimeError(f"API error {data.get('code')}: {data.get('msg')}")
 
-# Parse results
-for result in data.get("data", {}).get("results", []):
-    print(f"{result['position']}. {result['title']}")
-    print(f"   {result['link']}")
-    print(f"   {result['snippet']}")
+for r in data["data"]["results"]:
+    print(f"{r['position']}. {r['title']}")
+    print(f"   {r['link']}")
+    print(f"   {r['snippet']}")
     print()
 ```
 
-### Parameters
+### Image Search
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| queries | array[string] | Yes | Search queries (max 100) |
-| type | string | No | "search" or "image", default: "search" |
-| num | integer | No | Results per page (1-100), default: 10 |
-| page | integer | No | Page number, default: 1 |
-| location | string | No | Country code (US, CN, JP, GB, DE, etc.), default: US |
-| lr | string | No | Language restriction (en, zh-Hans, etc.), default: en |
-| gl | string | No | Geolocation (us, cn, etc.), default: us |
+```python
+import requests
+import os
 
-### Response Format
+api_key = os.environ.get("SERPSHOT_API_KEY")
+
+response = requests.post(
+    "https://api.serpshot.com/api/search/google",
+    headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+    json={
+        "queries": ["your image query here"],
+        "type": "image",
+        "num": 10,
+        "gl": "us",
+    }
+)
+
+data = response.json()
+if data.get("code") != 200:
+    raise RuntimeError(f"API error {data.get('code')}: {data.get('msg')}")
+
+for r in data["data"]["results"]:
+    print(f"{r['position']}. {r['title']}")
+    print(f"   Source: {r.get('source', '')}")
+    print(f"   Link: {r['link']}")
+    print(f"   Thumbnail: {r.get('thumbnail', '')}")
+    print()
+```
+
+## Parameters
+
+| Parameter | Default  | Description                                    |
+|-----------|----------|------------------------------------------------|
+| queries   | required | Search queries array (max 100)                 |
+| type      | "search" | "search" or "image"                            |
+| num       | 10       | Results per page (1-100)                       |
+| page      | 1        | Page number for pagination                     |
+| gl        | "us"     | Country code: us/cn/gb/jp/de/ca/fr/id/mx/sg    |
+| hl        | "en"     | Language: en/zh-Hans/ja/ko/de/fr/...           |
+
+## Response Format
 
 ```json
 {
@@ -96,42 +138,39 @@ for result in data.get("data", {}).get("results", []):
 
 ## Example Tasks
 
-### Task 1: Search for AI news
+### Search for latest AI news (English)
 ```
 queries: ["AI news 2026"]
-location: "US"
+gl: "us"
 num: 5
 ```
 
-### Task 2: Search Chinese results
+### Search Chinese results
 ```
 queries: ["人工智能 最新消息"]
-location: "CN"
-lr: "zh-Hans"
 gl: "cn"
+hl: "zh-Hans"
 num: 10
 ```
 
-### Task 3: Image search
+### Image search
 ```
-queries: ["cute cats"]
+queries: ["minimalist UI design"]
 type: "image"
 num: 10
 ```
 
-## Important Notes
+## Error Codes
 
-1. **API Key Required**: You MUST ask the user for their Serpshot API key before using this skill
-2. **Credits**: Each search uses credits (check with /api/credit/available-credits)
-3. **Rate Limit**: Contact Serpshot for rate limits
-4. **Locations**: Available locations include US, CN, JP, GB, DE, CA, FR, ID, MX, SG, etc.
+| Code | Meaning                  | Action                                      |
+|------|--------------------------|---------------------------------------------|
+| 400  | Bad request              | Check parameter format                      |
+| 401  | Invalid API key          | Verify SERPSHOT_API_KEY is set correctly     |
+| 402  | Insufficient credits     | Top up at https://serpshot.com/dashboard    |
+| 429  | Rate limit exceeded      | Slow down requests                          |
 
-## Error Handling
+## Notes
 
-Common error codes:
-- 400: Bad request (invalid parameters)
-- 401: Invalid API key
-- 402: Insufficient credits
-- 429: Rate limit exceeded
-
-Check `data["code"]` and `data["msg"]` in response.
+- Each search query uses 1 credit
+- Check remaining credits: `GET https://api.serpshot.com/api/credit/available-credits`
+- Full API docs: https://serpshot.com/docs
