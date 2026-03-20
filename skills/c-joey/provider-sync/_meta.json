@@ -1,13 +1,18 @@
 {
   "owner": "c-joey",
   "slug": "provider-sync",
-  "displayName": "Provider Sync",
+  "displayName": "provider-sync",
   "latest": {
-    "version": "2.1.2",
-    "publishedAt": 1773317665328,
-    "commit": "https://github.com/openclaw/skills/commit/bc63352c4f7f471b8dde61a243fd1590c9f24497"
+    "version": "2.1.3",
+    "publishedAt": 1773895190598,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.1.2",
+      "publishedAt": 1773317665328,
+      "commit": "https://github.com/openclaw/skills/commit/bc63352c4f7f471b8dde61a243fd1590c9f24497"
+    },
     {
       "version": "2.0.1",
       "publishedAt": 1773310855701,

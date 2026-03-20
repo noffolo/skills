@@ -58,10 +58,10 @@ spdx: MIT
 - `/provider_sync add providerId=<id> baseUrl=<.../v1> apiKey=<可选>`
   - 注意：真正写入前仍会先 dry-run 验证，并二次确认
 
-写入（会备份；仍建议先预览）：
+应用（会备份；仍建议先预览）：
 - `/provider_sync provider=all mode=apply`
 
-重启 Gateway（可选，生效更稳；会短暂断线）：
+如需让变更尽快生效，可再单独执行一次网关重启（会短暂断线）：
 - `/restart`
 
 ### 指定 provider
@@ -71,13 +71,13 @@ spdx: MIT
   - `/provider_sync provider=newapi`
 
 ## 权限/安全口径（默认建议）
-- 群聊：仅允许 dry-run / check-only（只读）；不要在群聊写配置。
-- 私聊：允许 apply（写入）与重启（需二次确认）。
+- 群聊：仅允许 dry-run / check-only（只读）；不要在群聊应用配置变更。
+- 私聊：允许 apply（应用变更）与重启（需二次确认）。
 
-## 重启封装（你要的“闭环”）
-- 这个 skill 的脚本只负责“对比/写配置”。
-- **重启属于网关级操作**，为避免误触，一般拆成第二步。
-- 最简闭环就是：apply 完后直接发一次 `/restart`。
+## 生效方式
+- 这个 skill 的脚本负责“对比 / 预览 / 应用变更”。
+- **网关重启属于单独的系统动作**，为避免误触，一般拆成第二步。
+- 最简闭环就是：apply 完后按需再发一次 `/restart`。
 
 ## 参数（与脚本对应）
 - `provider=<id|all>`：必填（`all` 表示遍历 `models.providers` 下所有 provider）
@@ -90,7 +90,7 @@ spdx: MIT
 
 ## 备注（实现边界）
 - 这个 skill 的“按钮面板”属于聊天交互层能力；在未启用 Telegram inlineButtons 的实例上，依然能用本文件提供的纯文本命令完成全部操作。
-- 缓存：脚本会在写缓存前做敏感字段剔除（token/cookie/apiKey/authorization 等 key）。
+- 缓存：脚本会在落盘前剔除敏感字段（例如认证相关字段），避免把上游异常返回的敏感内容写入缓存。
 
 ## Main script
 - `scripts/provider_sync.py`

@@ -210,12 +210,17 @@ def fetch_json_with_meta(
     cache_dir: str = "~/.cache/openclaw/provider-sync",
     cache_ttl_seconds: int = 600,
     allow_stale_cache: bool = False,
+    progress_label: str = "Fetch",
 ) -> Tuple[Any, Dict[str, Any]]:
     # Fetch JSON with a small local cache (TTL + conditional requests).
     # - Uses ETag/Last-Modified when available to avoid re-downloading
     # - Never stores Authorization or other headers; only a hash is used for the cache key
 
     t0 = time.time()
+    try:
+        print(f"{progress_label}: start {method.upper()} {endpoint} (timeout={int(timeout)}s, cache={'on' if cache_enabled else 'off'})", flush=True)
+    except Exception:
+        pass
     cache_key = _safe_cache_key(endpoint, method, headers, body)
     meta_path, data_path = _cache_paths(cache_dir, cache_key)
 
@@ -247,6 +252,10 @@ def fetch_json_with_meta(
         if cache_meta and cache_data is not None:
             age = max(0, int(time.time() - int(cache_meta.get("ts") or 0)))
             if cache_ttl_seconds > 0 and age <= int(cache_ttl_seconds):
+                try:
+                    print(f"{progress_label}: cache hit (fresh, age={age}s <= ttl={int(cache_ttl_seconds)}s)", flush=True)
+                except Exception:
+                    pass
                 return cache_data, {
                     "endpoint": endpoint,
                     "method": method.upper(),
@@ -275,6 +284,10 @@ def fetch_json_with_meta(
 
     try:
         data, meta = fetch_json_raw(endpoint, method, req_headers, body, timeout=timeout)
+        try:
+            print(f"{progress_label}: fetched status={meta.get('status')} bytes={meta.get('bytes')} fetchMs={int((time.time()-t0)*1000)}", flush=True)
+        except Exception:
+            pass
         out_meta = {
             "endpoint": endpoint,
             "method": method.upper(),
@@ -308,6 +321,10 @@ def fetch_json_with_meta(
         # 304 Not Modified: reuse cached payload
         if e.code == 304 and cache_enabled and cache_data is not None:
             try:
+                print(f"{progress_label}: not modified (304), using cached payload", flush=True)
+            except Exception:
+                pass
+            try:
                 cache_meta = cache_meta or {}
                 cache_meta["ts"] = int(time.time())
                 meta_path.parent.mkdir(parents=True, exist_ok=True)
@@ -336,6 +353,10 @@ def fetch_json_with_meta(
     except Exception as e:
         # Network failure: optionally fall back to stale cache for dry-run/check-only UX
         if allow_stale_cache and cache_enabled and cache_data is not None:
+            try:
+                print(f"{progress_label}: fetch failed ({type(e).__name__}), falling back to stale cache", flush=True)
+            except Exception:
+                pass
             age = max(0, int(time.time() - int(cache_meta.get("ts") or 0))) if cache_meta else None
             return cache_data, {
                 "endpoint": endpoint,
@@ -1061,6 +1082,7 @@ def main():
         cache_dir=args.cache_dir,
         cache_ttl_seconds=int(args.cache_ttl_seconds),
         allow_stale_cache=bool(args.dry_run or args.check_only),
+        progress_label=f"Fetch({args.provider_id})",
     )
     source = get_path(upstream, args.response_root) if args.response_root else upstream
     if source is None:
