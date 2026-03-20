@@ -1,0 +1,15 @@
+{
+  "name": "批量抓取示例",
+  "description": "批量抓取多篇微信文章",
+  "script": "batch_fetch.py",
+  "urls": [
+    "https://mp.weixin.qq.com/s/article1",
+    "https://mp.weixin.qq.com/s/article2",
+    "https://mp.weixin.qq.com/s/article3"
+  ],
+  "config": {
+    "delay": 3,
+    "output_dir": "./articles/",
+    "format": "markdown"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "基本抓取示例",
+  "description": "抓取单篇微信文章并保存为 Markdown",
+  "command": "claw wechat-fetch",
+  "args": {
+    "url": "https://mp.weixin.qq.com/s/xxxxx",
+    "output": "./article.md",
+    "format": "markdown"
+  },
+  "expected_output": {
+    "file": "article.md",
+    "contains": ["标题", "公众号", "正文"]
+  }
+}

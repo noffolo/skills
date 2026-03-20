@@ -1,0 +1,40 @@
+# WeChat Fetch 默认配置
+
+# 浏览器配置
+browser:
+  headless: true
+  timeout: 60
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  viewport:
+    width: 1920
+    height: 1080
+
+# 内容提取配置
+extraction:
+  wait_selector: "#js_content"
+  wait_time: 5000
+  selectors:
+    title:
+      - "h1#activity_name"
+      - "h2#activity_name"
+      - ".rich_media_title"
+    nickname:
+      - "#js_name"
+      - ".profile_nickname"
+    content:
+      - "#js_content"
+    publish_time:
+      - "#publish_time"
+      - ".rich_media_meta_text"
+
+# 输出配置
+output:
+  default_format: "markdown"
+  include_images: true
+  image_download: false
+  image_dir: "./images"
+
+# 日志配置
+logging:
+  level: INFO
+  format: "%(asctime)s - %(levelname)s - %(message)s"

@@ -1,0 +1,13 @@
+name: wechat-fetch
+version: 2.0.0
+description: 微信公众号文章抓取工具。使用 OpenClaw 持久化浏览器上下文，复用已登录 Cookie，支持无头模式，稳定可靠。
+author: 小明
+keywords:
+  - wechat
+  - 微信
+  - article
+  - 抓取
+  - playwright
+  - persistent-context
+requires:
+  bins: playwright

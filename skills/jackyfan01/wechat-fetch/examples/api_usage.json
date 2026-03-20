@@ -1,0 +1,12 @@
+{
+  "name": "Python API 使用示例",
+  "description": "在 Python 代码中使用 WeChatFetcher",
+  "code": "from scripts.wechat_fetch import WeChatFetcher\n\n# 创建抓取器\nfetcher = WeChatFetcher(headless=True, timeout=60)\n\n# 抓取文章\narticle = fetcher.fetch('https://mp.weixin.qq.com/s/xxxxx')\n\n# 访问属性\nprint(f'标题: {article.title}')\nprint(f'公众号: {article.nickname}')\nprint(f'发布时间: {article.publish_time}')\nprint(f'内容长度: {len(article.content)}')\n\n# 输出不同格式\nmarkdown = article.to_markdown()\njson_str = article.to_json()\ntext = article.to_text()\n",
+  "output": {
+    "title": "string",
+    "nickname": "string",
+    "publish_time": "string",
+    "content": "string",
+    "images": [{"url": "string", "alt": "string"}]
+  }
+}
