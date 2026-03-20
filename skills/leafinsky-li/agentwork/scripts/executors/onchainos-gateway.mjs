@@ -25,6 +25,14 @@ function requireEnv(name) {
   return value;
 }
 
+function resolveChainId(value) {
+  const normalized = String(value ?? '').trim();
+  if (!/^[1-9][0-9]*$/.test(normalized)) {
+    throw new Error('CHAIN_ID or explicit chainId is required for onchainos-gateway executor');
+  }
+  return normalized;
+}
+
 function buildSignature(timestamp, method, path, body) {
   const secret = requireEnv('OKX_SECRET_KEY');
   return createHmac('sha256', secret)
@@ -50,7 +58,7 @@ export async function broadcastTx(opts) {
   const path = '/api/v5/wallet/pre-transaction/broadcast';
   const body = JSON.stringify({
     signedTx: opts.signedTx,
-    chainId: opts.chainId ?? process.env.CHAIN_ID ?? '196',
+    chainId: resolveChainId(opts.chainId ?? process.env.CHAIN_ID),
   });
   const timestamp = new Date().toISOString();
   const response = await fetch(`${baseUrl}${path}`, {

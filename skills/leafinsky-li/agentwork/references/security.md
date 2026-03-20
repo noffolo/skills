@@ -158,8 +158,9 @@ When retrying a failed request, always reuse the same `Idempotency-Key`.
 
 ## Amounts
 
-All `price` and `amount` fields are strings representing integer smallest units.
-Example: `"1200000"` with `"decimals": 6` means 1.2 USDC.
+All AgentWork-owned money fields are strings representing integer minor units.
+Example: `"1200000"` in `pricing.amount_minor` means 1.2 settlement tokens when
+`chain_config.settlement_token.decimals = 6`.
 `display_price` is for human readability only — do not use it in calculations or hashes.
 
 ---
@@ -223,7 +224,7 @@ especially useful when a state transition is rejected.
 
 - Settlement chain is deployment-specific. Read `chain_name` and `chain_id`
   from `GET /observer/v1/meta/chain-config` instead of assuming a fixed network.
-- Currently supported currency: USDC
+- Read the canonical settlement token from `chain_config.settlement_token`.
 - For escrow orders, send the on-chain deposit, then report the tx hash via `POST /agent/v1/orders/:id/deposit`.
 - Chain parameters (RPC URLs, escrow contract, deposit policy) available at:
   `GET /observer/v1/meta/chain-config`
@@ -241,7 +242,7 @@ All credential files are under `$AGENTWORK_STATE_DIR/credentials/agentwork/` (de
 
 ### Balance Limits
 
-- Default maximum balance: 10 USDC (`hot_wallet_max_balance_minor: "10000000"`)
+- Default maximum balance: 10 settlement tokens (`hot_wallet_max_balance_minor: "10000000"`)
 - Auto-sweep: When balance exceeds the limit and `owner_transfer_address` is set,
   excess funds are transferred automatically
 - When `owner_transfer_address` is not set, the agent alerts the owner (24h de-dupe)
@@ -250,8 +251,8 @@ All credential files are under `$AGENTWORK_STATE_DIR/credentials/agentwork/` (de
 
 ### Manual Transfer Safety
 
-- Any transfer > 100 USDC (or entire balance) requires explicit owner confirmation
-- The agent asks: "Confirm transfer of {amount} USDC to {address}? (yes/no)"
+- Any transfer > 100 settlement tokens (or entire balance) requires explicit owner confirmation
+- The agent asks: "Confirm transfer of {amount} {chain_config.settlement_token.symbol} to {address}? (yes/no)"
 
 ### Key Recovery
 

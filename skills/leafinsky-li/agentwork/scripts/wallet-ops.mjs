@@ -48,6 +48,59 @@ function requireArg(args, name) {
   return args[name];
 }
 
+function requireAmountMinorArg(args) {
+  const amountMinor = args['amount-minor'] ?? args.amount;
+  if (!amountMinor) {
+    error('MISSING_ARG', '--amount-minor is required');
+  }
+  return amountMinor;
+}
+
+function readOptionalString(value) {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function requirePositiveIntegerInput(rawValue, missingMessage, invalidMessage) {
+  const normalized = readOptionalString(rawValue);
+  if (!normalized) {
+    error('MISSING_EIP3009_CONFIG', missingMessage);
+  }
+  if (!/^[1-9][0-9]*$/.test(normalized)) {
+    error('INVALID_EIP3009_CONFIG', invalidMessage, { value: rawValue });
+  }
+  return Number.parseInt(normalized, 10);
+}
+
+function resolveEip3009Domain(args) {
+  const chainId = requirePositiveIntegerInput(
+    args['chain-id'] ?? process.env.CHAIN_ID,
+    '--chain-id or CHAIN_ID is required for transfer_with_authorization',
+    '--chain-id or CHAIN_ID must be a positive integer for transfer_with_authorization',
+  );
+  const tokenName = readOptionalString(args['token-name'] ?? process.env.CHAIN_TOKEN_EIP3009_NAME);
+  if (!tokenName) {
+    error(
+      'MISSING_EIP3009_CONFIG',
+      '--token-name or CHAIN_TOKEN_EIP3009_NAME is required for transfer_with_authorization',
+    );
+  }
+  const tokenVersion = readOptionalString(args['token-version'] ?? process.env.CHAIN_TOKEN_EIP3009_VERSION);
+  if (!tokenVersion) {
+    error(
+      'MISSING_EIP3009_CONFIG',
+      '--token-version or CHAIN_TOKEN_EIP3009_VERSION is required for transfer_with_authorization',
+    );
+  }
+
+  return {
+    chainId,
+    tokenName,
+    tokenVersion,
+  };
+}
+
 function resolveSignerName(args) {
   return args.signer ?? process.env.AGENTWORK_SIGNER ?? 'ethers-keystore';
 }
@@ -280,7 +333,7 @@ async function cmdTransfer(args) {
     rpc: requireArg(args, 'rpc'),
     token: requireArg(args, 'token'),
     to: requireArg(args, 'to'),
-    amount: requireArg(args, 'amount'),
+    amount: requireAmountMinorArg(args),
   }).catch((e) => {
     error('TX_FAILED', e.message);
   });
@@ -299,9 +352,7 @@ async function buildAuthorization(args, signerModule) {
   const validAfter = BigInt(args['valid-after'] ?? '0');
   const validBefore = BigInt(args['valid-before'] ?? Math.floor(Date.now() / 1000 + 300).toString());
   const authNonce = args['auth-nonce'] ?? `0x${randomUUID().replace(/-/g, '').padEnd(64, '0').slice(0, 64)}`;
-  const chainId = Number.parseInt(args['chain-id'] ?? process.env.CHAIN_ID ?? '196', 10);
-  const tokenName = args['token-name'] ?? process.env.CHAIN_TOKEN_EIP3009_NAME ?? 'Tether USD';
-  const tokenVersion = args['token-version'] ?? process.env.CHAIN_TOKEN_EIP3009_VERSION ?? '1';
+  const { chainId, tokenName, tokenVersion } = resolveEip3009Domain(args);
   const domain = {
     name: tokenName,
     version: tokenVersion,
@@ -321,7 +372,7 @@ async function buildAuthorization(args, signerModule) {
   const message = {
     from,
     to: requireArg(args, 'escrow'),
-    value: requireArg(args, 'amount'),
+    value: requireAmountMinorArg(args),
     validAfter,
     validBefore,
     nonce: authNonce,
@@ -385,7 +436,7 @@ async function cmdDeposit(args) {
       token: requireArg(args, 'token'),
       orderId: requireArg(args, 'order-id'),
       termsHash: requireArg(args, 'terms-hash'),
-      amount: requireArg(args, 'amount'),
+      amount: requireAmountMinorArg(args),
       seller: requireArg(args, 'seller'),
       jurors,
       threshold: Number.parseInt(requireArg(args, 'threshold'), 10),

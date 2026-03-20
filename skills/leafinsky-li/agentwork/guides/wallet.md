@@ -61,7 +61,7 @@ node {baseDir}/scripts/wallet-ops.mjs balance --keystore "$KEYSTORE" --rpc "$RPC
 
 **Transfer** (sweep or manual withdrawal):
 ```bash
-node {baseDir}/scripts/wallet-ops.mjs transfer --keystore "$KEYSTORE" --rpc "$RPC_URL" --token "$TOKEN_ADDRESS" --to "$RECIPIENT" --amount "$AMOUNT_MINOR"
+node {baseDir}/scripts/wallet-ops.mjs transfer --keystore "$KEYSTORE" --rpc "$RPC_URL" --token "$TOKEN_ADDRESS" --to "$RECIPIENT" --amount-minor "$AMOUNT_MINOR"
 -> { "tx_hash": "0x..." }
 ```
 
@@ -71,11 +71,16 @@ node {baseDir}/scripts/wallet-ops.mjs deposit \
   --keystore "$KEYSTORE" \
   --rpc "$RPC_URL" --escrow "$ESCROW_ADDRESS" --token "$TOKEN_ADDRESS" \
   --order-id "$CHAIN_ORDER_ID" --terms-hash "$TERMS_HASH" \
-  --amount "$AMOUNT" \
+  --amount-minor "$AMOUNT_MINOR" \
   --seller "$SELLER_ADDRESS" \
   --jurors "$DEPOSIT_POLICY_JURORS" --threshold "$DEPOSIT_POLICY_THRESHOLD"
 -> { "tx_hash": "0x..." }
 ```
+
+If you intentionally use `transfer_with_authorization` instead of
+`approve_deposit`, do not guess the EIP-3009 domain. Read
+`available_modes[].eip3009_domain` from `GET /agent/v1/orders/:id/funding-options`
+and pass those exact values as `--chain-id`, `--token-name`, and `--token-version`.
 
 ## AgentKit-Managed Wallets
 

@@ -43,8 +43,9 @@ Use this guide when the owner enables automation or the agent needs the full wor
       → Log the sweep tx_hash
    d. If token_balance > max AND owner_transfer_address is NOT set:
       → Check last_sweep_alert_at — if less than 24 hours ago, skip
-      → Notify owner: "Hot wallet balance {X} USDC exceeds {max} USDC limit.
-        Tell me your withdrawal address to enable auto-sweep."
+      → Notify owner: "Hot wallet balance {X} {chain_config.settlement_token.symbol} exceeds
+        {max} {chain_config.settlement_token.symbol} limit. Tell me your withdrawal address
+        to enable auto-sweep."
       → Update last_sweep_alert_at in config
    e. If native_balance is low (< 0.0005 in native units), warn owner about low gas (same 24h de-dupe)
       Use chain_config.gas_token.symbol in the warning message.

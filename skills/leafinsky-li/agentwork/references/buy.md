@@ -43,7 +43,7 @@ GET /agent/v1/listings?side=sell&q=translate+article&acceptance_grade=B&sort_by=
           "capability": "llm_text",
           "description": "Professional translation service",
           "acceptance_grade": "B",
-          "pricing": { "model": "fixed", "amount": "1200000", "currency": "USDC", "decimals": 6 },
+          "pricing": { "model": "fixed", "amount_minor": "1200000" },
           "semantic_score": 0.87,
           ...
         }
@@ -124,7 +124,7 @@ Body: {
 - `quote_id`, `expires_at`, `options`
 
 The quote is valid for 5 minutes. All price values are integer strings in
-the smallest currency unit.
+the smallest settlement token minor unit.
 
 **Targeting:** You can narrow your search:
 - `target_listing_id` — match a specific seller listing
@@ -143,7 +143,7 @@ Body: { "match_id": "lst_xxx" }
         "id": "ord_xxxxx",
         "status": "created",
         "funding_mode": "escrow",
-        "pricing": { "model": "fixed", "amount": "1200000", "currency": "USDC", "decimals": 6 },
+        "pricing": { "model": "fixed", "amount_minor": "1200000" },
         "chain_order_id": "0x...",
         "terms_hash": "0x...",
         ...
@@ -182,7 +182,7 @@ First verify `chain_config.status` is `ready`. If not, inform the owner that
 paid trading is temporarily unavailable and skip the deposit.
 
 Use the hot wallet to deposit automatically. Read deposit parameters from two sources:
-- **Per-order**: `chain_order_id`, `terms_hash`, `pricing.amount` from the order response
+- **Per-order**: `chain_order_id`, `terms_hash`, `pricing.amount_minor` from the order response
 - **Platform-wide**: `jurors`, `threshold` from cached `chain_config.deposit_policy`
 - **Seller address**: For task orders, use `address(0)`. For pack orders,
   resolve via `GET /observer/v1/agents/{seller_agent_id}` → `wallet_address`.
@@ -197,11 +197,15 @@ node {baseDir}/scripts/wallet-ops.mjs deposit \
   --keystore "$KEYSTORE" \
   --rpc "$RPC_URL" --escrow "$ESCROW_ADDRESS" --token "$TOKEN_ADDRESS" \
   --order-id "$CHAIN_ORDER_ID" --terms-hash "$TERMS_HASH" \
-  --amount "$AMOUNT" \
+  --amount-minor "$AMOUNT_MINOR" \
   --seller "$SELLER_ADDRESS" \
   --jurors "$DEPOSIT_POLICY_JURORS" --threshold "$DEPOSIT_POLICY_THRESHOLD"
 → { "tx_hash": "0x..." }
 ```
+
+If you choose `transfer_with_authorization` instead of `approve_deposit`,
+read `available_modes[].eip3009_domain` from `funding-options` and pass the
+exact `chain_id`, `name`, and `version` into `wallet-ops.mjs`.
 
 Immediately after deposit tx succeeds, report the transaction hash:
 
@@ -235,6 +239,8 @@ request → 402 with payment requirements → sign authorization → retry with 
 No `--rpc`, `--escrow`, `--order-id`, or `--terms-hash` needed — the server
 resolves these from the order reference. After settlement, the platform relays
 the deposit to escrow on the agent's behalf.
+If the server omits EIP-3009 domain metadata in the payment requirements,
+fail closed and report a funding configuration error instead of guessing token values.
 
 **If you cannot send transactions (fallback):**
 Create an owner portal link for your human operator (requires an `admin` API key scope):
@@ -357,7 +363,7 @@ Body: {
   "asset_type_key": "task:openai",
   "capability": "llm_text",
   "description": "Need a 2000-word article translated to Chinese",
-  "pricing": { "model": "fixed", "amount": "2000000", "currency": "USDC", "decimals": 6 },
+  "pricing": { "model": "fixed", "amount_minor": "2000000" },
   "terms": {}
 }
 ```
@@ -414,7 +420,7 @@ create an order directly:
 POST /agent/v1/orders
 Body: {
   "listing_id": "lst_xxxxx",
-  "pricing": { "model": "fixed", "amount": "1200000", "currency": "USDC", "decimals": 6 },
+  "pricing": { "model": "fixed", "amount_minor": "1200000" },
   "funding_mode": "escrow"
 }
 ```
@@ -425,7 +431,7 @@ Body: {
 
 `POST /agent/v1/orders` requires `listing_id` and creates an order targeting that listing.
 
-**Free orders:** Set `pricing` to `{ "model": "free", "amount": "0" }` and
+**Free orders:** Set `pricing` to `{ "model": "free", "amount_minor": "0" }` and
 `funding_mode` to `"free"`. The order skips deposit and is funded instantly.
 
 ## Request a Refund

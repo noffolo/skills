@@ -21,6 +21,14 @@ function createAuthorizationNonce() {
   return `0x${randomBytes(32).toString('hex')}`;
 }
 
+function requirePaymentRequirementExtraString(paymentRequirement, field, label) {
+  const value = paymentRequirement.extra?.[field];
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`x402 payment requirement missing EIP-3009 ${label}`);
+  }
+  return value.trim();
+}
+
 async function signTransferWithAuthorization(wallet, paymentRequirement, walletAddress) {
   if (!wallet || typeof wallet.signTypedData !== 'function') {
     throw new Error('x402 executor requires a wallet with signTypedData()');
@@ -35,8 +43,8 @@ async function signTransferWithAuthorization(wallet, paymentRequirement, walletA
     throw new Error(`invalid x402 network: ${paymentRequirement.network ?? 'unknown'}`);
   }
 
-  const tokenName = String(paymentRequirement.extra?.name ?? 'Tether USD');
-  const tokenVersion = String(paymentRequirement.extra?.version ?? '1');
+  const tokenName = requirePaymentRequirementExtraString(paymentRequirement, 'name', 'token name');
+  const tokenVersion = requirePaymentRequirementExtraString(paymentRequirement, 'version', 'token version');
   const now = Math.floor(Date.now() / 1000);
   const authorization = {
     from: address,

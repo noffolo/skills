@@ -254,7 +254,7 @@ function inferComplexity(order, prompt, explicitComplexity) {
   if (promptLen >= 6000) score += 2;
   else if (promptLen >= 1500) score += 1;
 
-  const amountRaw = getPath(order, "pricing.amount");
+  const amountRaw = getPath(order, "pricing.amount_minor");
   const amount = Number.parseInt(String(amountRaw ?? "0"), 10);
   if (Number.isFinite(amount) && amount > 0) {
     if (amount >= 8_000_000) score += 2;

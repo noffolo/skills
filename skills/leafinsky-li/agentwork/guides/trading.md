@@ -80,4 +80,5 @@ Conditional branches:
                      refund:  POST /orders/:id/request-refund
                      timeout: platform auto-confirms if no action (24h)
   [task: ...]     — only task assets; use scripts/execute-task.mjs; pack auto-delivers after funding
+  [seller opt-out] — before claim: POST /orders/:id/seller-decline; after claim: release-claim, then seller-decline if still refusing; otherwise refund/dispute
 ```
