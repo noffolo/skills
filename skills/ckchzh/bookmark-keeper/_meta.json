@@ -3,11 +3,16 @@
   "slug": "bookmark-keeper",
   "displayName": "Bookmark Keeper",
   "latest": {
-    "version": "2.3.5",
-    "publishedAt": 1773663425274,
-    "commit": "https://github.com/openclaw/skills/commit/219d0c873cbea1fd9e373324158cb9bd9e8e7168"
+    "version": "2.0.1",
+    "publishedAt": 1773830162950,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.3.5",
+      "publishedAt": 1773663425274,
+      "commit": "https://github.com/openclaw/skills/commit/219d0c873cbea1fd9e373324158cb9bd9e8e7168"
+    },
     {
       "version": "2.3.0",
       "publishedAt": 1773447048511,
