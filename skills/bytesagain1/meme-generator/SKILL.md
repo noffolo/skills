@@ -4,6 +4,8 @@ name: Meme Generator
 description: "Meme Generator. Use when you need meme generator capabilities. Triggers on: meme generator."
   表情包文案生成。梗图创作、热门模板、反应表情、图片配文、病毒传播。Meme text generator with trending templates. 表情包、梗图、搞笑。
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 ---
 # Meme Generator
 
