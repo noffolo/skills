@@ -1,20 +1,19 @@
-# 🎨 Showmeai
+# Showmeai
 
-Generate images with AI via Showmeai's OpenAI-compatible Images API.  
-通过 Showmeai 的 OpenAI 兼容图像 API，让你的 AI 助手学会画画。
+**[English](README.md) | [中文](README.zh-CN.md)**
 
-Supports **nano-banana** and **gpt-image** model series. Fast, flexible, works out of the box once configured.
+Generate images and videos with AI via Showmeai's API. Image generation uses OpenAI-compatible Images API. Video generation uses Seedance (Doubao) API. Fast, flexible, works out of the box once configured.
 
 ---
 
-## ✅ Requirements / 前置条件
+## Requirements
 
 - Python 3
 - A [Showmeai API Key](https://api.showmeai.art) (`Showmeai_API_KEY`)
 
 ---
 
-## ⚙️ Configuration / 配置
+## Configuration
 
 Set in `.env` or `~/.openclaw/openclaw.json`:
 - `Showmeai_API_KEY` — your Showmeai API key **(required)**
@@ -22,59 +21,122 @@ Set in `.env` or `~/.openclaw/openclaw.json`:
 
 ---
 
-## 💬 Example Prompts / 示例提示词
+## Example Prompts
 
-Once configured, just tell your AI assistant what you want:
+Once configured, just tell your AI assistant what you want.
 
-配置好后，直接用自然语言告诉 AI 你想要什么：
+### Image Generation - Basic
 
-### 🖼️ Basic Generation / 基础生图
+| Prompt |
+|---|
+| Draw a sunset over the ocean |
+| Generate a cyberpunk city at night |
+| Create a cute cartoon cat illustration |
 
-| English | 中文 |
-|---|---|
-| Draw a sunset over the ocean | 画一张海上日落的风景 |
-| Generate a cyberpunk city at night | 生成一张赛博朋克风格的城市夜景 |
-| Create a cute cartoon cat illustration | 画一只可爱的卡通猫咪插画 |
+### Image Generation - Aspect Ratio
 
-### 📐 With Aspect Ratio / 指定比例
+| Prompt |
+|---|
+| Generate a 16:9 wallpaper of a starry sky |
+| Draw a 2:3 portrait of a fantasy warrior |
+| Create a 1:1 square avatar of a fox in a suit |
 
-| English | 中文 |
-|---|---|
-| Generate a 16:9 wallpaper of a starry sky | 生成一张 16:9 的星空壁纸 |
-| Draw a 2:3 portrait of a fantasy warrior | 画一张 2:3 竖版奇幻战士肖像 |
-| Create a 1:1 square avatar of a fox in a suit | 画一个穿西装的狐狸头像，1:1 方形 |
+### Image Generation - Save to Local
 
-### 💾 Save to Local / 保存到本地
+| Prompt |
+|---|
+| Generate a forest scene and save it |
+| Draw 3 variations of a mountain landscape and save |
 
-| English | 中文 |
-|---|---|
-| Generate a forest scene and save it | 生成一张森林场景的图片，保存到本地 |
-| Draw 3 variations of a mountain landscape and save | 画 3 张山景图，保存到本地 |
+### Image Generation - High Resolution
 
-### 🔍 High Resolution / 高清生图
-
-| English | 中文 |
-|---|---|
-| Generate a high-res 4K illustration of a dragon | 用高清 4K 模型画一条龙的插画 |
-| Create a 2K detailed city map illustration | 生成一张 2K 高清城市地图插画 |
+| Prompt |
+|---|
+| Generate a high-res 4K illustration of a dragon |
+| Create a 2K detailed city map illustration |
 
 ---
 
-## 🤖 Supported Models / 支持的模型
+## Video Generation
+
+### Text-to-Video
+
+| Prompt |
+|---|
+| Generate a video of a detective entering a dim room |
+| Create a video of a cat playing with a ball of yarn |
+| Make a 10 second video of a sunset timelapse |
+
+### Image-to-Video
+
+| Prompt |
+|---|
+| Animate this image with the girl opening her eyes |
+| Create a video from this photo, camera slowly pulling out |
+
+### Video Parameters
+
+| Prompt |
+|---|
+| Generate a 16:9 widescreen video |
+| Create a 5 second video at 720p resolution |
+| Generate video without audio to save cost |
+
+---
+
+## Image-to-3D Conversion
+
+Convert 2D images to 3D models (PNG with transparent background recommended).
+
+### Basic Conversion
+
+| Prompt |
+|---|
+| Convert this character image to 3D model |
+| Create a 3D model from this sprite with texture |
+| Generate high-quality 3D model with more detail |
+
+### 3D Parameters
+
+| Prompt |
+|---|
+| Convert to GLB format with texture |
+| Generate with higher quality (more steps) |
+| Create STL file for 3D printing |
+
+---
+
+## Supported Models
+
+### Image Models
 
 | Model | Quality | Output |
 |---|---|---|
 | `nano-banana` | Standard | URL |
-| `nano-banana-pro` ⭐ | Better — **Default** | URL |
+| `nano-banana-pro` | Better — **Default** | URL |
 | `nano-banana-2` | Gen 2 | URL |
 | `nano-banana-pro-2k` | High-res 2K | URL |
 | `nano-banana-pro-4k` | Ultra 4K | URL |
 | `gpt-image-1` | High quality | Saved file |
 | `gpt-image-1.5` | Higher quality | Saved file |
 
+### Video Models
+
+| Model | Features |
+|---|---|
+| `doubao-seedance-1-5-pro-251215` | **Default**. Text-to-video, image-to-video, first-and-last-frame. Supports audio generation, draft mode. 24 FPS, 5s/10s duration, 480P/720P resolution. |
+
+### 3D Models
+
+| Model | Features |
+|---|---|
+| `Hunyuan3D-2` | **Default**. Fast conversion (seconds). Supports glb/stl output. |
+| `Hi3DGen` | Image-to-3D conversion. Supports glb/stl output. |
+| `Step1X-3D` | Image-to-3D conversion. Supports glb/stl output. |
+
 ---
 
-## 📁 Save Behavior / 图片保存说明
+## Save Behavior
 
 | Flag | Behavior |
 |---|---|
@@ -85,7 +147,7 @@ Once configured, just tell your AI assistant what you want:
 
 ---
 
-## 🔗 Links
+## Links
 
 - Showmeai API: [api.showmeai.art](https://api.showmeai.art)
 - OpenClaw: [openclaw.ai](https://openclaw.ai)
