@@ -1,8 +1,10 @@
 ---
 name: "Fridge"
-description: "Manage Fridge data right from your terminal. Built for people who want organize your household without complex setup."
+description: "Track fridge and pantry inventory with expiry reminders and grocery lists. Use when logging groceries, checking expiry dates, or building shopping lists."
 version: "2.0.0"
 author: "BytesAgain"
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 tags: ["maintenance", "inventory", "household", "fridge", "home"]
 ---
 
