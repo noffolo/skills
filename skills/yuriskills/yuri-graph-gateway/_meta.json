@@ -3,11 +3,16 @@
   "slug": "yuri-graph-gateway",
   "displayName": "A transparent proxy for the Facebook Graph API. Replace the domain, pass your Yuri API token, and call any Facebook endpoint — no Facebook access token needed on the client side.",
   "latest": {
-    "version": "1.0.9",
-    "publishedAt": 1773987533733,
-    "commit": "https://github.com/openclaw/skills/commit/98d3b73e50e256b966dbc77efcb3e21a9ad348e8"
+    "version": "1.0.10",
+    "publishedAt": 1773987754245,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.9",
+      "publishedAt": 1773987533733,
+      "commit": "https://github.com/openclaw/skills/commit/98d3b73e50e256b966dbc77efcb3e21a9ad348e8"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1773812990586,
