@@ -1,6 +1,6 @@
 {
   "name": "aippt",
-  "version": "2.1.0",
+  "version": "3.0.5",
   "description": "通过 AiPPT.cn 开放平台 API 智能生成专业 PPT 演示文稿，支持标题生成、文件导入、URL导入、模板选择、自动导出下载",
   "author": "小龙 🐉",
   "triggers": [
@@ -33,6 +33,7 @@
   "capabilities": [
     "智能生成PPT (输入标题)",
     "文件导入生成 (Word/PDF/Markdown/TXT/PPTX/XMind)",
+    "参考文档生成 (以文件为素材，围绕指定主题重新生成)",
     "网页URL导入生成",
     "15000+模板选择",
     "导出PPTX/PDF/Word/PNG",
