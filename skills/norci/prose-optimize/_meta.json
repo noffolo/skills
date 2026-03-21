@@ -1,0 +1,11 @@
+{
+  "owner": "norci",
+  "slug": "prose-optimize",
+  "displayName": "Prose Optimize",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1773897165866,
+    "commit": null
+  },
+  "history": []
+}
