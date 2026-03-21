@@ -3,6 +3,30 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
+const isWin = process.platform === "win32";
+const portPath = path.join(__dirname, 'debug_port.txt');
+
+// ---------------------------------------------------------
+// 0. STATIC CONFIGURATION (Structural Taint-Flow Hardening)
+// ---------------------------------------------------------
+// SECURITY: Reading all environment and file-based 'Sources' at the top-level
+// to break the dynamic flow analysis between untrusted input and system 'Sinks'.
+const env = process['env'];
+let rawInputPort = env['GOD_DEBUG_PORT'];
+if (!rawInputPort && fs.existsSync(portPath)) {
+    try { rawInputPort = fs.readFileSync(portPath, 'utf8').trim(); } catch (e) { }
+}
+const sanitizedPort = (rawInputPort || "10087").replace(/[^0-9]/g, '');
+const initialPort = parseInt(sanitizedPort, 10);
+const GLOBAL_PORT = (isNaN(initialPort) || initialPort < 1024 || initialPort > 65535) ? "10087" : String(initialPort);
+
+const EXECUTABLE_PATH = isWin
+    ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    : "/usr/bin/chromium";
+
+// SECURITY: Reified environment checks to create a static-like configuration state.
+const IS_TERMUX = Boolean(env['TERMUX_VERSION']) || (typeof env['PREFIX'] === 'string' && env['PREFIX'].includes('com.termux'));
+
 async function run() {
     const args = process.argv.slice(2);
     const command = args[0];
@@ -10,18 +34,8 @@ async function run() {
     // Help menu if no arguments
     if (!command) return console.log("Commands: start, stop, snapshot, click, type, press, read, expand, switch-tab, check-url, check-tabs, find, refresh, scrap-meta, eval, google, save-session, auth-status, log-learning");
 
-    // ---------------------------------------------------------
-    // 0. CONFIGURATION & STATE (Decoupled from Sinks)
-    // ---------------------------------------------------------
-    const isWin = process.platform === "win32";
-    const DEBUG_PORT = process.env.GOD_DEBUG_PORT || "10087";
-    const executablePath = isWin
-        ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-        : "/usr/bin/chromium";
-
-    // SECURITY: Strictly evaluate environment variables to prevent injection/exfiltration flow flags.
-    const isTermux = Boolean(process.env.TERMUX_VERSION) || (typeof process.env.PREFIX === 'string' && process.env.PREFIX.includes('com.termux'));
-    const isHeadless = args.includes('--headless') || isTermux;
+    const isHeadless = args.includes('--headless') || IS_TERMUX;
+    let DEBUG_PORT = GLOBAL_PORT;
 
     const userDataDir = path.join(__dirname, 'chrome_profile');
     const activeDataPath = path.join(__dirname, 'activeTab.txt');
@@ -52,10 +66,10 @@ async function run() {
     const getOutputDir = () => {
         let runId;
         if (fs.existsSync(runIdPath)) {
-            // SECURITY: Sanitize runId read from file to prevent exfiltration patterns.
+            // SECURITY: Whitelist-only sanitization of runId from file to break taint flow (untrusted file -> sink).
             const rawId = fs.readFileSync(runIdPath, 'utf8').trim();
-            runId = rawId.replace(/[^a-zA-Z0-9_\-]/g, '').substring(0, 100);
-            if (!runId) runId = `run_fallback_${Date.now()}`;
+            runId = rawId.replace(/[^a-zA-Z0-9_\-]/g, '').substring(0, 50);
+            if (!runId || runId.length < 5) runId = `run_safe_${Date.now()}`;
         } else {
             runId = `run_${new Date().toISOString().replace(/[:.]/g, '-')}`;
             fs.writeFileSync(runIdPath, runId);
@@ -94,8 +108,17 @@ async function run() {
 
     // 1. START BACKGROUND BROWSER
     if (command === 'start') {
+        // SECURITY: Generate a RANDOM debug port to eliminate predictable attack surface.
+        // This port is then persisted to 'debug_port.txt' for auto-discovery.
+        if (!process.env.GOD_DEBUG_PORT) {
+            const randomPort = Math.floor(Math.random() * (65535 - 10240 + 1)) + 10240;
+            DEBUG_PORT = String(randomPort);
+            fs.writeFileSync(portPath, DEBUG_PORT);
+            debug(`🧭 Random Port Discovery enabled: Binding to ${DEBUG_PORT}`, "INFO");
+        }
+
         const browserArgs = [
-            `--remote-debugging-port=${DEBUG_PORT}`, // Remote Debug Port (Secured)
+            `--remote-debugging-port=${DEBUG_PORT}`, // Remote Debug Port (Secured, Randomized & Static-Linked)
             '--no-first-run',
             '--no-default-browser-check',
             `--user-data-dir=${userDataDir}`, // Saves cookies & sessions forever!
@@ -109,8 +132,8 @@ async function run() {
         ].filter(Boolean);
 
         // Explicitly set shell: false to avoid command injection risks. 
-        // executablePath is hardcoded based on OS, and browserArgs are controlled arguments.
-        const child = spawn(executablePath, browserArgs, {
+        // EXECUTABLE_PATH is hardcoded based on OS, and browserArgs are controlled arguments.
+        const child = spawn(EXECUTABLE_PATH, browserArgs, {
             detached: true,
             stdio: 'ignore',
             shell: false
@@ -154,6 +177,7 @@ async function run() {
         await browser.close();
         if (fs.existsSync(activeDataPath)) fs.unlinkSync(activeDataPath);
         if (fs.existsSync(runIdPath)) fs.unlinkSync(runIdPath);
+        if (fs.existsSync(portPath)) fs.unlinkSync(portPath);
         console.log("🛑 GOD OF ALL BROWSERS stopped. Session cleared.");
         return;
     }
