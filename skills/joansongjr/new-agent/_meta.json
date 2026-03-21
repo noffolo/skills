@@ -1,0 +1,11 @@
+{
+  "owner": "joansongjr",
+  "slug": "new-agent",
+  "displayName": "New Agent",
+  "latest": {
+    "version": "1.1.0",
+    "publishedAt": 1773938563894,
+    "commit": null
+  },
+  "history": []
+}
