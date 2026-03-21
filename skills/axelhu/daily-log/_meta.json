@@ -3,9 +3,15 @@
   "slug": "daily-log",
   "displayName": "Daily Log",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773652171478,
-    "commit": "https://github.com/openclaw/skills/commit/2176c7dd521f22b4f4296d175e3a01f26f2c927d"
+    "version": "1.1.0",
+    "publishedAt": 1773795096301,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773652171478,
+      "commit": "https://github.com/openclaw/skills/commit/2176c7dd521f22b4f4296d175e3a01f26f2c927d"
+    }
+  ]
 }
