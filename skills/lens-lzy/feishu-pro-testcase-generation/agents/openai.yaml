@@ -1,0 +1,4 @@
+interface:
+  display_name: "飞书测试用例助手"
+  short_description: "读取飞书需求链接并生成团队评审通过风格测试用例文档"
+  default_prompt: "Use $feishu-testcase-writer to read a Feishu requirement doc link, generate review-ready QA test cases, and save them into a new Feishu cloud doc."
