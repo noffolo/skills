@@ -1,6 +1,7 @@
 ---
 name: auto-apply
-description: Search jobs, track applications, and prepare to apply with Mokaru. Does not submit applications directly - the user or their agent handles the actual application.
+version: 2.0.0
+description: Automate your job search and application process with Mokaru. Search thousands of jobs, tailor your resume to each role, track applications through your pipeline, and get AI-powered career coaching. Supports remote and on-site roles across all industries. Use when users ask about job hunting, career search, applying for jobs, resume optimization, interview prep, or application tracking.
 requires:
   env:
     - MOKARU_API_KEY
@@ -230,7 +231,76 @@ curl -s -G https://api.mokaru.ai/v1/tracker/applications \
 
 ---
 
-### 4. Update Application
+### 4. Get Application Detail
+
+**When to use:** The user wants to see the full detail of a specific application, including its timeline, interviews, and notes. They might say "show me the details of my Acme application" or "what's the status of that job?"
+
+**Method:** `GET /v1/tracker/applications/{id}`
+
+**Required scope:** `tracker:read`
+
+**Rate limit:** 60 requests per minute
+
+**Curl example:**
+
+```bash
+curl -s https://api.mokaru.ai/v1/tracker/applications/clx_abc123 \
+  -H "Authorization: Bearer $MOKARU_API_KEY" | jq .
+```
+
+**Response shape:**
+
+```json
+{
+  "data": {
+    "id": "clx_abc123",
+    "jobTitle": "Frontend Engineer",
+    "company": "Acme Corp",
+    "location": "New York, NY",
+    "jobUrl": "https://acme.com/careers/frontend",
+    "jobDescription": "We are looking for...",
+    "status": "interviewed",
+    "source": "JobWebsite",
+    "priority": 5,
+    "notes": "Great conversation with hiring manager",
+    "salaryMin": 120000,
+    "salaryMax": 160000,
+    "cvId": "clx_cv456",
+    "appliedDate": "2026-03-10T...",
+    "createdAt": "2026-03-10T...",
+    "updatedAt": "2026-03-15T...",
+    "timeline": [
+      {
+        "id": "tl1",
+        "status": "interviewed",
+        "description": "status_changed",
+        "createdAt": "2026-03-15T..."
+      }
+    ],
+    "interviews": [
+      {
+        "id": "int1",
+        "round": 1,
+        "type": "video",
+        "date": "2026-03-14T10:00:00.000Z",
+        "notes": "Technical interview",
+        "contact": {
+          "id": "ct1",
+          "firstName": "Sarah",
+          "lastName": "Jones",
+          "jobTitle": "Engineering Manager"
+        }
+      }
+    ]
+  }
+}
+```
+
+**How to use:** Present the application details clearly. Highlight the current status, upcoming interviews (with dates and contacts), and any notes. If the user has interviews coming up, suggest they prepare.
+
+---
+
+### 5. Update Application
 
 **When to use:** The user wants to change the status, priority, notes, or details of a tracked application. They might say "mark that application as interviewed" or "set priority to high."
 
@@ -286,7 +356,7 @@ Status changes are automatically recorded in the application's timeline.
 
 ---
 
-### 5. Get Profile
+### 6. Get Profile
 
 **When to use:** The user wants to see their career profile, or you need context about their background to tailor a job search. For example, "what skills do I have on file?" or before searching, to understand their experience level.
 
@@ -361,6 +431,255 @@ curl -s https://api.mokaru.ai/v1/profile \
 
 ---
 
+### 7. List Resumes
+
+**When to use:** The user wants to see their resumes, or you need to know which resume to export or update. They might say "show my resumes" or "which CVs do I have?"
+
+**Method:** `GET /v1/resume`
+
+**Required scope:** `resume:read`
+
+**Rate limit:** 60 requests per minute
+
+**Query parameters:**
+
+| Param    | Type   | Required | Description                           |
+|----------|--------|----------|---------------------------------------|
+| `limit`  | number | No       | Results per page, default 25, max 100 |
+| `offset` | number | No       | Number of results to skip             |
+
+**Curl example:**
+
+```bash
+curl -s https://api.mokaru.ai/v1/resume \
+  -H "Authorization: Bearer $MOKARU_API_KEY" | jq .
+```
+
+**Response shape:**
+
+```json
+{
+  "data": [
+    {
+      "id": "clx...",
+      "name": "Software Engineer Resume",
+      "template": "classic",
+      "isDefault": true,
+      "createdAt": "2026-01-15T...",
+      "updatedAt": "2026-03-20T..."
+    }
+  ],
+  "total": 3,
+  "hasMore": false,
+  "limit": 25,
+  "offset": 0
+}
+```
+
+---
+
+### 8. Get Resume Detail
+
+**When to use:** The user wants to see the full content of a specific resume, or you need the data to provide career advice. They might say "show me my default resume" or "what's on my Software Engineer CV?"
+
+**Method:** `GET /v1/resume/{id}`
+
+**Required scope:** `resume:read`
+
+**Rate limit:** 30 requests per minute
+
+**Curl example:**
+
+```bash
+curl -s https://api.mokaru.ai/v1/resume/clx_abc123 \
+  -H "Authorization: Bearer $MOKARU_API_KEY" | jq .
+```
+
+**Response shape:**
+
+```json
+{
+  "data": {
+    "id": "clx...",
+    "name": "Software Engineer Resume",
+    "template": "classic",
+    "isDefault": true,
+    "cvData": {
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane@example.com",
+      "jobTitle": "Software Engineer",
+      "experiences": [...],
+      "education": [...],
+      "skills": [...]
+    },
+    "designSettings": { ... },
+    "optionalFields": { ... },
+    "sectionOrder": ["personal", "experience", "education", "skills"],
+    "createdAt": "2026-01-15T...",
+    "updatedAt": "2026-03-20T..."
+  }
+}
+```
+
+The `cvData` field contains the full resume content: personal info, work experiences, education, skills, languages, certificates, projects, and more.
+
+---
+
+### 9. Create Resume
+
+**When to use:** The user wants to create a new resume. They might say "create a new resume for backend roles" or "make a copy of my CV with a different name."
+
+**Method:** `POST /v1/resume`
+
+**Required scope:** `resume:write`
+
+**Rate limit:** 10 requests per minute
+
+**Request body (JSON):**
+
+| Field            | Type    | Required | Description                              |
+|------------------|---------|----------|------------------------------------------|
+| `name`           | string  | Yes      | Resume name (max 200 chars)              |
+| `template`       | string  | No       | Template ID (default: "classic")         |
+| `isDefault`      | boolean | No       | Set as default resume                    |
+| `cvData`         | object  | No       | Resume content (experiences, skills, etc)|
+| `designSettings` | object  | No       | Visual styling (colors, fonts, spacing)  |
+| `optionalFields` | object  | No       | Show/hide optional fields                |
+| `sectionOrder`   | array   | No       | Order of resume sections                 |
+
+**Curl example:**
+
+```bash
+curl -s -X POST https://api.mokaru.ai/v1/resume \
+  -H "Authorization: Bearer $MOKARU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Backend Engineer Resume",
+    "template": "classic",
+    "isDefault": false
+  }' | jq .
+```
+
+**Response shape:**
+
+```json
+{
+  "success": true,
+  "id": "clx..."
+}
+```
+
+---
+
+### 10. Update Resume
+
+**When to use:** The user wants to change their resume name, template, content, or settings. They might say "rename my resume" or "update my skills on the default CV."
+
+**Method:** `PATCH /v1/resume/{id}`
+
+**Required scope:** `resume:write`
+
+**Rate limit:** 20 requests per minute
+
+**Request body (JSON) - all fields optional, at least one required:**
+
+| Field            | Type    | Description                              |
+|------------------|---------|------------------------------------------|
+| `name`           | string  | Resume name (max 200 chars)              |
+| `template`       | string  | Template ID                              |
+| `isDefault`      | boolean | Set as default resume                    |
+| `cvData`         | object  | Resume content                           |
+| `designSettings` | object  | Visual styling                           |
+| `optionalFields` | object  | Show/hide optional fields                |
+| `sectionOrder`   | array   | Order of resume sections                 |
+
+**Curl example:**
+
+```bash
+curl -s -X PATCH https://api.mokaru.ai/v1/resume/clx_abc123 \
+  -H "Authorization: Bearer $MOKARU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Resume",
+    "isDefault": true
+  }' | jq .
+```
+
+**Response shape:**
+
+```json
+{
+  "success": true,
+  "id": "clx..."
+}
+```
+
+---
+
+### 11. Delete Resume
+
+**When to use:** The user wants to remove a resume. They might say "delete that old resume" or "remove my Backend CV."
+
+**Method:** `DELETE /v1/resume/{id}`
+
+**Required scope:** `resume:write`
+
+**Rate limit:** 10 requests per minute
+
+**Curl example:**
+
+```bash
+curl -s -X DELETE https://api.mokaru.ai/v1/resume/clx_abc123 \
+  -H "Authorization: Bearer $MOKARU_API_KEY" | jq .
+```
+
+**Response shape:**
+
+```json
+{
+  "success": true
+}
+```
+
+If the deleted resume was the default, another resume is automatically promoted. Applications linked to this resume are unlinked (not deleted).
+
+---
+
+### 12. Export Resume as PDF
+
+**When to use:** The user wants to download their resume as a PDF. They might say "export my resume" or "give me a PDF of my CV."
+
+**Method:** `POST /v1/resume/{id}/export/pdf`
+
+**Required scope:** `resume:export`
+
+**Rate limit:** 5 requests per minute
+
+**Request body (JSON, optional):**
+
+| Field    | Type   | Required | Description                   |
+|----------|--------|----------|-------------------------------|
+| `locale` | string | No       | Language for date formatting (default: "en") |
+
+**Curl example:**
+
+```bash
+curl -s -X POST https://api.mokaru.ai/v1/resume/clx_abc123/export/pdf \
+  -H "Authorization: Bearer $MOKARU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{}' \
+  -o resume.pdf
+```
+
+**Response:** Binary PDF file with `Content-Type: application/pdf`. Save it to disk or send it to the user.
+
+**Important:** This endpoint returns a binary file, not JSON. The PDF is rendered server-side with the user's chosen template and design settings.
+
+**Auto-prep check:** If the resume is currently being tailored by auto-prep (status 409, code `RESUME_PROCESSING`), wait 5-10 seconds and retry. Do not export a resume that is still being processed.
+
+---
+
 ## Workflows
 
 ### Finding, saving, and preparing for jobs
@@ -377,6 +696,15 @@ curl -s https://api.mokaru.ai/v1/profile \
 2. Summarize the pipeline: how many in each status, which are highest priority.
 3. If the user wants to update one, call `PATCH /v1/tracker/applications/{id}`.
 
+### Managing resumes
+
+1. Call `GET /v1/resume` to see all resumes and find the right one.
+2. Call `GET /v1/resume/{id}` to read the full content of a resume.
+3. To create a new resume, call `POST /v1/resume` with a name and optional content.
+4. To update resume content (add skills, experiences, etc.), call `PATCH /v1/resume/{id}` with the fields to change.
+5. To export as PDF, call `POST /v1/resume/{id}/export/pdf` and save the binary response to a file.
+6. To delete, call `DELETE /v1/resume/{id}`. Linked applications are unlinked, not deleted.
+
 ---
 
 ## Error Handling
@@ -387,6 +715,7 @@ curl -s https://api.mokaru.ai/v1/profile \
 | 401    | Invalid or missing token | Tell the user their API key is invalid or expired.                |
 | 403    | Insufficient permissions | The API key does not have the required scope for this endpoint.   |
 | 404    | Not found                | The application or profile does not exist.                        |
+| 409    | Processing               | Resume is being tailored by auto-prep. Wait and retry.            |
 | 429    | Rate limited             | Wait before retrying. Do not hammer the endpoint.                 |
 | 500    | Server error             | Retry once. If it persists, tell the user something went wrong.   |
 

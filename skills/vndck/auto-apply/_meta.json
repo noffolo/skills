@@ -3,9 +3,15 @@
   "slug": "auto-apply",
   "displayName": "Mokaru Job Search",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773599135497,
-    "commit": "https://github.com/openclaw/skills/commit/ddf5bc1c70845e636958a5b45d79fe008f424b21"
+    "version": "1.0.5",
+    "publishedAt": 1774044626730,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773599135497,
+      "commit": "https://github.com/openclaw/skills/commit/ddf5bc1c70845e636958a5b45d79fe008f424b21"
+    }
+  ]
 }

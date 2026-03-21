@@ -1,13 +1,14 @@
-# Mokaru Job Search
+# Auto-Apply - AI Job Search & Application Automation
 
-Search for jobs, track applications through your pipeline, and access your career profile - all from your AI agent. Does not submit applications directly - the user visits the apply link to complete the application.
+Automate your entire job search and application process from your AI agent. Search thousands of jobs, tailor your resume to each role, track applications through your pipeline, and prepare everything so you only need to click apply.
 
 ## What it does
 
-- **Search jobs** - Find job listings by keywords, location, remote preference, and more
-- **Track applications** - Save jobs to your tracker, update status as you progress, add notes and priority
-- **Read your profile** - Access your skills, work experience, and education to personalize job searches
-- **Provide apply links** - Each job result includes a direct link to the application page
+- **Smart job search** - Find job listings by keywords, location, remote preference, employment type, and more across thousands of sources
+- **Resume tailoring** - Optimize your CV for each role based on the job description and your career profile using AI
+- **Application tracking** - Save jobs to your tracker, update status as you progress through your pipeline, add notes and priority
+- **Career profile** - Access your skills, work experience, and education to personalize job searches and recommendations
+- **Auto-apply preparation** - Everything gets prepared so you only need to visit the apply link and click submit
 
 ## Getting an API key
 
@@ -38,6 +39,17 @@ Apply here: https://stripe.com/careers/1234
 Updated status to "applied".
 ```
 
+## Use cases
+
+```
+> Tailor my resume for this job
+> Help me prepare for my job search
+> What jobs match my skills?
+> Find me remote React jobs in Europe
+> Save this job and optimize my CV for it
+> Show my application pipeline
+```
+
 ## Scopes reference
 
 | Scope           | Endpoints                              |
@@ -46,6 +58,10 @@ Updated status to "applied".
 | `tracker:read`  | List tracked applications              |
 | `tracker:write` | Create and update tracked applications |
 | `profile:read`  | Read career profile                    |
+
+## Keywords
+
+job search, auto apply, resume builder, resume tailor, CV optimization, application tracker, career coaching, job hunting, remote jobs, hiring, interview prep, job board, career management, AI recruiter, job matching
 
 ## Learn more
 
