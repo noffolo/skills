@@ -1,11 +1,17 @@
 {
   "owner": "uoryon",
   "slug": "golgent-lifestyle-discovery",
-  "displayName": "Golgent Lifestyle Discovery",
+  "displayName": "golgent-lifestyle-discovery",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773746513273,
-    "commit": "https://github.com/openclaw/skills/commit/12e3b2da1059777cb27b876c37e5d778cd21a0c9"
+    "version": "1.0.2",
+    "publishedAt": 1773831599489,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773746513273,
+      "commit": "https://github.com/openclaw/skills/commit/12e3b2da1059777cb27b876c37e5d778cd21a0c9"
+    }
+  ]
 }
