@@ -1,0 +1,11 @@
+{
+  "owner": "zaneniu",
+  "slug": "uos-packager",
+  "displayName": "UOS/deepin 应用打包工具",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773926345329,
+    "commit": null
+  },
+  "history": []
+}
