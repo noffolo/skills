@@ -1,0 +1,11 @@
+{
+  "owner": "hongjiahao371-pixel",
+  "slug": "ollama-ocr",
+  "displayName": "Ollama OCR",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773921270223,
+    "commit": null
+  },
+  "history": []
+}
