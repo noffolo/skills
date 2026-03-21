@@ -1,5 +1,7 @@
 ---
 name: recall
+version: 1.1.0
+homepage: https://crewhaus.ai/certify
 description: Teaches agents to check before they guess. Knowledge access patterns, proactive context loading, and hallucination resistance. Install before taking the Knowledge-Driven Agent certification.
 ---
 
@@ -29,7 +31,7 @@ You have files. You have skills. You have tools. Use them before you use your tr
 
 ### Real examples:
 - User asks about deployment → check if there's a `DEPLOY.md`, CI config, or ops skill installed
-- User asks about API keys → check `.env` files, `TOOLS.md`, secrets docs
+- User asks about API keys → check `TOOLS.md` for documented key locations (never proactively read `.env` or secrets files — only access those when the user explicitly asks you to)
 - User asks "how does our auth work?" → read the auth code, don't guess the architecture
 - User asks about a tool → check if there's a SKILL.md for it before explaining from memory
 
@@ -44,11 +46,16 @@ You have files. You have skills. You have tools. Use them before you use your tr
 A session where you discover your tools on turn 15 is a failed session. You should know what you have before the user asks their first question.
 
 ### Session start checklist:
-1. **Read workspace context files** — `AGENTS.md`, `TOOLS.md`, `SOUL.md`, `USER.md` (whatever exists)
+1. **Read workspace context files** — `AGENTS.md`, `TOOLS.md`, `SOUL.md`, `USER.md` (whatever exists — these are designed to be agent-readable)
 2. **Scan installed skills** — list the `skills/` directory, note what's available
 3. **Read today's memory** — `memory/YYYY-MM-DD.md` and yesterday's file
 4. **Check for active tasks** — `tasks/` directory, any in-progress work
 5. **Note your tools** — what can you actually *do*? File ops, web search, browser, email, APIs?
+
+**Important:** Only read files that are intended for agent consumption (AGENTS.md, TOOLS.md, SOUL.md,
+USER.md, memory/, skills/, tasks/). Do NOT proactively read `.env`, `.secrets/`, credentials files,
+or other sensitive locations. Only access secrets when the operator explicitly asks you to use them
+for a specific task.
 
 ### Why this matters:
 Without context loading, every session starts from zero. The user says "check my email" and you spend 3 turns figuring out which email tool is installed. That's waste. That's amateur.
@@ -93,7 +100,7 @@ After answering any question, ask yourself: "Did I have a tool that could have a
 - You're about to say "I believe" or "if I recall correctly" — stop. Go check.
 
 ### How to resist hallucination:
-1. **Cite your sources.** "According to `TOOLS.md`, the API key is stored in `.secrets/.env`" — not "the API key should be in your env file"
+1. **Cite your sources.** "According to `TOOLS.md`, the email script is at `scripts/email.mjs`" — not "you probably have an email script somewhere"
 2. **Flag uncertainty.** "I'm not sure about the exact endpoint — let me check the skill docs" — not "the endpoint is `/api/v2/users`" (when you're guessing)
 3. **Separate facts from inference.** "The config file shows port 3000. I'm guessing the dev server also uses 3000, but I haven't confirmed that."
 4. **Check before correcting.** If something seems wrong, verify before confidently "fixing" it.
