@@ -53,6 +53,31 @@
 ### --consecutive-limit [--date YYYYMMDD] [--top N]
 连板股（昨日连板今日表现），数据源：东方财富。
 
+### --market-news [--news-limit N] [--news-offset N]
+市场新闻（DangInvest），数据源：DangInvest 开放接口。
+
+接口：`https://dang-invest.com/api/market/news?limit=N&offset=M`
+
+输出：
+- 未加 `--json`：打印前若干条（最多 20 条）摘要，避免输出过长
+- 加 `--json`：输出 `{"meta": {...}, "data": [...]}`，其中 `data` 内包含 `id/source/published_at/title/content/url` 等字段
+
+---
+
+### --boards-summary [--boards-mode industry] [--boards-limit N] [--boards-sort sortKey]
+行业板块概览（DangInvest），接口：
+`https://dang-invest.com/api/market/boards/summary?mode=industry&limit=N&sort=sortKey`
+
+未加 `--json`：打印前若干条（最多 20 条）聚合摘要（`groupLabel / changePct / count / totalMarketCapYuan / totalTurnoverYuan`）  
+加 `--json`：输出 `{"meta": {...}, "data": [...]}`（`data` 为 `items[]`）
+
+### --boards-detail --boards-group-key KEY [--boards-mode industry] [--boards-sort sortKey] [--boards-items-limit N] [--boards-items-offset M]
+行业板块成分明细（DangInvest），接口：
+`https://dang-invest.com/api/market/boards/detail?mode=industry&groupKey=KEY&sort=sortKey&items_limit=N&items_offset=M`
+
+未加 `--json`：打印板块汇总 + 前若干条成分（最多 20 条）  
+加 `--json`：输出 `{"meta": {...}, "data": {...}}`（`data` 包含 `summary/items/itemsMeta`）
+
 ---
 
 ## fetch_history.py 参数详解
