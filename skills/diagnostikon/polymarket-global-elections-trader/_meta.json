@@ -3,9 +3,15 @@
   "slug": "polymarket-global-elections-trader",
   "displayName": "Global Elections & Democracy Trader",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773568641385,
-    "commit": "https://github.com/openclaw/skills/commit/d332dd5296456c1d4c6e8f536c482c09870dd505"
+    "version": "1.0.1",
+    "publishedAt": 1773859794001,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773568641385,
+      "commit": "https://github.com/openclaw/skills/commit/d332dd5296456c1d4c6e8f536c482c09870dd505"
+    }
+  ]
 }
