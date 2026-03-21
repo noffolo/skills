@@ -1,11 +1,17 @@
 {
   "owner": "jjj09090",
   "slug": "clawscan-vigil",
-  "displayName": "ClawScan Vigil",
+  "displayName": "Clawscan Vigil",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1773764585668,
-    "commit": "https://github.com/openclaw/skills/commit/06e43186a0b0fff10ec59a620c0b15c637fcf5bd"
+    "version": "0.2.0",
+    "publishedAt": 1773895619250,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1773764585668,
+      "commit": "https://github.com/openclaw/skills/commit/06e43186a0b0fff10ec59a620c0b15c637fcf5bd"
+    }
+  ]
 }
