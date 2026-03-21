@@ -3,9 +3,15 @@
   "slug": "merge",
   "displayName": "Merge",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773663922264,
-    "commit": "https://github.com/openclaw/skills/commit/7f01a1cb93aa43f84489aa354032bc729ca25fa3"
+    "version": "3.0.1",
+    "publishedAt": 1773914036087,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773663922264,
+      "commit": "https://github.com/openclaw/skills/commit/7f01a1cb93aa43f84489aa354032bc729ca25fa3"
+    }
+  ]
 }

@@ -1,89 +1,96 @@
 ---
 name: merge
-version: "2.0.0"
+version: "3.0.1"
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 license: MIT-0
-tags: [merge, tool, utility]
-description: "Merge - command-line tool for everyday use"
+tags: [merge, file-management, diff, data-processing]
+description: "Combine files, resolve conflicts, concatenate data, and deduplicate across sources. Use when merging files, resolving conflicts, deduplicating datasets."
 ---
 
-# Merge
+# merge
 
-Merge toolkit — combine files, resolve conflicts, concatenate data, and deduplicate.
+File merge tool.
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `merge help` | Show usage info |
-| `merge run` | Run main task |
-| `merge status` | Check state |
-| `merge list` | List items |
-| `merge add <item>` | Add item |
-| `merge export <fmt>` | Export data |
+### `files`
 
-## Usage
+Concatenate two files
 
 ```bash
-merge help
-merge run
-merge status
+scripts/script.sh files <f1> <f2> [output]
 ```
 
-## Examples
+### `lines`
+
+Interleave lines from two files
 
 ```bash
-merge help
-merge run
-merge export json
+scripts/script.sh lines <f1> <f2>
 ```
 
-## Output
+### `csv`
 
-Results go to stdout. Save with `merge run > output.txt`.
+Join two CSVs on a key column
 
-## Configuration
+```bash
+scripts/script.sh csv <f1> <f2> <key-col>
+```
 
-Set `MERGE_DIR` to change data directory. Default: `~/.local/share/merge/`
+### `json`
+
+Merge two JSON files (arrays or objects)
+
+```bash
+scripts/script.sh json <f1> <f2>
+```
+
+### `diff`
+
+Show differences between files
+
+```bash
+scripts/script.sh diff <f1> <f2>
+```
+
+### `common`
+
+Show lines common to both files
+
+```bash
+scripts/script.sh common <f1> <f2>
+```
+
+### `unique`
+
+Show lines unique to each file
+
+```bash
+scripts/script.sh unique <f1> <f2>
+```
+
+### `dedup`
+
+Remove duplicate lines (preserving order)
+
+```bash
+scripts/script.sh dedup <file>
+```
+
+### `patch`
+
+Apply a patch file
+
+```bash
+scripts/script.sh patch <file> <patchfile>
+```
+
+## Requirements
+
+- python3
 
 ---
-*Powered by BytesAgain | bytesagain.com*
-*Feedback & Feature Requests: https://bytesagain.com/feedback*
 
-
-## Features
-
-- Simple command-line interface for quick access
-- Local data storage with JSON/CSV export
-- History tracking and activity logs
-- Search across all entries
-- Status monitoring and health checks
-- No external dependencies required
-
-## Quick Start
-
-```bash
-# Check status
-merge status
-
-# View help and available commands
-merge help
-
-# View statistics
-merge stats
-
-# Export your data
-merge export json
-```
-
-## How It Works
-
-Merge stores all data locally in `~/.local/share/merge/`. Each command logs activity with timestamps for full traceability. Use `stats` to see a summary, or `export` to back up your data in JSON, CSV, or plain text format.
-
-## Support
-
-- Feedback: https://bytesagain.com/feedback/
-- Website: https://bytesagain.com
-- Email: hello@bytesagain.com
-
-Powered by BytesAgain | bytesagain.com
+*Powered by BytesAgain | bytesagain.com | hello@bytesagain.com*

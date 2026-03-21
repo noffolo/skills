@@ -1,364 +1,177 @@
 #!/usr/bin/env bash
-# Merge — sysops tool
+# merge — File merge tool
 # Powered by BytesAgain | bytesagain.com | hello@bytesagain.com
 set -euo pipefail
+VERSION="3.0.1"
 
-DATA_DIR="${HOME}/.local/share/merge"
-mkdir -p "$DATA_DIR"
+BOLD='\033[1m'; GREEN='\033[0;32m'; RED='\033[0;31m'; RESET='\033[0m'
+die() { echo -e "${RED}Error: $1${RESET}" >&2; exit 1; }
+info() { echo -e "${GREEN}✓${RESET} $1"; }
 
-_log() { echo "$(date '+%m-%d %H:%M') $1: $2" >> "$DATA_DIR/history.log"; }
+cmd_files() {
+    local f1="${1:?Usage: merge files <file1> <file2> [output]}"
+    local f2="${2:?Missing second file}"
+    local out="${3:-merged-output.txt}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    cat "$f1" "$f2" > "$out"
+    local lines
+    lines=$(wc -l < "$out")
+    info "Merged to $out ($lines lines)"
+}
 
-_version() { echo "merge v2.0.0"; }
+cmd_lines() {
+    local f1="${1:?Usage: merge lines <file1> <file2>}"
+    local f2="${2:?Missing second file}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    paste -d '\n' "$f1" "$f2" | grep -v '^$'
+}
 
-_help() {
-    echo "Merge v2.0.0 — sysops toolkit"
+cmd_csv() {
+    local f1="${1:?Usage: merge csv <file1.csv> <file2.csv> <key-col>}"
+    local f2="${2:?Missing second CSV}"
+    local key="${3:?Missing key column number}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    COL="$key" F1="$f1" F2="$f2" python3 << 'PYEOF'
+import csv, os
+col = int(os.environ["COL"]) - 1
+rows = {}
+with open(os.environ["F1"]) as f:
+    reader = csv.reader(f)
+    header1 = next(reader)
+    for row in reader:
+        if col < len(row):
+            rows[row[col]] = row
+with open(os.environ["F2"]) as f:
+    reader = csv.reader(f)
+    header2 = next(reader)
+    for row in reader:
+        if col < len(row):
+            key = row[col]
+            if key in rows:
+                merged = rows[key] + [c for i,c in enumerate(row) if i != col]
+                rows[key] = merged
+            else:
+                rows[key] = row
+merged_header = header1 + [h for i,h in enumerate(header2) if i != col]
+print(",".join(merged_header))
+for key in sorted(rows):
+    print(",".join(str(c) for c in rows[key]))
+PYEOF
+}
+
+cmd_json() {
+    local f1="${1:?Usage: merge json <file1.json> <file2.json>}"
+    local f2="${2:?Missing second JSON file}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    F1="$f1" F2="$f2" python3 << 'PYEOF'
+import json, os
+with open(os.environ["F1"]) as f:
+    d1 = json.load(f)
+with open(os.environ["F2"]) as f:
+    d2 = json.load(f)
+if isinstance(d1, list) and isinstance(d2, list):
+    result = d1 + d2
+elif isinstance(d1, dict) and isinstance(d2, dict):
+    result = {**d1, **d2}
+else:
+    result = [d1, d2]
+print(json.dumps(result, indent=2))
+PYEOF
+}
+
+cmd_dedup() {
+    local file="${1:?Usage: merge dedup <file>}"
+    [ ! -f "$file" ] && die "Not found: $file"
+    local before after
+    before=$(wc -l < "$file")
+    awk '!seen[$0]++' "$file"
+    after=$(awk '!seen[$0]++' "$file" | wc -l)
+    echo "" >&2
+    echo "  Removed $((before - after)) duplicates (${before} → ${after} lines)" >&2
+}
+
+cmd_diff() {
+    local f1="${1:?Usage: merge diff <file1> <file2>}"
+    local f2="${2:?Missing second file}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    echo -e "${BOLD}Diff: $f1 vs $f2${RESET}"
+    diff --color=auto "$f1" "$f2" || true
+}
+
+cmd_common() {
+    local f1="${1:?Usage: merge common <file1> <file2>}"
+    local f2="${2:?Missing second file}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    comm -12 <(sort "$f1") <(sort "$f2")
+}
+
+cmd_unique() {
+    local f1="${1:?Usage: merge unique <file1> <file2>}"
+    local f2="${2:?Missing second file}"
+    [ ! -f "$f1" ] && die "Not found: $f1"
+    [ ! -f "$f2" ] && die "Not found: $f2"
+    echo -e "${BOLD}Only in $f1:${RESET}"
+    comm -23 <(sort "$f1") <(sort "$f2")
     echo ""
-    echo "Usage: merge <command> [args]"
-    echo ""
-    echo "Commands:"
-    echo "  scan               Scan"
-    echo "  monitor            Monitor"
-    echo "  report             Report"
-    echo "  alert              Alert"
-    echo "  top                Top"
-    echo "  usage              Usage"
-    echo "  check              Check"
-    echo "  fix                Fix"
-    echo "  cleanup            Cleanup"
-    echo "  backup             Backup"
-    echo "  restore            Restore"
-    echo "  log                Log"
-    echo "  benchmark          Benchmark"
-    echo "  compare            Compare"
-    echo "  stats              Summary statistics"
-    echo "  export <fmt>       Export (json|csv|txt)"
-    echo "  status             Health check"
-    echo "  help               Show this help"
-    echo "  version            Show version"
-    echo ""
-    echo "Data: $DATA_DIR"
+    echo -e "${BOLD}Only in $f2:${RESET}"
+    comm -13 <(sort "$f1") <(sort "$f2")
 }
 
-_stats() {
-    echo "=== Merge Stats ==="
-    local total=0
-    for f in "$DATA_DIR"/*.log; do
-        [ -f "$f" ] || continue
-        local name=$(basename "$f" .log)
-        local c=$(wc -l < "$f")
-        total=$((total + c))
-        echo "  $name: $c entries"
-    done
-    echo "  ---"
-    echo "  Total: $total entries"
-    echo "  Data size: $(du -sh "$DATA_DIR" 2>/dev/null | cut -f1)"
-    echo "  Since: $(head -1 "$DATA_DIR/history.log" 2>/dev/null | cut -d'|' -f1 || echo 'N/A')"
+cmd_patch() {
+    local file="${1:?Usage: merge patch <file> <patchfile>}"
+    local patchfile="${2:?Missing patch file}"
+    [ ! -f "$file" ] && die "Not found: $file"
+    [ ! -f "$patchfile" ] && die "Not found: $patchfile"
+    patch "$file" "$patchfile"
+    info "Patched $file"
 }
 
-_export() {
-    local fmt="${1:-json}"
-    local out="$DATA_DIR/export.$fmt"
-    case "$fmt" in
-        json)
-            echo "[" > "$out"
-            local first=1
-            for f in "$DATA_DIR"/*.log; do
-                [ -f "$f" ] || continue
-                local name=$(basename "$f" .log)
-                while IFS='|' read -r ts val; do
-                    [ $first -eq 1 ] && first=0 || echo "," >> "$out"
-                    printf '  {"type":"%s","time":"%s","value":"%s"}' "$name" "$ts" "$val" >> "$out"
-                done < "$f"
-            done
-            echo "" >> "$out"
-            echo "]" >> "$out"
-            ;;
-        csv)
-            echo "type,time,value" > "$out"
-            for f in "$DATA_DIR"/*.log; do
-                [ -f "$f" ] || continue
-                local name=$(basename "$f" .log)
-                while IFS='|' read -r ts val; do
-                    echo "$name,$ts,$val" >> "$out"
-                done < "$f"
-            done
-            ;;
-        txt)
-            echo "=== Merge Export ===" > "$out"
-            for f in "$DATA_DIR"/*.log; do
-                [ -f "$f" ] || continue
-                echo "--- $(basename "$f" .log) ---" >> "$out"
-                cat "$f" >> "$out"
-                echo "" >> "$out"
-            done
-            ;;
-        *) echo "Formats: json, csv, txt"; return 1 ;;
-    esac
-    echo "Exported to $out ($(wc -c < "$out") bytes)"
+show_help() {
+    cat << EOF
+merge v$VERSION — File merge tool
+
+Usage: merge <command> [args]
+
+Merge:
+  files <f1> <f2> [output]     Concatenate two files
+  lines <f1> <f2>              Interleave lines from two files
+  csv <f1> <f2> <key-col>      Join two CSVs on a key column
+  json <f1> <f2>               Merge two JSON files (arrays or objects)
+
+Compare:
+  diff <f1> <f2>               Show differences between files
+  common <f1> <f2>             Show lines common to both files
+  unique <f1> <f2>             Show lines unique to each file
+
+Transform:
+  dedup <file>                 Remove duplicate lines (preserving order)
+  patch <file> <patchfile>     Apply a patch file
+
+  help                         Show this help
+  version                      Show version
+
+Requires: diff, comm, sort, paste, patch, python3 (for csv/json)
+EOF
 }
 
-_status() {
-    echo "=== Merge Status ==="
-    echo "  Version: v2.0.0"
-    echo "  Data dir: $DATA_DIR"
-    echo "  Entries: $(cat "$DATA_DIR"/*.log 2>/dev/null | wc -l) total"
-    echo "  Disk: $(du -sh "$DATA_DIR" 2>/dev/null | cut -f1)"
-    local last=$(tail -1 "$DATA_DIR/history.log" 2>/dev/null || echo "never")
-    echo "  Last activity: $last"
-    echo "  Status: OK"
-}
-
-_search() {
-    local term="${1:?Usage: merge search <term>}"
-    echo "Searching for: $term"
-    local found=0
-    for f in "$DATA_DIR"/*.log; do
-        [ -f "$f" ] || continue
-        local matches=$(grep -i "$term" "$f" 2>/dev/null || true)
-        if [ -n "$matches" ]; then
-            echo "  --- $(basename "$f" .log) ---"
-            echo "$matches" | while read -r line; do
-                echo "    $line"
-                found=$((found + 1))
-            done
-        fi
-    done
-    [ $found -eq 0 ] && echo "  No matches found."
-}
-
-_recent() {
-    echo "=== Recent Activity ==="
-    if [ -f "$DATA_DIR/history.log" ]; then
-        tail -20 "$DATA_DIR/history.log" | while IFS='' read -r line; do
-            echo "  $line"
-        done
-    else
-        echo "  No activity yet."
-    fi
-}
-
-# Main dispatch
-case "${1:-help}" in
-    scan)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent scan entries:"
-            tail -20 "$DATA_DIR/scan.log" 2>/dev/null || echo "  No entries yet. Use: merge scan <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/scan.log"
-            local total=$(wc -l < "$DATA_DIR/scan.log")
-            echo "  [Merge] scan: $input"
-            echo "  Saved. Total scan entries: $total"
-            _log "scan" "$input"
-        fi
-        ;;
-    monitor)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent monitor entries:"
-            tail -20 "$DATA_DIR/monitor.log" 2>/dev/null || echo "  No entries yet. Use: merge monitor <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/monitor.log"
-            local total=$(wc -l < "$DATA_DIR/monitor.log")
-            echo "  [Merge] monitor: $input"
-            echo "  Saved. Total monitor entries: $total"
-            _log "monitor" "$input"
-        fi
-        ;;
-    report)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent report entries:"
-            tail -20 "$DATA_DIR/report.log" 2>/dev/null || echo "  No entries yet. Use: merge report <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/report.log"
-            local total=$(wc -l < "$DATA_DIR/report.log")
-            echo "  [Merge] report: $input"
-            echo "  Saved. Total report entries: $total"
-            _log "report" "$input"
-        fi
-        ;;
-    alert)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent alert entries:"
-            tail -20 "$DATA_DIR/alert.log" 2>/dev/null || echo "  No entries yet. Use: merge alert <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/alert.log"
-            local total=$(wc -l < "$DATA_DIR/alert.log")
-            echo "  [Merge] alert: $input"
-            echo "  Saved. Total alert entries: $total"
-            _log "alert" "$input"
-        fi
-        ;;
-    top)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent top entries:"
-            tail -20 "$DATA_DIR/top.log" 2>/dev/null || echo "  No entries yet. Use: merge top <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/top.log"
-            local total=$(wc -l < "$DATA_DIR/top.log")
-            echo "  [Merge] top: $input"
-            echo "  Saved. Total top entries: $total"
-            _log "top" "$input"
-        fi
-        ;;
-    usage)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent usage entries:"
-            tail -20 "$DATA_DIR/usage.log" 2>/dev/null || echo "  No entries yet. Use: merge usage <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/usage.log"
-            local total=$(wc -l < "$DATA_DIR/usage.log")
-            echo "  [Merge] usage: $input"
-            echo "  Saved. Total usage entries: $total"
-            _log "usage" "$input"
-        fi
-        ;;
-    check)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent check entries:"
-            tail -20 "$DATA_DIR/check.log" 2>/dev/null || echo "  No entries yet. Use: merge check <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/check.log"
-            local total=$(wc -l < "$DATA_DIR/check.log")
-            echo "  [Merge] check: $input"
-            echo "  Saved. Total check entries: $total"
-            _log "check" "$input"
-        fi
-        ;;
-    fix)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent fix entries:"
-            tail -20 "$DATA_DIR/fix.log" 2>/dev/null || echo "  No entries yet. Use: merge fix <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/fix.log"
-            local total=$(wc -l < "$DATA_DIR/fix.log")
-            echo "  [Merge] fix: $input"
-            echo "  Saved. Total fix entries: $total"
-            _log "fix" "$input"
-        fi
-        ;;
-    cleanup)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent cleanup entries:"
-            tail -20 "$DATA_DIR/cleanup.log" 2>/dev/null || echo "  No entries yet. Use: merge cleanup <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/cleanup.log"
-            local total=$(wc -l < "$DATA_DIR/cleanup.log")
-            echo "  [Merge] cleanup: $input"
-            echo "  Saved. Total cleanup entries: $total"
-            _log "cleanup" "$input"
-        fi
-        ;;
-    backup)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent backup entries:"
-            tail -20 "$DATA_DIR/backup.log" 2>/dev/null || echo "  No entries yet. Use: merge backup <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/backup.log"
-            local total=$(wc -l < "$DATA_DIR/backup.log")
-            echo "  [Merge] backup: $input"
-            echo "  Saved. Total backup entries: $total"
-            _log "backup" "$input"
-        fi
-        ;;
-    restore)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent restore entries:"
-            tail -20 "$DATA_DIR/restore.log" 2>/dev/null || echo "  No entries yet. Use: merge restore <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/restore.log"
-            local total=$(wc -l < "$DATA_DIR/restore.log")
-            echo "  [Merge] restore: $input"
-            echo "  Saved. Total restore entries: $total"
-            _log "restore" "$input"
-        fi
-        ;;
-    log)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent log entries:"
-            tail -20 "$DATA_DIR/log.log" 2>/dev/null || echo "  No entries yet. Use: merge log <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/log.log"
-            local total=$(wc -l < "$DATA_DIR/log.log")
-            echo "  [Merge] log: $input"
-            echo "  Saved. Total log entries: $total"
-            _log "log" "$input"
-        fi
-        ;;
-    benchmark)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent benchmark entries:"
-            tail -20 "$DATA_DIR/benchmark.log" 2>/dev/null || echo "  No entries yet. Use: merge benchmark <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/benchmark.log"
-            local total=$(wc -l < "$DATA_DIR/benchmark.log")
-            echo "  [Merge] benchmark: $input"
-            echo "  Saved. Total benchmark entries: $total"
-            _log "benchmark" "$input"
-        fi
-        ;;
-    compare)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent compare entries:"
-            tail -20 "$DATA_DIR/compare.log" 2>/dev/null || echo "  No entries yet. Use: merge compare <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/compare.log"
-            local total=$(wc -l < "$DATA_DIR/compare.log")
-            echo "  [Merge] compare: $input"
-            echo "  Saved. Total compare entries: $total"
-            _log "compare" "$input"
-        fi
-        ;;
-    stats) _stats ;;
-    export) shift; _export "$@" ;;
-    search) shift; _search "$@" ;;
-    recent) _recent ;;
-    status) _status ;;
-    help|--help|-h) _help ;;
-    version|--version|-v) _version ;;
-    *)
-        echo "Unknown command: $1"
-        echo "Run 'merge help' for available commands."
-        exit 1
-        ;;
+[ $# -eq 0 ] && { show_help; exit 0; }
+case "$1" in
+    files)   shift; cmd_files "$@" ;;
+    lines)   shift; cmd_lines "$@" ;;
+    csv)     shift; cmd_csv "$@" ;;
+    json)    shift; cmd_json "$@" ;;
+    dedup)   shift; cmd_dedup "$@" ;;
+    diff)    shift; cmd_diff "$@" ;;
+    common)  shift; cmd_common "$@" ;;
+    unique)  shift; cmd_unique "$@" ;;
+    patch)   shift; cmd_patch "$@" ;;
+    help|-h) show_help ;;
+    version|-v) echo "merge v$VERSION"; echo "Powered by BytesAgain | bytesagain.com | hello@bytesagain.com" ;;
+    *)       echo "Unknown: $1"; show_help; exit 1 ;;
 esac
