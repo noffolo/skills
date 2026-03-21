@@ -1,0 +1,11 @@
+{
+  "owner": "aingestigate",
+  "slug": "corpusgraph",
+  "displayName": "CorpusGraph Document ETL and entity relationship engine for AI agents",
+  "latest": {
+    "version": "1.0.4",
+    "publishedAt": 1773935442535,
+    "commit": null
+  },
+  "history": []
+}
