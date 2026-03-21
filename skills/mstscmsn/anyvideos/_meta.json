@@ -3,11 +3,16 @@
   "slug": "anyvideos",
   "displayName": "anyvideos",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773843079740,
-    "commit": "https://github.com/openclaw/skills/commit/d4b77153761f29f41602fea58ac75de1ee24c582"
+    "version": "1.0.4",
+    "publishedAt": 1773986641508,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773843079740,
+      "commit": "https://github.com/openclaw/skills/commit/d4b77153761f29f41602fea58ac75de1ee24c582"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773841122539,
