@@ -1,0 +1,11 @@
+{
+  "owner": "x-jihua",
+  "slug": "vidu-partner-creator",
+  "displayName": "Customizable virtual companions, multimodal interaction, provided by the Vidu API.",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1774008668861,
+    "commit": null
+  },
+  "history": []
+}
