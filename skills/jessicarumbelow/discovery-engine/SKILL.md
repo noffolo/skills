@@ -14,8 +14,10 @@ description: Automatically discover novel, statistically validated patterns in t
 
 ## Integration Options
 
-- **MCP server** — for agents with MCP support. Remote server at `https://disco.leap-labs.com/mcp`, no local install required.
-- **Python SDK** — `pip install discovery-engine-api`. Use when you need programmatic control or are working in a Python environment.
+- **MCP server** — remote server at `https://disco.leap-labs.com/mcp`, no install required. Best for datasets at a URL.
+- **Python SDK** — `pip install discovery-engine-api`. **Use this for local files of any size.** Runs on your machine and streams files directly — no base64, no size limits.
+
+**Quick rule:** if the data is at a URL, use `file_url` in `discovery_upload`. If it's a local file, use the Python SDK — or if Python isn't available, upload directly via the presign API and pass the result to `discovery_analyze`. Don't use `file_content` (base64) unless the file is already in memory and tiny.
 
 ---
 
@@ -40,7 +42,8 @@ Add to your MCP config:
 
 | Tool | Purpose |
 |------|---------|
-| `discovery_analyze` | Submit a dataset for analysis. Returns a `run_id`. |
+| `discovery_upload` | Upload a dataset. Supports URL download (`file_url`), local path (`file_path`), or base64 content (`file_content`). Returns a `file_ref` for use with `discovery_analyze`. |
+| `discovery_analyze` | Submit a dataset for analysis using a `file_ref` from `discovery_upload`. Returns a `run_id`. |
 | `discovery_status` | Poll a running analysis by `run_id`. |
 | `discovery_get_results` | Fetch completed results: patterns, p-values, citations, feature importance. |
 | `discovery_estimate` | Estimate cost and time before committing to a run. |
@@ -59,19 +62,135 @@ Add to your MCP config:
 
 ### MCP Workflow
 
-Analyses take 3-15 minutes. **Do not block** — submit, continue other work, poll for completion.
+Analyses take 3–15 minutes. **Do not block** — submit, continue other work, poll for completion.
 
 ```
 1. discovery_estimate     → Check cost/time (always do this for private runs)
-2. discovery_analyze      → Submit the dataset, get run_id
-3. discovery_status       → Poll until status is "completed"
-4. discovery_get_results  → Fetch patterns, summary, feature importance
+2. discovery_upload       → Upload the dataset, get file_ref
+3. discovery_analyze      → Submit for analysis using file_ref, get run_id
+4. discovery_status       → Poll until status is "completed"
+                            Returns: status, queue_position, current_step,
+                            estimated_seconds, estimated_wait_seconds
+5. discovery_get_results  → Fetch patterns, summary, feature importance
 ```
+
+### Getting Data In
+
+Choose the right path for your situation:
+
+| Situation | Best approach |
+|-----------|--------------|
+| Data is at an http/https URL | `file_url` in `discovery_upload` |
+| Local file, Python available | Python SDK (`engine.discover(...)`) |
+| Local file, MCP server running locally | `file_path` in `discovery_upload` |
+| Local file, hosted MCP, no Python | Direct upload API (3 steps — see below) |
+| Tiny file already in memory | `file_content` in `discovery_upload` (last resort) |
+
+---
+
+**Data at a URL:**
+
+```
+discovery_upload(file_url="https://example.com/dataset.csv")
+→ {"file": {...}, "columns": [{"name": "col1", "type": "continuous"}, ...], "rowCount": 5000}
+
+discovery_analyze(file_ref=<result above>, target_column="outcome")
+```
+
+The server downloads the file directly — nothing passes through the agent or the model context. Works with public URLs, S3 presigned URLs, or any accessible http/https link.
+
+---
+
+**Local file — Python SDK** (recommended for any local file):
+
+```python
+from discovery import Engine
+
+engine = Engine(api_key="disco_...")
+result = await engine.discover("data.csv", target_column="outcome")
+```
+
+Handles upload, polling, and results in one call. No size limit. See the **Python SDK** section for full documentation.
+
+---
+
+**Local file — MCP server running locally** (cloned from GitHub, stdio transport):
+
+If you've cloned the repo and are running `server.py` locally, the process can read your filesystem directly:
+
+```
+discovery_upload(file_path="/home/user/data/dataset.csv")
+→ {"file": {...}, "columns": [...], "rowCount": 5000}
+
+discovery_analyze(file_ref=<result above>, target_column="outcome")
+```
+
+Reads the file locally and streams it directly to cloud storage — nothing passes through the model context. No size limit. **`file_path` is silently ignored by the hosted server at `disco.leap-labs.com/mcp`** — it only works with a locally-running server.
+
+---
+
+**Local file — hosted MCP, direct upload** (works from any language):
+
+If you're using the hosted MCP server and Python isn't available, you can upload directly via the REST API in three steps, then pass the result to `discovery_analyze` as normal.
+
+```bash
+# 1. Get a presigned upload URL
+curl -X POST https://disco.leap-labs.com/api/data/upload/presign \
+  -H "Authorization: Bearer disco_..." \
+  -H "Content-Type: application/json" \
+  -d '{"fileName": "data.csv", "contentType": "text/csv", "fileSize": 1048576}'
+# → {"uploadUrl": "https://storage.googleapis.com/...", "key": "uploads/abc/data.csv", "uploadToken": "tok_..."}
+
+# 2. PUT the file directly to cloud storage (the uploadUrl is pre-signed — no auth header needed)
+curl -X PUT "<uploadUrl from step 1>" \
+  -H "Content-Type: text/csv" \
+  --data-binary @data.csv
+
+# 3. Finalize the upload
+curl -X POST https://disco.leap-labs.com/api/data/upload/finalize \
+  -H "Authorization: Bearer disco_..." \
+  -H "Content-Type: application/json" \
+  -d '{"key": "uploads/abc/data.csv", "uploadToken": "tok_..."}'
+# → {"ok": true, "file": {...}, "columns": [...], "rowCount": 5000}
+```
+
+Pass the finalize response directly to `discovery_analyze` as `file_ref`. No size limit.
+
+---
+
+**Last resort — tiny file already in memory:**
+
+Only use this if the file is already loaded into memory and none of the above options apply. The base64-encoded content passes through the model's context window, so this only works for very small files.
+
+```python
+import base64
+content = base64.b64encode(open("data.csv", "rb").read()).decode()
+```
+
+```
+discovery_upload(file_content=content, file_name="data.csv")
+→ {"file": {...}, "columns": [...], "rowCount": 500}
+
+discovery_analyze(file_ref=<result above>, target_column="outcome")
+```
+
+---
 
 ### MCP Parameters
 
+**`discovery_upload`:**
+
+Provide exactly one of `file_url`, `file_path`, or `file_content`.
+
+- `file_url` — http/https URL. The server downloads it directly. Best option for hosted MCP.
+- `file_path` — Absolute path to a local file. **Only works when the MCP server is running locally.** Silently ignored by the hosted server.
+- `file_content` — File contents, base64-encoded. **Last resort only** — the content passes through the model's context window, so this only works for very small files.
+- `file_name` — Filename with extension (e.g. `"data.csv"`), used for format detection. Required with `file_content`. Default: `"data.csv"`.
+
+Returns a `file_ref` (pass it directly to `discovery_analyze`) and `columns` (list of column names and types, useful if you need to inspect before choosing a target column).
+
 **`discovery_analyze`:**
-- `file_path` — Path to CSV, Excel, Parquet, JSON, TSV, ARFF, or Feather file (max 5 GB)
+- `file_ref` — File reference returned by `discovery_upload`. Required.
 - `target_column` — The column to predict/explain
 - `depth_iterations` — 1 = fast (default), higher = deeper search. Max: num_columns - 2
 - `visibility` — `"public"` (free, results published) or `"private"` (costs credits)
@@ -79,6 +198,8 @@ Analyses take 3-15 minutes. **Do not block** — submit, continue other work, po
 - `excluded_columns` — JSON array of column names to exclude from analysis
 - `title` — Optional title for the analysis
 - `description` — Optional description of the dataset
+- `author` — Optional author name for the dataset
+- `source_url` — Optional URL of the original data source
 
 ### No API key?
 
@@ -169,6 +290,25 @@ for pattern in result.patterns:
         print(f"{pattern.description} (p={pattern.p_value:.4f})")
 ```
 
+### Inspecting Columns Before Running
+
+If you need to see the dataset's columns before choosing a target column, upload first and inspect:
+
+```python
+# Upload once and get the server's parsed column list
+upload = await engine.upload_file(file="data.csv", title="My dataset")
+print(upload["columns"])   # [{"name": "col1", "type": "continuous", ...}, ...]
+print(upload["rowCount"])  # e.g., 5000
+
+# Pass the result to avoid re-uploading
+result = await engine.run_async(
+    file="data.csv",
+    target_column="col1",
+    wait=True,
+    upload_result=upload,  # skips the upload step
+)
+```
+
 ### Running in the Background
 
 If you need to do other work while Discovery Engine runs (recommended for agent workflows):
@@ -225,6 +365,8 @@ EngineResult(
         # Pattern 1: Novel multi-condition interaction
         Pattern(
             id="p-1",
+            task="regression",
+            target_column="yield_tons_per_hectare",
             description="When humidity is between 72-89% AND wind speed is below 12 km/h, "
                         "crop yield increases by 34% above the dataset average",
             conditions=[
@@ -250,6 +392,7 @@ EngineResult(
             ],
             target_change_direction="max",
             abs_target_change=0.34,
+            target_score=0.81,
             support_count=847,
             support_percentage=16.9,
             target_mean=8.7,
@@ -259,6 +402,8 @@ EngineResult(
         # Pattern 2: Novel — contradicts existing guidelines
         Pattern(
             id="p-2",
+            task="regression",
+            target_column="yield_tons_per_hectare",
             description="When soil nitrogen exceeds 45 mg/kg AND soil phosphorus is below "
                         "12 mg/kg, crop yield decreases by 18% — a diminishing returns effect "
                         "not captured by standard fertilization models",
@@ -281,6 +426,7 @@ EngineResult(
             ],
             target_change_direction="min",
             abs_target_change=0.18,
+            target_score=0.74,
             support_count=634,
             support_percentage=12.7,
             target_mean=5.3,
@@ -290,6 +436,8 @@ EngineResult(
         # Pattern 3: Confirmatory — validates known finding
         Pattern(
             id="p-3",
+            task="regression",
+            target_column="yield_tons_per_hectare",
             description="When soil organic matter is above 3.2% AND irrigation is 'drip', "
                         "crop yield increases by 22%",
             conditions=[
@@ -310,6 +458,7 @@ EngineResult(
             ],
             target_change_direction="max",
             abs_target_change=0.22,
+            target_score=0.69,
             support_count=1203,
             support_percentage=24.0,
             target_mean=7.9,
@@ -504,8 +653,18 @@ class EngineResult:
     columns: list[Column]                          # Feature info and statistics
     correlation_matrix: list[CorrelationEntry]     # Feature correlations
     feature_importance: FeatureImportance | None   # Global importance scores
+    job_id: str | None                             # Job ID for tracking
+    job_status: str | None                         # Job queue status
+    queue_position: int | None                     # Position in queue when pending (1 = next up)
+    current_step: str | None                       # Active pipeline step (preprocessing, training, interpreting, reporting)
+    current_step_message: str | None               # Human-readable description of the current step
+    estimated_seconds: int | None                  # Estimated total processing time in seconds
+    estimated_wait_seconds: int | None             # Estimated queue wait time in seconds (pending only)
     error_message: str | None
     report_url: str | None                         # Shareable link to interactive web report
+    hints: list[str]                               # Upgrade hints (non-empty for free-tier users with hidden patterns)
+    hidden_deep_count: int                         # Patterns hidden for free-tier accounts (upgrade to see all)
+    hidden_deep_novel_count: int                   # Novel patterns hidden for free-tier accounts
 
 @dataclass
 class Pattern:
@@ -521,7 +680,7 @@ class Pattern:
     abs_target_change: float            # Magnitude of effect
     support_count: int                  # Number of rows matching this pattern
     support_percentage: float           # Percentage of dataset
-    target_score: float
+    target_score: float                 # Mean target value (regression) or class fraction (classification) in the subgroup
     task: str
     target_column: str
     target_class: str | None            # For classification tasks
@@ -596,6 +755,7 @@ from discovery.errors import (
     InsufficientCreditsError,
     RateLimitError,
     RunFailedError,
+    RunNotFoundError,
     PaymentRequiredError,
 )
 
@@ -609,6 +769,8 @@ except RateLimitError as e:
     pass  # Too many requests — retry after e.retry_after seconds
 except RunFailedError as e:
     pass  # Run failed server-side — e.run_id
+except RunNotFoundError as e:
+    pass  # Run not found — e.run_id (may have been cleaned up)
 except PaymentRequiredError as e:
     pass  # Payment method needed — check e.suggestion
 except FileNotFoundError:
@@ -629,3 +791,4 @@ CSV, TSV, Excel (.xlsx), JSON, Parquet, ARFF, Feather. Max file size: 5 GB.
 - [Full LLM Documentation](https://disco.leap-labs.com/llms-full.txt)
 - [Python SDK on PyPI](https://pypi.org/project/discovery-engine-api/)
 - [API Spec](https://disco.leap-labs.com/.well-known/openapi.json)
+

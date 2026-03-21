@@ -48,12 +48,14 @@ await engine.discover(
     column_descriptions: dict[str, str] | None = None,  # Improves pattern explanations
     excluded_columns: list[str] | None = None,           # Columns to exclude (e.g., IDs)
     timeout: float = 1800,              # Max seconds to wait
+    # Additional kwargs forwarded to run_async():
+    # task, author, source_url, timeseries_groups, ...
 )
 ```
 
 > **Tip:** Providing `column_descriptions` significantly improves pattern explanations. If your columns have non-obvious names, always describe them.
 
-> **Depth and visibility:** Public runs are always `depth_iterations=1` regardless of settings. To use `depth_iterations > 1`, set `visibility="private"`. Private runs consume credits based on file size × depth.
+> **Visibility:** `"public"` runs are free but results are published, and depth is locked to 1. `"private"` runs keep results confidential and consume credits.
 
 
 ## Examples
@@ -80,7 +82,19 @@ result = await engine.discover(
 
 ### Running in the Background
 
-Runs take 3–15 minutes. If you need to do other work while Discovery Engine runs:
+Runs take 3–15 minutes. While waiting, the SDK logs progress automatically:
+
+```
+Waiting for run abc123 to complete...
+  Status: waiting (position 2 in queue) | Est. wait: ~8 min | Upgrade at disco.leap-labs.com/account for priority processing
+  Status: processing (preprocessing — Processing data...) | Elapsed: 34.2s | ETA: ~6 min
+  Status: processing (training — Modelling data...) | Elapsed: 98.7s | ETA: ~4 min
+  Status: processing (interpreting — Extracting patterns...) | Elapsed: 284.1s | ETA: ~2 min
+  Status: processing (reporting — Building report...) | Elapsed: 412.3s | ETA: ~1 min
+Run completed in 467.8s
+```
+
+If you need to do other work while Discovery Engine runs:
 
 ```python
 import asyncio
@@ -112,8 +126,12 @@ If you need to see the dataset's columns before choosing a target column — e.g
 ```python
 # Upload once and get the server's parsed column list
 upload = await engine.upload_file(file="data.csv", title="My dataset")
-print(upload["columns"])   # [{"name": "col1", "type": "continuous", ...}, ...]
-print(upload["rowCount"])  # e.g., 5000
+# upload["file"]    -> {"key": "uploads/abc123.csv", "name": "data.csv",
+#                        "size": 1048576, "fileHash": "sha256:..."}
+# upload["columns"] -> [{"name": "col1", "type": "continuous", ...}, ...]
+# upload["rowCount"] -> 5000
+print(upload["columns"])
+print(upload["rowCount"])
 
 # Pass the result to avoid re-uploading
 result = await engine.run_async(
@@ -187,9 +205,13 @@ estimate = await engine.estimate(
     depth_iterations=2,
     visibility="private",
 )
-# estimate["cost"]["credits"] -> 21
-# estimate["cost"]["free_alternative"] -> True
-# estimate["account"]["sufficient"] -> True/False
+# estimate["cost"]["credits"]               -> 21
+# estimate["cost"]["price_usd"]             -> 21.0
+# estimate["cost"]["free_alternative"]      -> True
+# estimate["cost"]["free_alternative_note"] -> "Run publicly for free (depth locked to 1, results published)"
+# estimate["time_estimate"]["estimated_seconds"] -> 360
+# estimate["account"]["sufficient"]         -> True/False
+# estimate["limits"]["max_depth"]           -> 23  (num_columns - 2)
 ```
 
 Manage credits and plans at [disco.leap-labs.com/account](https://disco.leap-labs.com/account).
@@ -210,16 +232,30 @@ Supported formats: **CSV**, **TSV**, **Excel (.xlsx)**, **JSON**, **Parquet**, *
 @dataclass
 class EngineResult:
     run_id: str
+    report_id: str | None                          # Report UUID (used in report_url)
     status: str                                    # "pending", "processing", "completed", "failed"
+    dataset_title: str | None                      # Title of the dataset
+    dataset_description: str | None                # Description of the dataset
+    total_rows: int | None
+    target_column: str | None                      # Column being predicted/analyzed
+    task: str | None                               # "regression", "binary_classification", "multiclass_classification"
     summary: Summary | None                        # LLM-generated insights
     patterns: list[Pattern]                        # Discovered patterns (the core output)
     columns: list[Column]                          # Feature info and statistics
-    feature_importance: FeatureImportance | None   # Global importance scores
     correlation_matrix: list[CorrelationEntry]     # Feature correlations
-    report_url: str | None                         # Shareable link to interactive web report
-    task: str | None                               # "regression", "binary_classification", "multiclass_classification"
-    total_rows: int | None
+    feature_importance: FeatureImportance | None   # Global importance scores
+    job_id: str | None                             # Job ID for tracking
+    job_status: str | None                         # Job queue status
+    queue_position: int | None                     # Position in queue when pending (1 = next up)
+    current_step: str | None                       # Active pipeline step (preprocessing, training, interpreting, reporting)
+    current_step_message: str | None               # Human-readable description of the current step
+    estimated_seconds: int | None                  # Estimated total processing time in seconds
+    estimated_wait_seconds: int | None             # Estimated queue wait time in seconds (pending only)
     error_message: str | None
+    report_url: str | None                         # Shareable link to interactive web report
+    hints: list[str]                               # Upgrade hints (non-empty for free-tier users with hidden patterns)
+    hidden_deep_count: int                         # Patterns hidden for free-tier accounts (upgrade to see all)
+    hidden_deep_novel_count: int                   # Novel patterns hidden for free-tier accounts
 ```
 
 ### Pattern
@@ -228,6 +264,8 @@ class EngineResult:
 @dataclass
 class Pattern:
     id: str
+    task: str                           # "regression", "binary_classification", "multiclass_classification"
+    target_column: str                  # Column being analyzed
     description: str                    # Human-readable description
     conditions: list[dict]              # Conditions defining the pattern
     p_value: float                      # FDR-adjusted p-value
@@ -237,8 +275,10 @@ class Pattern:
     citations: list[dict]               # Academic citations
     target_change_direction: str        # "max" (increases target) or "min" (decreases)
     abs_target_change: float            # Magnitude of effect
+    target_score: float                 # Mean target value (regression) or class fraction (classification) in the subgroup
     support_count: int                  # Rows matching this pattern
     support_percentage: float           # Percentage of dataset
+    target_class: str | None            # For classification tasks
     target_mean: float | None           # For regression tasks
     target_std: float | None
 ```
@@ -288,6 +328,7 @@ class Summary:
     overview: str                       # High-level summary of findings
     key_insights: list[str]             # Main takeaways
     novel_patterns: PatternGroup        # Novel pattern IDs and explanation
+    selected_pattern_id: str | None     # ID of the highlighted/featured pattern
 ```
 
 ### Column
@@ -307,17 +348,22 @@ class Column:
     std: float | None
     min: float | None
     max: float | None
+    iqr_min: float | None               # 25th percentile
+    iqr_max: float | None               # 75th percentile
+    mode: str | None                    # Most common value (categorical columns)
+    approx_unique: int | None           # Approximate distinct value count
+    null_percentage: float | None
     feature_importance_score: float | None  # Signed importance score
 ```
 
 ### FeatureImportance
 
-Computed using **Hierarchical Perturbation (HiPe)**, an ablation-based method. Scores are **signed** — positive means the feature increases the prediction, negative means it decreases it.
+Scores are **signed** — positive means the feature increases the prediction, negative means it decreases it.
 
 ```python
 @dataclass
 class FeatureImportance:
-    kind: str                           # "global"
+    kind: str                           # "global" | "local"
     baseline: float                     # Baseline model output
     scores: list[FeatureImportanceScore]
 
@@ -331,12 +377,13 @@ class FeatureImportanceScore:
 ## Error Handling
 
 ```python
-from discovery import (
-    Engine,
+from discovery import Engine
+from discovery.errors import (
     AuthenticationError,
     InsufficientCreditsError,
     RateLimitError,
     RunFailedError,
+    RunNotFoundError,
     PaymentRequiredError,
 )
 
@@ -346,11 +393,15 @@ except AuthenticationError as e:
     print(e.suggestion)  # "Check your API key at https://disco.leap-labs.com/developers"
 except InsufficientCreditsError as e:
     print(f"Need {e.credits_required}, have {e.credits_available}")
-    print(e.suggestion)  # "Purchase credits or run publicly for free"
+    print(e.suggestion)  # "Run with visibility='public' (free, results published) or purchase credits with engine.purchase_credits()."
 except RateLimitError as e:
     print(f"Retry after {e.retry_after} seconds")
 except RunFailedError as e:
     print(f"Run {e.run_id} failed: {e}")
+except RunNotFoundError as e:
+    print(f"Run {e.run_id} not found — may have been cleaned up")
+except PaymentRequiredError as e:
+    print(e.suggestion)  # "Attach a payment method with engine.add_payment_method(...)"
 except TimeoutError:
     pass  # Retrieve later with engine.wait_for_completion(run_id)
 ```
@@ -360,7 +411,7 @@ All errors include a `suggestion` field with actionable instructions.
 
 ## MCP Server
 
-Discovery Engine is available as an [MCP server](https://disco.leap-labs.com/.well-known/mcp.json) with tools for the full discovery lifecycle — estimate, analyze, check status, get results, manage account.
+Discovery Engine is available as an [MCP server](https://disco.leap-labs.com/.well-known/mcp.json) with tools for the full discovery lifecycle — estimate, analyze, check status, get results, manage account. To subscribe or purchase credits via MCP, call `discovery_add_payment_method` first to attach a Stripe payment method.
 
 ```json
 {

@@ -1,11 +1,17 @@
 {
   "owner": "jessicarumbelow",
   "slug": "discovery-engine",
-  "displayName": "Discovery Engine",
+  "displayName": "Discovery",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773808417284,
-    "commit": "https://github.com/openclaw/skills/commit/ae36d8a5a8ad2a21318d4d737ae4d1801addbd22"
+    "version": "0.2.80",
+    "publishedAt": 1774041768263,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773808417284,
+      "commit": "https://github.com/openclaw/skills/commit/ae36d8a5a8ad2a21318d4d737ae4d1801addbd22"
+    }
+  ]
 }
