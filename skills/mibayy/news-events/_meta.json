@@ -1,0 +1,11 @@
+{
+  "owner": "mibayy",
+  "slug": "news-events",
+  "displayName": "Polymarket News Events",
+  "latest": {
+    "version": "2.0.3",
+    "publishedAt": 1774067408423,
+    "commit": null
+  },
+  "history": []
+}
