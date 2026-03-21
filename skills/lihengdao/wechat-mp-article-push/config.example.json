@@ -22,7 +22,7 @@
     "accountId": "custom 模式时与根级 accountId 一致；default 可省略。"
   },
   "version": 1,
-  "description": "由配置向导生成；示例占位。",
+  "description": "由用户通过配置向导动态生成；示例占位。",
   "apiBase": "https://api.pcloud.ac.cn/openClawService",
   "openId": "oXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "pushMode": "default",

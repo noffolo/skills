@@ -3,11 +3,16 @@
   "slug": "wechat-mp-article-push",
   "displayName": "Wechat Mp Article Push",
   "latest": {
-    "version": "2.0.6",
-    "publishedAt": 1773908146223,
-    "commit": "https://github.com/openclaw/skills/commit/918f884d6fda5573a17ea092496605bb97bb8cbc"
+    "version": "2.0.17",
+    "publishedAt": 1773970466981,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.6",
+      "publishedAt": 1773908146223,
+      "commit": "https://github.com/openclaw/skills/commit/918f884d6fda5573a17ea092496605bb97bb8cbc"
+    },
     {
       "version": "2.0.0",
       "publishedAt": 1773894506922,

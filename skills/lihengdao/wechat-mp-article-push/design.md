@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## 1. 基础结构
 
-**单html文件，文件名YYYYMMDD_related_name.html**
+**单 html 文件，文件名 YYYYMMDD_related_name.html**
 
 ```html
 <!DOCTYPE html>
@@ -28,7 +28,9 @@ alwaysApply: true
 </head>
 <body>
     <div class="design-container">
-        <!-- 内容 -->
+        <div class="content-container">
+            <!-- 内容直接放置段落元素，禁止嵌套额外容器 -->
+        </div>
     </div>
 </body>
 </html>
@@ -45,9 +47,14 @@ alwaysApply: true
     width: 677px;
     max-width: 100%;
     margin: 0 auto;
-    padding: 0;
+    padding: 0; /* 必须为 0 */
     box-sizing: border-box;
     background-color: #fff;
+}
+
+.content-container {
+    padding: 0; /* 禁止设置任何内边距 */
+    margin: 0;  /* 禁止设置任何外边距 */
 }
 ```
 
@@ -89,14 +96,82 @@ h3 { font-size: clamp(15px, 1.6vw, 16px); font-weight: bold; }
 
 **字体规则：**
 - ❌ 禁止输出文章标题（页面已有 `<title>`）
-- ❌ 禁止输出 `<header>` 标签
-- ❌ 禁止用左边框（`border-left`）装饰标题
+- ❌ 禁止输出 `<header>` 标签及任何标题相关的描述性头部内容
+- ❌ 禁止用左边框（`border-left`）装饰任何级别的标题
 - ❌ 禁止在标题下方加横线装饰
 - ✅ 标题编号：H1 用"一、二、三"，H2 用"1.1、1.2"，H3 用"1.1.1"
+- ✅ 若文章仅有一级标题，字号使用 h3 样式；仅有二级标题，一级用 h2 样式，二级用 h3 样式
 
 ---
 
-## 4. 布局规范
+## 4. 配色规范
+
+### 4.1 色彩数量限制
+
+- ✅ 主色调 1 个：品牌色或主题色
+- ✅ 辅助色 1-2 个：与主色调协调的补充色
+- ✅ 强调色 1 个：用于重点元素
+- ✅ 中性色 2-3 个：灰度系列（文本、背景、边框）
+- ❌ 严禁超过 5 种主体颜色（不含黑白灰）
+- ❌ 绝对禁止紫色及紫色渐变（特殊场景除外）
+
+### 4.2 色彩使用原则
+
+**主色调（Primary Color）**
+- 作用：定义页面整体风格基调，建立品牌识别
+- 选择依据：行业属性、品牌调性、目标用户心理
+- 应用场景：大面积背景、主要容器、标题区域
+
+**辅助色（Secondary Color）**
+- 作用：丰富视觉层次，形成对比但不喧宾夺主
+- 选择依据：与主色调协调（邻近色 / 同色系深浅变化）
+- 应用场景：卡片背景、次级区块
+
+**强调色（Accent Color）**
+- 作用：吸引注意力，突出重要信息
+- 选择依据：高对比度、视觉突出、与主色调区分明显
+- 应用场景：重要数据、状态提示、高亮标注
+
+**中性色（Neutral Colors）**
+- 作用：保证内容可读性，提供视觉缓冲
+- 类型：深色文字、浅色背景、边框阴影
+- 说明：不占主体颜色配额，确保对比度达标
+
+### 4.3 配色策略
+
+根据文章场景选择色彩方向：
+
+| 场景 | 色彩方向 | 说明 |
+|------|----------|------|
+| 专业 / 商务 | 冷色调（蓝、绿、灰） | 传递稳重可靠 |
+| 营销 / 转化 | 暖色调（红、橙、黄） | 激发行动欲望 |
+| 自然 / 健康 | 绿色系 | 传递生态安全感 |
+| 简约 / 设计 | 黑白灰 + 少量强调色 | 体现专业性 |
+| 活力 / 创意 | 高饱和度色彩 | 展现个性活力 |
+
+配色协调方法：
+- 同色系搭配（深浅变化，和谐统一）
+- 邻近色搭配（色相环 ±30-60°，柔和过渡）
+- 对比色搭配（色相环对立，仅用于强调色）
+- 中性色调和（避免色彩冲突，保持专业）
+
+### 4.4 渐变使用规范
+
+- ✅ 允许：同色系渐变（深→浅）、邻近色渐变（色相环 ±60°）
+- ✅ 允许：透明度渐变（同色不同透明度）
+- ❌ 禁止：跨越色相环的对比色渐变（视觉冲突）
+- ❌ 禁止：超过 2 种颜色的多色渐变（过于花哨）
+- 角度建议：`90deg`（垂直）、`135deg`（对角）、`180deg`（水平）
+
+### 4.5 对比度要求（无障碍标准）
+
+- 正文文字与背景对比度 ≥ 4.5:1
+- 标题文字与背景对比度 ≥ 3:1
+- 重点元素与背景对比度 ≥ 3:1
+
+---
+
+## 5. 布局规范
 
 ```css
 /* Flex 布局 */
@@ -121,34 +196,86 @@ h3 { font-size: clamp(15px, 1.6vw, 16px); font-weight: bold; }
 
 ---
 
-## 5. 文章内容规范
+## 6. 文章内容规范
 
-### 段落边距规则
+### 内容输出规则（严格执行）
+
+- ❌ 禁止输出 `<header>` 标签
+- ❌ 禁止输出文章标题或任何标题相关的描述性头部内容
+- ❌ 禁止用左边框（`border-left`）装饰任何级别的标题
+- ✅ `content-container` 内直接放置段落元素（`<p>`、`<section>`、`<div class="highlight">` 等），中间不得嵌套 wrapper / inner 等额外容器
+- ✅ 标题编号使用文字序号，使用主题色文字颜色或渐变背景标注，宽度自适应标题内容
+
+### 段落边距规则（严格执行）
 
 ```css
-/* 内容容器，零边距 */
+/* 内容容器：零边距 */
 .content-container { padding: 0; margin: 0; }
 
-/* 无背景色段落：只允许上下内边距 */
-p, h1, h2, h3 { padding-left: 0; padding-right: 0; }
+/* 无背景色的段落和标题：严禁左右内边距 */
+p, h1, h2, h3, section {
+    padding-left: 0;
+    padding-right: 0;
+}
 
-/* 有背景色段落：四个方向都可以设置内边距 */
+/* 有背景色的段落：四个方向均可设置内边距 */
 .highlight { padding: clamp(10px, 2vw, 16px); }
+```
+
+**边距规则说明：**
+- ✅ 无背景色的段落 / 标题：只允许设置 `padding-top` 和 `padding-bottom`
+- ✅ 有 `background-color` 的段落：四个方向均可设置 `padding`
+- ❌ 无背景色的段落 / 标题：严禁设置 `padding-left` 和 `padding-right`
+
+**代码示例：**
+
+```html
+<div class="design-container" style="padding: 0;">
+    <div class="content-container" style="padding: 0; margin: 0;">
+
+        <!-- ✅ 无背景色段落，无左右内边距 -->
+        <h2>一、标题</h2>
+        <p>正文内容正文内容正文内容</p>
+
+        <!-- ✅ 有背景色段落，可设置四方向内边距 -->
+        <section class="highlight" style="background-color: #f0f7ff; padding: clamp(10px,2vw,16px);">
+            <p>高亮内容</p>
+        </section>
+
+        <!-- ❌ 禁止：嵌套多余容器 -->
+        <!--
+        <div class="wrapper">
+            <p>段落内容</p>
+        </div>
+        -->
+
+    </div>
+</div>
 ```
 
 ### 表格规范
 
 ```css
 .table { width: 100%; border-collapse: collapse; font-size: clamp(13px, 1.1vw, 14px); }
-.table th { background-color: #d6eaf8; padding: 8px; text-align: left; }
-.table td { padding: 8px; border-bottom: 1px solid #eee; }
-/* 斑马纹 */
+.table th { background-color: #d6eaf8; padding: 8px; text-align: left; font-size: clamp(13px, 1.1vw, 14px); }
+.table td { padding: 8px; border-bottom: 1px solid #eee; font-size: clamp(13px, 1.1vw, 14px); }
 .table tr:nth-child(even) td { background-color: #f9f9f9; }
+```
+
+```html
+<table class="table">
+    <thead>
+        <tr><th>列标题</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>内容</td></tr>
+    </tbody>
+</table>
 ```
 
 ---
 
-## 6. 图文卡片（分页）规范
+## 7. 图文卡片（分页）规范
 
 **宽度 375px，默认 3:4 竖图比例，高度 500px**
 
@@ -272,7 +399,7 @@ p, h1, h2, h3 { padding-left: 0; padding-right: 0; }
 
 ---
 
-## 7. CSS 限制
+## 8. CSS 限制
 
 | 禁止 | 替代方案 |
 |------|----------|
@@ -285,7 +412,7 @@ p, h1, h2, h3 { padding-left: 0; padding-right: 0; }
 
 ---
 
-## 8. HTML 标签限制
+## 9. HTML 标签限制
 
 | 禁止 | 替代 |
 |------|------|
@@ -296,7 +423,16 @@ p, h1, h2, h3 { padding-left: 0; padding-right: 0; }
 
 ---
 
-## 9. JavaScript 限制
+## 10. JavaScript 限制
 
 - ❌ 禁止所有事件监听器（`addEventListener`、`onclick`、`onload` 等）
 - ✅ 允许用于初始化渲染（图表初始化、DOM 操作）
+- ⚠️ JavaScript 中设置样式属性必须使用固定值，不能使用 `clamp()`
+
+```javascript
+/* ❌ 错误：JS 中不能用 clamp() */
+element.style.fontSize = 'clamp(16px, 1.4vw, 18px)';
+
+/* ✅ 正确：JS 中使用固定值 */
+element.style.fontSize = '16px';
+```
