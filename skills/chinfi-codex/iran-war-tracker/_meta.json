@@ -1,11 +1,17 @@
 {
   "owner": "chinfi-codex",
   "slug": "iran-war-tracker",
-  "displayName": "伊朗动态播报",
+  "displayName": "Iran War Tracker",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773822449040,
-    "commit": "https://github.com/openclaw/skills/commit/9f3ab06e6f51af6a3f87c321a68ef5210b8f2dd9"
+    "version": "1.0.2",
+    "publishedAt": 1773835387533,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773822449040,
+      "commit": "https://github.com/openclaw/skills/commit/9f3ab06e6f51af6a3f87c321a68ef5210b8f2dd9"
+    }
+  ]
 }
