@@ -1,0 +1,11 @@
+{
+  "owner": "porteden",
+  "slug": "logger",
+  "displayName": "Log Automation — Append log entries to Google Sheet",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773797708057,
+    "commit": null
+  },
+  "history": []
+}
