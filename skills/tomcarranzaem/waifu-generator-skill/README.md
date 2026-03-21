@@ -1,6 +1,6 @@
 # Waifu Generator
 
-Generate stunning waifu generator ai image generator images from any text description using AI. Powered by the Neta talesofai API — get a direct image URL back in seconds.
+Generate stunning **waifu generator ai image generator** images from a text prompt using AI. Powered by the Neta talesofai API — returns a direct image URL in seconds.
 
 ---
 
@@ -25,34 +25,47 @@ clawhub install waifu-generator-skill
 node waifugenerator.js
 
 # Custom prompt
-node waifugenerator.js "cute anime girl with silver hair, cherry blossoms"
+node waifugenerator.js "beautiful anime girl, cherry blossoms, soft lighting"
 
-# With size option
-node waifugenerator.js "warrior princess, epic pose" --size landscape
+# Portrait size (default)
+node waifugenerator.js "silver hair mage" --size portrait
 
-# With explicit token
-node waifugenerator.js "magical fox spirit" --token YOUR_NETA_TOKEN
+# Landscape
+node waifugenerator.js "ocean sunset scene" --size landscape
+
+# Square
+node waifugenerator.js "cute chibi character" --size square
+
+# Tall
+node waifugenerator.js "full body character art" --size tall
+
+# Use a reference image (by picture UUID)
+node waifugenerator.js "same character, winter outfit" --ref <picture_uuid>
+
+# Pass token directly
+node waifugenerator.js "fantasy warrior" --token YOUR_NETA_TOKEN
 ```
 
-The script prints the image URL to stdout when generation completes.
+The script prints the final image URL to stdout on success.
 
 ---
 
 ## Options
 
-| Option    | Values                                      | Default    | Description               |
-|-----------|---------------------------------------------|------------|---------------------------|
-| `--size`  | `portrait`, `landscape`, `square`, `tall`   | `portrait` | Output image dimensions   |
-| `--token` | string                                      | _(auto)_   | Neta API token (optional) |
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `--size` | `portrait`, `landscape`, `square`, `tall` | `portrait` | Output image dimensions |
+| `--token` | string | — | Neta API token (overrides env) |
+| `--ref` | picture_uuid | — | Reference image UUID for style inheritance |
 
 ### Size dimensions
 
-| Size        | Width | Height |
-|-------------|-------|--------|
-| `portrait`  | 832   | 1216   |
-| `landscape` | 1216  | 832    |
-| `square`    | 1024  | 1024   |
-| `tall`      | 704   | 1408   |
+| Size | Width | Height |
+|------|-------|--------|
+| `square` | 1024 | 1024 |
+| `portrait` | 832 | 1216 |
+| `landscape` | 1216 | 832 |
+| `tall` | 704 | 1408 |
 
 ---
 
@@ -62,15 +75,15 @@ The script resolves your `NETA_TOKEN` in this order:
 
 1. `--token` CLI flag
 2. `NETA_TOKEN` environment variable
-3. `~/.openclaw/workspace/.env` file
-4. `~/developer/clawhouse/.env` file
+3. `~/.openclaw/workspace/.env` (line matching `NETA_TOKEN=...`)
+4. `~/developer/clawhouse/.env` (line matching `NETA_TOKEN=...`)
 
 **Recommended:** add to your shell profile or `.env` file:
 ```bash
 export NETA_TOKEN=your_token_here
 ```
 
-Or place in `~/.openclaw/workspace/.env`:
+Or store it in `~/.openclaw/workspace/.env`:
 ```
 NETA_TOKEN=your_token_here
 ```
@@ -80,17 +93,14 @@ NETA_TOKEN=your_token_here
 ## Examples
 
 ```bash
-# Portrait waifu (default)
-node waifugenerator.js "elegant maid, soft lighting, pastel colors"
+# Anime portrait
+node waifugenerator.js "waifu in school uniform, detailed anime art, soft colors"
 
-# Landscape scene
-node waifugenerator.js "samurai girl at sunset" --size landscape
+# Action pose landscape
+node waifugenerator.js "anime warrior girl, dynamic pose, glowing sword" --size landscape
 
-# Square avatar
-node waifugenerator.js "chibi dragon girl, big eyes" --size square
-
-# Tall full-body
-node waifugenerator.js "tall elf ranger, forest background" --size tall
+# Full body tall
+node waifugenerator.js "elf princess, long silver hair, fantasy armor" --size tall
 ```
 
 ---
