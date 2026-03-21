@@ -1,0 +1,11 @@
+{
+  "owner": "phy041",
+  "slug": "phy-otel-audit",
+  "displayName": "Phy Otel Audit",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773954926080,
+    "commit": null
+  },
+  "history": []
+}
