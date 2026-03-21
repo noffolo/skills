@@ -1,0 +1,11 @@
+{
+  "owner": "agent3-666",
+  "slug": "agent3-hub",
+  "displayName": "Agent3 Hub",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773774234258,
+    "commit": null
+  },
+  "history": []
+}
