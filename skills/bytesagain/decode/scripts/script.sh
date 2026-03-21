@@ -1,332 +1,250 @@
 #!/usr/bin/env bash
-# Decode — devtools tool
+# decode — Encoder/decoder tool
 # Powered by BytesAgain | bytesagain.com | hello@bytesagain.com
 set -euo pipefail
+VERSION="3.0.1"
 
-DATA_DIR="${HOME}/.local/share/decode"
-mkdir -p "$DATA_DIR"
+BOLD='\033[1m'; GREEN='\033[0;32m'; RED='\033[0;31m'; RESET='\033[0m'
+die() { echo -e "${RED}Error: $1${RESET}" >&2; exit 1; }
 
-_log() { echo "$(date '+%m-%d %H:%M') $1: $2" >> "$DATA_DIR/history.log"; }
-
-_version() { echo "decode v2.0.0"; }
-
-_help() {
-    echo "Decode v2.0.0 — devtools toolkit"
-    echo ""
-    echo "Usage: decode <command> [args]"
-    echo ""
-    echo "Commands:"
-    echo "  check              Check"
-    echo "  validate           Validate"
-    echo "  generate           Generate"
-    echo "  format             Format"
-    echo "  lint               Lint"
-    echo "  explain            Explain"
-    echo "  convert            Convert"
-    echo "  template           Template"
-    echo "  diff               Diff"
-    echo "  preview            Preview"
-    echo "  fix                Fix"
-    echo "  report             Report"
-    echo "  stats              Summary statistics"
-    echo "  export <fmt>       Export (json|csv|txt)"
-    echo "  status             Health check"
-    echo "  help               Show this help"
-    echo "  version            Show version"
-    echo ""
-    echo "Data: $DATA_DIR"
-}
-
-_stats() {
-    echo "=== Decode Stats ==="
-    local total=0
-    for f in "$DATA_DIR"/*.log; do
-        [ -f "$f" ] || continue
-        local name=$(basename "$f" .log)
-        local c=$(wc -l < "$f")
-        total=$((total + c))
-        echo "  $name: $c entries"
-    done
-    echo "  ---"
-    echo "  Total: $total entries"
-    echo "  Data size: $(du -sh "$DATA_DIR" 2>/dev/null | cut -f1)"
-    echo "  Since: $(head -1 "$DATA_DIR/history.log" 2>/dev/null | cut -d'|' -f1 || echo 'N/A')"
-}
-
-_export() {
-    local fmt="${1:-json}"
-    local out="$DATA_DIR/export.$fmt"
-    case "$fmt" in
-        json)
-            echo "[" > "$out"
-            local first=1
-            for f in "$DATA_DIR"/*.log; do
-                [ -f "$f" ] || continue
-                local name=$(basename "$f" .log)
-                while IFS='|' read -r ts val; do
-                    [ $first -eq 1 ] && first=0 || echo "," >> "$out"
-                    printf '  {"type":"%s","time":"%s","value":"%s"}' "$name" "$ts" "$val" >> "$out"
-                done < "$f"
-            done
-            echo "" >> "$out"
-            echo "]" >> "$out"
-            ;;
-        csv)
-            echo "type,time,value" > "$out"
-            for f in "$DATA_DIR"/*.log; do
-                [ -f "$f" ] || continue
-                local name=$(basename "$f" .log)
-                while IFS='|' read -r ts val; do
-                    echo "$name,$ts,$val" >> "$out"
-                done < "$f"
-            done
-            ;;
-        txt)
-            echo "=== Decode Export ===" > "$out"
-            for f in "$DATA_DIR"/*.log; do
-                [ -f "$f" ] || continue
-                echo "--- $(basename "$f" .log) ---" >> "$out"
-                cat "$f" >> "$out"
-                echo "" >> "$out"
-            done
-            ;;
-        *) echo "Formats: json, csv, txt"; return 1 ;;
-    esac
-    echo "Exported to $out ($(wc -c < "$out") bytes)"
-}
-
-_status() {
-    echo "=== Decode Status ==="
-    echo "  Version: v2.0.0"
-    echo "  Data dir: $DATA_DIR"
-    echo "  Entries: $(cat "$DATA_DIR"/*.log 2>/dev/null | wc -l) total"
-    echo "  Disk: $(du -sh "$DATA_DIR" 2>/dev/null | cut -f1)"
-    local last=$(tail -1 "$DATA_DIR/history.log" 2>/dev/null || echo "never")
-    echo "  Last activity: $last"
-    echo "  Status: OK"
-}
-
-_search() {
-    local term="${1:?Usage: decode search <term>}"
-    echo "Searching for: $term"
-    local found=0
-    for f in "$DATA_DIR"/*.log; do
-        [ -f "$f" ] || continue
-        local matches=$(grep -i "$term" "$f" 2>/dev/null || true)
-        if [ -n "$matches" ]; then
-            echo "  --- $(basename "$f" .log) ---"
-            echo "$matches" | while read -r line; do
-                echo "    $line"
-                found=$((found + 1))
-            done
-        fi
-    done
-    [ $found -eq 0 ] && echo "  No matches found."
-}
-
-_recent() {
-    echo "=== Recent Activity ==="
-    if [ -f "$DATA_DIR/history.log" ]; then
-        tail -20 "$DATA_DIR/history.log" | while IFS='' read -r line; do
-            echo "  $line"
-        done
+# === base64-encode ===
+cmd_base64_encode() {
+    local input="${1:?Usage: decode base64-encode <text or file>}"
+    if [ -f "$input" ]; then
+        base64 "$input"
     else
-        echo "  No activity yet."
+        echo -n "$input" | base64
     fi
 }
 
-# Main dispatch
-case "${1:-help}" in
-    check)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent check entries:"
-            tail -20 "$DATA_DIR/check.log" 2>/dev/null || echo "  No entries yet. Use: decode check <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/check.log"
-            local total=$(wc -l < "$DATA_DIR/check.log")
-            echo "  [Decode] check: $input"
-            echo "  Saved. Total check entries: $total"
-            _log "check" "$input"
+# === base64-decode ===
+cmd_base64_decode() {
+    local input="${1:?Usage: decode base64-decode <encoded-text>}"
+    if [ -f "$input" ]; then
+        base64 -d "$input"
+    else
+        echo -n "$input" | base64 -d 2>/dev/null || die "Invalid base64 input"
+    fi
+    echo ""
+}
+
+# === url-encode ===
+cmd_url_encode() {
+    local input="${1:?Usage: decode url-encode <text>}"
+    python3 -c "
+import sys
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
+print(quote(sys.argv[1], safe=''))
+" "$input"
+}
+
+# === url-decode ===
+cmd_url_decode() {
+    local input="${1:?Usage: decode url-decode <encoded-text>}"
+    python3 -c "
+import sys
+try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib import unquote
+print(unquote(sys.argv[1]))
+" "$input"
+}
+
+# === hex-encode ===
+cmd_hex_encode() {
+    local input="${1:?Usage: decode hex-encode <text>}"
+    echo -n "$input" | xxd -p | tr -d '\n'
+    echo ""
+}
+
+# === hex-decode ===
+cmd_hex_decode() {
+    local input="${1:?Usage: decode hex-decode <hex-string>}"
+    echo -n "$input" | xxd -r -p 2>/dev/null || die "Invalid hex input"
+    echo ""
+}
+
+# === jwt-decode ===
+cmd_jwt_decode() {
+    local token="${1:?Usage: decode jwt-decode <jwt-token>}"
+
+    # JWT = header.payload.signature
+    local header payload
+    header=$(echo -n "$token" | cut -d. -f1)
+    payload=$(echo -n "$token" | cut -d. -f2)
+
+    [ -z "$header" ] && die "Invalid JWT: missing header"
+    [ -z "$payload" ] && die "Invalid JWT: missing payload"
+
+    # Fix base64url padding
+    _b64url_decode() {
+        local data="$1"
+        # Replace URL-safe chars
+        data=$(echo -n "$data" | tr '_-' '/+')
+        # Add padding
+        local pad=$((4 - ${#data} % 4))
+        [ "$pad" -lt 4 ] && data="${data}$(printf '%0.s=' $(seq 1 $pad))"
+        echo -n "$data" | base64 -d 2>/dev/null
+    }
+
+    echo -e "${BOLD}JWT Token${RESET}"
+    echo ""
+    echo -e "${BOLD}Header:${RESET}"
+    _b64url_decode "$header" | python3 -c "import json,sys; print(json.dumps(json.load(sys.stdin),indent=2))" 2>/dev/null || echo "  (decode failed)"
+    echo ""
+    echo -e "${BOLD}Payload:${RESET}"
+    _b64url_decode "$payload" | python3 -c "
+import json, sys, time
+data = json.load(sys.stdin)
+for k,v in data.items():
+    if k in ('exp','iat','nbf') and isinstance(v, (int,float)):
+        ts = time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(v))
+        print('  {}: {} ({})'.format(k, v, ts))
+    else:
+        print('  {}: {}'.format(k, v))
+" 2>/dev/null || echo "  (decode failed)"
+    echo ""
+    echo -e "${BOLD}Signature:${RESET}"
+    echo "  $(echo -n "$token" | cut -d. -f3 | head -c 40)..."
+}
+
+# === html-encode ===
+cmd_html_encode() {
+    local input="${1:?Usage: decode html-encode <text>}"
+    python3 -c "
+import sys
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
+print(escape(sys.argv[1]))
+" "$input"
+}
+
+# === html-decode ===
+cmd_html_decode() {
+    local input="${1:?Usage: decode html-decode <encoded-text>}"
+    python3 -c "
+import sys
+try:
+    from html import unescape
+except ImportError:
+    from HTMLParser import HTMLParser
+    unescape = HTMLParser().unescape
+print(unescape(sys.argv[1]))
+" "$input"
+}
+
+# === rot13 ===
+cmd_rot13() {
+    local input="${1:?Usage: decode rot13 <text>}"
+    echo -n "$input" | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+    echo ""
+}
+
+# === binary ===
+cmd_binary_encode() {
+    local input="${1:?Usage: decode binary <text>}"
+    echo -n "$input" | xxd -b | awk '{for(i=2;i<=7;i++) printf "%s ", $i; print ""}'
+}
+
+# === detect: auto-detect encoding ===
+cmd_detect() {
+    local input="${1:?Usage: decode detect <text>}"
+
+    echo -e "${BOLD}Encoding Detection${RESET}"
+
+    # Check base64
+    if echo -n "$input" | base64 -d > /dev/null 2>&1; then
+        local decoded
+        decoded=$(echo -n "$input" | base64 -d 2>/dev/null)
+        if [ -n "$decoded" ] && echo "$input" | grep -qE '^[A-Za-z0-9+/=]+$'; then
+            echo "  Base64 → $decoded"
         fi
-        ;;
-    validate)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent validate entries:"
-            tail -20 "$DATA_DIR/validate.log" 2>/dev/null || echo "  No entries yet. Use: decode validate <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/validate.log"
-            local total=$(wc -l < "$DATA_DIR/validate.log")
-            echo "  [Decode] validate: $input"
-            echo "  Saved. Total validate entries: $total"
-            _log "validate" "$input"
+    fi
+
+    # Check JWT
+    local dots
+    dots=$(echo -n "$input" | tr -cd '.' | wc -c)
+    if [ "$dots" -eq 2 ]; then
+        echo "  JWT detected (use: decode jwt-decode)"
+    fi
+
+    # Check URL encoding
+    if echo "$input" | grep -q '%[0-9A-Fa-f][0-9A-Fa-f]'; then
+        echo "  URL-encoded → $(cmd_url_decode "$input")"
+    fi
+
+    # Check hex
+    if echo "$input" | grep -qE '^[0-9a-fA-F]+$' && [ $((${#input} % 2)) -eq 0 ]; then
+        local hex_decoded
+        hex_decoded=$(echo -n "$input" | xxd -r -p 2>/dev/null)
+        if [ -n "$hex_decoded" ]; then
+            echo "  Hex → $hex_decoded"
         fi
-        ;;
-    generate)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent generate entries:"
-            tail -20 "$DATA_DIR/generate.log" 2>/dev/null || echo "  No entries yet. Use: decode generate <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/generate.log"
-            local total=$(wc -l < "$DATA_DIR/generate.log")
-            echo "  [Decode] generate: $input"
-            echo "  Saved. Total generate entries: $total"
-            _log "generate" "$input"
-        fi
-        ;;
-    format)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent format entries:"
-            tail -20 "$DATA_DIR/format.log" 2>/dev/null || echo "  No entries yet. Use: decode format <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/format.log"
-            local total=$(wc -l < "$DATA_DIR/format.log")
-            echo "  [Decode] format: $input"
-            echo "  Saved. Total format entries: $total"
-            _log "format" "$input"
-        fi
-        ;;
-    lint)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent lint entries:"
-            tail -20 "$DATA_DIR/lint.log" 2>/dev/null || echo "  No entries yet. Use: decode lint <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/lint.log"
-            local total=$(wc -l < "$DATA_DIR/lint.log")
-            echo "  [Decode] lint: $input"
-            echo "  Saved. Total lint entries: $total"
-            _log "lint" "$input"
-        fi
-        ;;
-    explain)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent explain entries:"
-            tail -20 "$DATA_DIR/explain.log" 2>/dev/null || echo "  No entries yet. Use: decode explain <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/explain.log"
-            local total=$(wc -l < "$DATA_DIR/explain.log")
-            echo "  [Decode] explain: $input"
-            echo "  Saved. Total explain entries: $total"
-            _log "explain" "$input"
-        fi
-        ;;
-    convert)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent convert entries:"
-            tail -20 "$DATA_DIR/convert.log" 2>/dev/null || echo "  No entries yet. Use: decode convert <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/convert.log"
-            local total=$(wc -l < "$DATA_DIR/convert.log")
-            echo "  [Decode] convert: $input"
-            echo "  Saved. Total convert entries: $total"
-            _log "convert" "$input"
-        fi
-        ;;
-    template)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent template entries:"
-            tail -20 "$DATA_DIR/template.log" 2>/dev/null || echo "  No entries yet. Use: decode template <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/template.log"
-            local total=$(wc -l < "$DATA_DIR/template.log")
-            echo "  [Decode] template: $input"
-            echo "  Saved. Total template entries: $total"
-            _log "template" "$input"
-        fi
-        ;;
-    diff)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent diff entries:"
-            tail -20 "$DATA_DIR/diff.log" 2>/dev/null || echo "  No entries yet. Use: decode diff <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/diff.log"
-            local total=$(wc -l < "$DATA_DIR/diff.log")
-            echo "  [Decode] diff: $input"
-            echo "  Saved. Total diff entries: $total"
-            _log "diff" "$input"
-        fi
-        ;;
-    preview)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent preview entries:"
-            tail -20 "$DATA_DIR/preview.log" 2>/dev/null || echo "  No entries yet. Use: decode preview <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/preview.log"
-            local total=$(wc -l < "$DATA_DIR/preview.log")
-            echo "  [Decode] preview: $input"
-            echo "  Saved. Total preview entries: $total"
-            _log "preview" "$input"
-        fi
-        ;;
-    fix)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent fix entries:"
-            tail -20 "$DATA_DIR/fix.log" 2>/dev/null || echo "  No entries yet. Use: decode fix <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/fix.log"
-            local total=$(wc -l < "$DATA_DIR/fix.log")
-            echo "  [Decode] fix: $input"
-            echo "  Saved. Total fix entries: $total"
-            _log "fix" "$input"
-        fi
-        ;;
-    report)
-        shift
-        if [ $# -eq 0 ]; then
-            echo "Recent report entries:"
-            tail -20 "$DATA_DIR/report.log" 2>/dev/null || echo "  No entries yet. Use: decode report <input>"
-        else
-            local input="$*"
-            local ts=$(date '+%Y-%m-%d %H:%M')
-            echo "$ts|$input" >> "$DATA_DIR/report.log"
-            local total=$(wc -l < "$DATA_DIR/report.log")
-            echo "  [Decode] report: $input"
-            echo "  Saved. Total report entries: $total"
-            _log "report" "$input"
-        fi
-        ;;
-    stats) _stats ;;
-    export) shift; _export "$@" ;;
-    search) shift; _search "$@" ;;
-    recent) _recent ;;
-    status) _status ;;
-    help|--help|-h) _help ;;
-    version|--version|-v) _version ;;
-    *)
-        echo "Unknown command: $1"
-        echo "Run 'decode help' for available commands."
-        exit 1
-        ;;
+    fi
+
+    # Check HTML entities
+    if echo "$input" | grep -q '&[a-z]*;'; then
+        echo "  HTML-encoded → $(cmd_html_decode "$input")"
+    fi
+}
+
+show_help() {
+    cat << EOF
+decode v$VERSION — Encoder/decoder tool
+
+Usage: decode <command> <input>
+
+Base64:
+  base64-encode <text|file>     Encode to base64
+  base64-decode <encoded>       Decode from base64
+
+URL:
+  url-encode <text>             URL-encode text
+  url-decode <encoded>          URL-decode text
+
+Hex:
+  hex-encode <text>             Convert to hex
+  hex-decode <hex>              Convert from hex
+
+Web:
+  html-encode <text>            HTML entity encode
+  html-decode <encoded>         HTML entity decode
+  jwt-decode <token>            Decode JWT token (header + payload + timestamps)
+
+Other:
+  rot13 <text>                  ROT13 cipher
+  binary <text>                 Show binary representation
+  detect <text>                 Auto-detect encoding and decode
+
+  help                          Show this help
+  version                       Show version
+
+Requires: base64, xxd, python3
+EOF
+}
+
+[ $# -eq 0 ] && { show_help; exit 0; }
+
+case "$1" in
+    base64-encode|b64e)  shift; cmd_base64_encode "$@" ;;
+    base64-decode|b64d)  shift; cmd_base64_decode "$@" ;;
+    url-encode|urle)     shift; cmd_url_encode "$@" ;;
+    url-decode|urld)     shift; cmd_url_decode "$@" ;;
+    hex-encode|hexe)     shift; cmd_hex_encode "$@" ;;
+    hex-decode|hexd)     shift; cmd_hex_decode "$@" ;;
+    jwt-decode|jwt)      shift; cmd_jwt_decode "$@" ;;
+    html-encode)         shift; cmd_html_encode "$@" ;;
+    html-decode)         shift; cmd_html_decode "$@" ;;
+    rot13)               shift; cmd_rot13 "$@" ;;
+    binary|bin)          shift; cmd_binary_encode "$@" ;;
+    detect|auto)         shift; cmd_detect "$@" ;;
+    help|-h)             show_help ;;
+    version|-v)          echo "decode v$VERSION"; echo "Powered by BytesAgain | bytesagain.com | hello@bytesagain.com" ;;
+    *)                   echo "Unknown: $1"; show_help; exit 1 ;;
 esac

@@ -3,9 +3,15 @@
   "slug": "decode",
   "displayName": "Decode",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773673719075,
-    "commit": "https://github.com/openclaw/skills/commit/8c6242365d99f0e0bb41293db238ef5582f74f6c"
+    "version": "3.0.1",
+    "publishedAt": 1773914021283,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773673719075,
+      "commit": "https://github.com/openclaw/skills/commit/8c6242365d99f0e0bb41293db238ef5582f74f6c"
+    }
+  ]
 }

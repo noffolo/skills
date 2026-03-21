@@ -1,89 +1,120 @@
 ---
 name: decode
-version: "2.0.0"
+version: "3.0.1"
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 license: MIT-0
 tags: [decode, tool, utility]
-description: "Decode - command-line tool for everyday use"
+description: "Decode base64, URLs, JWTs, and encoded formats into readable text. Use when decoding base64, parsing JWT tokens, inspecting encoded payloads."
 ---
 
-# Decode
+# decode
 
-Decoder toolkit — base64 decode, URL decode, JWT decode, and format parsing.
+Encoder/decoder tool.
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `decode help` | Show usage info |
-| `decode run` | Run main task |
-| `decode status` | Check state |
-| `decode list` | List items |
-| `decode add <item>` | Add item |
-| `decode export <fmt>` | Export data |
+### `base64-encode`
 
-## Usage
+Encode to base64
 
 ```bash
-decode help
-decode run
-decode status
+scripts/script.sh base64-encode <text|file>
 ```
 
-## Examples
+### `base64-decode`
+
+Decode from base64
 
 ```bash
-decode help
-decode run
-decode export json
+scripts/script.sh base64-decode <encoded>
 ```
 
-## Output
+### `url-encode`
 
-Results go to stdout. Save with `decode run > output.txt`.
+URL-encode text
 
-## Configuration
+```bash
+scripts/script.sh url-encode <text>
+```
 
-Set `DECODE_DIR` to change data directory. Default: `~/.local/share/decode/`
+### `url-decode`
+
+URL-decode text
+
+```bash
+scripts/script.sh url-decode <encoded>
+```
+
+### `hex-encode`
+
+Convert to hex
+
+```bash
+scripts/script.sh hex-encode <text>
+```
+
+### `hex-decode`
+
+Convert from hex
+
+```bash
+scripts/script.sh hex-decode <hex>
+```
+
+### `html-encode`
+
+HTML entity encode
+
+```bash
+scripts/script.sh html-encode <text>
+```
+
+### `html-decode`
+
+HTML entity decode
+
+```bash
+scripts/script.sh html-decode <encoded>
+```
+
+### `jwt-decode`
+
+Decode JWT token (header + payload + timestamps)
+
+```bash
+scripts/script.sh jwt-decode <token>
+```
+
+### `rot13`
+
+ROT13 cipher
+
+```bash
+scripts/script.sh rot13 <text>
+```
+
+### `binary`
+
+Show binary representation
+
+```bash
+scripts/script.sh binary <text>
+```
+
+### `detect`
+
+Auto-detect encoding and decode
+
+```bash
+scripts/script.sh detect <text>
+```
+
+## Requirements
+
+- python3
 
 ---
-*Powered by BytesAgain | bytesagain.com*
-*Feedback & Feature Requests: https://bytesagain.com/feedback*
 
-
-## Features
-
-- Simple command-line interface for quick access
-- Local data storage with JSON/CSV export
-- History tracking and activity logs
-- Search across all entries
-- Status monitoring and health checks
-- No external dependencies required
-
-## Quick Start
-
-```bash
-# Check status
-decode status
-
-# View help and available commands
-decode help
-
-# View statistics
-decode stats
-
-# Export your data
-decode export json
-```
-
-## How It Works
-
-Decode stores all data locally in `~/.local/share/decode/`. Each command logs activity with timestamps for full traceability. Use `stats` to see a summary, or `export` to back up your data in JSON, CSV, or plain text format.
-
-## Support
-
-- Feedback: https://bytesagain.com/feedback/
-- Website: https://bytesagain.com
-- Email: hello@bytesagain.com
-
-Powered by BytesAgain | bytesagain.com
+*Powered by BytesAgain | bytesagain.com | hello@bytesagain.com*
