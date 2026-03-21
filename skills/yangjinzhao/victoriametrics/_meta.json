@@ -3,9 +3,15 @@
   "slug": "victoriametrics",
   "displayName": "VictoriaMetrics",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773985590409,
-    "commit": "https://github.com/openclaw/skills/commit/9f0b0cb109e0aa8ccea967341013786faeed399e"
+    "version": "1.1.0",
+    "publishedAt": 1773986827144,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773985590409,
+      "commit": "https://github.com/openclaw/skills/commit/9f0b0cb109e0aa8ccea967341013786faeed399e"
+    }
+  ]
 }
