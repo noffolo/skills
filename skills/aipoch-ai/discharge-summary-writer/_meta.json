@@ -1,0 +1,11 @@
+{
+  "owner": "aipoch-ai",
+  "slug": "discharge-summary-writer",
+  "displayName": "Discharge Summary Writer",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1773888753635,
+    "commit": null
+  },
+  "history": []
+}
