@@ -3,9 +3,15 @@
   "slug": "long-term-task-memory",
   "displayName": "long-term-task-memory",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773820870732,
-    "commit": "https://github.com/openclaw/skills/commit/bb587aa86693960fd708c5c686192f3450b0108b"
+    "version": "1.0.2",
+    "publishedAt": 1773989416373,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773820870732,
+      "commit": "https://github.com/openclaw/skills/commit/bb587aa86693960fd708c5c686192f3450b0108b"
+    }
+  ]
 }
