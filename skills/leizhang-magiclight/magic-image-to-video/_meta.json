@@ -3,9 +3,15 @@
   "slug": "magic-image-to-video",
   "displayName": "magic-image-to-video",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773756042895,
-    "commit": "https://github.com/openclaw/skills/commit/f3c1d2707b88e250bf372425d3769cb8b05208f6"
+    "version": "1.0.1",
+    "publishedAt": 1773891300127,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773756042895,
+      "commit": "https://github.com/openclaw/skills/commit/f3c1d2707b88e250bf372425d3769cb8b05208f6"
+    }
+  ]
 }

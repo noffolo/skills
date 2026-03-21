@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import certifi
 
 
-BASE_URL = "https://open-test.magiclight.ai"
+BASE_URL = "https://open.magiclight.ai"
 
 
 def _get_ssl_context() -> ssl.SSLContext:
