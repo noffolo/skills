@@ -3,9 +3,15 @@
   "slug": "glm-ocr-sdk",
   "displayName": "GLM-OCR-SDK",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773830050493,
-    "commit": "https://github.com/openclaw/skills/commit/206cec77e40d08e20578ef776b35ed68ca7fe131"
+    "version": "1.0.2",
+    "publishedAt": 1773836043278,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773830050493,
+      "commit": "https://github.com/openclaw/skills/commit/206cec77e40d08e20578ef776b35ed68ca7fe131"
+    }
+  ]
 }
