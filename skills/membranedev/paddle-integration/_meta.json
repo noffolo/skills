@@ -1,0 +1,11 @@
+{
+  "owner": "membranedev",
+  "slug": "paddle-integration",
+  "displayName": "Paddle",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774105357196,
+    "commit": null
+  },
+  "history": []
+}
