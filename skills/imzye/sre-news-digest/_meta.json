@@ -1,0 +1,11 @@
+{
+  "owner": "imzye",
+  "slug": "sre-news-digest",
+  "displayName": "Daily SRE News Digest",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1774149556751,
+    "commit": null
+  },
+  "history": []
+}
