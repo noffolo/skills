@@ -1,0 +1,8 @@
+{
+  "name": "OpenClaw 快速启动指南",
+  "version": "1.0.0",
+  "description": "中文用户 5 分钟上手 OpenClaw - 环境检查、AI 模型配置、平台连接",
+  "author": "yang1002378395-cmyk",
+  "tags": ["openclaw", "chinese", "quickstart", "beginner", "deepseek", "zhipu", "qwen"],
+  "license": "MIT"
+}
