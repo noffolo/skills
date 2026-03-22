@@ -1,0 +1,11 @@
+{
+  "owner": "zw008",
+  "slug": "vmware-storage",
+  "displayName": "Vmware Storage",
+  "latest": {
+    "version": "1.2.1",
+    "publishedAt": 1774144564662,
+    "commit": null
+  },
+  "history": []
+}
