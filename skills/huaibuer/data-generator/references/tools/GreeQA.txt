@@ -1,0 +1,3 @@
+**智能家居类知识查询工具 GreeQA**
+   - 工具调用格式：<tool_call>{"tool_name":"GreeQA","query":"xxx"}</tool_call>
+   - query 不允许改写用户指令，需与用户指令保持一致。
