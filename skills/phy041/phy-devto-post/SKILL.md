@@ -1,6 +1,7 @@
 ---
 name: devto-post
 description: Post articles to DEV.to using AppleScript Chrome control. Use when user wants to publish technical blog posts, showdev articles, or open source project announcements to DEV.to. Triggers on "post to dev.to", "publish on dev.to", "devto article", "write dev.to post", or any DEV.to publishing request.
+homepage: https://canlah.ai
 ---
 
 # DEV.to Article Posting Skill (AppleScript Chrome Control)

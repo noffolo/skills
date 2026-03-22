@@ -1,11 +1,17 @@
 {
   "owner": "phy041",
   "slug": "phy-devto-post",
-  "displayName": "phy-devto-post",
+  "displayName": "Phy Devto Post",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773550687524,
-    "commit": "https://github.com/openclaw/skills/commit/83e6a31de01998724c291c0cb101919da9ceb157"
+    "version": "1.0.1",
+    "publishedAt": 1774181390508,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773550687524,
+      "commit": "https://github.com/openclaw/skills/commit/83e6a31de01998724c291c0cb101919da9ceb157"
+    }
+  ]
 }
