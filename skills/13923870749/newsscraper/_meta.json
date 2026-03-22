@@ -1,0 +1,11 @@
+{
+  "owner": "13923870749",
+  "slug": "newsscraper",
+  "displayName": "news_scraper",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774087165122,
+    "commit": null
+  },
+  "history": []
+}
