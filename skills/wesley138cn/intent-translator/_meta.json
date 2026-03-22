@@ -1,0 +1,11 @@
+{
+  "owner": "wesley138cn",
+  "slug": "intent-translator",
+  "displayName": "Intent Translation Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774104527025,
+    "commit": null
+  },
+  "history": []
+}
