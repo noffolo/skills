@@ -1,0 +1,13 @@
+# Local outputs
+review_results.md
+*.txt
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# Python cache
+__pycache__/
+*.pyc
