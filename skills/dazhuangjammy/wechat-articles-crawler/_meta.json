@@ -1,0 +1,11 @@
+{
+  "owner": "dazhuangjammy",
+  "slug": "wechat-articles-crawler",
+  "displayName": "公众号作者文章抓取",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774108899599,
+    "commit": null
+  },
+  "history": []
+}
