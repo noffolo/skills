@@ -1,0 +1,11 @@
+{
+  "owner": "krishnakumarmahadevan-cmd",
+  "slug": "k8s-security-review",
+  "displayName": "K8s Security Review",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774081931470,
+    "commit": null
+  },
+  "history": []
+}
