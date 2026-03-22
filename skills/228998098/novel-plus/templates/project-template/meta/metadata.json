@@ -1,0 +1,23 @@
+{
+  "project": {
+    "title": "项目标题",
+    "version": "v0.1",
+    "phase": 0,
+    "lastUpdated": "2026-03-22"
+  },
+  "writingProgress": {
+    "currentChapter": 0,
+    "lastCompletedChapter": 0,
+    "lastFeedbackTrigger": 0,
+    "autoAdvance": {
+      "enabled": false,
+      "remaining": 0,
+      "totalRequested": 0,
+      "currentChapter": 0,
+      "intervalSeconds": 6,
+      "autoConfirm": false,
+      "status": "idle"
+    }
+  },
+  "chapters": {}
+}

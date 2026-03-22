@@ -1,0 +1,172 @@
+{
+  "name": "novel-plus",
+  "version": "2.4",
+  "description": "小说写作技能（Phase架构版 v2.4）。支持多智能体协作，主控协调各Agent完成项目全生命周期。",
+  "author": "Novel Writing Team",
+  "phase": "multi-phase",
+  "triggers": [
+    "写小说",
+    "新建小说项目",
+    "创建小说",
+    "创作故事"
+  ],
+  "activationKeywords": {
+    "Phase 0": ["新建小说", "新项目", "创建小说", "开始写小说"],
+    "Phase 1": ["世界观", "设定", "角色", "人物", "大纲", "章节规划", "审核大纲", "检查架构"],
+    "Phase 2": ["写第{num}章", "写第{num}到{num}章", "自动推进", "继续写作", "停止写作", "读者反馈"],
+    "Phase 3": ["重写", "修改", "补设定"]
+  },
+  "agents": {
+    "registry": {
+      "coordinator": {
+        "id": "coordinator",
+        "name": "主控协调",
+        "model": "MiniMax M2.7",
+        "role": "coordinator",
+        "description": "项目总控，负责整体调度、存档管理、用户汇报、各Agent协调",
+        "isSingleton": true,
+        "autoRegister": true
+      },
+      "worldbuilder": {
+        "id": "worldbuilder",
+        "name": "世界观构建",
+        "model": "Claude 4.6 Opus",
+        "role": "specialist",
+        "description": "负责构建完整的世界观文档，包括世界框架、力量体系、势力格局、核心悬念",
+        "capabilities": ["worldbuilding", "lore_creation", "rule_system_design"],
+        "promptFile": "agents/worldbuilder.md"
+      },
+      "characterDesigner": {
+        "id": "characterDesigner",
+        "name": "角色设计",
+        "model": "Claude 4.6 Opus",
+        "role": "specialist",
+        "description": "负责创建角色圣经，包括主角和其他重要角色",
+        "capabilities": ["character_creation", "character_arc_design", "relationship_design"],
+        "promptFile": "agents/character-designer.md"
+      },
+      "outlinePlanner": {
+        "id": "outlinePlanner",
+        "name": "大纲规划",
+        "model": "Claude 4.6 Opus",
+        "role": "specialist",
+        "description": "负责设计全书大纲、三幕结构、关键节点、支线布局",
+        "capabilities": ["outline_design", "plot_structure", "three_act_structure"],
+        "promptFile": "agents/outline-planner.md"
+      },
+      "chapterOutliner": {
+        "id": "chapterOutliner",
+        "name": "章节细纲",
+        "model": "Kimi k2.5",
+        "role": "specialist",
+        "description": "负责生成章节细纲，包括每章的核心事件、情感线、伏笔、结尾钩子",
+        "capabilities": ["chapter_planning", "scene_design", "hook_creation"],
+        "promptFile": "agents/chapter-outliner.md"
+      },
+      "mainWriter": {
+        "id": "mainWriter",
+        "name": "主笔",
+        "model": "Kimi k2.5",
+        "role": "specialist",
+        "description": "负责章节初稿写作，完成后直接润色输出可交付版本",
+        "capabilities": ["draft_writing", "polishing", "atmosphere_enhancement"],
+        "promptFile": "agents/main-writer.md"
+      },
+      "oocGuardian": {
+        "id": "oocGuardian",
+        "name": "OOC守护",
+        "model": "Qwen 3 Max",
+        "role": "specialist",
+        "description": "负责一致性检查，确保角色行为/语言与角色圣经一致",
+        "capabilities": ["ooc_detection", "consistency_check", "conflict_resolution"],
+        "promptFile": "agents/ooc-guardian.md"
+      },
+      "battleAgent": {
+        "id": "battleAgent",
+        "name": "战斗写作",
+        "model": "Gemini 3.1 Pro",
+        "role": "specialist",
+        "description": "仅在需要高强度/复杂战斗场面时调用，负责专业动作描写",
+        "capabilities": ["battle_writing", "action_scene", "combat_mechanics"],
+        "triggerConditions": ["high_intensity_battle", "complex_multi_party", "professional_weapons"],
+        "promptFile": "agents/battle-agent.md"
+      },
+      "finalReviewer": {
+        "id": "finalReviewer",
+        "name": "终稿审核",
+        "model": "Claude 4.6 Opus",
+        "role": "specialist",
+        "description": "负责章节终审，检查逻辑/情感/节奏/语言/风格一致性",
+        "capabilities": ["final_review", "logic_check", "emotion_evaluation", "style_consistency"],
+        "promptFile": "agents/final-reviewer.md"
+      },
+      "readerSimulator": {
+        "id": "readerSimulator",
+        "name": "读者模拟",
+        "model": "Doubao seed 2.0 pro",
+        "role": "specialist",
+        "description": "从读者视角反馈，评估节奏/爽点/情感浓度/改进建议",
+        "capabilities": ["reader_feedback", "rhythm_evaluation", "emotion_analysis"],
+        "promptFile": "agents/reader-simulator.md"
+      },
+      "styleAnchorGenerator": {
+        "id": "styleAnchorGenerator",
+        "name": "风格锚定生成",
+        "model": "Claude 4.6 Opus",
+        "role": "specialist",
+        "description": "负责生成风格锚定文档，包括叙事视角、语言风格、禁用词表、示范文本",
+        "capabilities": ["style_design", "demonstration_generation", "language_style"],
+        "promptFile": "agents/style-anchor-generator.md"
+      },
+      "rollingSummarizer": {
+        "id": "rollingSummarizer",
+        "name": "滚动摘要",
+        "model": "Qwen 3 Max",
+        "role": "specialist",
+        "description": "负责生成滚动摘要，压缩前N章内容为2200字以内的摘要",
+        "capabilities": ["summarization", "content_compression", "plot_tracking"],
+        "promptFile": "agents/rolling-summarizer.md"
+      }
+    }
+  },
+  "resume": {
+    "enabled": true,
+    "autoDetect": true,
+    "projectSearchPaths": ["projects/", "./"],
+    "metadataFile": "meta/metadata.json",
+    "description": "断档读取：主控启动时自动检测项目目录，还原项目进度"
+  },
+  "defaultConfig": {
+    "auto_advance_chapters": 4,
+    "write_interval_seconds": 6,
+    "auto_confirm": false,
+    "target_word_count": 4000,
+    "min_word_count": 3000,
+    "max_word_count": 6000
+  },
+  "directories": {
+    "meta": "meta/",
+    "worldbuilding": "worldbuilding/",
+    "characters": "characters/",
+    "outline": "outline/",
+    "chapters": "chapters/",
+    "archive": "archive/",
+    "references": "references/"
+  },
+  "files": {
+    "project": "meta/project.md",
+    "metadata": "meta/metadata.json",
+    "config": "meta/config.md",
+    "styleAnchor": "meta/style-anchor.md",
+    "world": "worldbuilding/world.md",
+    "protagonist": "characters/protagonist.md",
+    "characters": "characters/characters.md",
+    "outline": "outline/outline.md",
+    "chapterOutline": "outline/chapter-outline.md",
+    "stateTracker": "references/state-tracker.md",
+    "relationshipTracker": "references/relationship-tracker.md",
+    "plotTracker": "references/plot-tracker.md",
+    "rollingSummary": "references/rolling-summary.md",
+    "agentRegistry": "meta/agent-registry.json"
+  }
+}

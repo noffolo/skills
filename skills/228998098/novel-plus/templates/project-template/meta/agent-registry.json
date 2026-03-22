@@ -1,0 +1,116 @@
+{
+  "projectId": "",
+  "projectTitle": "",
+  "registeredAgents": {
+    "coordinator": {
+      "id": "coordinator",
+      "name": "主控协调",
+      "model": "MiniMax M2.7",
+      "status": "active",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "worldbuilder": {
+      "id": "worldbuilder",
+      "name": "世界观构建",
+      "model": "Claude 4.6 Opus",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "characterDesigner": {
+      "id": "characterDesigner",
+      "name": "角色设计",
+      "model": "Claude 4.6 Opus",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "outlinePlanner": {
+      "id": "outlinePlanner",
+      "name": "大纲规划",
+      "model": "Claude 4.6 Opus",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "chapterOutliner": {
+      "id": "chapterOutliner",
+      "name": "章节细纲",
+      "model": "Kimi k2.5",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "mainWriter": {
+      "id": "mainWriter",
+      "name": "主笔",
+      "model": "Kimi k2.5",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "oocGuardian": {
+      "id": "oocGuardian",
+      "name": "OOC守护",
+      "model": "Qwen 3 Max",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "battleAgent": {
+      "id": "battleAgent",
+      "name": "战斗写作",
+      "model": "Gemini 3.1 Pro",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "finalReviewer": {
+      "id": "finalReviewer",
+      "name": "终稿审核",
+      "model": "Claude 4.6 Opus",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "readerSimulator": {
+      "id": "readerSimulator",
+      "name": "读者模拟",
+      "model": "Doubao seed 2.0 pro",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "styleAnchorGenerator": {
+      "id": "styleAnchorGenerator",
+      "name": "风格锚定生成",
+      "model": "Claude 4.6 Opus",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    },
+    "rollingSummarizer": {
+      "id": "rollingSummarizer",
+      "name": "滚动摘要",
+      "model": "Qwen 3 Max",
+      "status": "available",
+      "registeredAt": "",
+      "lastUsed": "",
+      "taskCount": 0
+    }
+  },
+  "version": "v1.0",
+  "createdAt": ""
+}
