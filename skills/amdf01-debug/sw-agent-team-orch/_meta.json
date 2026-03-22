@@ -1,0 +1,11 @@
+{
+  "owner": "amdf01-debug",
+  "slug": "sw-agent-team-orch",
+  "displayName": "Agent Team Orchestration",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774155747292,
+    "commit": null
+  },
+  "history": []
+}
