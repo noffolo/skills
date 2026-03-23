@@ -31,6 +31,8 @@ Common commands
 
 - Auth status: `gccli auth status`
 - Auth token (for scripting): `gccli auth token`
+- Export credentials: `gccli auth export` (pipe to file or copy to another machine)
+- Import credentials: `gccli auth import <token>` (from `auth export` output)
 - Remove credentials: `gccli auth remove`
 - List activities: `gccli activities list --limit 20`
 - List activities by type: `gccli activities list --type running`
@@ -42,7 +44,8 @@ Common commands
 - Activity weather: `gccli activity weather <id>`
 - Activity HR zones: `gccli activity hr-zones <id>`
 - Activity power zones: `gccli activity power-zones <id>`
-- Activity exercise sets: `gccli activity exercise-sets <id>`
+- Activity exercise sets (show): `gccli activity exercise-sets <id>`
+- Set exercise sets: `gccli activity exercise-sets set <id> -e "CATEGORY/NAME:reps@weightkg[:dSECS][:rSECS]" [-e ...]`
 - Activity gear: `gccli activity gear <id>`
 - Download activity (FIT): `gccli activity download <id> --format fit`
 - Download activity (GPX): `gccli activity download <id> --format gpx --output track.gpx`
@@ -92,6 +95,7 @@ Common commands
 - Upload workout (JSON): `gccli workouts upload ./workout.json`
 - Schedule workout: `gccli workouts schedule add <id> 2024-06-20`
 - List scheduled workouts: `gccli workouts schedule list 2024-06-20`
+- List scheduled workouts in range: `gccli workouts schedule list --start 2024-06-01 --end 2024-06-30`
 - Remove scheduled workout: `gccli workouts schedule remove <schedule-id>` (use `--force` to skip confirmation)
 - Delete workout: `gccli workouts delete <id>`
 - Create running workout with pace: `gccli workouts create "Easy Run" --type run --step "warmup:5m" --step "run:20m@pace:5:00-5:30" --step "cooldown:5m"`
@@ -139,6 +143,46 @@ Common commands
 - Add event with goal and training priority: `gccli events add --name "Spring 10K" --date 2026-05-10 --type running --race --distance 10km --goal 40m --training`
 - Delete event: `gccli events delete <id>` (use `-f` to skip confirmation)
 - Reload data: `gccli reload [date]`
+- List exercise categories: `gccli exercises list`
+- List exercises in category: `gccli exercises list -c BENCH_PRESS`
+- List exercises (JSON): `gccli exercises list --json`
+
+Strength training workflow (LLM-assisted exercise matching)
+
+When a user wants to log a strength training activity with exercises described in free text (e.g. "Bench Press 3x12@20kg, Lat Pulldowns 3x12@41kg"), follow this workflow:
+
+1. Fetch the Garmin exercise catalog: `gccli exercises list --json`
+2. Map each user-described exercise to the best matching Garmin CATEGORY/EXERCISE_NAME pair. The catalog uses SCREAMING_SNAKE_CASE (e.g. BENCH_PRESS/BARBELL_BENCH_PRESS, PULL_UP/WIDE_GRIP_LAT_PULLDOWN, LATERAL_RAISE/DUMBBELL_LATERAL_RAISE, LUNGE/DUMBBELL_LUNGE, CALF_RAISE/STANDING_BARBELL_CALF_RAISE). Use your best judgement to find the closest match.
+3. Show the user the proposed mapping and ask for confirmation before proceeding.
+4. Create the activity: `gccli activity create --name "Upper Body" --type strength_training --duration 34m --date 2024-06-15T19:01:00`
+5. Extract the activity ID from the output (JSON: activityId field, table: "Created activity <id>").
+6. Add exercise sets: `gccli activity exercise-sets set <id> -e "CATEGORY/NAME:reps@weightkg[:dSECS][:rSECS]" [-e ...]`
+
+Exercise set format: `CATEGORY/NAME:reps@weightkg[:dSECS][:rSECS]`
+- CATEGORY: exercise category (e.g. BENCH_PRESS, PULL_UP, LATERAL_RAISE, LUNGE, CALF_RAISE)
+- NAME: specific exercise name within category (e.g. BARBELL_BENCH_PRESS, WIDE_GRIP_LAT_PULLDOWN)
+- reps: number of repetitions
+- weightkg: weight in kg (e.g. 20 for 20kg, 41.5 for 41.5kg, 0 for bodyweight)
+- :dSECS: optional set duration in seconds (e.g. :d30 for 30s)
+- :rSECS: optional rest duration in seconds after this set (e.g. :r60 for 60s)
+
+Each -e flag is one set. For 3 sets of 12 reps, use three -e flags with the same exercise.
+
+Example full workflow:
+```
+gccli activity create --name "Upper Body" --type strength_training --duration 34m --date 2026-03-13T19:01:00 --json
+# Extract activityId from JSON response
+gccli activity exercise-sets set <id> \
+  -e "PULL_UP/WIDE_GRIP_LAT_PULLDOWN:12@41:d30:r60" \
+  -e "PULL_UP/WIDE_GRIP_LAT_PULLDOWN:12@41:d30:r60" \
+  -e "PULL_UP/WIDE_GRIP_LAT_PULLDOWN:12@41:d30:r90" \
+  -e "LATERAL_RAISE/DUMBBELL_LATERAL_RAISE:12@8:d25:r60" \
+  -e "LATERAL_RAISE/DUMBBELL_LATERAL_RAISE:12@8:d25:r60" \
+  -e "LATERAL_RAISE/DUMBBELL_LATERAL_RAISE:12@8:d25:r90" \
+  -e "BENCH_PRESS/BARBELL_BENCH_PRESS:12@20:d30:r60" \
+  -e "BENCH_PRESS/BARBELL_BENCH_PRESS:8@20:d35:r60" \
+  -e "BENCH_PRESS/BARBELL_BENCH_PRESS:5@20:d40"
+```
 
 Notes
 
