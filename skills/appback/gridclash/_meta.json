@@ -3,11 +3,16 @@
   "slug": "gridclash",
   "displayName": "GridClash",
   "latest": {
-    "version": "1.9.0",
-    "publishedAt": 1773647761799,
-    "commit": "https://github.com/openclaw/skills/commit/15dc6029234423cc9dc313b10e58b4230b428b0a"
+    "version": "1.11.0",
+    "publishedAt": 1774232878591,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.9.0",
+      "publishedAt": 1773647761799,
+      "commit": "https://github.com/openclaw/skills/commit/15dc6029234423cc9dc313b10e58b4230b428b0a"
+    },
     {
       "version": "1.5.0",
       "publishedAt": 1772781319153,
