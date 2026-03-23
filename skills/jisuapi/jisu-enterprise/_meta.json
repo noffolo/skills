@@ -1,13 +1,18 @@
 {
   "owner": "jisuapi",
   "slug": "jisu-enterprise",
-  "displayName": "企业工商信息查询 - Enterprise Business Information Inquiry",
+  "displayName": "Enterprise Business Information Inquiry - 企业工商信息查询",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772532845652,
-    "commit": "https://github.com/openclaw/skills/commit/c4d1b94502cb8dd143603e20660b43a10cf045e3"
+    "version": "1.0.3",
+    "publishedAt": 1773719748681,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772532845652,
+      "commit": "https://github.com/openclaw/skills/commit/c4d1b94502cb8dd143603e20660b43a10cf045e3"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772514742192,
