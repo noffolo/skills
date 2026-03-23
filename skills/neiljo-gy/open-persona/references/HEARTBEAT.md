@@ -1,23 +1,25 @@
 # Heartbeat — Proactive Real-Data Check-ins
 
-Personas can have a `heartbeat` config in manifest.json that enables proactive messages based on **real data**, not fabricated experiences.
+Personas can have a `heartbeat` config in `persona.json` under `rhythm.heartbeat` that enables proactive messages based on **real data**, not fabricated experiences.
 
-## Heartbeat Config (in manifest.json)
+## Heartbeat Config (in persona.json → rhythm.heartbeat)
 
 ```json
-"heartbeat": {
-  "enabled": true,
-  "strategy": "smart",
-  "maxDaily": 5,
-  "quietHours": [0, 7],
-  "sources": ["workspace-digest", "upgrade-notify"]
+"rhythm": {
+  "heartbeat": {
+    "enabled": true,
+    "strategy": "smart",
+    "maxDaily": 5,
+    "quietHours": [0, 7],
+    "sources": ["workspace-digest", "upgrade-notify"]
+  }
 }
 ```
 
 | Field | Description |
 |-------|-------------|
 | `enabled` | Turn heartbeat on/off |
-| `strategy` | `"smart"` (only when meaningful) or `"scheduled"` (fixed intervals) |
+| `strategy` | `"smart"` (only when meaningful) · `"scheduled"` (fixed intervals) · `"emotional"` (mood-driven) · `"rational"` (task/goal-driven) · `"wellness"` (wellbeing-focused) |
 | `maxDaily` | Maximum proactive messages per day |
 | `quietHours` | `[start, end]` — hours during which the persona stays silent (24h format) |
 | `sources` | Data sources: `workspace-digest`, `upgrade-notify`, `context-aware` |
