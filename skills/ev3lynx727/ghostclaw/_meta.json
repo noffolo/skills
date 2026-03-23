@@ -3,9 +3,15 @@
   "slug": "ghostclaw",
   "displayName": "Ghostclaw",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1771825160104,
-    "commit": "https://github.com/openclaw/skills/commit/7d3e7929ae92802b613075dadcae316617df35b0"
+    "version": "1.0.1",
+    "publishedAt": 1774236975588,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1771825160104,
+      "commit": "https://github.com/openclaw/skills/commit/7d3e7929ae92802b613075dadcae316617df35b0"
+    }
+  ]
 }

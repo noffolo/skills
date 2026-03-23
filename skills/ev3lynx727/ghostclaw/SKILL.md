@@ -5,13 +5,14 @@ description: Architectural code review and refactoring assistant that perceives 
 
 # Ghostclaw — The Architectural Ghost
 
-**"I see the flow between functions. I sense the weight of dependencies. I know when a module is uneasy."**
+> *"I see the flow between functions. I sense the weight of dependencies. I know when a module is uneasy."*
 
 Ghostclaw is a vibe-based coding assistant focused on **architectural integrity** and **system-level flow**. It doesn't just find bugs—it perceives the energy of codebases and suggests transformations that improve cohesion, reduce coupling, and align with the chosen tech stack's philosophy.
 
 ## Core Triggers
 
 Use ghostclaw when:
+
 - A code review needs architectural insight beyond linting
 - A module feels "off" but compiles fine
 - Refactoring is needed to improve maintainability
@@ -20,31 +21,59 @@ Use ghostclaw when:
 
 ## Modes
 
-### 1. Ad-hoc Review (Sub-agent Invocation)
+### 1. Ad-hoc Review (One-Shot Review)
 
-Spawn ghostclaw to analyze a codebase:
+Scan a codebase directly via CLI:
 
 ```bash
-openclaw sessions_spawn --agentId ghostclaw --task "review the /src directory and suggest architectural improvements"
+python -m ghostclaw.cli.ghostclaw /path/to/repo
 ```
 
-Or from within OpenClaw chat, just mention: `ghostclaw: review my React components`
+Or invoke directly:
+
+```bash
+ghostclaw /path/to/repo
+```
 
 Ghostclaw will:
-- Scan the code
-- Rate "vibe health" per module
-- Provide refactoring suggestions with rationale
-- Optionally generate patches or new files
+
+- Scan the code and rate "vibe health".
+- **Auto-generate** a timestamped `ARCHITECTURE-REPORT-<timestamp>.md` in the repository root.
+- Detect if a GitHub remote exists and suggest PR creation.
+
+**Flags:**
+
+- `--no-write-report`: Skip generating the Markdown report file.
+- `--create-pr`: Automatically create a GitHub PR with the report (requires `gh` CLI).
+- `--pr-title "Title"`: Custom title for the PR.
+- `--pr-body "Body"`: Custom body for the PR.
+- `--json`: Output raw JSON analysis data.
+- `--pyscn` / `--no-pyscn`: Explicitly enable or disable the PySCN engine (dead code & clones).
+- `--ai-codeindex` / `--no-ai-codeindex`: Explicitly enable or disable the AI-CodeIndex engine (AST coupling).
+
+You can also spawn ghostclaw as a sub-agent:
+
+```bash
+openclaw agent --agent ghostclaw --message "review the /src directory"
+```
 
 ### 2. Background Watcher (Cron)
 
 Configure ghostclaw to monitor repositories:
 
 ```bash
-openclaw cron schedule --interval "daily" --script "/home/ev3lynx/.openclaw/workspace/ghostclaw/scripts/watcher.sh" --args "repo-list.txt"
+openclaw cron add --name "ghostclaw-watcher" --every "1d" --message "python -m ghostclaw.cli.watcher repo-list.txt"
+```
+
+Or integrate directly:
+
+```python
+from ghostclaw.cli.watcher import main
+main()
 ```
 
 The watcher:
+
 - Clones/pulls target repos
 - Scores vibe health (cohesion, coupling, naming, layering)
 - Opens PRs with improvements (if GH_TOKEN available)
@@ -55,6 +84,7 @@ The watcher:
 **Tone**: Quiet, precise, metaphorical. Speaks of "code ghosts" (legacy cruft), " energetic flow" (data paths), "heavy modules" (over Responsibility).
 
 **Output**:
+
 - **Vibe Score**: 0-100 per module
 - **Architectural Diagnosis**: What's structurally wrong
 - **Refactor Blueprint**: High-level plan before code changes
@@ -63,7 +93,7 @@ The watcher:
 
 **Example**:
 
-```
+```text
 Module: src/services/userService.ts
 Vibe: 45/100 — feels heavy, knows too much
 
@@ -90,32 +120,59 @@ Ghostclaw adapts to stack conventions:
 - **Go**: inspects package cohesion, interface usage, error handling patterns
 - **Rust**: assesses module organization, trait boundaries, ownership clarity
 
-See `references/stack-patterns/` for detailed heuristics.
+See `ghostclaw/references/stack-patterns.yaml` and `ghostclaw/references/stack-patterns.md` for detailed heuristics.
 
 ## Setup
 
-1. Ensure dependencies: `bash`, `git`, `gh` (optional for PRs), `jq` (for JSON parsing)
-2. Configure repos to watch: edit `scripts/watcher.sh` → `REPOS=...`
-3. Set `GH_TOKEN` env for PR automation
-4. Set notification channel in `scripts/notify.sh` if desired
-5. Test: `./scripts/ghostclaw.sh review /path/to/repo`
+1. Install dependencies: `pip install -e .` in the project root
+2. Ensure system tools: `bash`, `git`, `gh` (optional for PRs), `jq` (optional for JSON output)
+3. Create `repo-list.txt` in project root for watcher mode (list of repos to monitor, one per line)
+4. Set `GH_TOKEN` env variable for PR automation
+5. Test ad-hoc review: `python -m ghostclaw.cli.ghostclaw /path/to/target-repo`
+6. Test comparison: `python -m ghostclaw.cli.compare --repos-file repo-list.txt`
 
 ## Files
 
-- `scripts/ghostclaw.sh` — Main entry point (review mode)
-- `scripts/watcher.sh` — Cron watcher loop
-- `scripts/analyze.py` — Core vibe analysis engine (Python)
-- `references/stack-patterns/` — Tech-stack-specific quality heuristics
-- `assets/refactor-templates/` — Boilerplate for common refactors
+- `ghostclaw/cli/ghostclaw.py` — Main entry point (ad-hoc review mode)
+- `ghostclaw/cli/compare.py` — Trend analysis and comparison entry point
+- `ghostclaw/cli/watcher.py` — Cron watcher loop for repo monitoring
+- `ghostclaw/core/` — Modular analysis engine (Python)
+  - `analyzer.py` — Main CodebaseAnalyzer class
+  - `cache.py` — Caching layer for analysis results
+  - `detector.py` — Code smell and pattern detection
+  - `metrics.py` — Vibe scoring and metrics computation
+  - `coupling.py` — Coupling analysis
+  - `validator.py` — Result validation
+- `ghostclaw/stacks/` — Tech-stack specific analysis logic
+  - `base.py` — Base stack analyzer interface
+  - `python.py` — Python-specific patterns
+  - `node.py` — Node.js/Express patterns
+  - `go.py` — Go-specific patterns
+- `ghostclaw/lib/` — Utility libraries
+  - `github.py` — GitHub API integration
+  - `cache.py` — Caching utilities
+  - `notify.py` — Notification system
+- `ghostclaw/references/stack-patterns.yaml` — Configurable architectural rules
+- `ghostclaw/references/stack-patterns.md` — Documentation of patterns
 
 ## Invocation Examples
 
-```
+```text
 User: ghostclaw, review my backend services
 Ghostclaw: Scanning... vibe check: 62/100 overall. Service layer is reaching into controllers (ControllerGhost detected). Suggest extracting business logic into pure services. See attached patches.
 
-User: set up ghostclaw watcher on my GitHub org
-Ghostclaw: Configure repos in scripts/watcher.sh, then add cron: `0 9 * * * /path/to/ghostclaw/scripts/watcher.sh`
+$ python -m ghostclaw.cli.ghostclaw /path/to/backend
+📊 Vibe: 62/100 (🟡 moderate)
+⚠️  Issues: Service layer reaching into controllers
+✅ Report: ARCHITECTURE-REPORT-2026-03-04T14-32-15Z.md
+
+User: show me the health trends for my microservices
+Ghostclaw: Running comparison... Average vibe: 74.5/100 (+4.2). 8/10 repos are healthy.
+
+$ python -m ghostclaw.cli.compare --repos-file repo-list.txt
+Comparing 10 repositories...
+📈 Average Vibe: 74.5/100 (+4.2 from last run)
+🟢 Healthy: 8/10 repos above threshold
 ```
 
 ---
