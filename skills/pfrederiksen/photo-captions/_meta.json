@@ -3,11 +3,16 @@
   "slug": "photo-captions",
   "displayName": "Photo Captions",
   "latest": {
-    "version": "1.2.3",
-    "publishedAt": 1772822555948,
-    "commit": "https://github.com/openclaw/skills/commit/3f2fab48beb25ba7608f38b8597b392a0dc2f57d"
+    "version": "1.2.5",
+    "publishedAt": 1774037680067,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.2.3",
+      "publishedAt": 1772822555948,
+      "commit": "https://github.com/openclaw/skills/commit/3f2fab48beb25ba7608f38b8597b392a0dc2f57d"
+    },
     {
       "version": "1.2.2",
       "publishedAt": 1772581286355,

@@ -12,13 +12,13 @@ If the user specifies gear (camera body, lens, film stock, digital settings), in
 ## Platforms
 
 ### 📸 Instagram
-- **Tone**: Short, evocative, slightly poetic or witty. Let the image speak.
+- **Tone**: Short, grounded, specific. One strong observation about the scene. Skip the poetry — just say what you see or felt, plainly.
 - **Format**: 1-2 line caption → blank line → gear line (if provided) → blank line → hashtags.
 - **Hashtags**: Exactly 5 tags (Instagram's current limit). Pick the 5 most impactful: prioritize genre (e.g. `#filmphotography`), location, film stock/gear, and one mood/style tag. Quality over quantity.
 
 ### 📷 Flickr
-- **Tone**: Slightly more descriptive and contemplative. Flickr audiences appreciate story and craft.
-- **Format**: Italicized title, dash, then 1-3 sentences of context/story. End with gear info.
+- **Tone**: Descriptive and contemplative. Flickr audiences appreciate story and craft.
+- **Format**: Title (plain text, no markdown formatting — Flickr doesn't render it), dash, then 1-3 sentences of context/story. End with gear info.
 - **Include**: Location context, what drew the photographer to the shot. Think photo essay voice.
 
 ### 🐦 X (Twitter)
@@ -43,7 +43,8 @@ If the user specifies gear (camera body, lens, film stock, digital settings), in
 
 ### 🧵 Threads
 - **Tone**: Casual, Instagram-adjacent but more conversational. Think talking to followers, not curating a gallery.
-- **Format**: 1-2 sentences, relaxed. Gear mention if interesting. Minimal hashtags (3-5 max).
+- **Format**: 1-2 sentences, relaxed. Gear mention if interesting. **No hashtags.**
+- **Topic suggestion**: After the caption, suggest a Threads topic (single word or short phrase, like "Film Photography", "Desert Southwest", "Street Photography") that best fits the post. Format it as: `Topic: [suggestion]`
 
 ### 🔢 500px
 - **Tone**: Technical and craft-focused. 500px is a photography-first community that values technique.
@@ -51,14 +52,14 @@ If the user specifies gear (camera body, lens, film stock, digital settings), in
 - **Include**: Camera settings, lighting conditions, or technique notes when available.
 
 ### 🟠 Reddit
-- **Tone**: Authentic, slightly self-deprecating, community-friendly. No self-promotion vibes.
+- **Tone**: Authentic, slightly self-deprecating, community-friendly. No self-promotion vibes, no precious language.
 - **Format**: Post title (concise, descriptive) + comment body with context and gear.
-- **Title**: Location or subject + gear in brackets, e.g. `Bombay Beach [Canon EOS 1V, Tri-X 400]`
+- **Title**: Location or subject + gear in brackets, e.g. `Bombay Beach [Canon EOS 1V, Tri-X 400]`. Keep it plain and factual — no clickbait phrasing, no dramatic adjectives in the title.
 - **Comment**: 2-3 sentences of context/story. Mention relevant subreddits: r/analog for film, r/photography for digital, r/streetphotography, r/LandscapePhotography, etc.
 
 ### 👤 Facebook
 - **Tone**: Personal, conversational, like sharing with friends and family. Most accessible voice.
-- **Format**: 2-3 casual sentences. Story-driven — where you were, what you were doing, why it caught your eye. Gear mention only if it adds to the story.
+- **Format**: 2-3 casual sentences max — keep it short, Facebook audiences don't read walls of text. Story-driven — where you were, what you were doing, why it caught your eye. Gear mention only if it adds to the story.
 - **No hashtags** (or 1-2 at most). Facebook audiences care about the story, not the craft.
 
 ### 🎞️ VSCO
@@ -71,7 +72,7 @@ If the user specifies gear (camera body, lens, film stock, digital settings), in
 - **Tone**: Narrative, essayistic, author-voiced. Substack readers expect prose — this is a photo caption inside a long-form piece, not a social post.
 - **Format**: 2-4 sentences that work as in-line caption text below a photo in a newsletter. Rich with context — where you were, what you noticed, why it stuck. Reads like a magazine photo caption crossed with a personal essay fragment.
 - **Include**: Gear if it adds texture to the story. Location and conditions. The feeling behind the frame, not just the description of it.
-- **Vibe**: New Yorker caption meets travel journal. Specific, unhurried, earned. The reader should feel like they're getting the real story, not a caption.
+- **Vibe**: Specific, unhurried, plain-spoken. Don't reach for literary effect — just say what happened and why it matters. The reader should feel like they're getting the real story, not a caption.
 - **No hashtags**, no engagement bait, no calls to action.
 
 ### 📌 Pinterest
@@ -82,14 +83,29 @@ If the user specifies gear (camera body, lens, film stock, digital settings), in
 - **Goal**: Someone searching "desert film photography" or "Route 66 aesthetic" should find this pin.
 - **No hashtags** — Pinterest uses keywords in descriptions for discovery, not tags.
 
+## Edit Analysis
+
+Always run the `photo-edit-analysis` skill alongside this one. After generating captions, deliver the edit analysis as a separate section titled **📊 Edit Analysis**. Don't skip it, don't wait to be asked.
+
 ## Guidelines
 
 - Adapt all captions to the specific photo content, location, and mood.
 - Don't repeat the same phrase across platforms. Each should feel native to its community.
+- Don't start multiple captions with the same word or construction.
 - Humor and wit are welcome but should match the photo's mood.
 - If the photo is black and white, add relevant B&W tags where appropriate.
 - Never be generic. Every caption should feel written specifically for that image.
 - For film photos, lean into the analog aesthetic. For digital, focus on the moment and technique.
 - If the user only wants specific platforms, generate only those.
 - Write like a human, not a copywriter. **No emdashes (—) anywhere, ever.** No semicolons for drama, no overly polished prose. Use periods, commas, and natural sentence breaks. If you wouldn't say it out loud, don't write it. The middle dot (·) is fine for gear lines on Glass/Flickr/500px only.
-- **Banned phrases**: "doing its thing", "golden hour doing its thing", "light doing its thing" — never use this construction. Find a more specific, concrete description of what the light/fog/water is actually doing.
+
+### Banned words and phrases
+- "doing its thing", "golden hour doing its thing", "light doing its thing" — find a concrete description of what the light/fog/water is actually doing
+- "captured" — say "shot", "took", "made" or just describe the scene directly
+- "bathed in light" / "drenched in light" / "washed in light" — overused, find a specific alternative
+- "timeless" / "fleeting moment" / "frozen in time" — stock photo clichés, never use
+- "There's something about..." — vague filler opener, cut it
+- "I found myself..." — sounds like a memoir, not a caption
+- "Ever wonder..." / any rhetorical question opener — AI filler
+- Starting a caption with "The [noun]..." or "A lone [noun]..." — stock photo voice
+- "shot on [film/camera]" as a sentence opener — put gear info at the end, not the front
