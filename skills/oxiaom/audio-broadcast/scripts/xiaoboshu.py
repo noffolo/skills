@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 小播鼠广播系统 API 客户端
 
@@ -6,10 +7,20 @@
     python xiaoboshu.py login <host> <username> <password>
     python xiaoboshu.py devices
     python xiaoboshu.py files
+    python xiaoboshu.py upload <filepath> [name]
+    python xiaoboshu.py delete <file_id> [file_id2] ...
     python xiaoboshu.py play <file_id_or_url> <device_ids|all>
     python xiaoboshu.py stop <device_ids|all>
     python xiaoboshu.py volume <volume> <device_ids|all>
     python xiaoboshu.py tasks
+    python xiaoboshu.py task-edit <task_id> --name=<任务名> [--time=HH:MM:SS] [--len=秒] [--week=1111111]
+    python xiaoboshu.py task-devices <task_id> <device_ids>
+    python xiaoboshu.py task-files <task_id> <file_ids>
+    python xiaoboshu.py task-enable <task_id>
+    python xiaoboshu.py task-disable <task_id>
+    python xiaoboshu.py task-start <task_id>
+    python xiaoboshu.py task-stop <task_id>
+    python xiaoboshu.py task-delete <task_id>
     python xiaoboshu.py tts <text> <device_ids|all> [--voice=<voice>] [--upload]
     python xiaoboshu.py voices
 """
@@ -328,11 +339,20 @@ def list_tasks():
         "token": config["token"]
     })
     if result.get("res"):
-        tasks = result.get("tasklist", [])
+        tasks = result.get("taskary", [])
         print(f"\n任务列表 ({len(tasks)} 个):\n")
         for t in tasks:
-            status = "启用" if t.get("enable") == 1 else "禁用"
-            print(f"  [{t['id']}] {t.get('task_name', '未命名')} - {status} - {t.get('start_time', '?')}")
+            enable_status = "启用" if t.get("enable") == 1 else "禁用"
+            play_status = "▶ 播放中" if t.get("statu") == 1 else "○ 未播放"
+            task_time = t.get("tasktime", "?")
+            task_name = t.get("task_name", "未命名")
+            # 解析星期
+            week = t.get("week", "1111111")
+            week_days = ["一", "二", "三", "四", "五", "六", "日"]
+            week_str = "".join(d if w == "1" else "-" for d, w in zip(week_days, week))
+            print(f"  [{t['id']}] {task_name}")
+            print(f"       时间: {task_time} | 状态: {enable_status} | {play_status}")
+            print(f"       星期: {week_str} | 时长: {t.get('len', '?')}秒")
         return tasks
     else:
         print(f"获取任务失败: {result}")
@@ -367,6 +387,65 @@ def task_action(task_id, action):
         return True
     else:
         print(f"任务{name}失败: {result}")
+        return False
+
+
+def edit_task(task_id, **kwargs):
+    """编辑任务基本信息"""
+    config = get_credentials()
+
+    data = {
+        "id": config["id"],
+        "token": config["token"],
+        "taskid": task_id
+    }
+    data.update(kwargs)
+
+    result = post(config["host"], "/user/edit_task", data)
+
+    if result.get("res"):
+        print(f"任务编辑成功: {task_id}")
+        return True
+    else:
+        print(f"任务编辑失败: {result}")
+        return False
+
+
+def edit_task_devices(task_id, device_ids):
+    """编辑任务关联的设备"""
+    config = get_credentials()
+
+    result = post(config["host"], "/user/editsns_task", {
+        "id": config["id"],
+        "token": config["token"],
+        "taskid": task_id,
+        "snids": device_ids
+    })
+
+    if result.get("res"):
+        print(f"任务设备编辑成功: {task_id}")
+        return True
+    else:
+        print(f"任务设备编辑失败: {result}")
+        return False
+
+
+def edit_task_files(task_id, file_ids):
+    """编辑任务关联的文件"""
+    config = get_credentials()
+
+    result = post(config["host"], "/user/editfiles_task", {
+        "id": config["id"],
+        "token": config["token"],
+        "taskid": task_id,
+        "fileids": file_ids
+    })
+
+    if result.get("res"):
+        print(f"任务文件编辑成功: {task_id}")
+        return True
+    else:
+        print(f"任务文件编辑失败: {result}")
         return False
 
 
@@ -425,6 +504,22 @@ def convert_to_mp3(input_path, output_path):
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.returncode == 0
+
+
+def delete_file(file_id):
+    """删除文件"""
+    config = get_credentials()
+    result = post(config["host"], "/user/delfile", {
+        "id": config["id"],
+        "token": config["token"],
+        "fileid": file_id
+    })
+    if result.get("res"):
+        print(f"删除成功: {file_id}")
+        return True
+    else:
+        print(f"删除失败: {result}")
+        return False
 
 
 def upload_file(filepath, name=None):
@@ -533,6 +628,13 @@ def main():
     elif cmd == "files":
         list_files()
 
+    elif cmd == "delete":
+        if len(sys.argv) < 3:
+            print("用法: python xiaoboshu.py delete <file_id> [file_id2] ...")
+            sys.exit(1)
+        for fid in sys.argv[2:]:
+            delete_file(fid)
+
     elif cmd == "play":
         if len(sys.argv) < 4:
             print("用法: python xiaoboshu.py play <file_id_or_url> <device_ids|all>")
@@ -561,6 +663,47 @@ def main():
         action = cmd.replace("task-", "")
         task_action(sys.argv[2], action)
 
+    elif cmd == "task-edit":
+        if len(sys.argv) < 4:
+            print("用法: python xiaoboshu.py task-edit <task_id> --name=<任务名> [--time=HH:MM:SS] [--len=秒] [--week=1111111]")
+            sys.exit(1)
+        task_id = sys.argv[2]
+        kwargs = {}
+        for arg in sys.argv[3:]:
+            if arg.startswith("--name="):
+                kwargs["task_name"] = arg.split("=", 1)[1]
+            elif arg.startswith("--time="):
+                kwargs["start_time"] = arg.split("=", 1)[1]
+            elif arg.startswith("--len="):
+                kwargs["len"] = arg.split("=", 1)[1]
+            elif arg.startswith("--week="):
+                kwargs["week"] = arg.split("=", 1)[1]
+            elif arg.startswith("--kind="):
+                kwargs["kind"] = arg.split("=", 1)[1]
+            elif arg.startswith("--startdate="):
+                kwargs["startdate"] = arg.split("=", 1)[1]
+            elif arg.startswith("--enddate="):
+                kwargs["enddate"] = arg.split("=", 1)[1]
+            elif arg.startswith("--jiange="):
+                kwargs["jiange"] = arg.split("=", 1)[1]
+        if kwargs:
+            edit_task(task_id, **kwargs)
+        else:
+            print("错误: 请指定要编辑的参数")
+            sys.exit(1)
+
+    elif cmd == "task-devices":
+        if len(sys.argv) < 4:
+            print("用法: python xiaoboshu.py task-devices <task_id> <device_ids>")
+            sys.exit(1)
+        edit_task_devices(sys.argv[2], sys.argv[3])
+
+    elif cmd == "task-files":
+        if len(sys.argv) < 4:
+            print("用法: python xiaoboshu.py task-files <task_id> <file_ids>")
+            sys.exit(1)
+        edit_task_files(sys.argv[2], sys.argv[3])
+
     elif cmd == "tts":
         if len(sys.argv) < 4:
             print("用法: python xiaoboshu.py tts <text> <device_ids|all> [--voice=<voice>] [--upload]")
@@ -581,6 +724,14 @@ def main():
 
     elif cmd == "voices":
         list_voices()
+
+    elif cmd == "upload":
+        if len(sys.argv) < 3:
+            print("用法: python xiaoboshu.py upload <filepath> [name]")
+            sys.exit(1)
+        filepath = sys.argv[2]
+        name = sys.argv[3] if len(sys.argv) > 3 else None
+        upload_file(filepath, name)
 
     else:
         print(f"未知命令: {cmd}")

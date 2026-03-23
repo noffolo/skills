@@ -1,5 +1,5 @@
 # 小播鼠 API 参考
-
+postmain2.1.json 里面有完整的api接口数据
 ## 基础信息
 
 - 协议: HTTP POST
@@ -252,6 +252,41 @@ POST /user/del_task
 参数: id, token, taskid
 ```
 
+### 编辑任务基本信息
+
+```
+POST /user/edit_task
+参数: id, token, taskid, start_time, task_name, len, week, kind, startdate, enddate, jiange
+```
+
+- taskid: 任务 ID
+- start_time: 开始时间 (HH:MM:SS)
+- task_name: 任务名称
+- len: 播放时长 (秒)
+- week: 星期设置 (7位，如 1111111)
+- kind: 播放模式 (0=随机, 1=顺序1遍, 2=顺序2遍...)
+- startdate: 开始日期 (YYYY-MM-DD 或 0)
+- enddate: 结束日期 (YYYY-MM-DD 或 0)
+- jiange: 文件间隔 (秒)
+
+### 编辑任务设备信息
+
+```
+POST /user/editsns_task
+参数: id, token, taskid, snids
+```
+
+- snids: 设备 ID 列表，多个用 `|` 分隔
+
+### 编辑任务文件信息
+
+```
+POST /user/editfiles_task
+参数: id, token, taskid, fileids
+```
+
+- fileids: 文件 ID 列表，多个用 `|` 分隔
+
 ## 临时播放
 
 ### 开始临时播放
@@ -274,6 +309,35 @@ POST /user/tmpstoppl
 POST /user/tmplistpl
 参数: id, token
 ```
+
+## 文字转语音 (TTS)
+
+### 服务器端 TTS 播放
+
+```
+POST /user/ttsplayfile
+参数: id, token, speed, vol, shengyin, filename, text, snlist
+```
+
+- speed: 语速 (默认 50)
+- vol: 音量 (默认 100)
+- shengyin: 语音 (如 xiaoyan)
+- filename: 文件名 (尽量保持唯一，同名文件不会生效)
+- text: 要转换的文字
+- snlist: 设备 seed 列表
+
+### 服务器端 TTS 保存
+
+```
+POST /user/savettsfile
+参数: id, token, speed, vol, shengyin, filename, text
+```
+
+生成 TTS 文件并保存到服务器，不立即播放。
+
+### 本地 TTS (Edge TTS)
+
+使用 `xiaoboshu.py tts` 命令，通过 Edge TTS 在本地生成语音文件后上传播放。
 
 ## 多路报警器
 
