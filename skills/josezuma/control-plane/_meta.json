@@ -1,0 +1,11 @@
+{
+  "owner": "josezuma",
+  "slug": "control-plane",
+  "displayName": "control-plane",
+  "latest": {
+    "version": "1.14.15",
+    "publishedAt": 1774172637575,
+    "commit": null
+  },
+  "history": []
+}
