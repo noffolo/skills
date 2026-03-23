@@ -3,11 +3,16 @@
   "slug": "wip-release",
   "displayName": "Wip Release",
   "latest": {
-    "version": "1.9.46",
-    "publishedAt": 1773891288613,
-    "commit": "https://github.com/openclaw/skills/commit/55459a295a2a4d70e8e32e4a4a1befa7dc81e951"
+    "version": "1.9.50",
+    "publishedAt": 1774028375018,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.9.46",
+      "publishedAt": 1773891288613,
+      "commit": "https://github.com/openclaw/skills/commit/55459a295a2a4d70e8e32e4a4a1befa7dc81e951"
+    },
     {
       "version": "1.9.45",
       "publishedAt": 1773887016885,
