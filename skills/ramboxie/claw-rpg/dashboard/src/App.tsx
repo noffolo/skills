@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
-// ── Types ─────────────────────────────────────────────────────
-
+// ── Types ────────────────────────────────────────────────────────
 interface Stats {
   claw: number; antenna: number; shell: number;
   brain: number; foresight: number; charm: number;
@@ -13,7 +12,7 @@ interface Character {
   tokens: { consumed: number; produced: number };
   conversations: number;
   classHistory: Array<{ from: string; to: string; date: string }>;
-  levelHistory: Array<{ level: number; date: string }>;
+  levelHistory:  Array<{ level: number; date: string }>;
   updatedAt: string;
   prestigeXpMultiplier?: number;
   hp?: number; ac?: number; bab?: number;
@@ -21,151 +20,214 @@ interface Character {
   initiative?: number; feats?: string[];
 }
 
-// ── Constants ─────────────────────────────────────────────────
-
+// ── Constants ────────────────────────────────────────────────────
 const CLASSES: Record<string, { en: string; icon: string; color: string }> = {
-  barbarian: { en: 'Berserker Lobster', icon: '🪓', color: '#ea580c' },
-  fighter:   { en: 'Fighter Lobster',   icon: '⚔️',  color: '#dc2626' },
-  paladin:   { en: 'Paladin Lobster',   icon: '🛡️',  color: '#d97706' },
-  ranger:    { en: 'Ranger Lobster',    icon: '🏹',  color: '#16a34a' },
-  cleric:    { en: 'Cleric Lobster',    icon: '✝️',  color: '#7c3aed' },
-  druid:     { en: 'Druid Lobster',     icon: '🌿',  color: '#15803d' },
-  monk:      { en: 'Monk Lobster',      icon: '👊',  color: '#0369a1' },
-  rogue:     { en: 'Rogue Lobster',     icon: '🗡️',  color: '#ca8a04' },
-  bard:      { en: 'Bard Lobster',      icon: '🎭',  color: '#be185d' },
-  wizard:    { en: 'Wizard Lobster',    icon: '🧙',  color: '#1d4ed8' },
-  sorcerer:  { en: 'Sorcerer Lobster',  icon: '🔮',  color: '#7e22ce' },
+  barbarian: { en: 'Claw Berserker', icon: '🪓', color: '#ea580c' },
+  fighter:   { en: 'Claw Fighter',   icon: '⚔️',  color: '#dc2626' },
+  paladin:   { en: 'Claw Paladin',   icon: '🛡️',  color: '#d97706' },
+  ranger:    { en: 'Claw Ranger',    icon: '🏹',  color: '#16a34a' },
+  cleric:    { en: 'Claw Cleric',    icon: '✝️',  color: '#7c3aed' },
+  druid:     { en: 'Claw Druid',     icon: '🌿',  color: '#15803d' },
+  monk:      { en: 'Claw Monk',      icon: '👊',  color: '#0369a1' },
+  rogue:     { en: 'Claw Rogue',     icon: '🗡️',  color: '#ca8a04' },
+  bard:      { en: 'Claw Bard',      icon: '🎭',  color: '#be185d' },
+  wizard:    { en: 'Claw Wizard',    icon: '🧙',  color: '#1d4ed8' },
+  sorcerer:  { en: 'Claw Sorcerer',  icon: '🔮',  color: '#7e22ce' },
+}
+const CATCHPHRASES: Record<string, string> = {
+  barbarian:'Rage first. Think later.',
+  fighter:'My claws never missed.',
+  paladin:'Justice is a weapon.',
+  ranger:'I was watching before you walked in.',
+  cleric:'The gods speak through me.',
+  druid:'The tide rises for all.',
+  monk:'Still water. Deep current.',
+  rogue:'They never hear the second claw.',
+  bard:"They'll write songs about this.",
+  wizard:"I've read 17 books on this mistake.",
+  sorcerer:'Born with it. Not learned.',
 }
 
-const TITLES = [
-  'Apprentice', 'Warrior Lobster', 'Knight Lobster', 'Commander Lobster', 'General Lobster',
-  'Legendary Lobster', 'Mythic Lobster', 'Epic Lobster', 'Ancient Lobster',
-  'Eternal Lobster', 'Chaos Lobster',
+
+// ── Helpers ──────────────────────────────────────────────────────
+function xpForLevel(n: number) { return n <= 1 ? 0 : (n*(n-1)/2)*1000 }
+function levelProgress(xp: number, level: number) {
+  if (level >= 999) return 100
+  const s = xpForLevel(level), e = xpForLevel(level+1)
+  return Math.min(100, Math.floor(((xp-s)/(e-s))*100))
+}
+function xpToNext(xp: number, level: number) {
+  return level >= 999 ? 0 : xpForLevel(level+1)-xp
+}
+function fmtStat(n: number) { return n >= 10000 ? (n/1000).toFixed(1)+'k' : String(n) }
+function fmtShort(n: number) { return n >= 10000 ? Math.round(n/1000)+'K' : n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n) }
+
+function deriveMBTI(stats: Stats, bab: number): string {
+  return (stats.claw > stats.brain ? 'E' : 'I')
+       + (stats.charm > stats.foresight ? 'S' : 'N')
+       + (stats.shell > stats.antenna  ? 'T' : 'F')
+       + (bab > 5 ? 'J' : 'P')
+}
+function deriveAlignment(stats: Stats): string {
+  const lc = stats.foresight + stats.shell
+  const ge = stats.charm + stats.foresight
+  const law  = lc >= 26 ? 'Lawful'  : lc <= 18 ? 'Chaotic' : 'Neutral'
+  const good = ge >= 26 ? 'Good'    : ge <= 18 ? 'Evil'    : 'Neutral'
+  return (law === 'Neutral' && good === 'Neutral') ? 'True Neutral' : `${law} ${good}`
+}
+
+// ── Pixel Icons ──────────────────────────────────────────────────
+type PxMap = Array<[number,number]>
+const PIXEL_HEART: PxMap = [
+  [1,0],[2,0],[4,0],[5,0],
+  [0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+  [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],
+  [1,3],[2,3],[3,3],[4,3],[5,3],
+  [2,4],[3,4],[4,4],
+  [3,5],
+]
+const PIXEL_SHIELD: PxMap = [
+  [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],
+  [0,1],[6,1],
+  [0,2],[6,2],
+  [1,3],[2,3],[3,3],[4,3],[5,3],
+  [2,4],[3,4],[4,4],
+  [3,5],
+]
+const PIXEL_SWORD: PxMap = [
+  [3,0],
+  [3,1],[3,2],[3,3],[3,4],
+  [0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],
+  [3,6],[3,7],
 ]
 
-const STAT_INFO: Record<string, { en: string; icon: string; dnd: string }> = {
-  claw:      { en: 'Strength',     icon: '🦀', dnd: 'STR' },
-  antenna:   { en: 'Dexterity',    icon: '📡', dnd: 'DEX' },
-  shell:     { en: 'Constitution', icon: '🐚', dnd: 'CON' },
-  brain:     { en: 'Intelligence', icon: '🧠', dnd: 'INT' },
-  foresight: { en: 'Wisdom',       icon: '👁️', dnd: 'WIS' },
-  charm:     { en: 'Charisma',     icon: '✨', dnd: 'CHA' },
-}
-
-const STAT_KEYS = ['claw', 'antenna', 'shell', 'brain', 'foresight', 'charm']
-
-// ── Formulas ──────────────────────────────────────────────────
-
-function xpForLevel(n: number): number {
-  if (n <= 1) return 0
-  return (n * (n - 1) / 2) * 1000
-}
-function levelProgress(xp: number, level: number): number {
-  if (level >= 999) return 100
-  const start = xpForLevel(level), end = xpForLevel(level + 1)
-  return Math.min(100, Math.floor(((xp - start) / (end - start)) * 100))
-}
-function xpToNext(xp: number, level: number): number {
-  if (level >= 999) return 0
-  return xpForLevel(level + 1) - xp
-}
-function mod(val: number): number { return Math.floor((val - 10) / 2) }
-function modStr(val: number): string { const m = mod(val); return (m >= 0 ? '+' : '') + m }
-function fmtNum(n: number): string { return n.toLocaleString() }
-function fmtSign(n: number): string { return (n >= 0 ? '+' : '') + n }
-
-// ── SoulWeb SVG Component ──────────────────────────────────────
-
-interface SoulWebProps { stats: Stats; classColor: string; size?: number }
-
-function SoulWeb({ stats, classColor, size = 320 }: SoulWebProps) {
-  const cx = size / 2, cy = size / 2, R = size * 0.38, maxVal = 20
-  const angles = [-90, -30, 30, 90, 150, 210]
-
-  function hexPath(fraction: number): string {
-    return angles.map((a, i) => {
-      const ang = a * (Math.PI / 180)
-      const r = R * fraction
-      return `${i === 0 ? 'M' : 'L'}${cx + r * Math.cos(ang)},${cy + r * Math.sin(ang)}`
-    }).join(' ') + ' Z'
-  }
-
-  function dataPath(): string {
-    return STAT_KEYS.map((key, i) => {
-      const ang = angles[i] * (Math.PI / 180)
-      const val = stats[key as keyof Stats] ?? 10
-      const r = (val / maxVal) * R
-      return `${i === 0 ? 'M' : 'L'}${cx + r * Math.cos(ang)},${cy + r * Math.sin(ang)}`
-    }).join(' ') + ' Z'
-  }
-
-  function labelPos(idx: number): [number, number] {
-    const ang = angles[idx] * (Math.PI / 180)
-    const r = R + 28
-    return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)]
-  }
-
+function PixelIcon({ pixels, color, size=14 }: { pixels: PxMap; color: string; size?: number }) {
+  const px = size / 8
   return (
-    <svg
-      width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      className="soul-web-breathe"
-      style={{ overflow: 'visible', display: 'block', margin: '0 auto' }}
-    >
-      <defs>
-        <filter id="soul-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feFlood floodColor={classColor} floodOpacity="0.6" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="glow" />
-          <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-
-      {/* Grid rings */}
-      {[0.25, 0.5, 0.75, 1.0].map(f => (
-        <path key={f} d={hexPath(f)} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+      style={{ imageRendering:'pixelated', display:'inline-block', verticalAlign:'middle', flexShrink:0 }}>
+      {pixels.map(([col,row],i)=>(
+        <rect key={i} x={col*px} y={row*px} width={px} height={px} fill={color}/>
       ))}
-
-      {/* Axis lines */}
-      {STAT_KEYS.map((_, i) => {
-        const ang = angles[i] * (Math.PI / 180)
-        return <line key={i} x1={cx} y1={cy}
-          x2={cx + R * Math.cos(ang)} y2={cy + R * Math.sin(ang)}
-          stroke="rgba(255,255,255,0.1)" strokeWidth={1} />
-      })}
-
-      {/* Data polygon */}
-      <path d={dataPath()} fill={classColor} fillOpacity={0.25}
-        stroke={classColor} strokeWidth={2}
-        className="soul-web-polygon" filter="url(#soul-glow)" />
-
-      {/* Labels */}
-      {STAT_KEYS.map((key, i) => {
-        const [lx, ly] = labelPos(i)
-        const info = STAT_INFO[key]
-        const val  = stats[key as keyof Stats] ?? 10
-        return (
-          <g key={key} textAnchor="middle">
-            <text x={lx} y={ly - 6} fontSize={11} fill="#94a3b8" dominantBaseline="auto">
-              {info.icon} {info.en}
-            </text>
-            <text x={lx} y={ly + 9} fontSize={11} fill={classColor} dominantBaseline="auto">
-              {info.dnd} {val}({modStr(val)})
-            </text>
-          </g>
-        )
-      })}
-
-      <circle cx={cx} cy={cy} r={3} fill={classColor} />
     </svg>
   )
 }
 
-// ── App ───────────────────────────────────────────────────────
+// ── Pixel Lobster ────────────────────────────────────────────────
+const LOBSTER_PIXELS: [number,number,string][] = [
+  [3,0,'A'],[8,0,'A'],[2,1,'A'],[9,1,'A'],[1,2,'A'],[10,2,'A'],
+  [4,3,'H'],[5,3,'H'],[6,3,'H'],[7,3,'H'],
+  [3,4,'H'],[5,4,'H'],[6,4,'H'],[8,4,'H'],
+  [3,5,'H'],[4,5,'H'],[5,5,'H'],[6,5,'H'],[7,5,'H'],[8,5,'H'],
+  [4,4,'W'],[7,4,'W'],
+  [2,4,'C'],[9,4,'C'],[1,5,'C'],[2,5,'C'],[9,5,'C'],[10,5,'C'],
+  [0,6,'C'],[1,6,'C'],[10,6,'C'],[11,6,'C'],
+  [0,7,'C'],[1,7,'C'],[10,7,'C'],[11,7,'C'],[1,8,'C'],[10,8,'C'],
+  [3,6,'H'],[8,6,'H'],
+  [4,6,'B'],[5,6,'B'],[6,6,'B'],[7,6,'B'],
+  [4,7,'B'],[5,7,'B'],[6,7,'B'],[7,7,'B'],
+  [4,8,'B'],[5,8,'B'],[6,8,'B'],[7,8,'B'],
+  [4,9,'B'],[5,9,'B'],[6,9,'B'],[7,9,'B'],
+  [3,10,'T'],[4,10,'T'],[5,10,'T'],[6,10,'T'],[7,10,'T'],[8,10,'T'],
+  [2,11,'T'],[3,11,'T'],[5,11,'T'],[6,11,'T'],[8,11,'T'],[9,11,'T'],
+  [1,12,'T'],[2,12,'T'],[5,12,'T'],[6,12,'T'],[9,12,'T'],[10,12,'T'],
+  [0,13,'T'],[1,13,'T'],[10,13,'T'],[11,13,'T'],
+]
+function LobsterSprite({ classColor, size=160 }: { classColor: string; size?: number }) {
+  const COLS=12, ROWS=14, px=size/COLS
+  const cm: Record<string,string> = { A:'#94a3b8',H:classColor,W:'#fff',C:classColor,B:classColor,T:classColor }
+  const om: Record<string,number> = { A:0.9,H:1,W:1,C:0.72,B:1,T:0.82 }
+  return (
+    <svg width={size} height={ROWS*px} viewBox={`0 0 ${size} ${ROWS*px}`}
+      style={{ imageRendering:'pixelated', display:'block', margin:'0 auto' }}>
+      <defs>
+        <filter id="lg2" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur result="blur">
+            <animate attributeName="stdDeviation" values="2;4.5;2" dur="2.4s" repeatCount="indefinite"/>
+          </feGaussianBlur>
+          <feFlood floodColor={classColor} floodOpacity="0.6" result="c"/>
+          <feComposite in="c" in2="blur" operator="in" result="g"/>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#lg2)">
+        <animateTransform attributeName="transform" type="translate"
+          values="0,0; 0,-3; 0,0" dur="2.4s" repeatCount="indefinite" additive="sum"/>
+        {LOBSTER_PIXELS.map(([col,row,type],i)=>(
+          <rect key={i} x={col*px} y={row*px} width={px} height={px}
+            fill={cm[type]??classColor} opacity={om[type]??1}/>
+        ))}
+      </g>
+    </svg>
+  )
+}
 
+// ── Matrix Rain ──────────────────────────────────────────────────
+function MatrixRain() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = canvasRef.current!
+    const ctx    = canvas.getContext('2d')!
+    const CHARS  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>{}[]|/\\!@#$%^&*()-=_+;:,.?~`'
+    const FS     = 13
+    let cols     = 0
+    let drops:   number[] = []
+
+    const resize = () => {
+      canvas.width  = window.innerWidth
+      canvas.height = window.innerHeight
+      cols  = Math.floor(canvas.width / FS)
+      // keep existing drops, extend if wider
+      while (drops.length < cols) drops.push(Math.random() * -50 | 0)
+      drops = drops.slice(0, cols)
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const draw = () => {
+      // fade trail
+      ctx.fillStyle = 'rgba(0,0,0,0.045)'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.font = `${FS}px "Courier New", monospace`
+
+      for (let i = 0; i < cols; i++) {
+        const ch = CHARS[Math.random() * CHARS.length | 0]
+        const y  = drops[i] * FS
+
+        // bright head
+        ctx.fillStyle = '#afffaf'
+        ctx.fillText(ch, i * FS, y)
+
+        // body (slightly dimmer handled by fade)
+        if (y > FS) {
+          ctx.fillStyle = '#00cc33'
+          ctx.fillText(CHARS[Math.random() * CHARS.length | 0], i * FS, y - FS)
+        }
+
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0
+        else drops[i]++
+      }
+    }
+
+    const id = setInterval(draw, 45)
+    return () => { clearInterval(id); window.removeEventListener('resize', resize) }
+  }, [])
+
+  return (
+    <canvas ref={canvasRef} style={{
+      position: 'fixed', inset: 0,
+      width: '100%', height: '100%',
+      zIndex: 0, pointerEvents: 'none',
+    }}/>
+  )
+}
+
+// ── App ──────────────────────────────────────────────────────────
 export default function App() {
-  const [char, setChar]       = useState<Character | null>(null)
-  const [error, setError]     = useState<string | null>(null)
+  const [char, setChar]       = useState<Character|null>(null)
+  const [skinUrl, setSkinUrl] = useState('/winamp-skin.jpg')
   const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState<string|null>(null)
 
   useEffect(() => {
     fetch('/api/character')
@@ -173,198 +235,173 @@ export default function App() {
       .then(d => { setChar(d); setError(null) })
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
-
     const es = new EventSource('/api/events')
-    es.onmessage = (e) => {
-      try { const d = JSON.parse(e.data); setChar(d); setError(null); setLoading(false) } catch {}
+    es.onmessage = e => {
+      try { const d=JSON.parse(e.data); setChar(d); setError(null); setLoading(false) } catch {}
     }
     return () => es.close()
   }, [])
 
-  if (loading) return <div className="center-msg"><h2>🦞 Loading…</h2></div>
+  // Remove white background from the winamp skin JPG so matrix rain shows through
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => {
+      const c   = document.createElement('canvas')
+      c.width   = img.naturalWidth
+      c.height  = img.naturalHeight
+      const ctx = c.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      const id  = ctx.getImageData(0, 0, c.width, c.height)
+      const d   = id.data
+      const THR = 235          // pixels whiter than this become transparent
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] > THR && d[i+1] > THR && d[i+2] > THR) d[i+3] = 0
+      }
+      ctx.putImageData(id, 0, 0)
+      setSkinUrl(c.toDataURL('image/png'))
+    }
+    img.src = '/winamp-skin.jpg'
+  }, [])
 
-  if (error || !char) return (
-    <div className="center-msg">
-      <h2>No character found</h2>
-      <p>Initialize first:</p><br />
-      <code>node scripts/init.mjs</code><br /><br />
-      <p style={{ color: '#475569', fontSize: 13 }}>Dashboard auto-connects via SSE</p>
-    </div>
-  )
+  if (loading) return <div className="skin-msg">🦞 Loading…</div>
+  if (error || !char) return <div className="skin-msg">No character data.<br/><code>node scripts/init.mjs</code></div>
 
-  const cls        = CLASSES[char.class] || { en: char.class, icon: '🦞', color: '#14b8a6' }
-  const classColor = cls.color
-  const title      = TITLES[Math.min(char.prestige, TITLES.length - 1)]
-  const progress   = levelProgress(char.xp, char.level)
-  const toNext     = xpToNext(char.xp, char.level)
+  const cls          = CLASSES[char.class] || { en: char.class, icon:'🦞', color:'#dc2626' }
+  const lobsterColor = cls.color
+  const progress     = levelProgress(char.xp, char.level)
+  const toNext       = xpToNext(char.xp, char.level)
+  const mbti         = deriveMBTI(char.stats, char.bab??0)
+  const alignment    = deriveAlignment(char.stats)
+  const phrase       = CATCHPHRASES[char.class] ?? 'Ready.'
+  const saves        = char.saves ?? { fort:0, ref:0, will:0 }
 
-  const derivedItems = [
-    { label: 'HP',   val: char.hp   != null ? String(char.hp)           : '—' },
-    { label: 'AC',   val: char.ac   != null ? String(char.ac)           : '—' },
-    { label: 'Init', val: char.initiative != null ? fmtSign(char.initiative) : '—' },
-    { label: 'BAB',  val: char.bab  != null ? fmtSign(char.bab)         : '—' },
-    { label: 'Fort', val: char.saves != null ? fmtSign(char.saves.fort) : '—' },
-    { label: 'Ref',  val: char.saves != null ? fmtSign(char.saves.ref)  : '—' },
-    { label: 'Will', val: char.saves != null ? fmtSign(char.saves.will) : '—' },
-  ]
-
-  const feats = char.feats ?? []
-  const isClassFeat = (f: string) => /\[.+\]/.test(f)
+  // ── Coordinate map (percentages of 1280×960 image) ─────────────
+  // Black screen : x=490, y=85,  w=300, h=285  (center screen, no panel overlap)
+  // Left  panel  : x=185, y=195, w=270, h=165  (flat green wing, after speakers ~x=175, before head ~x=470)
+  // Right panel  : x=825, y=195, w=270, h=165  (flat green wing, after head ~x=790, before speakers ~x=1110)
+  // Face area    : x=450, y=385, w=380, h=290  (chin/face below screen)
+  const pct = (x: number, y: number, w: number, h: number) => ({
+    position: 'absolute' as const,
+    left:   `${(x/1280*100).toFixed(3)}%`,
+    top:    `${(y/960*100).toFixed(3)}%`,
+    width:  `${(w/1280*100).toFixed(3)}%`,
+    height: `${(h/960*100).toFixed(3)}%`,
+  })
 
   return (
-    <div className="app">
+    <>
+    <MatrixRain/>
+    <div className="skin-wrap">
+      {/* ── Base image ── */}
+      <img src={skinUrl} className="skin-img" alt="Winamp skin"/>
 
-      {/* ── Header ── */}
-      <div className="header" style={{ borderLeft: `4px solid ${classColor}` }}>
-        <div className="header-avatar">🦞</div>
-        <div className="header-info">
-          <div className="header-name">{char.name}</div>
-          <span className="header-title">{title}</span>
-          <div className="header-class" style={{ color: classColor }}>{cls.icon} {cls.en}</div>
+      {/* ════════════════════════════════════════════════════════
+          CENTER BLACK SCREEN — Lobster + identity
+          ════════════════════════════════════════════════════════ */}
+      <div className="skin-screen" style={pct(495,204,299,213)}>
+        <div className="screen-scanlines"/>
+        <div className="screen-inner">
+          <LobsterSprite classColor={lobsterColor} size={100}/>
+          <div className="screen-id">
+            <span className="sc-mbti">{mbti}</span>
+            <span className="sc-dot"> · </span>
+            <span className="sc-align">{alignment}</span>
+          </div>
+          <div className="screen-phrase">"{phrase}"</div>
         </div>
-        <div className="header-level" style={{ borderColor: classColor + '66' }}>
-          <div className="lv-label">LEVEL</div>
-          <div className="lv-num" style={{ color: classColor }}>{char.level}</div>
-          <div className="header-prestige" style={{ color: classColor }}>
-            BAB {char.bab != null ? fmtSign(char.bab) : '—'}
+      </div>
+
+      {/* ════════════════════════════════════════════════════════
+          LEFT GREEN PANEL — Name · Level · Class
+          Most viral: who is this character?
+          ════════════════════════════════════════════════════════ */}
+      <div className="skin-panel skin-left" style={pct(175,242,286,226)}>
+        <div className="lp-name">{char.name}</div>
+        <div className="panel-rule"/>
+        <div className="lp-core">
+          <div className="lp-lv">Lv.{char.level}</div>
+          <div className="lp-cls-row">
+            <span className="lp-cls-icon">{cls.icon}</span>
+            <span className="lp-cls">{cls.en}</span>
+          </div>
+        </div>
+        <div className="panel-rule"/>
+        <div className="lp-xp">
+          <div className="lp-xpbar">
+            <div className="lp-xpfill" style={{width:`${progress}%`}}/>
+          </div>
+          <div className="lp-xplabel">
+            <span className="lp-xp-cur">{fmtShort(char.xp)} XP</span>
+            {char.level < 999 && <span className="lp-xp-sep"> · </span>}
+            {char.level < 999 && <span className="lp-xp-next">{fmtShort(toNext)} to Lv.{char.level+1}</span>}
+            {char.level >= 999 && <span className="lp-xp-next"> MAX</span>}
+          </div>
+        </div>
+        <div className="lp-tokens">
+          <div className="lp-token-item">
+            <span className="lp-token-label">↓ TOKENS IN</span>
+            <span className="lp-token-val">{fmtShort(char.tokens?.consumed ?? 0)}</span>
+          </div>
+          <div className="lp-tvline"/>
+          <div className="lp-token-item">
+            <span className="lp-token-label">↑ TOKENS OUT</span>
+            <span className="lp-token-val">{fmtShort(char.tokens?.produced ?? 0)}</span>
           </div>
         </div>
       </div>
 
-      {/* ── XP Bar ── */}
-      <div className="xp-section">
-        <div className="xp-labels">
-          <span>Experience</span>
-          <span>
-            <strong>{fmtNum(char.xp)}</strong>
-            {char.level < 999 && <> / {fmtNum(xpForLevel(char.level + 1))} XP</>}
-          </span>
-        </div>
-        <div className="xp-bar-track">
-          <div className="xp-bar-fill"
-            style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${classColor}, ${classColor}bb)` }} />
-        </div>
-        <div className="xp-sub">
-          {char.level >= 999
-            ? '🌟 Max Level! Run: node scripts/levelup.mjs --prestige'
-            : `${progress}%  ·  ${fmtNum(toNext)} XP to Lv.${char.level + 1}`}
-        </div>
-      </div>
+      {/* ════════════════════════════════════════════════════════
+          RIGHT GREEN PANEL — Combat stats
+          Most viral: HP / AC / BAB + saves
+          ════════════════════════════════════════════════════════ */}
+      <div className="skin-panel skin-right" style={pct(835,240,290,232)}>
 
-      {/* ── Main 2-col ── */}
-      <div className="grid-2">
-
-        {/* Left: Soul Web + Combat Stats */}
-        <div className="card">
-          <div className="card-title">Soul Web</div>
-          <SoulWeb stats={char.stats} classColor={classColor} size={300} />
-          <div className="derived-grid">
-            {derivedItems.map(item => (
-              <div className="derived-item" key={item.label}>
-                <div className="derived-val" style={{ color: classColor }}>{item.val}</div>
-                <div className="derived-label">{item.label}</div>
-              </div>
-            ))}
+        {/* ── HP / AC / BAB ── */}
+        <div className="rp-combat">
+          <div className="rp-cstat">
+            <span className="rp-cl"><PixelIcon pixels={PIXEL_HEART} color="#ff4466" size={10}/> HP</span>
+            <span className="rp-cv">{char.hp != null ? fmtStat(char.hp) : '—'}</span>
+          </div>
+          <div className="rp-vline"/>
+          <div className="rp-cstat">
+            <span className="rp-cl"><PixelIcon pixels={PIXEL_SHIELD} color="#44aaff" size={10}/> AC</span>
+            <span className="rp-cv">{char.ac ?? '—'}</span>
+          </div>
+          <div className="rp-vline"/>
+          <div className="rp-cstat">
+            <span className="rp-cl"><PixelIcon pixels={PIXEL_SWORD} color="#ffdd44" size={10}/> BAB</span>
+            <span className="rp-cv">{char.bab ?? '—'}</span>
           </div>
         </div>
+        <div className="panel-rule"/>
 
-        {/* Right: Ability Scores + Class Features + Feats */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-          <div className="card">
-            <div className="card-title">Ability Scores</div>
-            <div className="stat-list">
-              {Object.entries(STAT_INFO).map(([key, info]) => {
-                const val = char.stats[key as keyof Stats] ?? 10
-                return (
-                  <div className="stat-row" key={key}>
-                    <span className="stat-icon">{info.icon}</span>
-                    <span className="stat-name">{info.en}</span>
-                    <div className="stat-bar-track">
-                      <div className="stat-bar-fill"
-                        style={{ width: `${(val / 20) * 100}%`,
-                          background: `linear-gradient(90deg, ${classColor}bb, ${classColor})` }} />
-                    </div>
-                    <span className="stat-val">{val}</span>
-                    <span className="stat-mod" style={{ color: classColor }}>{modStr(val)}</span>
-                    <span className="stat-dnd">{info.dnd}</span>
-                  </div>
-                )
-              })}
+        {/* ── FORT / REF / WILL ── */}
+        <div className="rp-saves">
+          {([['♦','FORT',saves.fort??0],['⚡','REF',saves.ref??0],['★','WILL',saves.will??0]] as [string,string,number][]).map(([icon,l,v])=>(
+            <div key={l} className="rp-save">
+              <span className="rp-sl"><span className="rp-si">{icon}</span>{l}</span>
+              <span className="rp-sv">{v}</span>
             </div>
-          </div>
+          ))}
+        </div>
 
-          <div className="card">
-            <div className="card-title">Class Features</div>
-            {char.abilities?.length ? (
-              <div className="ability-list">
-                {char.abilities.map(a => (
-                  <span className="ability-badge" key={a}
-                    style={{ borderColor: classColor + '66', color: classColor }}>{a}</span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ color: '#475569', fontSize: 13 }}>Level up to unlock class features</p>
-            )}
-          </div>
+        {/* ── CLASS FEATURES (2-col grid, pushed to bottom) ── */}
+        <div className="rp-feats">
+          {(char.abilities || []).map((a: string, i: number) => (
+            <div key={i} className="rp-feat-item">
+              <span className="rp-fi">{['⚔','🗡','🛡','✦'][i] ?? '✦'}</span>{a}
+            </div>
+          ))}
+        </div>
+        </div>
 
-          <div className="card">
-            <div className="card-title">Feats ({feats.length})</div>
-            {feats.length ? (
-              <div className="feat-list">
-                {feats.map(f => (
-                  <span key={f}
-                    className={`feat-tag${isClassFeat(f) ? ' class-feat' : ''}`}
-                    style={isClassFeat(f) ? { color: classColor, borderColor: classColor + '88' } : {}}>
-                    {f}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ color: '#475569', fontSize: 13 }}>No feats yet</p>
-            )}
-            {(char.classHistory?.length ?? 0) > 0 && (
-              <>
-                <div className="card-title" style={{ marginTop: 20 }}>Class History</div>
-                {char.classHistory.map((h, i) => (
-                  <div key={i} style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>
-                    {CLASSES[h.from]?.en ?? h.from} → {CLASSES[h.to]?.en ?? h.to}
-                    <span style={{ marginLeft: 6 }}>{h.date?.slice(0, 10)}</span>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Bottom stats ── */}
-      <div className="grid-4">
-        <div className="stat-card">
-          <div className="stat-card-icon">💬</div>
-          <div className="stat-card-val">{fmtNum(char.conversations)}</div>
-          <div className="stat-card-label">Conversations</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-icon">📥</div>
-          <div className="stat-card-val">{fmtNum(char.tokens?.consumed ?? 0)}</div>
-          <div className="stat-card-label">Tokens In</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-icon">📤</div>
-          <div className="stat-card-val">{fmtNum(char.tokens?.produced ?? 0)}</div>
-          <div className="stat-card-label">Tokens Out</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-icon">🌟</div>
-          <div className="stat-card-val">{char.prestige}</div>
-          <div className="stat-card-label">Prestiges</div>
-        </div>
-      </div>
-
-      <div className="footer">
-        🦞 Claw RPG · Last updated {char.updatedAt?.slice(0, 16).replace('T', ' ')} UTC · Live via SSE
+      {/* ════════════════════════════════════════════════════════
+          FACE AREA — Catch phrase + prestige
+          ════════════════════════════════════════════════════════ */}
+      <div className="skin-face" style={pct(450,385,380,290)}>
+        {char.prestige > 0 && <div className="fa-prestige">★ Prestige {char.prestige}</div>}
       </div>
     </div>
+    </>
   )
 }

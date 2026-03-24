@@ -3,9 +3,9 @@
  * Claw RPG — 每日狀態匯報
  *
  * 功能：
- *   1. 讀取 character.json（不增加 XP，避免「XP +0」困惑）
- *   2. 計算今日 XP 增量（xp - dailyXpStart，由 sync-xp-recovery 設置）
- *   3. 組裝匯報訊息（等級 + 今日 XP + 屬性進度條 + 職業俏皮話）
+ *   1. 同步 XP（調用 xp.mjs run()）
+ *   2. 讀取 character.json
+ *   3. 組裝匯報訊息（等級 + 屬性進度條 + 職業俏皮話）
  *   4. 通過 _notify.mjs 推送 Telegram
  *
  * 用法：node scripts/report.mjs
@@ -15,6 +15,7 @@ import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { CHARACTER_FILE } from './_paths.mjs';
 import { notify } from './_notify.mjs';
+import { run as syncXp } from './xp.mjs';
 
 // ── 職業中文名（繁體）────────────────────────────────────────────
 const CLASS_ZH = {
@@ -95,7 +96,14 @@ function makeBar(val, blocks = 6) {
 }
 
 async function main() {
-  // ── 1. 讀取 character.json ────────────────────────────────────
+  // ── 1. 同步 XP ────────────────────────────────────────────────
+  try {
+    await syncXp({});
+  } catch (e) {
+    console.warn('⚠️ XP sync skipped:', e.message);
+  }
+
+  // ── 2. 讀取（已更新的）character.json ────────────────────────
   if (!existsSync(CHARACTER_FILE)) {
     console.error('❌ character.json 未找到，請先執行 init.mjs');
     process.exit(1);
@@ -105,7 +113,7 @@ async function main() {
   const classZh = CLASS_ZH[char.class] || char.class;
   const stats   = char.stats || {};
 
-  // ── 2. 屬性行（兩欄並排）────────────────────────────────────
+  // ── 3. 屬性行（兩欄並排）────────────────────────────────────
   const statPairs = [
     ['claw', 'antenna'],
     ['shell', 'brain'],
@@ -122,19 +130,10 @@ async function main() {
     return `  ${lName} ${lBar}  ${String(lv).padStart(2)}   ${rName} ${rBar}  ${String(rv).padStart(2)}`;
   });
 
-  // ── 4. 計算今日 XP 增量 ──────────────────────────────────────
-  const dailyXpStart   = typeof char.dailyXpStart === 'number' ? char.dailyXpStart : null;
-  const dailyXpGained  = dailyXpStart !== null ? Math.max(0, char.xp - dailyXpStart) : null;
-  const dailyXpLine    = dailyXpGained !== null
-    ? `📈 今日累計 XP：+${dailyXpGained}（${dailyXpStart.toLocaleString()} → ${char.xp.toLocaleString()}）`
-    : `✨ 當前 XP：${char.xp.toLocaleString()}`;
-
-  // ── 5. 組裝訊息 ───────────────────────────────────────────────
+  // ── 4. 組裝訊息 ───────────────────────────────────────────────
   const quip = getQuip(char.class);
   const msg  = [
     `⚔️ ${char.name} · Lv.${char.level} · ${classZh}`,
-    ``,
-    dailyXpLine,
     ``,
     `📊 屬性`,
     ...statLines,
@@ -144,7 +143,7 @@ async function main() {
 
   console.log('\n' + msg + '\n');
 
-  // ── 6. 推送 Telegram ─────────────────────────────────────────
+  // ── 5. 推送 Telegram ─────────────────────────────────────────
   const ok = await notify(msg);
   if (ok) {
     console.log('✅ 匯報已發送至 Telegram');
