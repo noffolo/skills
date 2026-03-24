@@ -3,11 +3,16 @@
   "slug": "gws-classroom",
   "displayName": "Gws Classroom",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774300434440,
-    "commit": "https://github.com/openclaw/skills/commit/bb3b8ea568bf4ae179c4d893c97bf4599f2dadff"
+    "version": "1.0.6",
+    "publishedAt": 1774389763270,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774300434440,
+      "commit": "https://github.com/openclaw/skills/commit/bb3b8ea568bf4ae179c4d893c97bf4599f2dadff"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772665486220,
