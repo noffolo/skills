@@ -4,9 +4,11 @@
  * sync-books.js — Sync books from Kindle or WeRead to local library
  *
  * Usage:
- *   node scripts/sync-books.js kindle          # Sync all Kindle books
- *   node scripts/sync-books.js kindle --max 3  # Sync at most 3 books
- *   node scripts/sync-books.js weread           # Sync from WeRead
+ *   node scripts/sync-books.js kindle              # Sync all Kindle books
+ *   node scripts/sync-books.js kindle --max 3      # Sync at most 3 books
+ *   node scripts/sync-books.js kindle --list        # List books without syncing (JSON)
+ *   node scripts/sync-books.js kindle --book "书名"  # Sync only the matching book
+ *   node scripts/sync-books.js weread               # Sync from WeRead
  *
  * For Kindle: opens each book in the reader, triggers OCR sync, then returns
  * to the library page. Each book takes several minutes depending on length.
@@ -25,72 +27,76 @@ const READOUT_DESKTOP = path.resolve(os.homedir(), 'Documents/MyProject/readout-
 const BUNDLED_EXT_PATH = path.resolve(__dirname, '../chrome-extension');
 const DEV_EXT_PATH = path.join(READOUT_DESKTOP, '.output/chrome-mv3');
 const CHROME_PROFILE = process.env.CHROME_PROFILE || path.resolve(__dirname, '../.chrome-profile');
-const SYNC_SERVER_PORT = 18790;
-const SYNC_SERVER_SCRIPT = path.resolve(__dirname, 'sync-server.cjs');
 const LIBRARY_PATH = path.join(os.homedir(), 'castreader-library');
+const COOKIE_BACKUP_DIR = path.join(os.homedir(), '.castreader-cookies');
 
 // Lazy-loaded puppeteer (installed on demand)
 let puppeteer;
+let _activeBrowser = null;
+
+// Ensure Chrome is closed on unexpected termination (SIGTERM from ClawBot timeout, etc.)
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.on(sig, async () => {
+    if (_activeBrowser) {
+      process.stderr.write(`\n[${sig}] Closing browser...\n`);
+      await _activeBrowser.close().catch(() => {});
+    }
+    process.exit(1);
+  });
+}
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-// ---- Sync Server ----
+// ---- Cookie Backup / Restore ----
 
-function startSyncServer() {
-  if (!fs.existsSync(SYNC_SERVER_SCRIPT)) {
-    console.error(`Error: sync-server.cjs not found at ${SYNC_SERVER_SCRIPT}`);
-    process.exit(1);
+async function backupCookies(page, source) {
+  try {
+    const cookies = await page.cookies();
+    if (!cookies.length) return;
+    fs.mkdirSync(COOKIE_BACKUP_DIR, { recursive: true });
+    const backupPath = path.join(COOKIE_BACKUP_DIR, `${source}.json`);
+    fs.writeFileSync(backupPath, JSON.stringify(cookies, null, 2), 'utf-8');
+    process.stderr.write(`  Cookies backed up (${cookies.length} cookies)\n`);
+  } catch (e) {
+    process.stderr.write(`  Cookie backup failed: ${e.message}\n`);
   }
-  const child = spawn('node', [SYNC_SERVER_SCRIPT], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    detached: false,
-  });
-  child.stdout.on('data', (d) => process.stderr.write(`[sync-server] ${d}`));
-  child.stderr.on('data', (d) => process.stderr.write(`[sync-server] ${d}`));
-  return child;
 }
 
-async function waitForSyncServer(maxAttempts = 15) {
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      const res = await fetch(`http://127.0.0.1:${SYNC_SERVER_PORT}/health`);
-      if (res.ok) return true;
-    } catch {}
-    await sleep(1000);
+async function restoreCookies(page, source) {
+  try {
+    const backupPath = path.join(COOKIE_BACKUP_DIR, `${source}.json`);
+    if (!fs.existsSync(backupPath)) return false;
+    const cookies = JSON.parse(fs.readFileSync(backupPath, 'utf-8'));
+    if (!cookies.length) return false;
+    // Filter out expired cookies
+    const now = Date.now() / 1000;
+    const valid = cookies.filter(c => !c.expires || c.expires === -1 || c.expires > now);
+    if (!valid.length) return false;
+    await page.setCookie(...valid);
+    process.stderr.write(`  Restored ${valid.length} cookies from backup\n`);
+    return true;
+  } catch (e) {
+    process.stderr.write(`  Cookie restore failed: ${e.message}\n`);
+    return false;
   }
-  return false;
 }
+
+// ---- Library ----
 
 async function getBookCount() {
   try {
-    const res = await fetch(`http://127.0.0.1:${SYNC_SERVER_PORT}/list-books`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return data.books ? data.books.length : 0;
+    const indexPath = path.join(LIBRARY_PATH, 'index.json');
+    if (fs.existsSync(indexPath)) {
+      const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+      return (index.books || []).length;
     }
   } catch {}
   return 0;
 }
 
 async function getSyncedBookTitles() {
-  try {
-    const res = await fetch(`http://127.0.0.1:${SYNC_SERVER_PORT}/list-books`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return (data.books || []).map((b) => b.title || '');
-    }
-  } catch {}
-  // Fallback: read from local index.json
   try {
     const indexPath = path.join(LIBRARY_PATH, 'index.json');
     if (fs.existsSync(indexPath)) {
@@ -114,8 +120,10 @@ function ensureDependencies() {
   puppeteer = require('puppeteer');
 }
 
+const EXTENSION_REPO = 'https://github.com/vinxu/castreader-extension.git';
+
 function ensureExtensionBuilt() {
-  // Priority: env var > dev build > bundled
+  // Priority: env var > dev build > bundled > download from GitHub > build from source
   if (process.env.CASTREADER_EXT_PATH) {
     const p = process.env.CASTREADER_EXT_PATH;
     if (fs.existsSync(path.join(p, 'manifest.json'))) return p;
@@ -129,15 +137,34 @@ function ensureExtensionBuilt() {
     return DEV_EXT_PATH;
   }
 
-  // Bundled extension (shipped with skill, works on any machine)
+  // Bundled extension (shipped with skill or previously downloaded)
   if (fs.existsSync(path.join(BUNDLED_EXT_PATH, 'manifest.json'))) {
     process.stderr.write('Using bundled extension.\n');
     return BUNDLED_EXT_PATH;
   }
 
-  // Neither exists — try building from source
+  // Download from GitHub (extension not bundled with skill to keep package small)
+  process.stderr.write('Extension not found locally. Downloading from GitHub...\n');
+  try {
+    execSync(`git clone --depth 1 ${EXTENSION_REPO} "${BUNDLED_EXT_PATH}"`, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    // Remove .git dir to save space
+    const gitDir = path.join(BUNDLED_EXT_PATH, '.git');
+    if (fs.existsSync(gitDir)) {
+      fs.rmSync(gitDir, { recursive: true, force: true });
+    }
+    if (fs.existsSync(path.join(BUNDLED_EXT_PATH, 'manifest.json'))) {
+      process.stderr.write('Extension downloaded successfully.\n');
+      return BUNDLED_EXT_PATH;
+    }
+  } catch (e) {
+    process.stderr.write(`Download failed: ${e.message}\n`);
+  }
+
+  // Fallback: try building from source
   if (fs.existsSync(READOUT_DESKTOP)) {
-    process.stderr.write('Extension not built. Building now...\n');
+    process.stderr.write('Building extension from source...\n');
     const nodeModules = path.join(READOUT_DESKTOP, 'node_modules');
     if (!fs.existsSync(nodeModules)) {
       execSync('pnpm install', { cwd: READOUT_DESKTOP, stdio: 'inherit' });
@@ -149,7 +176,7 @@ function ensureExtensionBuilt() {
   }
 
   console.error('Error: Chrome extension not found.');
-  console.error('The bundled extension is missing from the skill directory.');
+  console.error('Try: git clone https://github.com/vinxu/castreader-extension.git chrome-extension');
   process.exit(1);
 }
 
@@ -206,28 +233,106 @@ async function findServiceWorker(browser, extId) {
     );
   };
 
-  // Wait up to 30s for SW to appear naturally (content script triggers it)
+  // Quick check first
+  const immediate = checkSW();
+  if (immediate) return immediate;
+
+  process.stderr.write('  Waiting for service worker...\n');
+
+  // Wake SW by opening extension popup page (keep it open — closing kills dormant SW)
+  try {
+    const pages = await browser.pages();
+    const hasPopup = pages.some(p => p.url().includes(`chrome-extension://${extId}/`));
+    if (!hasPopup) {
+      const wakePage = await browser.newPage();
+      await wakePage.goto(`chrome-extension://${extId}/popup.html`, { timeout: 5000 }).catch(() => {});
+      await sleep(2000);
+      // Don't close — keeping popup open keeps SW alive
+    }
+  } catch {}
+
+  // Wait for SW to appear
   for (let i = 0; i < 15; i++) {
     const sw = checkSW();
     if (sw) return sw;
-    if (i === 0) process.stderr.write('  Waiting for service worker...\n');
+    if (i === 0 || i === 5) {
+      // Debug: log all targets
+      const allTargets = browser.targets();
+      process.stderr.write(`  [debug] ${allTargets.length} targets:\n`);
+      for (const t of allTargets) {
+        process.stderr.write(`    type=${t.type()} url=${t.url().substring(0, 80)}\n`);
+      }
+    }
     await sleep(2000);
   }
   return null;
 }
 
 /**
- * Send a message to the content script on the given page.
- * Strategy: find the extension's content script execution context via CDP
- * and call chrome.runtime.sendMessage directly — no SW dependency.
+ * Send message to extension via the popup page's chrome.runtime.sendMessage.
+ * The popup page has full access to chrome.* APIs and auto-wakes the SW.
+ * Falls back to SW CDP approach if popup is unavailable.
  */
-/**
- * Send message to content script via background SW.
- * The page parameter is used to reload and wake the SW if it's dormant.
- */
+let contentInjected = false;
+
 async function sendMessageToActiveTab(browser, extId, message, page) {
   const msgJson = JSON.stringify(message);
+  const needsInject = !contentInjected;
 
+  // Strategy 1: Use popup page to relay message to content script via SW
+  const popupPage = await getOrOpenPopupPage(browser, extId);
+  if (popupPage) {
+    try {
+      const result = await popupPage.evaluate(async (msg, shouldInject) => {
+        try {
+          // Find the book tab (Kindle or WeRead)
+          const allTabs = await chrome.tabs.query({});
+          const bookTab = allTabs.find(t =>
+            t.url?.includes('read.amazon.com') || t.url?.includes('weread.qq.com')
+          );
+          if (!bookTab || !bookTab.id) {
+            return { success: false, error: 'No book tab found' };
+          }
+
+          // Only inject content.js on first call (it's not auto-injected via manifest)
+          if (shouldInject) {
+            try {
+              await chrome.scripting.executeScript({
+                target: { tabId: bookTab.id },
+                files: ['content-scripts/content.js'],
+              });
+              await new Promise(r => setTimeout(r, 3000));
+            } catch (injectErr) {
+              // May already be injected — ignore
+            }
+          }
+
+          try {
+            const response = await chrome.tabs.sendMessage(bookTab.id, msg);
+            return { success: true, tabId: bookTab.id, response };
+          } catch (e) {
+            return { success: false, tabId: bookTab.id, error: e.message };
+          }
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      }, message, needsInject);
+
+      if (result) {
+        if (result.success) {
+          contentInjected = true;
+        } else if (result.error && result.error.includes('Receiving end')) {
+          // Content script not responding — need to re-inject next time
+          contentInjected = false;
+        }
+        return result;
+      }
+    } catch (e) {
+      process.stderr.write(`  Popup relay error: ${e.message}\n`);
+    }
+  }
+
+  // Strategy 2: Find SW target and evaluate directly (fallback)
   const trySendViaSW = async () => {
     const swTarget = await findServiceWorker(browser, extId);
     if (!swTarget) return null;
@@ -246,18 +351,7 @@ async function sendMessageToActiveTab(browser, extId, message, page) {
               const response = await chrome.tabs.sendMessage(activeTab.id, ${msgJson});
               return JSON.stringify({ success: true, tabId: activeTab.id, response });
             } catch (e) {
-              // Content script not loaded — inject it
-              try {
-                await chrome.scripting.executeScript({
-                  target: { tabId: activeTab.id },
-                  files: ['content-scripts/content.js'],
-                });
-                await new Promise(r => setTimeout(r, 3000));
-                const response = await chrome.tabs.sendMessage(activeTab.id, ${msgJson});
-                return JSON.stringify({ success: true, tabId: activeTab.id, response, injected: true });
-              } catch (e2) {
-                return JSON.stringify({ success: false, tabId: activeTab.id, error: e2.message });
-              }
+              return JSON.stringify({ success: false, error: e.message });
             }
           })()
         `,
@@ -274,63 +368,483 @@ async function sendMessageToActiveTab(browser, extId, message, page) {
     }
   };
 
-  // Try once
   const first = await trySendViaSW();
   if (first && first.success) return first;
 
-  // SW not found — reload the page to wake content script → SW
-  if (page && (!first || first.error?.includes('not found'))) {
-    process.stderr.write('  Reloading page to wake extension...\n');
-    await page.reload({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
-    await sleep(5000);
-    await page.bringToFront();
+  return first || { success: false, error: 'Could not communicate with extension' };
+}
 
-    const second = await trySendViaSW();
-    if (second) return second;
+// Helper: get existing popup page or open one
+async function getOrOpenPopupPage(browser, extId) {
+  const pages = await browser.pages();
+  let popup = pages.find(p => p.url().includes(`chrome-extension://${extId}/`));
+  if (popup) return popup;
+
+  try {
+    popup = await browser.newPage();
+    await popup.goto(`chrome-extension://${extId}/popup.html`, { timeout: 10000 });
+    await sleep(1000);
+    return popup;
+  } catch (e) {
+    process.stderr.write(`  Could not open popup page: ${e.message}\n`);
+    return null;
   }
-
-  return first || { success: false, error: 'Background service worker not found' };
 }
 
 /**
- * Poll SYNC_LIBRARY_STATUS until sync is done or errored.
+ * Drive page flips via Puppeteer at maximum speed, poll status separately.
+ *
+ * Architecture: Two concurrent loops —
+ *   FLIP LOOP: fires page.keyboard.press('ArrowRight') every 300ms non-stop.
+ *              Collector detects image change (~50ms poll) and captures.
+ *              At batch boundary, Kindle ignores flips until next batch renders,
+ *              so extra flips are harmless.
+ *   STATUS LOOP: checks progress every 3s to detect done/error and show progress.
  */
 async function waitForSyncComplete(browser, extId, bookTitle, page, timeoutMs = 30 * 60 * 1000) {
   const start = Date.now();
   let lastMsg = '';
+  let done = false;
+  let result = { success: false, error: 'timeout' };
 
-  while (Date.now() - start < timeoutMs) {
-    await sleep(5000);
+  // ---- FLIP LOOP: fire ArrowRight at ~300ms intervals ----
+  const flipLoop = (async () => {
+    // Initial delay: let collector capture the first page before flipping
+    await sleep(2000);
 
-    const statusResult = await sendMessageToActiveTab(browser, extId, { type: 'SYNC_LIBRARY_STATUS' }, page);
-    if (!statusResult.success) {
-      process.stderr.write(`  Status check failed: ${statusResult.error}\n`);
-      continue;
+    while (!done && Date.now() - start < timeoutMs) {
+      if (page) {
+        await page.keyboard.press('ArrowRight');
+      }
+      await sleep(300);
     }
+  })();
 
-    const resp = statusResult.response;
-    if (!resp) continue;
+  // ---- STATUS LOOP: poll progress every 3s ----
+  const statusLoop = (async () => {
+    while (!done && Date.now() - start < timeoutMs) {
+      await sleep(3000);
 
-    const progress = resp.progress;
-    if (progress) {
-      const msg = `  [${bookTitle}] ${progress.status}: page ${progress.currentPage}/${progress.totalPages} (${progress.percent || 0}%)`;
-      if (msg !== lastMsg) {
-        process.stderr.write(msg + '\n');
-        lastMsg = msg;
+      let statusResult;
+      try {
+        statusResult = await Promise.race([
+          sendMessageToActiveTab(browser, extId, { type: 'SYNC_LIBRARY_STATUS' }, page),
+          sleep(10000).then(() => ({ success: false, error: 'poll timeout' })),
+        ]);
+      } catch (e) {
+        continue;
+      }
+      if (!statusResult?.success) continue;
+
+      const resp = statusResult.response;
+      if (!resp) continue;
+
+      const progress = resp.progress;
+      if (progress) {
+        const msg = `  [${bookTitle}] ${progress.status}: page ${progress.currentPage}/${progress.totalPages} (${progress.percent || 0}%)`;
+        if (msg !== lastMsg) {
+          process.stderr.write(msg + '\n');
+          lastMsg = msg;
+        }
+
+        if (progress.status === 'done') {
+          done = true;
+          result = { success: true };
+          return;
+        }
+        if (progress.status === 'error') {
+          done = true;
+          result = { success: false, error: progress.message };
+          return;
+        }
+        if (progress.status === 'cancelled') {
+          done = true;
+          result = { success: false, error: 'cancelled' };
+          return;
+        }
       }
 
-      if (progress.status === 'done') return { success: true };
-      if (progress.status === 'error') return { success: false, error: progress.message };
-      if (progress.status === 'cancelled') return { success: false, error: 'cancelled' };
+      if (resp.syncing === false && progress?.status === 'done') {
+        done = true;
+        result = { success: true };
+        return;
+      }
     }
+  })();
 
-    // If not syncing and no progress, sync may have finished silently
-    if (resp.syncing === false && progress?.status === 'done') {
-      return { success: true };
+  await Promise.all([flipLoop, statusLoop]);
+  return result;
+}
+
+/**
+ * Puppeteer-native Kindle sync: flip + screenshot + local tesseract OCR.
+ * 10x faster than extension's wasm OCR. No extension involvement needed.
+ */
+async function puppeteerNativeSync(page, book) {
+  const { execSync } = require('child_process');
+
+  const title = book.title;
+  const asin = book.asin || book.id || 'unknown';
+  const bookId = slugify(title) + '-' + asin;
+  const tmpDir = path.join(os.tmpdir(), 'castreader-ocr-' + Date.now());
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  process.stderr.write(`  [native-sync] "${title}" (${asin})\n`);
+
+  // ---- OCR engine detection: Vision (macOS) → PaddleOCR (cross-platform) → Tesseract (fallback) ----
+  const visionOcrBatch = path.resolve(__dirname, 'ocr-vision-batch');
+  const paddleOcrBatch = path.resolve(__dirname, 'ocr-paddle-batch.py');
+  const hasVisionOcr = fs.existsSync(visionOcrBatch) && process.platform === 'darwin';
+  let hasPaddleOcr = false;
+  if (!hasVisionOcr && fs.existsSync(paddleOcrBatch)) {
+    try { execSync('python3 -c "from paddleocr import PaddleOCR"', { stdio: 'pipe', timeout: 10000 }); hasPaddleOcr = true; }
+    catch { /* PaddleOCR not installed */ }
+  }
+  const ocrEngine = hasVisionOcr ? 'vision' : hasPaddleOcr ? 'paddle' : 'tesseract';
+  if (ocrEngine === 'tesseract') {
+    try { execSync('tesseract --version', { stdio: 'pipe' }); }
+    catch { return { success: false, error: 'No OCR available. Install PaddleOCR (pip install paddlepaddle paddleocr) or Tesseract.' }; }
+  }
+
+  const pipelineStart = Date.now();
+
+  // ---- CDP session for native screenshots ----
+  const cdp = await page.createCDPSession();
+  const dpr = await page.evaluate(() => window.devicePixelRatio || 1);
+
+  // Find the Kindle page image bounding rect (once)
+  const imgClip = await page.evaluate(() => {
+    const imgs = document.querySelectorAll('img[src^="blob:"]');
+    for (const img of imgs) {
+      if (img.naturalWidth > 0) {
+        const r = img.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      }
+    }
+    return null;
+  });
+  if (!imgClip) {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    return { success: false, error: 'No Kindle page image found' };
+  }
+
+  // ---- Helper: CDP screenshot → canvas resize → smaller PNG for OCR ----
+  // CDP screenshot captures at viewport resolution (large with big viewport).
+  // Resize via canvas in page to keep OCR fast.
+  const capturePageFast = async (pageNum) => {
+    const imgPath = path.join(tmpDir, `page-${String(pageNum).padStart(4, '0')}.png`);
+    // Use canvas to grab blob image at capped resolution (fast OCR)
+    const dataUrl = await page.evaluate(() => {
+      const imgs = document.querySelectorAll('img[src^="blob:"]');
+      let bestImg = null;
+      for (const img of imgs) {
+        if (img.naturalWidth > 0 && (!bestImg || img.naturalWidth > bestImg.naturalWidth)) bestImg = img;
+      }
+      if (!bestImg) return null;
+      const canvas = document.createElement('canvas');
+      // Cap height for fast OCR while keeping text readable
+      const maxH = 1200;
+      const scale = bestImg.naturalHeight > maxH ? maxH / bestImg.naturalHeight : 1;
+      canvas.width = Math.round(bestImg.naturalWidth * scale);
+      canvas.height = Math.round(bestImg.naturalHeight * scale);
+      canvas.getContext('2d').drawImage(bestImg, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/png');
+    });
+    if (dataUrl) {
+      fs.writeFileSync(imgPath, Buffer.from(dataUrl.replace(/^data:image\/png;base64,/, ''), 'base64'));
+    } else {
+      // Fallback to CDP screenshot
+      try {
+        const { data } = await cdp.send('Page.captureScreenshot', {
+          format: 'png',
+          clip: { ...imgClip, scale: 1 / dpr },
+        });
+        fs.writeFileSync(imgPath, Buffer.from(data, 'base64'));
+      } catch {
+        const el = await page.$('#kr-renderer') || await page.$('body');
+        await el.screenshot({ path: imgPath });
+      }
+    }
+    return imgPath;
+  };
+
+  // ---- Single evaluate: get src + percent in one IPC round-trip ----
+  const getPageState = async () => {
+    return page.evaluate(() => {
+      let src = '';
+      const imgs = document.querySelectorAll('img[src^="blob:"]');
+      for (const img of imgs) { if (img.naturalWidth > 0) { src = img.src; break; } }
+      const m = document.body.innerText.match(/(\d+)%/);
+      return { src, pct: m ? parseInt(m[1]) : 0 };
+    });
+  };
+
+  // ---- Async OCR batch runner ----
+  const runOcrBatchAsync = (startIdx, count) => {
+    const batchDir = path.join(tmpDir, `batch-${startIdx}`);
+    fs.mkdirSync(batchDir, { recursive: true });
+    for (let i = startIdx; i < startIdx + count; i++) {
+      const src = path.join(tmpDir, `page-${String(i + 1).padStart(4, '0')}.png`);
+      const dst = path.join(batchDir, `page-${String(i + 1).padStart(4, '0')}.png`);
+      if (fs.existsSync(src)) {
+        try { fs.linkSync(src, dst); } catch { fs.copyFileSync(src, dst); }
+      }
+    }
+    if (ocrEngine === 'vision' || ocrEngine === 'paddle') {
+      // Both Vision and PaddleOCR use the same interface: <binary> <dir> → JSON array stdout
+      const cmd = ocrEngine === 'vision' ? visionOcrBatch : 'python3';
+      const args = ocrEngine === 'vision' ? [batchDir] : [paddleOcrBatch, batchDir];
+      return new Promise((resolve) => {
+        const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+        let stdout = '';
+        child.stdout.on('data', (d) => { stdout += d; });
+        child.stderr.on('data', (d) => process.stderr.write(`  [ocr-${startIdx}] ${d}`));
+        child.on('close', () => {
+          try { resolve(JSON.parse(stdout).map(t => t.trim())); }
+          catch { resolve(new Array(count).fill('')); }
+          fs.rmSync(batchDir, { recursive: true, force: true });
+        });
+      });
+    } else {
+      // Tesseract fallback (per-image, sequential)
+      return (async () => {
+        const results = [];
+        for (let i = startIdx; i < startIdx + count; i++) {
+          const imgPath = path.join(tmpDir, `page-${String(i + 1).padStart(4, '0')}.png`);
+          try { results.push(execSync(`tesseract "${imgPath}" stdout -l eng --psm 6 2>/dev/null`, { encoding: 'utf-8' }).trim()); }
+          catch { results.push(''); }
+        }
+        fs.rmSync(batchDir, { recursive: true, force: true });
+        return results;
+      })();
+    }
+  };
+
+  // ---- PIPELINED CAPTURE + PARALLEL OCR ----
+  // OCR starts as soon as first batch of pages is captured.
+  // Uses 8 parallel OCR workers to maximize CPU utilization.
+  let pageNum = 0;
+  let lastSrc = '';
+  let kindlePercent = 0;
+  let stuckCount = 0;
+  const MAX_STUCK = 30;
+  const allText = [];
+  const OCR_PARALLELISM = 8;
+  const OCR_BATCH_SIZE = 8; // small batches for fast pipeline start
+  const ocrQueue = []; // { startIdx, count, promise, done, result }
+  let ocrDispatchedUpTo = 0;
+
+  const engineNames = { vision: 'Apple Vision', paddle: 'PaddleOCR', tesseract: 'Tesseract' };
+  process.stderr.write(`  [native-sync] Large viewport (${imgClip.width}x${imgClip.height}) + ${OCR_PARALLELISM}x pipelined ${engineNames[ocrEngine]}...\n`);
+
+  const dispatchOcr = () => {
+    while (pageNum - ocrDispatchedUpTo >= OCR_BATCH_SIZE) {
+      const startIdx = ocrDispatchedUpTo;
+      ocrQueue.push({ startIdx, count: OCR_BATCH_SIZE, promise: runOcrBatchAsync(startIdx, OCR_BATCH_SIZE), done: false });
+      ocrDispatchedUpTo += OCR_BATCH_SIZE;
+    }
+  };
+
+  // Mark completed OCR batches (non-blocking check)
+  const markDone = async () => {
+    for (const q of ocrQueue) {
+      if (!q.done) {
+        const r = await Promise.race([q.promise.then(v => ({ v })), Promise.resolve(null)]);
+        if (r) { q.result = r.v; q.done = true; }
+      }
+    }
+  };
+
+  // Throttle if too many active workers
+  const throttle = async () => {
+    while (ocrQueue.filter(q => !q.done).length >= OCR_PARALLELISM) {
+      await sleep(30);
+      await markDone();
+    }
+  };
+
+  // FAST CAPTURE with pipelined OCR
+  while (kindlePercent < 99 && stuckCount < MAX_STUCK) {
+    const state = await getPageState();
+
+    if (state.src && state.src !== lastSrc) {
+      pageNum++;
+      stuckCount = 0;
+      lastSrc = state.src;
+      kindlePercent = state.pct;
+
+      await capturePageFast(pageNum);
+
+      if (pageNum % 10 === 0 || kindlePercent >= 99) {
+        process.stderr.write(`  [capture] page ${pageNum} (${kindlePercent}%)\n`);
+      }
+
+      // Dispatch OCR batches as pages accumulate
+      dispatchOcr();
+      await throttle();
+
+      await page.keyboard.press('ArrowRight');
+    } else {
+      stuckCount++;
+      if (stuckCount % 3 === 0) await page.keyboard.press('ArrowRight');
+      await sleep(50);
     }
   }
 
-  return { success: false, error: 'timeout' };
+  const captureTime = ((Date.now() - pipelineStart) / 1000).toFixed(1);
+  process.stderr.write(`  [native-sync] Capture done: ${pageNum} pages in ${captureTime}s\n`);
+  await cdp.detach().catch(() => {});
+
+  if (pageNum === 0) {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    return { success: false, error: 'No pages captured' };
+  }
+
+  // Dispatch remaining pages
+  if (ocrDispatchedUpTo < pageNum) {
+    const startIdx = ocrDispatchedUpTo;
+    const count = pageNum - ocrDispatchedUpTo;
+    ocrQueue.push({ startIdx, count, promise: runOcrBatchAsync(startIdx, count), done: false });
+  }
+
+  // Wait for all OCR to finish
+  const activeCount = ocrQueue.filter(q => !q.done).length;
+  if (activeCount > 0) {
+    process.stderr.write(`  [native-sync] Waiting for ${activeCount} OCR batches...\n`);
+  }
+  for (const q of ocrQueue) {
+    if (!q.done) { q.result = await q.promise; q.done = true; }
+  }
+
+  // Collect in order
+  ocrQueue.sort((a, b) => a.startIdx - b.startIdx);
+  for (const q of ocrQueue) {
+    for (const t of (q.result || [])) { if (t) allText.push(t); }
+  }
+
+  const totalPipeTime = ((Date.now() - pipelineStart) / 1000).toFixed(1);
+  process.stderr.write(`  [native-sync] Done: capture=${captureTime}s, total=${totalPipeTime}s\n`);
+
+  // Cleanup temp images
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+
+  // ---- PHASE 3: Split into chapters and save ----
+  const fullText = allText.join('\n\n');
+  if (!fullText.trim()) {
+    return { success: false, error: 'OCR produced no text' };
+  }
+
+  process.stderr.write(`  [native-sync] Phase 3: Splitting chapters (${fullText.length.toLocaleString()} chars)...\n`);
+
+  // Simple chapter splitting: look for "Chapter N" or similar patterns
+  const chapters = splitIntoChapters(fullText, title);
+
+  // Save directly to filesystem (faster and more reliable than sync server for large files)
+  const bookDir = path.join(LIBRARY_PATH, 'books', bookId);
+  fs.mkdirSync(bookDir, { recursive: true });
+
+  // Clean old chapter files
+  try {
+    for (const f of fs.readdirSync(bookDir)) {
+      if (f.startsWith('chapter-') || f === 'full.md') fs.unlinkSync(path.join(bookDir, f));
+    }
+  } catch {}
+
+  // meta.json
+  fs.writeFileSync(path.join(bookDir, 'meta.json'), JSON.stringify({
+    title, author: book.author || '', source: 'kindle', asin,
+    chapters: chapters.map((ch, i) => ({ index: i + 1, title: ch.title })),
+    syncedAt: new Date().toISOString(),
+    totalChars: fullText.length,
+  }, null, 2));
+
+  // Chapter files
+  for (let i = 0; i < chapters.length; i++) {
+    fs.writeFileSync(path.join(bookDir, `chapter-${String(i + 1).padStart(2, '0')}.md`),
+      `# ${chapters[i].title}\n\n${chapters[i].content}`);
+  }
+
+  // full.md
+  fs.writeFileSync(path.join(bookDir, 'full.md'), `# ${title}\n\n${fullText}`);
+
+  // Update index.json (direct filesystem, no sync server)
+  try {
+    const indexPath = path.join(LIBRARY_PATH, 'index.json');
+    let existing = { books: [] };
+    if (fs.existsSync(indexPath)) {
+      existing = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+    }
+    existing.books = (existing.books || []).filter(b => b.id !== bookId);
+    existing.books.push({ id: bookId, title, author: book.author || '', source: 'kindle', syncedAt: new Date().toISOString() });
+    fs.writeFileSync(indexPath, JSON.stringify(existing, null, 2));
+  } catch {}
+
+  const totalTime = ((Date.now() - pipelineStart) / 1000).toFixed(1);
+  process.stderr.write(`  [native-sync] Done! ${chapters.length} chapters, ${fullText.length.toLocaleString()} chars in ${totalTime}s\n`);
+  return { success: true };
+}
+
+/** Split full text into chapters by detecting chapter headings */
+function splitIntoChapters(fullText, bookTitle) {
+  // Try common chapter patterns
+  const patterns = [
+    /^(Chapter\s+\d+[^\n]*)/im,
+    /^(CHAPTER\s+[IVXLCDM\d]+[^\n]*)/m,
+    /^(第[一二三四五六七八九十百千\d]+[章节回][^\n]*)/m,
+  ];
+
+  let splitRegex = null;
+  for (const pattern of patterns) {
+    if (pattern.test(fullText)) {
+      // Build a global version for splitting
+      splitRegex = new RegExp(pattern.source, 'gm' + (pattern.flags.includes('i') ? 'i' : ''));
+      break;
+    }
+  }
+
+  if (!splitRegex) {
+    // No chapter pattern found — split by page breaks or just return as single chapter
+    const chunks = fullText.split(/\n{4,}/);
+    if (chunks.length > 3) {
+      return chunks.map((chunk, i) => ({
+        title: `Section ${i + 1}`,
+        content: chunk.trim(),
+      })).filter(ch => ch.content.length > 50);
+    }
+    return [{ title: bookTitle, content: fullText }];
+  }
+
+  // Split at chapter headings
+  const chapters = [];
+  const matches = [...fullText.matchAll(splitRegex)];
+
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].index;
+    const end = i + 1 < matches.length ? matches[i + 1].index : fullText.length;
+    const chapterText = fullText.substring(start, end).trim();
+    const heading = matches[i][1].trim();
+    const content = chapterText.substring(heading.length).trim();
+    if (content.length > 10) {
+      chapters.push({ title: heading, content });
+    }
+  }
+
+  // Include any text before the first chapter heading
+  if (matches.length > 0 && matches[0].index > 100) {
+    const preamble = fullText.substring(0, matches[0].index).trim();
+    if (preamble.length > 50) {
+      chapters.unshift({ title: 'Preamble', content: preamble });
+    }
+  }
+
+  return chapters.length > 0 ? chapters : [{ title: bookTitle, content: fullText }];
+}
+
+function slugify(text) {
+  return text.toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 60);
 }
 
 // ---- Wait for login ----
@@ -406,7 +920,112 @@ async function waitForWeReadQrCode(page, timeoutMs = 15000) {
   return screenshotPath;
 }
 
-async function waitForLogin(page, source) {
+/**
+ * Auto-fill Amazon login form with email and password.
+ * Amazon login is a two-step form: email → continue → password → sign in.
+ */
+async function kindleAutoLogin(page, email, password) {
+  process.stderr.write('  Auto-filling Kindle login...\n');
+
+  // Step 0: If on landing page (not the login form), navigate to login
+  const currentUrl = page.url();
+  if (currentUrl.includes('read.amazon.com/landing')) {
+    process.stderr.write('  On landing page, navigating to sign-in...\n');
+    // Find the sign-in link by clicking it or navigate directly
+    try {
+      const clicked = await page.evaluate(() => {
+        // Find any link/button containing "Sign in" text
+        const els = document.querySelectorAll('a, button');
+        for (const el of els) {
+          if (el.textContent?.includes('Sign in')) {
+            el.click();
+            return true;
+          }
+        }
+        return false;
+      });
+      if (!clicked) {
+        // Direct navigation to Amazon sign-in with return to Kindle
+        await page.goto('https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fread.amazon.com%2Fkindle-library&openid.assoc_handle=amzn_kweb&openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0', { waitUntil: 'networkidle2', timeout: 30000 });
+      }
+      await sleep(3000);
+    } catch (e) {
+      process.stderr.write(`  Landing page nav failed: ${e.message}\n`);
+      // Last resort: direct sign-in URL
+      await page.goto('https://www.amazon.com/ap/signin?openid.return_to=https%3A%2F%2Fread.amazon.com%2Fkindle-library', { waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
+      await sleep(3000);
+    }
+  }
+
+  // Step 1: Email
+  try {
+    await page.waitForSelector('#ap_email', { timeout: 10000 });
+    await page.type('#ap_email', email, { delay: 50 });
+    // Click continue or sign-in (Amazon shows either depending on state)
+    const continueBtn = await page.$('#continue');
+    const signInBtn = await page.$('#signInSubmit');
+    if (continueBtn) {
+      await continueBtn.click();
+    } else if (signInBtn) {
+      // Single-page login — password field may already be visible
+    }
+    await sleep(2000);
+  } catch (e) {
+    process.stderr.write(`  Email input failed: ${e.message}\n`);
+    return false;
+  }
+
+  // Step 2: Password
+  try {
+    await page.waitForSelector('#ap_password', { visible: true, timeout: 10000 });
+    await page.type('#ap_password', password, { delay: 50 });
+    const signIn = await page.$('#signInSubmit');
+    if (signIn) {
+      await signIn.click();
+    }
+    process.stderr.write('  Credentials submitted, waiting for login...\n');
+    await sleep(3000);
+  } catch (e) {
+    process.stderr.write(`  Password input failed: ${e.message}\n`);
+    return false;
+  }
+
+  // Check for 2FA / CAPTCHA / errors
+  try {
+    const currentUrl = page.url();
+    if (currentUrl.includes('/ap/mfa') || currentUrl.includes('/ap/cvf')) {
+      // 2FA required — emit event so bot can ask user for code
+      const screenshotPath = path.join(os.tmpdir(), `kindle-2fa-${Date.now()}.png`);
+      await page.screenshot({ path: screenshotPath });
+      console.log(JSON.stringify({
+        event: 'kindle_2fa_required',
+        source: 'kindle',
+        screenshot: screenshotPath,
+        message: '亚马逊需要验证码，请查看手机短信或邮箱，把验证码发给我。',
+      }));
+      process.stderr.write('  2FA required — waiting for code input...\n');
+      // Don't return false — let the polling loop handle completion
+    }
+    // Check for error messages (wrong password, etc.)
+    const errorMsg = await page.evaluate(() => {
+      const el = document.querySelector('#auth-error-message-box .a-list-item, .a-alert-content');
+      return el?.textContent?.trim() || '';
+    });
+    if (errorMsg) {
+      console.log(JSON.stringify({
+        event: 'kindle_login_error',
+        source: 'kindle',
+        message: errorMsg,
+      }));
+      process.stderr.write(`  Login error: ${errorMsg}\n`);
+      return false;
+    }
+  } catch { /* page navigating after successful login */ }
+
+  return true; // credentials submitted, polling loop will check completion
+}
+
+async function waitForLogin(page, source, credentials) {
   const readyPatterns = {
     kindle: /read\.amazon\.com\/kindle-library/,
     weread: /weread\.qq\.com\/web\/shelf/,
@@ -422,15 +1041,42 @@ async function waitForLogin(page, source) {
       const loggedIn = await isWeReadLoggedIn(page);
       if (!loggedIn) {
         process.stderr.write('WeRead shelf loaded but not logged in.\n');
-        // Fall through to login wait — will capture QR below
+        // Fall through to cookie restore / login wait
       } else {
         process.stderr.write('Already logged in.\n');
+        await backupCookies(page, source);
         return true;
       }
     } else {
       process.stderr.write('Already logged in.\n');
+      await backupCookies(page, source);
       return true;
     }
+  }
+
+  // Try restoring cookies from backup before prompting user to log in
+  const restored = await restoreCookies(page, source);
+  if (restored) {
+    process.stderr.write('  Reloading with restored cookies...\n');
+    const targetUrls = { kindle: 'https://read.amazon.com/kindle-library', weread: 'https://weread.qq.com/web/shelf' };
+    await page.goto(targetUrls[source], { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
+    await sleep(2000);
+    const urlAfterRestore = page.url();
+    if (readyPattern.test(urlAfterRestore)) {
+      if (source === 'weread') {
+        const loggedIn = await isWeReadLoggedIn(page);
+        if (loggedIn) {
+          process.stderr.write('✓ Login restored from cookie backup!\n');
+          await backupCookies(page, source);
+          return true;
+        }
+      } else {
+        process.stderr.write('✓ Login restored from cookie backup!\n');
+        await backupCookies(page, source);
+        return true;
+      }
+    }
+    process.stderr.write('  Cookie restore did not work, proceeding to manual login.\n');
   }
 
   // WeRead: capture QR code and emit event for Skill to send to user via Telegram
@@ -457,29 +1103,60 @@ async function waitForLogin(page, source) {
     process.stderr.write(`  二维码已截图: ${qrScreenshot}\n`);
     process.stderr.write(`  等待登录完成...\n\n`);
   } else if (isLoginPage(initialUrl, source)) {
-    const loginMsg = {
-      event: 'login_required',
-      source,
-      message: `Please log in to ${sourceNames[source]} in the browser window that just opened. The sync will start automatically after you log in.`,
-    };
-    console.log(JSON.stringify(loginMsg));
-    process.stderr.write(`\n🔑 Login required for ${sourceNames[source]}\n`);
-    process.stderr.write(`  Please log in in the browser window.\n`);
-    process.stderr.write(`  Waiting for login to complete...\n\n`);
+    if (source === 'kindle' && credentials?.email && credentials?.password) {
+      // Auto-login with provided credentials
+      const autoResult = await kindleAutoLogin(page, credentials.email, credentials.password);
+      if (!autoResult) {
+        console.log(JSON.stringify({
+          event: 'kindle_login_error',
+          source: 'kindle',
+          message: '自动登录失败，请检查邮箱和密码是否正确。',
+        }));
+      }
+      // Continue to polling loop to check login result
+    } else {
+      const loginMsg = {
+        event: 'login_required',
+        source,
+        message: source === 'kindle'
+          ? '需要登录 Kindle。你可以：\n1. 自己去电脑上的浏览器登录\n2. 把亚马逊邮箱和密码发给我，我帮你自动登录'
+          : `Please log in to ${sourceNames[source]} in the browser window.`,
+      };
+      console.log(JSON.stringify(loginMsg));
+      process.stderr.write(`\n🔑 Login required for ${sourceNames[source]}\n`);
+      process.stderr.write(`  Waiting for login to complete...\n\n`);
+    }
   }
 
   // Poll for login completion — check both URL and page content
   for (let i = 0; i < 150; i++) {
     await sleep(2000);
-    const currentUrl = page.url();
-    if (readyPattern.test(currentUrl)) {
-      if (source === 'weread') {
-        const loggedIn = await isWeReadLoggedIn(page);
-        if (!loggedIn) continue; // URL matches but still not logged in
+    try {
+      const currentUrl = page.url();
+      if (readyPattern.test(currentUrl)) {
+        if (source === 'weread') {
+          const loggedIn = await isWeReadLoggedIn(page);
+          if (!loggedIn) continue; // URL matches but still not logged in
+        }
+        console.log(JSON.stringify({ event: 'login_complete', source }));
+        process.stderr.write('✓ Login successful!\n');
+        await backupCookies(page, source);
+        return true;
       }
-      console.log(JSON.stringify({ event: 'login_complete', source }));
-      process.stderr.write('✓ Login successful!\n');
-      return true;
+    } catch (e) {
+      // Execution context destroyed during navigation — page is navigating after login
+      process.stderr.write(`  (page navigating...)\n`);
+      await sleep(3000);
+      // After navigation settles, check if we're on the shelf
+      try {
+        const newUrl = page.url();
+        if (readyPattern.test(newUrl)) {
+          console.log(JSON.stringify({ event: 'login_complete', source }));
+          process.stderr.write('✓ Login successful!\n');
+          await backupCookies(page, source);
+          return true;
+        }
+      } catch { /* still navigating, continue polling */ }
     }
   }
 
@@ -606,9 +1283,9 @@ async function clickKindleBook(page, bookIndex) {
 
 // ---- Main: Kindle flow ----
 
-async function syncKindle(browser, extId, page, maxBooks) {
+async function syncKindle(browser, extId, page, maxBooks, { listOnly = false, bookFilter = null, credentials = null } = {}) {
   // Wait for login on library page
-  const loggedIn = await waitForLogin(page, 'kindle');
+  const loggedIn = await waitForLogin(page, 'kindle', credentials);
   if (!loggedIn) {
     console.error('Timed out waiting for login.');
     process.exit(1);
@@ -633,6 +1310,12 @@ async function syncKindle(browser, extId, page, maxBooks) {
     process.exit(1);
   }
 
+  // --list mode: output book list as JSON and return
+  if (listOnly) {
+    console.log(JSON.stringify({ books: bookList.map(b => ({ title: b.title, author: b.author })) }));
+    return { booksSynced: 0, totalBooks: bookList.length, listOnly: true };
+  }
+
   // Show first few books
   bookList.slice(0, 5).forEach((b, i) => {
     process.stderr.write(`  ${i + 1}. "${b.title}" — ${b.author}\n`);
@@ -650,11 +1333,24 @@ async function syncKindle(browser, extId, page, maxBooks) {
   // So we track books by title, not by DOM index.
   const booksToSync = [];
   for (const book of bookList) {
+    // --book filter: skip books that don't match
+    if (bookFilter) {
+      const filterLower = bookFilter.toLowerCase();
+      const titleLower = book.title.toLowerCase();
+      if (!titleLower.includes(filterLower) && !filterLower.includes(titleLower)) {
+        continue;
+      }
+    }
     const alreadySynced = syncedTitles.some((synced) =>
       synced.toLowerCase().includes(book.title.toLowerCase().substring(0, 30)) ||
       book.title.toLowerCase().includes(synced.toLowerCase().substring(0, 30))
     );
     booksToSync.push({ ...book, alreadySynced });
+  }
+
+  if (bookFilter && booksToSync.length === 0) {
+    process.stderr.write(`No book matching "${bookFilter}" found in library.\n`);
+    return { booksSynced: 0, totalBooks: bookList.length };
   }
 
   const skippedCount = booksToSync.filter(b => b.alreadySynced).length;
@@ -723,34 +1419,94 @@ async function syncKindle(browser, extId, page, maxBooks) {
       continue;
     }
 
-    // Bring page to front
+    // Bring page to front and navigate to beginning of book
     await page.bringToFront();
+    await sleep(2000);
 
-    // Trigger sync
-    let triggered = false;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const result = await sendMessageToActiveTab(browser, extId, { type: 'SYNC_LIBRARY_START' }, page);
-      if (result.success) {
-        triggered = true;
-        break;
+    // Check current reading progress — if not at beginning, navigate there
+    const currentPct = await page.evaluate(() => {
+      // Try scrubber text, page indicator, or body text
+      const candidates = [
+        document.querySelector('#kr-reading-progress'),
+        document.querySelector('.reading-progress'),
+        document.querySelector('[class*="progress"]'),
+        document.querySelector('[class*="percent"]'),
+      ];
+      for (const el of candidates) {
+        if (el) {
+          const m = el.textContent?.match(/(\d+)%/);
+          if (m) return parseInt(m[1]);
+        }
       }
-      process.stderr.write(`  Trigger attempt ${attempt + 1} failed: ${result.error}\n`);
-      await sleep(3000);
-    }
-
-    if (!triggered) {
-      process.stderr.write(`  Could not trigger sync for "${book.title}", skipping.\n`);
-      await page.goto('https://read.amazon.com/kindle-library', { waitUntil: 'networkidle2', timeout: 60000 });
-      await sleep(5000);
-      await scrollToLoadAllBooks(page);
-      await page.evaluate(() => window.scrollTo(0, 0));
+      // Try body text
+      const body = document.body.innerText;
+      const pageMatch = body.match(/Page \d+ of \d+\s*[·•]\s*(\d+)%/);
+      if (pageMatch) return parseInt(pageMatch[1]);
+      const pctMatch = body.match(/(\d+)%/);
+      if (pctMatch) return parseInt(pctMatch[1]);
+      return -1;
+    });
+    process.stderr.write(`  Current reading position: ${currentPct}%\n`);
+    if (currentPct > 1) {
+      process.stderr.write(`  Book at ${currentPct}%, navigating to beginning...\n`);
+      // Use scrubber to jump to beginning
+      await page.evaluate(() => {
+        // Click center to show bottom bar
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        document.elementFromPoint(cx, cy)?.dispatchEvent(
+          new MouseEvent('click', { clientX: cx, clientY: cy, bubbles: true })
+        );
+      });
       await sleep(1000);
-      continue;
+      const jumped = await page.evaluate(() => {
+        const scrubber = document.querySelector('#kr-scrubber-bar') || document.querySelector('ion-range.scrubber-bar');
+        if (!scrubber) return false;
+        scrubber.value = 0;
+        scrubber.dispatchEvent(new CustomEvent('ionInput', { detail: { value: 0 }, bubbles: true }));
+        scrubber.dispatchEvent(new CustomEvent('ionChange', { detail: { value: 0 }, bubbles: true }));
+        return true;
+      });
+      if (jumped) {
+        await sleep(4000); // Wait for Kindle to render
+        process.stderr.write(`  Jumped to beginning via scrubber.\n`);
+      } else {
+        // Fallback: reload page with location 0
+        process.stderr.write(`  Scrubber not found, reloading page...\n`);
+        const url = page.url();
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+        await sleep(5000);
+        // Try left arrow keys to get to absolute beginning
+        for (let i = 0; i < 50; i++) {
+          await page.keyboard.press('ArrowLeft');
+          await sleep(100);
+        }
+        await sleep(2000);
+      }
+      // Press ArrowLeft a few times to ensure absolute beginning
+      for (let i = 0; i < 10; i++) {
+        await page.keyboard.press('ArrowLeft');
+        await sleep(200);
+      }
+      await sleep(1000);
     }
 
-    // Wait for sync to complete
-    process.stderr.write(`  Sync started. Waiting for completion...\n`);
-    const syncResult = await waitForSyncComplete(browser, extId, book.title, page);
+    // ---- Puppeteer-native sync: flip + screenshot + local tesseract OCR ----
+    // No extension involvement — 10x faster than wasm OCR in offscreen document.
+    process.stderr.write(`  Starting Puppeteer-native sync...\n`);
+    let syncResult = await puppeteerNativeSync(page, book);
+
+    if (!syncResult.success) {
+      process.stderr.write(`  ⚠ Sync failed (${syncResult.error}). Retrying...\n`);
+      await page.reload({ waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
+      await sleep(5000);
+      // Navigate to beginning again
+      for (let i = 0; i < 20; i++) {
+        await page.keyboard.press('ArrowLeft');
+        await sleep(100);
+      }
+      await sleep(2000);
+      syncResult = await puppeteerNativeSync(page, book);
+    }
 
     if (syncResult.success) {
       booksSynced++;
@@ -1111,7 +1867,7 @@ function mergeLinesToParagraphs(lines) {
 
 // ---- Main: WeRead flow (Puppeteer-driven navigation) ----
 
-async function syncWeRead(browser, extId, page, maxBooks) {
+async function syncWeRead(browser, extId, page, maxBooks, { listOnly = false, bookFilter = null } = {}) {
   const loggedIn = await waitForLogin(page, 'weread');
   if (!loggedIn) {
     console.error('Timed out waiting for login.');
@@ -1132,6 +1888,12 @@ async function syncWeRead(browser, extId, page, maxBooks) {
     process.exit(1);
   }
 
+  // --list mode: output book list as JSON and return
+  if (listOnly) {
+    console.log(JSON.stringify({ books: bookList.map(b => ({ title: b.title, author: b.author, bookId: b.bookId })) }));
+    return { booksSynced: 0, totalBooks: bookList.length, listOnly: true };
+  }
+
   bookList.slice(0, 5).forEach((b, i) => {
     process.stderr.write(`  ${i + 1}. "${b.title}" — ${b.author} [${b.bookId || 'no-id'}]\n`);
   });
@@ -1143,13 +1905,28 @@ async function syncWeRead(browser, extId, page, maxBooks) {
   const initialBookCount = await getBookCount();
   let booksSynced = 0;
 
-  const booksToSync = bookList.map(book => ({
+  const booksToSync = bookList.filter(book => {
+    // --book filter: skip books that don't match
+    if (bookFilter) {
+      const filterLower = bookFilter.toLowerCase();
+      const titleLower = book.title.toLowerCase();
+      if (!titleLower.includes(filterLower) && !filterLower.includes(titleLower)) {
+        return false;
+      }
+    }
+    return true;
+  }).map(book => ({
     ...book,
     alreadySynced: syncedTitles.some((synced) =>
       synced.toLowerCase().includes(book.title.toLowerCase().substring(0, 15)) ||
       book.title.toLowerCase().includes(synced.toLowerCase().substring(0, 15))
     ),
   }));
+
+  if (bookFilter && booksToSync.length === 0) {
+    process.stderr.write(`No book matching "${bookFilter}" found on shelf.\n`);
+    return { booksSynced: 0, totalBooks: bookList.length };
+  }
 
   const skippedCount = booksToSync.filter(b => b.alreadySynced).length;
   const pendingCount = booksToSync.filter(b => !b.alreadySynced).length;
@@ -1348,41 +2125,32 @@ async function syncWeRead(browser, extId, page, maxBooks) {
     };
     files.push({ path: `books/${dirId}/meta.json`, content: JSON.stringify(meta, null, 2) });
 
-    // Save batch
+    // Save directly to filesystem (no sync-server needed)
     try {
-      const res = await fetch(`http://127.0.0.1:${SYNC_SERVER_PORT}/save-batch`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files }),
-      });
-      if (res.ok) {
-        // Update index
-        let index = { version: '1.0.0', books: [], updatedAt: '' };
-        try {
-          const idxRes = await fetch(`http://127.0.0.1:${SYNC_SERVER_PORT}/read`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: 'index.json' }),
-          });
-          if (idxRes.ok) {
-            const data = await idxRes.json();
-            if (data.content) index = JSON.parse(data.content);
-          }
-        } catch {}
-        const existingIdx = index.books.findIndex(b => b.id === dirId);
-        if (existingIdx >= 0) index.books[existingIdx] = { id: dirId, ...meta };
-        else index.books.push({ id: dirId, ...meta });
-        index.updatedAt = new Date().toISOString();
-        await fetch(`http://127.0.0.1:${SYNC_SERVER_PORT}/save`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: 'index.json', content: JSON.stringify(index, null, 2) }),
-        });
-        booksSynced++;
-        process.stderr.write(`  ✓ "${bookMeta.title}" — ${chapters.length} chapters, ${totalChars.toLocaleString()} chars\n`);
-      } else {
-        process.stderr.write(`  ✗ Save failed: ${res.statusText}\n`);
+      const bookDir = path.join(LIBRARY_PATH, 'books', dirId);
+      fs.mkdirSync(bookDir, { recursive: true });
+      for (const f of files) {
+        const filePath = path.join(LIBRARY_PATH, f.path);
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        fs.writeFileSync(filePath, f.content, 'utf-8');
       }
+
+      // Update index.json
+      const indexPath = path.join(LIBRARY_PATH, 'index.json');
+      let index = { version: '1.0.0', books: [], updatedAt: '' };
+      try {
+        if (fs.existsSync(indexPath)) {
+          index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+        }
+      } catch {}
+      const existingIdx = index.books.findIndex(b => b.id === dirId);
+      if (existingIdx >= 0) index.books[existingIdx] = { id: dirId, ...meta };
+      else index.books.push({ id: dirId, ...meta });
+      index.updatedAt = new Date().toISOString();
+      fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf-8');
+
+      booksSynced++;
+      process.stderr.write(`  ✓ "${bookMeta.title}" — ${chapters.length} chapters, ${totalChars.toLocaleString()} chars\n`);
     } catch (e) {
       process.stderr.write(`  ✗ Save error: ${e.message}\n`);
     }
@@ -1406,41 +2174,40 @@ async function main() {
   const source = args[0]?.toLowerCase();
 
   if (!source || !['kindle', 'weread'].includes(source)) {
-    console.error('Usage: node scripts/sync-books.js <kindle|weread> [--max N]');
+    console.error('Usage: node scripts/sync-books.js <kindle|weread> [--max N] [--list] [--book "title"]');
     console.error('');
     console.error('Examples:');
-    console.error('  node scripts/sync-books.js kindle          # Sync all Kindle books');
-    console.error('  node scripts/sync-books.js kindle --max 3  # Sync at most 3 books');
-    console.error('  node scripts/sync-books.js weread           # Sync from WeRead');
+    console.error('  node scripts/sync-books.js kindle              # Sync all Kindle books');
+    console.error('  node scripts/sync-books.js kindle --max 3      # Sync at most 3 books');
+    console.error('  node scripts/sync-books.js kindle --list        # List books without syncing');
+    console.error('  node scripts/sync-books.js kindle --book "书名"  # Sync only the matching book');
+    console.error('  node scripts/sync-books.js weread               # Sync from WeRead');
     process.exit(1);
   }
 
   const maxIdx = args.indexOf('--max');
   const maxBooks = maxIdx >= 0 ? parseInt(args[maxIdx + 1], 10) : 0;
+  const listOnly = args.includes('--list');
+  const bookIdx = args.indexOf('--book');
+  const bookFilter = bookIdx >= 0 ? args[bookIdx + 1] : null;
+  const emailIdx = args.indexOf('--email');
+  const passwordIdx = args.indexOf('--password');
+  const credentials = (emailIdx >= 0 && passwordIdx >= 0)
+    ? { email: args[emailIdx + 1], password: args[passwordIdx + 1] }
+    : null;
 
   // Step 0: Auto-setup — install dependencies + build extension if needed
   ensureDependencies();
   const extPath = ensureExtensionBuilt();
 
-  // Step 1: Start sync server
-  process.stderr.write('Starting sync server...\n');
-  let syncServerProcess = null;
-  const alreadyRunning = await waitForSyncServer(2);
-  if (!alreadyRunning) {
-    syncServerProcess = startSyncServer();
-    const ready = await waitForSyncServer();
-    if (!ready) {
-      console.error('Error: Sync server failed to start');
-      syncServerProcess?.kill();
-      process.exit(1);
-    }
-  }
-  process.stderr.write('Sync server ready.\n');
+  // Ensure library directory exists
+  fs.mkdirSync(LIBRARY_PATH, { recursive: true });
 
   let browser;
   try {
     // Step 2: Launch Chrome with extension (uses same profile as sync-login.js, login session preserved)
     browser = await launchChrome(extPath);
+    _activeBrowser = browser;
 
     // Step 3: Find extension
     process.stderr.write('Finding CastReader extension...\n');
@@ -1454,15 +2221,17 @@ async function main() {
     };
     process.stderr.write(`Navigating to ${urls[source]}...\n`);
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 900 });
+    // Kindle: large viewport = fewer pages = faster sync. WeRead: normal size.
+    const isKindle = source === 'kindle';
+    await page.setViewport({ width: isKindle ? 1920 : 1280, height: isKindle ? 2400 : 900 });
     await page.goto(urls[source], { waitUntil: 'networkidle2', timeout: 60000 });
 
     // Step 5: Source-specific sync flow
     let result;
     if (source === 'kindle') {
-      result = await syncKindle(browser, extId, page, maxBooks);
+      result = await syncKindle(browser, extId, page, maxBooks, { listOnly, bookFilter, credentials });
     } else {
-      result = await syncWeRead(browser, extId, page, maxBooks);
+      result = await syncWeRead(browser, extId, page, maxBooks, { listOnly, bookFilter });
     }
 
     // Output result
@@ -1474,17 +2243,23 @@ async function main() {
     }));
 
   } finally {
+    _activeBrowser = null;
     if (browser) {
       process.stderr.write('\nSync complete. Closing browser...\n');
       await browser.close().catch(() => {});
     }
-    if (syncServerProcess) {
-      syncServerProcess.kill();
-    }
   }
 }
 
-main().catch((err) => {
-  console.error('Error:', err.message);
-  process.exit(1);
-});
+// Export for testing
+if (typeof module !== 'undefined') {
+  module.exports = { mergeLinesToParagraphs };
+}
+
+// Only run main when executed directly
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('Error:', err.message);
+    process.exit(1);
+  });
+}

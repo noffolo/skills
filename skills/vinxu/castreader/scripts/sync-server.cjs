@@ -10,8 +10,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const PORT = 18790;
-const LIBRARY_ROOT = path.join(os.homedir(), 'castreader-library');
+const PORT = parseInt(process.env.SYNC_SERVER_PORT || '18790', 10);
+const LIBRARY_ROOT = process.env.LIBRARY_ROOT || path.join(os.homedir(), 'castreader-library');
 
 // Ensure library root exists
 fs.mkdirSync(path.join(LIBRARY_ROOT, 'books'), { recursive: true });
@@ -188,6 +188,18 @@ const server = http.createServer(async (req, res) => {
     console.error(`[error] ${req.method} ${url.pathname}:`, err.message);
     respond(res, 500, { error: err.message });
   }
+});
+
+// Increase max payload size (default ~80KB is too small for book batches)
+server.maxHeaderSize = 16 * 1024;
+server.setTimeout(300000); // 5 min timeout for large saves
+
+// Prevent crash on uncaught errors
+process.on('uncaughtException', (err) => {
+  console.error('[sync-server] Uncaught exception:', err.message);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('[sync-server] Unhandled rejection:', err);
 });
 
 server.listen(PORT, '127.0.0.1', () => {

@@ -3,11 +3,16 @@
   "slug": "castreader",
   "displayName": "Castreader",
   "latest": {
-    "version": "3.0.0",
-    "publishedAt": 1774030170926,
-    "commit": "https://github.com/openclaw/skills/commit/831bd6757554174ad6e900338b9a92e2b937a3b4"
+    "version": "3.2.11",
+    "publishedAt": 1774185887504,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.0",
+      "publishedAt": 1774030170926,
+      "commit": "https://github.com/openclaw/skills/commit/831bd6757554174ad6e900338b9a92e2b937a3b4"
+    },
     {
       "version": "2.1.1",
       "publishedAt": 1773379761767,

@@ -1,14 +1,19 @@
 {
   "name": "castreader-openclaw-skill",
-  "version": "1.0.0",
-  "description": "OpenClaw skill for reading web pages aloud with Castreader TTS",
+  "version": "3.0.0",
+  "description": "OpenClaw skill — read books together with AI from Kindle/WeRead",
   "private": true,
   "scripts": {
+    "test": "node --test scripts/test-sync.js",
+    "test:weread": "node scripts/test-e2e-sync.js weread",
+    "test:kindle": "node scripts/test-e2e-sync.js kindle",
+    "test:all": "node scripts/test-e2e-sync.js all",
     "extract": "node scripts/extract.js",
     "generate-paragraph": "node scripts/generate-paragraph.js",
     "read-aloud": "node scripts/read-aloud.js"
   },
   "dependencies": {
+    "@cherrystudio/mac-system-ocr": "^0.2.7",
     "puppeteer": "^23.0.0"
   }
 }

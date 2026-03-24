@@ -57,7 +57,7 @@ async function generateTTS(text, language) {
         if (!response.ok) {
           const errText = await response.text().catch(() => '');
           lastError = new Error(`HTTP ${response.status}: ${errText}`);
-          if (response.status >= 502 && response.status <= 504 && attempt < MAX_RETRIES) {
+          if (response.status >= 500 && response.status <= 504 && attempt < MAX_RETRIES) {
             await sleep(RETRY_DELAY_MS * attempt);
             continue;
           }
