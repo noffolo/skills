@@ -1,6 +1,6 @@
 ---
 name: vn-stock-analyst
-description: "Phân tích và tư vấn đầu tư tài sản toàn cầu — cổ phiếu VN, US equities, vàng, crypto, DCA. Kết hợp phân tích kỹ thuật real-time (RSI, MACD, EMA, Bollinger Bands) từ TradingView với phân tích cơ bản (P/E, ROE, Sharpe, CAGR, định giá ngành). Use when: (1) user hỏi về giá cổ phiếu VN hoặc toàn cầu, (2) user muốn biết nên mua tài sản nào, (3) user hỏi về danh mục đầu tư, (4) user muốn tính DCA tích lũy hàng tháng, (5) user hỏi nên đầu tư bao nhiêu/tháng, (6) user muốn estimate lợi nhuận theo thời gian, (7) user muốn so sánh các loại tài sản toàn cầu, (8) user hỏi về vàng, crypto, S&P 500, ETF."
+description: "Phân tích và tư vấn đầu tư tài sản toàn cầu — cổ phiếu VN, US equities, vàng, crypto, DCA. Kết hợp phân tích kỹ thuật real-time (RSI, MACD, EMA, Bollinger Bands) từ TradingView với phân tích cơ bản (P/E, ROE, Sharpe, CAGR, định giá ngành). Use when: (1) user hỏi về giá cổ phiếu VN hoặc toàn cầu, (2) user muốn biết nên mua tài sản nào, (3) user hỏi về danh mục đầu tư, (4) user muốn tính DCA tích lũy hàng tháng, (5) user hỏi nên đầu tư bao nhiêu/tháng, (6) user muốn estimate lợi nhuận theo thời gian, (7) user muốn so sánh các loại tài sản toàn cầu, (8) user hỏi về vàng, crypto, S&P 500, ETF, (9) user hỏi về lướt sóng, swing trading, scalping, day trading VN."
 ---
 
 # VN Stock Analyst
@@ -21,19 +21,23 @@ Sharpe 2.19 là lịch sử từ vùng giá thấp — không apply cho người
 
 Trước khi phân tích bất kỳ tài sản nào, luôn check:
 
-**Macro context hiện tại (cập nhật 19/03/2026):**
-- FED rate: **3.5-3.75%** (giữ nguyên 18/3/2026, hawkish)
-- Dự kiến FED cắt: **Q3/Q4 2026** → catalyst lớn cho CK, BNB
-- **🔴 Iran War đang diễn ra** — Israel tấn công Iran, dầu WTI $95-99
-- Geopolitical risk CAO → Vàng được hỗ trợ mạnh, crypto áp lực
-- Dầu > $95 → lạm phát tăng → FED hawkish hơn → CK chịu áp lực
+**Macro context hiện tại (cập nhật 23/03/2026):**
+- FED rate: **3.5-3.75%** (giữ nguyên 18/3/2026, hawkish — chỉ 1 lần cắt dự kiến 2026)
+- PCE inflation forecast: **2.7%** (nâng từ 2.4%)
+- **🔴 Iran War đang diễn ra** — dầu WTI $95-99, đe dọa Eo Hormuz
+- **🔴 VN-Index: ~1,604** — giảm 14% trong tháng, khối ngoại bán ròng -27,591 tỷ YTD
+- **🟢 FTSE upgrade VN** → hiệu lực 21/09/2026 → catalyst lớn nhất
+- Vàng XAUUSD: ~$4,362 (điều chỉnh -15% từ ATH $5,608)
+- BNB: Áp lực risk-off, ecosystem vẫn mạnh (TVL $6.7B, #3 globally)
 
 **Tác động lên danh mục:**
-- 🟢 Mua tích lũy: MBB, S&P 500 ETF, Vàng (trước khi FED cắt)
-- ⏳ Hold: BNB, FPT (chờ macro cải thiện)
-- 🔴 Tránh thêm: VCB (P/E đắt), crypto mới
+- 🟢 Mua tích lũy: MBB (P/E 6.5x), Vàng, S&P 500 ETF
+- 🟢 DCA: FPT (P/E 13-14x, rẻ bất thường nhưng dưới EMA200)
+- ⏳ Hold: BNB (chờ FED cắt), TCB
+- 🔴 Tránh: VCB (P/E đắt), BĐS (lãi suất tăng), crypto mới
+- 🟢 Mua mới: GAS/PVS (hưởng lợi dầu cao)
 
-Xem chi tiết trong `references/financial-analysis-knowledge.md` Section 9-10.
+Xem chi tiết: `references/macro-update-2026-03.md`, `references/crypto-analysis.md`, `references/gold-analysis.md`.
 
 ---
 
@@ -276,11 +280,75 @@ Vùng mua lý tưởng: [X,XXX – X,XXX VND]
 
 ---
 
+## Step 8: Swing Trading & Lướt Sóng
+
+Khi user hỏi về **lướt sóng, swing trading, scalping, day trading**, hoặc muốn trade ngắn hạn (2-10 ngày):
+
+Reference đầy đủ: `references/swing-trading-vn.md`
+
+### Quick Workflow
+
+1. **Screening:** Chạy swing screener tìm mã phù hợp
+   ```bash
+   # Hoặc dùng scan_market.py với RSI thấp + volume cao
+   python3 ~/.openclaw/workspace/skills/vn-stock-analyst/scripts/scan_market.py --rsi 45 --exchange HOSE
+   ```
+
+2. **Technical check (swing-specific):**
+   - RSI divergence (bullish/bearish) trên D1
+   - MACD crossover position (vùng âm = mua mạnh)
+   - Bollinger squeeze → chờ breakout
+   - ADX > 25 → trend đủ mạnh để swing
+   - Williams %R, CCI, MFI → confirm thêm
+   - Ichimoku: Price vs Cloud, TK cross
+
+3. **Entry criteria:**
+   - R:R tối thiểu 1:2 (KHÔNG trade nếu < 1:2)
+   - Volume xác nhận (> 1.5x avg 20 phiên)
+   - Candlestick pattern tại S/R (hammer, engulfing, morning star)
+   - Stop loss xác định TRƯỚC khi vào lệnh
+
+4. **Position sizing:**
+   - 2% rule: Max risk 2% vốn per trade
+   - Kelly Criterion (Half Kelly): `Kelly % = W - [(1-W)/R]`, dùng 50%
+   - Max 3-5 vị thế swing cùng lúc
+
+5. **Risk management:**
+   - Stop loss: 3-5% (VN30), 5-7% (midcap)
+   - Daily loss limit: -2% → dừng trade
+   - Max drawdown: -10% → dừng 1 tuần
+   - Pyramiding (thêm khi lời), KHÔNG averaging down mã swing
+
+### Scalping/Day Trading VN:
+- ATO/ATC strategies (gap & go, ATC momentum)
+- T+2.5 rule: Mua chiều nay → bán chiều T+2
+- VWAP pullback, Opening Range Breakout
+- Pivot Points (daily) cho intraday levels
+
+### Output Format (Swing)
+```
+## 🏄 [TICKER] — Swing Analysis
+Setup: [RSI Divergence / BB Squeeze / MACD Cross / ...]
+Entry: X,XXX VND | Stop Loss: X,XXX (-X%) | Target: X,XXX (+X%)
+R:R: 1:X | Position Size: X% vốn (XX CP)
+ADX: XX | Williams %R: -XX | Ichimoku: [Trên/Dưới Cloud]
+Timeframe: X-X ngày
+⚡ Confidence: [Cao/Trung bình/Thấp]
+```
+
+---
+
 ## References
 
 - `references/sector-fundamentals.md` — P/E chuẩn, catalyst, risk từng ngành VN
+- `references/sector-update-2026.md` — Cập nhật sector Q1/2026: P/E mới, catalyst mới, ranking ngành
 - `references/financial-analysis-knowledge.md` — RSI, MACD, P/E, Sharpe, DCA, Global portfolio, lessons learned
+- `references/macro-update-2026-03.md` — Macro context 03/2026: FED, VN-Index, Iran War, dầu, lãi suất
+- `references/crypto-analysis.md` — Framework phân tích crypto/BNB: on-chain, tokenomics, DeFi, ecosystem
+- `references/gold-analysis.md` — Framework phân tích vàng XAUUSD: factors, indicators, strategy
+- `references/advanced-ta.md` — Fibonacci Retracement/Extension, Elliott Wave, Volume Profile
 - `references/return-estimation.md` — Methodology estimate sinh lời
+- `references/swing-trading-vn.md` — Swing trading, scalping, lướt sóng VN: indicators, strategies, risk management
 
 ## Scripts
 
