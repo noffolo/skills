@@ -33,8 +33,8 @@ function toCSV(invoice, options = {}) {
     'paymentTerms', 'paymentReference',
     'lineDescription', 'lineQuantity', 'lineUnitOfMeasure',
     'lineUnitPrice', 'lineTotal', 'lineVatRate', 'lineSku', 'lineDiscount',
-    'netTotal', 'vatTotal', 'grossTotal', 'amountPaid', 'amountDue',
-    'chargesTotal', 'chargesDetail',
+    'netTotal', 'chargesTotal', 'chargesDetail', 'vatTotal', 'grossTotal', 'amountPaid', 'amountDue',
+    'originalInvoiceRef', 'referencedDocuments',
     'documentType', 'confidence', 'language', 'provider',
   ];
 
@@ -56,6 +56,13 @@ function toCSV(invoice, options = {}) {
     ? charges.map(ch => `${ch.label || ch.type}: ${ch.amount}`).join('; ')
     : null;
 
+  // Pre-compute referenced documents
+  const refDocs = invoice.referencedDocuments || [];
+  const originalInvoiceRef = refDocs.find(rd => rd.type === 'invoice')?.reference || null;
+  const refDocsDetail = refDocs.length > 0
+    ? refDocs.map(rd => `${rd.type}: ${rd.reference}`).join('; ')
+    : null;
+
   if (invoice.lineItems.length === 0) {
     // Single row with just header data
     const row = [
@@ -64,8 +71,8 @@ function toCSV(invoice, options = {}) {
       h.buyerName, h.buyerAddress, h.buyerVatNumber,
       h.paymentTerms, h.paymentReference,
       '', '', '', '', '', '', '', '',
-      t.netTotal, t.vatTotal, t.grossTotal, t.amountPaid, t.amountDue,
-      chargesTotal, chargesDetail,
+      t.netTotal, chargesTotal, chargesDetail, t.vatTotal, t.grossTotal, t.amountPaid, t.amountDue,
+      originalInvoiceRef, refDocsDetail,
       m.documentType, m.confidence, m.language, m.provider,
     ].map(escapeCSV);
     rows.push(row.join(delim));
@@ -78,8 +85,8 @@ function toCSV(invoice, options = {}) {
         h.paymentTerms, h.paymentReference,
         li.description, li.quantity, li.unitOfMeasure,
         li.unitPrice, li.lineTotal, li.vatRate, li.sku, li.discount,
-        t.netTotal, t.vatTotal, t.grossTotal, t.amountPaid, t.amountDue,
-        chargesTotal, chargesDetail,
+        t.netTotal, chargesTotal, chargesDetail, t.vatTotal, t.grossTotal, t.amountPaid, t.amountDue,
+        originalInvoiceRef, refDocsDetail,
         m.documentType, m.confidence, m.language, m.provider,
       ].map(escapeCSV);
       rows.push(row.join(delim));

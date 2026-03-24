@@ -626,6 +626,28 @@ const wb3 = XLSX.read(edge3Buf, { type: 'buffer' });
 const hdr3 = XLSX.utils.sheet_to_json(wb3.Sheets['Header'], { header: 1 });
 const hdr3Text = JSON.stringify(hdr3);
 assert(hdr3Text.includes('PO-12345'), 'Excel: referenced documents in Header sheet');
+assert(hdr3Text.includes('Purchase Order'), 'Excel: PO renders as "Purchase Order"');
+
+// 11c-ii. Invoice/credit-note/debit-note references (credit memo support)
+const edge3b = makeFullInvoice();
+edge3b.referencedDocuments = [
+  { type: 'invoice', reference: 'INV-2025-001' },
+  { type: 'credit-note', reference: 'CN-100' },
+  { type: 'debit-note', reference: 'DN-200' },
+];
+const edge3bBuf = formatOutput(edge3b, 'excel');
+const wb3b = XLSX.read(edge3bBuf, { type: 'buffer' });
+const hdr3b = XLSX.utils.sheet_to_json(wb3b.Sheets['Header'], { header: 1 });
+const hdr3bText = JSON.stringify(hdr3b);
+assert(hdr3bText.includes('Original Invoice'), 'Excel: invoice ref renders as "Original Invoice"');
+assert(hdr3bText.includes('INV-2025-001'), 'Excel: invoice reference value present');
+assert(hdr3bText.includes('CN-100'), 'Excel: credit-note reference present');
+assert(hdr3bText.includes('DN-200'), 'Excel: debit-note reference present');
+
+// CSV: originalInvoiceRef column
+const edge3bCsv = formatOutput(edge3b, 'csv');
+assert(edge3bCsv.includes('INV-2025-001'), 'CSV: originalInvoiceRef populated');
+assert(edge3bCsv.includes('credit-note: CN-100'), 'CSV: referencedDocuments detail includes credit-note');
 
 // 11d. Multi-rate VAT
 const edge4 = makeFullInvoice();

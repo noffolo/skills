@@ -18,7 +18,9 @@ description, quantity, unitOfMeasure, unitPrice, lineTotal, vatRate (percentage)
 
 ## referencedDocuments[]
 
-type (PO|contract|GRN|inspection|timesheet|project|proforma|other), reference
+type (PO|contract|GRN|inspection|timesheet|project|proforma|invoice|credit-note|debit-note|other), reference
+
+For credit/debit memos: ALWAYS include a referencedDocument with type "invoice" and the original invoice number as reference. This is the primary link back to the original document.
 
 ## totals
 

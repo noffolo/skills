@@ -46,8 +46,40 @@ function toExcel(invoice) {
     ['BIC', h.bankDetails?.bic],
     ['Account Number', h.bankDetails?.accountNumber],
     ['Sort Code', h.bankDetails?.sortCode],
+  ];
+
+  // Referenced documents — shown early, especially important for credit/debit memos
+  const refDocs = invoice.referencedDocuments || [];
+  if (refDocs.length > 0) {
+    headerData.push(['', '']);
+    headerData.push(['── Related Documents ──', '']);
+    for (const rd of refDocs) {
+      const label = rd.type === 'invoice' ? 'Original Invoice'
+        : rd.type === 'PO' ? 'Purchase Order'
+        : rd.type;
+      headerData.push([label, rd.reference]);
+    }
+  }
+
+  // Totals block
+  headerData.push(
     ['', ''],
+    ['── Totals ──', ''],
     ['Net Total', invoice.totals.netTotal],
+  );
+
+  // Insert charges between net and VAT (they affect the final total)
+  const charges = invoice.charges || [];
+  if (charges.length > 0) {
+    for (const ch of charges) {
+      const vatInfo = ch.vatRate != null ? ` (VAT ${ch.vatRate}%)` : '';
+      headerData.push([`  + ${ch.label || ch.type}`, ch.amount != null ? ch.amount + vatInfo : '']);
+    }
+    const chargesNet = charges.reduce((sum, ch) => sum + (ch.amount || 0), 0);
+    headerData.push(['  Charges Subtotal', chargesNet]);
+  }
+
+  headerData.push(
     ['VAT Total', invoice.totals.vatTotal],
     ['Gross Total', invoice.totals.grossTotal],
     ['Amount Paid', invoice.totals.amountPaid],
@@ -58,28 +90,7 @@ function toExcel(invoice) {
     ['Language', invoice.metadata?.language ?? invoice.language],
     ['Provider', invoice.metadata?.provider ?? invoice.provider],
     ['Extracted At', invoice.metadata?.extractionTimestamp ?? invoice.extractedAt],
-  ];
-
-  // Add charges (shipping, handling, etc.)
-  const charges = invoice.charges || [];
-  if (charges.length > 0) {
-    headerData.push(['', '']);
-    headerData.push(['Charges / Surcharges', '']);
-    for (const ch of charges) {
-      const vatInfo = ch.vatRate !== null ? ` (VAT ${ch.vatRate}%)` : '';
-      headerData.push([ch.label || ch.type, ch.amount !== null ? ch.amount + vatInfo : '']);
-    }
-  }
-
-  // Add referenced documents
-  const refDocs = invoice.referencedDocuments || [];
-  if (refDocs.length > 0) {
-    headerData.push(['', '']);
-    headerData.push(['Referenced Documents', '']);
-    for (const rd of refDocs) {
-      headerData.push([rd.type, rd.reference]);
-    }
-  }
+  );
 
   const headerSheet = XLSX.utils.aoa_to_sheet(headerData);
   headerSheet['!cols'] = [{ wch: 20 }, { wch: 50 }];

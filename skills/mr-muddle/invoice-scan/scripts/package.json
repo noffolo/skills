@@ -1,6 +1,6 @@
 {
   "name": "invoice-scan",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "AI-powered invoice scanning skill for OpenClaw — extract structured data from any invoice document",
   "main": "index.js",
   "bin": {

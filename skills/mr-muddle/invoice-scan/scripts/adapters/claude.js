@@ -96,6 +96,9 @@ Return ONLY valid JSON with this exact structure (no markdown, no explanation):
     "timesheetRef": "string or null",
     "projectRef": "string or null",
     "proformaRef": "string or null",
+    "invoiceRef": "original invoice number if this is a credit/debit memo, or null",
+    "creditNoteRef": "related credit note number, or null",
+    "debitNoteRef": "related debit note number, or null",
     "other": [{ "type": "string", "reference": "string" }]
   },
   "paymentTerms": "string or null",
@@ -172,6 +175,9 @@ Rules:
       if (rd.timesheetRef) invoice.referencedDocuments.push({ type: 'timesheet', reference: rd.timesheetRef });
       if (rd.projectRef) invoice.referencedDocuments.push({ type: 'project', reference: rd.projectRef });
       if (rd.proformaRef) invoice.referencedDocuments.push({ type: 'proforma', reference: rd.proformaRef });
+      if (rd.invoiceRef) invoice.referencedDocuments.push({ type: 'invoice', reference: rd.invoiceRef });
+      if (rd.creditNoteRef) invoice.referencedDocuments.push({ type: 'credit-note', reference: rd.creditNoteRef });
+      if (rd.debitNoteRef) invoice.referencedDocuments.push({ type: 'debit-note', reference: rd.debitNoteRef });
       if (rd.other && Array.isArray(rd.other)) {
         for (const o of rd.other) {
           invoice.referencedDocuments.push({ type: o.type || 'other', reference: o.reference });

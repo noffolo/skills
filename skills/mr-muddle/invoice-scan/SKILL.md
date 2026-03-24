@@ -86,7 +86,7 @@ Extract ALL of:
 
 **Line items:** description, quantity, unitOfMeasure, unitPrice, lineTotal, vatRate, sku, discount
 
-**References:** PO, contract, GRN, timesheet, project, proforma refs
+**References:** PO, contract, GRN, timesheet, project, proforma, invoice (original invoice if this is a credit/debit memo), credit-note, debit-note refs. For credit/debit memos, ALWAYS include the original invoice reference.
 
 **Totals:** netTotal, vatBreakdown (rate + amount per band), vatTotal, grossTotal, amountPaid, amountDue
 
