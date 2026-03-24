@@ -3,11 +3,16 @@
   "slug": "caption",
   "displayName": "Caption",
   "latest": {
-    "version": "2.0.1",
-    "publishedAt": 1773830220857,
-    "commit": "https://github.com/openclaw/skills/commit/5bb1af6fec906554d7bccc0a3dd1e7b71bdde748"
+    "version": "2.0.5",
+    "publishedAt": 1774314739456,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.1",
+      "publishedAt": 1773830220857,
+      "commit": "https://github.com/openclaw/skills/commit/5bb1af6fec906554d7bccc0a3dd1e7b71bdde748"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773673563090,
