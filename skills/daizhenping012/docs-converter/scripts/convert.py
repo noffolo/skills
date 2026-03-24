@@ -263,28 +263,17 @@ def detect_conversion_type(description, source_file=None):
 
 
 def get_api_key():
-    """获取API Key（优先从环境变量获取）"""
-    # 优先使用环境变量（更安全）
+    """
+    获取API Key（仅从环境变量读取）
+    
+    设置方法:
+        Windows: $env:WDANGZ_API_KEY = "你的API密钥"
+        Linux/Mac: export WDANGZ_API_KEY="你的API密钥"
+    
+    获取API Key: https://www.wdangz.com → API服务
+    """
     api_key = os.environ.get('WDANGZ_API_KEY')
-    if api_key:
-        return api_key
-    
-    # 其次从配置文件读取
-    config_path = os.path.join(os.path.dirname(__file__), '..', 'config.txt')
-    if os.path.exists(config_path):
-        with open(config_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                # 跳过注释和空行
-                if not line or line.startswith('#'):
-                    continue
-                if line.startswith('WDANGZ_API_KEY='):
-                    api_key = line.split('=', 1)[1].strip()
-                    if api_key and not api_key.startswith('#'):
-                        print("💡 提示: 已从配置文件读取API Key（建议使用环境变量更安全）")
-                        return api_key
-    
-    return None
+    return api_key
 
 
 # 全局session
@@ -492,9 +481,9 @@ def convert_document(file_path, description=None, conversion_type=None, output_d
     if not api_key:
         raise ValueError(
             "❌ 未配置 API Key！\n\n"
-            "请选择以下方式之一配置：\n"
-            "1. 设置环境变量: WDANGZ_API_KEY=你的密钥（推荐）\n"
-            "2. 编辑 config.txt 文件配置密钥\n\n"
+            "请设置环境变量: WDANGZ_API_KEY=你的密钥\n\n"
+            "Windows: $env:WDANGZ_API_KEY = \"你的密钥\"\n"
+            "Linux/Mac: export WDANGZ_API_KEY=\"你的密钥\"\n\n"
             "获取API Key: https://www.wdangz.com → API服务"
         )
     

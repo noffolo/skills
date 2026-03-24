@@ -3,11 +3,16 @@
   "slug": "docs-converter",
   "displayName": "多种格式文档转换/图片OCR",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773796702407,
-    "commit": "https://github.com/openclaw/skills/commit/7cc12bbe3eeba1c1ee783c1526d7079fa162a88e"
+    "version": "1.0.2",
+    "publishedAt": 1773797209115,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773796702407,
+      "commit": "https://github.com/openclaw/skills/commit/7cc12bbe3eeba1c1ee783c1526d7079fa162a88e"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773115706093,
