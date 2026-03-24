@@ -3,9 +3,15 @@
   "slug": "cn-web-search",
   "displayName": "CN Web Search",
   "latest": {
-    "version": "0.9.0",
-    "publishedAt": 1773250117849,
-    "commit": "https://github.com/openclaw/skills/commit/0e2f7008d760620026014d306eff76d9440b1f1c"
+    "version": "2.0.0",
+    "publishedAt": 1774117678550,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.9.0",
+      "publishedAt": 1773250117849,
+      "commit": "https://github.com/openclaw/skills/commit/0e2f7008d760620026014d306eff76d9440b1f1c"
+    }
+  ]
 }
