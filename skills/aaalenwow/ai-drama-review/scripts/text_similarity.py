@@ -41,6 +41,20 @@ class CopyrightReport:
     max_similarity_score: float
     risk_level: str  # "low" / "medium" / "high" / "critical"
     results: List[SimilarityResult] = field(default_factory=list)
+    window_matches: List["WindowMatch"] = field(default_factory=list)
+
+
+@dataclass
+class WindowMatch:
+    """滑动窗口匹配结果。"""
+    source_start_char: int       # 在输入文本中的起始字符位置
+    source_end_char: int         # 结束字符位置
+    source_text: str             # 命中窗口文本（截断到100字）
+    reference_id: str            # 参考文本ID
+    reference_start_char: int    # 参考文本中的起始位置
+    reference_text: str          # 参考窗口文本（截断到100字）
+    combined_score: float        # 相似度得分
+    window_index: int            # 第几个窗口
 
 
 # === 文本预处理 ===
@@ -242,8 +256,147 @@ def _determine_risk_level(max_score: float, suspicious_count: int,
     return "low"
 
 
-def scan_for_plagiarism(input_text: str, reference_texts: dict,
-                        threshold: float = 0.7) -> CopyrightReport:
+# === 滑动窗口扫描 ===
+
+def sliding_window_scan(
+    input_text: str,
+    reference_texts: dict,
+    window_size: int = 80,
+    stride: int = 40,
+    threshold: float = 0.65,
+    idf_dict: dict = None,
+) -> List[WindowMatch]:
+    """
+    滑动窗口扫描：在全文上用固定大小窗口滑动，
+    检测跨段落的部分抄录（段落级检测漏掉的情况）。
+
+    Args:
+        input_text: 待检全文
+        reference_texts: {"source_id": "全文内容", ...}
+        window_size: 窗口大小（字符数），默认80字
+        stride: 步长（字符数），默认40字（50%重叠）
+        threshold: 判定阈值（低于段落级的0.7，因为窗口更短）
+        idf_dict: 预建的IDF字典（没有则自动构建）
+
+    Returns:
+        List[WindowMatch]，按 combined_score 降序
+    """
+    # 1. 清理输入文本：去除多余空白但保留结构
+    cleaned_input = re.sub(r'[^\S\n]+', ' ', input_text).strip()
+
+    if len(cleaned_input) < window_size:
+        return []
+
+    # 2. 创建输入文本的窗口列表: [(start, end, text_slice), ...]
+    input_windows = [
+        (start, start + window_size, cleaned_input[start:start + window_size])
+        for start in range(0, len(cleaned_input) - window_size, stride)
+    ]
+
+    if not input_windows:
+        return []
+
+    # 3. 清理参考文本并构建各参考文本的窗口
+    ref_windows: dict = {}
+    for ref_id, ref_text in reference_texts.items():
+        cleaned_ref = re.sub(r'[^\S\n]+', ' ', ref_text).strip()
+        if len(cleaned_ref) < window_size:
+            # 参考文本比窗口还短，作为单一窗口处理
+            if cleaned_ref:
+                ref_windows[ref_id] = [(0, len(cleaned_ref), cleaned_ref)]
+        else:
+            ref_windows[ref_id] = [
+                (start, start + window_size, cleaned_ref[start:start + window_size])
+                for start in range(0, len(cleaned_ref) - window_size, stride)
+            ]
+
+    if not ref_windows:
+        return []
+
+    # 4. 构建全局 IDF（如果未提供）
+    if idf_dict is None:
+        all_token_lists = []
+        for _, _, win_text in input_windows:
+            all_token_lists.append(
+                tokenize_chinese(preprocess_text(win_text))
+            )
+        for ref_id, wins in ref_windows.items():
+            for _, _, win_text in wins:
+                all_token_lists.append(
+                    tokenize_chinese(preprocess_text(win_text))
+                )
+        idf_dict = compute_idf(all_token_lists)
+
+    # 5. 对每个输入窗口与所有参考窗口比较，收集超过阈值的匹配
+    raw_matches: List[WindowMatch] = []
+
+    for win_idx, (src_start, src_end, src_text) in enumerate(input_windows):
+        best_score = 0.0
+        best_match: Optional[WindowMatch] = None
+
+        for ref_id, wins in ref_windows.items():
+            for ref_start, ref_end, ref_text in wins:
+                scores = compare_paragraphs(src_text, ref_text, idf_dict)
+                if scores["combined_score"] > best_score:
+                    best_score = scores["combined_score"]
+                    best_match = WindowMatch(
+                        source_start_char=src_start,
+                        source_end_char=src_end,
+                        source_text=src_text[:100],
+                        reference_id=ref_id,
+                        reference_start_char=ref_start,
+                        reference_text=ref_text[:100],
+                        combined_score=scores["combined_score"],
+                        window_index=win_idx,
+                    )
+
+        if best_match is not None and best_match.combined_score >= threshold:
+            raw_matches.append(best_match)
+
+    if not raw_matches:
+        return []
+
+    # 6. 去重：合并重叠窗口（source_start_char 区间重叠 > 60%），保留得分最高者
+    # 先按起始位置排序，方便线性合并
+    raw_matches.sort(key=lambda m: m.source_start_char)
+
+    def _overlap_ratio(a: WindowMatch, b: WindowMatch) -> float:
+        """计算两个窗口在源文本上的重叠比例（相对于较短区间长度）。"""
+        overlap_start = max(a.source_start_char, b.source_start_char)
+        overlap_end = min(a.source_end_char, b.source_end_char)
+        if overlap_end <= overlap_start:
+            return 0.0
+        overlap_len = overlap_end - overlap_start
+        shorter_len = min(
+            a.source_end_char - a.source_start_char,
+            b.source_end_char - b.source_start_char,
+        )
+        return overlap_len / shorter_len if shorter_len > 0 else 0.0
+
+    deduped: List[WindowMatch] = []
+    for candidate in raw_matches:
+        merged = False
+        for i, kept in enumerate(deduped):
+            if _overlap_ratio(candidate, kept) > 0.6:
+                # 同一重叠组：保留得分更高的那个
+                if candidate.combined_score > kept.combined_score:
+                    deduped[i] = candidate
+                merged = True
+                break
+        if not merged:
+            deduped.append(candidate)
+
+    # 7. 按得分降序排列
+    deduped.sort(key=lambda m: m.combined_score, reverse=True)
+    return deduped
+
+
+def scan_for_plagiarism(
+    input_text: str,
+    reference_texts: dict,
+    threshold: float = 0.7,
+    include_window_scan: bool = True,
+) -> CopyrightReport:
     """
     主入口：扫描输入文本与参考文本库的相似度。
 
@@ -251,6 +404,7 @@ def scan_for_plagiarism(input_text: str, reference_texts: dict,
         input_text: 待检剧本全文
         reference_texts: {"source_id": "全文内容", ...}
         threshold: 判定阈值 (默认 0.7)
+        include_window_scan: 是否执行滑动窗口扫描（默认 True）
 
     Returns:
         CopyrightReport
@@ -309,14 +463,48 @@ def scan_for_plagiarism(input_text: str, reference_texts: dict,
     suspicious_count = len(results)
     max_score = max((r.combined_score for r in results), default=0.0)
 
+    # 滑动窗口扫描
+    window_matches: List[WindowMatch] = []
+    if include_window_scan:
+        raw_window_matches = sliding_window_scan(
+            input_text,
+            reference_texts,
+            threshold=0.65,
+            idf_dict=global_idf,
+        )
+
+        # 仅保留未被段落级检测覆盖的窗口匹配
+        # 构建段落级命中的字符区间（基于分割后段落在原文中的近似位置）
+        # 用更轻量的方式：检查窗口文本与已有可疑段落文本是否高度重叠
+        suspicious_texts = {r.source_text for r in results}
+
+        for wm in raw_window_matches:
+            # 如果窗口文本（截断100字）已经完整出现在某个可疑段落中则跳过
+            already_covered = any(
+                wm.source_text[:60] in st or st[:60] in wm.source_text
+                for st in suspicious_texts
+            )
+            if not already_covered:
+                window_matches.append(wm)
+
+        # 更新 max_score（窗口匹配也纳入考量）
+        if window_matches:
+            win_max = max(wm.combined_score for wm in window_matches)
+            max_score = max(max_score, win_max)
+
+    # 计算最终风险等级（综合段落命中和窗口命中数量）
+    effective_suspicious = suspicious_count + len(window_matches)
+    effective_total = max(len(input_paragraphs), 1)
+
     return CopyrightReport(
         total_paragraphs=len(input_paragraphs),
         suspicious_paragraphs=suspicious_count,
         max_similarity_score=round(max_score, 4),
         risk_level=_determine_risk_level(
-            max_score, suspicious_count, len(input_paragraphs)
+            max_score, effective_suspicious, effective_total
         ),
         results=results,
+        window_matches=window_matches,
     )
 
 
@@ -328,6 +516,11 @@ if __name__ == "__main__":
     parser.add_argument("--input", required=True, help="输入文件路径")
     parser.add_argument("--reference-dir", required=True, help="参考文本目录")
     parser.add_argument("--threshold", type=float, default=0.7, help="判定阈值")
+    parser.add_argument(
+        "--no-window-scan",
+        action="store_true",
+        help="禁用滑动窗口扫描",
+    )
     args = parser.parse_args()
 
     input_path = Path(args.input)
@@ -343,13 +536,19 @@ if __name__ == "__main__":
         for f in ref_dir.glob("*.txt"):
             reference_texts[f.stem] = f.read_text(encoding="utf-8")
 
-    report = scan_for_plagiarism(input_text, reference_texts, args.threshold)
+    report = scan_for_plagiarism(
+        input_text,
+        reference_texts,
+        args.threshold,
+        include_window_scan=not args.no_window_scan,
+    )
 
     print(f"=== 版权侵权检测报告 ===")
     print(f"总段落数: {report.total_paragraphs}")
     print(f"可疑段落: {report.suspicious_paragraphs}")
     print(f"最高相似度: {report.max_similarity_score}")
     print(f"风险等级: {report.risk_level}")
+    print(f"滑动窗口命中: {len(report.window_matches)}")
 
     if report.results:
         print(f"\n可疑段落详情:")
@@ -359,3 +558,14 @@ if __name__ == "__main__":
             print(f"  来源: {r.reference_id} 段落 {r.reference_paragraph_index}")
             print(f"  原文: {r.source_text[:60]}...")
             print(f"  参考: {r.reference_text[:60]}...")
+
+    if report.window_matches:
+        print(f"\nTop 3 滑动窗口命中:")
+        for wm in report.window_matches[:3]:
+            print(f"\n  窗口 #{wm.window_index} "
+                  f"[字符 {wm.source_start_char}-{wm.source_end_char}]: "
+                  f"综合得分 {wm.combined_score:.4f}")
+            print(f"  来源: {wm.reference_id} "
+                  f"[字符 {wm.reference_start_char}-]")
+            print(f"  原文: {wm.source_text[:60]}...")
+            print(f"  参考: {wm.reference_text[:60]}...")
