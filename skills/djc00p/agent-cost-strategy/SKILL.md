@@ -53,3 +53,25 @@ Prompt caching cuts costs 50-90% on repeated context. See `references/cache-opti
 - No caching on repeated system prompts
 - Heartbeat/cron jobs using the default (expensive) model
 - Spawning sub-agents without specifying a model tier
+
+## Session & Cache Management
+
+**Never delete or end sessions to "save money" — it backfires.**
+
+Anthropic's prompt cache builds from repeated context within a live session. When a session starts fresh, all context (system prompt, workspace files, skills) loads cold — typically 400-600k tokens at full cost. Once cached, subsequent messages cost ~10% of that.
+
+**The math:**
+- Cold session start: 600k tokens × full price = expensive
+- After cache warms up: 600k tokens × 10% cache price = ~90% cheaper per message
+- Deleting a session destroys the cache and forces a full cold reload next time
+
+**Rules:**
+- Let sessions run as long as possible
+- Only start a new session (`/new`) when context is genuinely full (>80%)
+- Never tell a user to delete conversations — it spikes costs
+- The longer a session runs, the cheaper each message gets
+
+**Delegation rule (keep main agent lean):**
+- Main agent (Sonnet/mid-tier) = conversational only: planning, coordination, reviewing results
+- Sub-agents (Haiku/fast-cheap) = all actual doing: file edits, research, builds, data tasks
+- Keeping the main agent conversational reduces its context growth and keeps cache hits high

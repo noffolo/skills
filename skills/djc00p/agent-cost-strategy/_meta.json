@@ -3,11 +3,16 @@
   "slug": "agent-cost-strategy",
   "displayName": "Agent Cost Strategy",
   "latest": {
-    "version": "1.2.1",
-    "publishedAt": 1773932622592,
-    "commit": "https://github.com/openclaw/skills/commit/d26fb0f3a1494ead28b607421d7917d35596b23c"
+    "version": "1.3.0",
+    "publishedAt": 1774197213289,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.2.1",
+      "publishedAt": 1773932622592,
+      "commit": "https://github.com/openclaw/skills/commit/d26fb0f3a1494ead28b607421d7917d35596b23c"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1773655147540,
