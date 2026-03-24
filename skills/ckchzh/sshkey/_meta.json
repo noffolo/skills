@@ -3,11 +3,16 @@
   "slug": "sshkey",
   "displayName": "Sshkey",
   "latest": {
-    "version": "3.0.1",
-    "publishedAt": 1773914055933,
-    "commit": "https://github.com/openclaw/skills/commit/2b848eece8e767039f6d5a2842e52b5568d271ec"
+    "version": "2.0.1",
+    "publishedAt": 1774316871471,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.1",
+      "publishedAt": 1773914055933,
+      "commit": "https://github.com/openclaw/skills/commit/2b848eece8e767039f6d5a2842e52b5568d271ec"
+    },
     {
       "version": "1.0.5",
       "publishedAt": 1773664170143,
