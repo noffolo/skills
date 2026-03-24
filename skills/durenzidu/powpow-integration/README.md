@@ -22,7 +22,7 @@ npm run build
 
 ```json
 {
-  "powpowBaseUrl": "https://api.powpow.online",
+  "powpowBaseUrl": "https://global.powpow.online",
   "powpowApiKey": "可选",
   "defaultLocation": {
     "lat": 39.9042,

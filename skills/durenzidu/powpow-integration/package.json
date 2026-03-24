@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/skill-powpow-integration",
-  "version": "1.1.0",
+  "version": "1.0.3",
   "description": "OpenClaw Skill for POWPOW platform - Digital human management and real-time communication",
   "author": "OpenClaw Team",
   "license": "MIT",
