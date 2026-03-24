@@ -3,11 +3,16 @@
   "slug": "install-powermem-memory",
   "displayName": "Install Powermem Memory",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1773921114442,
-    "commit": "https://github.com/openclaw/skills/commit/ca7303891ff6d5856412a7cc86e37eafd791eeef"
+    "version": "0.2.0",
+    "publishedAt": 1774319162807,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1773921114442,
+      "commit": "https://github.com/openclaw/skills/commit/ca7303891ff6d5856412a7cc86e37eafd791eeef"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1773366997115,
