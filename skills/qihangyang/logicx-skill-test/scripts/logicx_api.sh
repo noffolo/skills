@@ -6,7 +6,7 @@ set -euo pipefail
 LOGICX_STATE_FILE="${LOGICX_STATE_FILE:-${HOME:-/tmp}/.config/logicx/skill-state.json}"
 
 # Official OpenClaw skill: built-in defaults so users need minimal config.
-: "${LOGICX_BASE_URL:=https://logicx.ai}"
+: "${LOGICX_BASE_URL:=http://43.139.104.95:8070}"
 : "${LOGICX_AGENT_SERVICE_KEY:=openclaw-public}"
 export LOGICX_BASE_URL LOGICX_AGENT_SERVICE_KEY
 
@@ -23,7 +23,7 @@ Examples:
   logicx_api.sh GET user
   logicx_api.sh POST payment/create '{"plan":"pro_monthly","gateway":"mock"}'
 
-Defaults: LOGICX_BASE_URL=https://logicx.ai, LOGICX_AGENT_SERVICE_KEY=openclaw-public.
+Defaults: LOGICX_BASE_URL=http://43.139.104.95:8070, LOGICX_AGENT_SERVICE_KEY=openclaw-public.
 When LOGICX_USER_TOKEN is not set, the script reads from the state file.
 It auto-saves link_code and install_id after link/start, and user_token
 when link/status or auth/login returns confirmed. When the user says
@@ -50,15 +50,21 @@ load_state() {
   fi
 }
 
-# Save user_token to state file. Creates parent dir and sets 600 perms.
-save_user_token() {
-  local token="$1"
-  [[ -z "$token" ]] && return 0
+# Write JSON to state file. Creates parent dir and sets 600 perms.
+write_state() {
+  local content="$1"
   local dir
   dir="$(dirname "$LOGICX_STATE_FILE")"
   mkdir -p "$dir"
-  printf '{"user_token":"%s"}\n' "$token" > "$LOGICX_STATE_FILE"
+  printf '%s\n' "$content" > "$LOGICX_STATE_FILE"
   chmod 600 "$LOGICX_STATE_FILE" 2>/dev/null || true
+}
+
+# Save user_token (replaces any existing state — bind is complete)
+save_user_token() {
+  local token="$1"
+  [[ -z "$token" ]] && return 0
+  write_state "{\"user_token\":\"$token\"}"
 }
 
 # Save link_code and install_id after link/start (so "我登录好了" can call link/status)
@@ -66,11 +72,7 @@ save_bind_state() {
   local link_code="$1"
   local install_id="$2"
   [[ -z "$link_code" || -z "$install_id" ]] && return 0
-  local dir
-  dir="$(dirname "$LOGICX_STATE_FILE")"
-  mkdir -p "$dir"
-  printf '{"install_id":"%s","link_code":"%s","status":"pending"}\n' "$install_id" "$link_code" > "$LOGICX_STATE_FILE"
-  chmod 600 "$LOGICX_STATE_FILE" 2>/dev/null || true
+  write_state "{\"install_id\":\"$install_id\",\"link_code\":\"$link_code\",\"status\":\"pending\"}"
 }
 
 # Extract link_code from JSON (single-line or multi-line)

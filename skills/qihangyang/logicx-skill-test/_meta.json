@@ -3,9 +3,15 @@
   "slug": "logicx-skill-test",
   "displayName": "logicx-skill-test",
   "latest": {
-    "version": "0.0.5",
-    "publishedAt": 1773769010533,
-    "commit": "https://github.com/openclaw/skills/commit/83e84a5cbf1092cffcb0b58360a4d3ea7673982c"
+    "version": "0.0.8",
+    "publishedAt": 1773904417464,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.0.5",
+      "publishedAt": 1773769010533,
+      "commit": "https://github.com/openclaw/skills/commit/83e84a5cbf1092cffcb0b58360a4d3ea7673982c"
+    }
+  ]
 }

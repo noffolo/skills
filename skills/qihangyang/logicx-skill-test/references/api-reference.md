@@ -17,7 +17,7 @@ The official skill uses `openclaw-public` as the default agent key. LogicX backe
 GET /api/health
 ```
 
-No auth required.
+No auth required. Returns `{"status":"ok","timestamp":"..."}`.
 
 ### Agent bind start
 
@@ -34,11 +34,11 @@ Response:
 ```json
 {
   "link_code": "lc_xxx",
-  "login_url": "https://logicx.ai/agent/link?code=lc_xxx"
+  "login_url": "http://43.139.104.95:8070/agent/link?code=lc_xxx"
 }
 ```
 
-### Agent bind status (poll)
+### Agent bind status
 
 ```http
 POST /api/proxy/agent/link/status
@@ -56,8 +56,11 @@ Responses:
 {"status":"confirmed","user_token":"at_xxx"}
 ```
 
-This endpoint supports polling, but this skill should not background-poll by default. Instead, ask the user to finish browser authorization and reply when ready, then check status. If `confirmed`, persist the returned `user_token` for that OpenClaw user. Link codes expire after 10 minutes.
-Use the same `install_id` for `agent/link/start` and `agent/link/status`.
+Do not background-poll. Ask the user to finish browser authorization and reply when ready, then check status once. If `confirmed`, persist the returned `user_token`. Link codes expire after 10 minutes. Use the same `install_id` for `link/start` and `link/status`.
+
+### Agent bind confirm
+
+`POST /api/proxy/agent/link/confirm` is the **browser-side** step — the user clicks "确认授权绑定" in the browser after opening the login URL. Do not call this from the agent.
 
 ### Agent password login
 
@@ -79,7 +82,7 @@ Rate limited: 5 attempts per 15 minutes per IP + email. Returns `429` if exceede
 
 ### User-scoped calls
 
-Use both headers:
+All endpoints below require both headers:
 
 ```http
 Authorization: Bearer <LOGICX_AGENT_SERVICE_KEY>
@@ -91,7 +94,7 @@ X-LogicX-User-Token: <LOGICX_USER_TOKEN>
 ### Current user
 
 ```http
-GET /api/proxy/user
+GET /api/proxy/user/
 ```
 
 Response:
@@ -108,25 +111,21 @@ Response:
 }
 ```
 
-Use `GET /api/proxy/user` as the canonical read endpoint. Avoid the trailing-slash form in this skill.
+`plan` values: `"free"` | `"pro"` | `"max"`. `proExpiresAt` and `maxExpiresAt` are ISO timestamps when the respective plan expires, or `null`.
 
-`PATCH /api/proxy/user/` is listed in the frontend README, but this skill should not invent a profile patch schema. Treat email as immutable unless the backend contract is explicitly confirmed.
-
-### Orders and payment
+### Orders
 
 ```http
-POST /api/proxy/payment/create
 GET /api/proxy/payment/orders
+```
+
+Response: `{"orders": [<OrderInfo>, ...]}`
+
+```http
 GET /api/proxy/payment/orders/:orderNo
-POST /api/proxy/payment/mock-confirm
-POST /api/proxy/payment/cancel
 ```
 
-`POST /payment/create` request:
-
-```json
-{"plan":"pro_monthly","gateway":"mock"}
-```
+Response: `{"order": <OrderInfo>}`
 
 Order shape:
 
@@ -145,20 +144,53 @@ Order shape:
 }
 ```
 
-Allowed status values: `pending`, `confirmed`, `cancelled`, `expired`
+`status` values: `"pending"` | `"confirmed"` | `"cancelled"` | `"expired"`
 
-### Password change
+`amount` is in cents (分). Divide by 100 for yuan (元).
+
+### Create order
 
 ```http
-POST /api/proxy/auth/change-password
+POST /api/proxy/payment/create
 Authorization: Bearer <LOGICX_AGENT_SERVICE_KEY>
 X-LogicX-User-Token: <LOGICX_USER_TOKEN>
 Content-Type: application/json
 ```
 
-Request:
+Request: `{"plan":"pro_monthly","gateway":"mock"}`
 
-```json
+Available plan IDs:
+
+| ID              | Name      | Price (分) | Days |
+|-----------------|-----------|-----------|------|
+| pro_monthly     | Pro 月付  | 2900      | 30   |
+| pro_quarterly   | Pro 季付  | 7800      | 90   |
+| pro_yearly      | Pro 年付  | 26100     | 365  |
+| max_monthly     | Max 月付  | 5900      | 30   |
+| max_quarterly   | Max 季付  | 15900     | 90   |
+| max_yearly      | Max 年付  | 53100     | 365  |
+
+Available gateways: `mock` (test only), `alipay`, `wechat`, `paypal`.
+
+Response: `<OrderInfo>`
+
+### Cancel order
+
+```http
+POST /api/proxy/payment/cancel
+Content-Type: application/json
+
+{"orderNo":"ORDER_NO"}
+```
+
+Response: `{"ok":true}`
+
+### Password change
+
+```http
+POST /api/proxy/auth/change-password
+Content-Type: application/json
+
 {"currentPassword":"old-password","newPassword":"new-password-min-8-chars"}
 ```
 
@@ -166,8 +198,6 @@ Request:
 
 ```http
 POST /api/proxy/agent/unlink
-Authorization: Bearer <LOGICX_AGENT_SERVICE_KEY>
-X-LogicX-User-Token: <LOGICX_USER_TOKEN>
 Content-Type: application/json
 
 {"install_id":"openclaw-main"}
@@ -175,9 +205,7 @@ Content-Type: application/json
 
 ## Notes
 
-- Browser login is cookie-based; use agent binding or password login instead.
-- Recommended binding flow: `agent/link/start` -> save `install_id` + `link_code` -> user opens browser and confirms -> user replies "我登录好了" -> agent checks `agent/link/status` -> save `user_token`.
-- After either login path succeeds, verify the token with `GET /api/proxy/user`.
 - `400` on `agent/link/confirm` usually means the `link_code` expired or was already consumed.
 - `429` on `agent/auth/login` means rate limit exceeded; wait 15 minutes.
 - Auth failures usually mean a bad service key or missing/invalid user token.
+- After either login path succeeds, verify the token with `GET /api/proxy/user/`.
