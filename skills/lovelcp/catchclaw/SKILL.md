@@ -1,6 +1,22 @@
 ---
 name: catchclaw
 description: "Search, install, and export agentars from the CatchClaw marketplace. Use when the user wants to find, install, or package agent templates."
+user-invocable: true
+metadata:
+  openclaw:
+    emoji: "📦"
+    homepage: https://github.com/OpenAgentar/catchclaw
+    requires:
+      bins:
+        - node
+      env:
+        - AGENTAR_API_BASE_URL
+        - AGENTAR_HOME
+      config:
+        - ~/.agentar
+        - ~/.openclaw/workspace
+        - ~/.openclaw/agentar-workspaces
+        - ~/agentar-exports
 ---
 
 # CatchClaw Agentar Manager
@@ -44,8 +60,22 @@ All commands below use `$CLI` as shorthand for `node <skill-dir>/agentar_cli.mjs
 
 ## Environment Variables (optional)
 
+These are listed in `metadata.openclaw.requires.env` for registry/security analysis. **Neither is required** for normal use; omit both to use defaults.
+
 - `AGENTAR_API_BASE_URL` — Override the default API base URL (defaults to `https://catchclaw.me`)
 - `AGENTAR_HOME` — Override the default CLI config directory (defaults to `~/.agentar`)
+
+## Paths read or written by the bundled CLI
+
+Aligned with `metadata.openclaw.requires.config` and `metadata.json` in this skill:
+
+| Path | Access | Purpose |
+|------|--------|---------|
+| `~/.agentar/` | read/write | CLI config (`config.json`), optional standalone install copy of `agentar_cli.mjs` |
+| `~/.openclaw/workspace` | read/write | Main agent workspace (`install --overwrite`, export) |
+| `~/.openclaw/agentar-workspaces/` | read/write | Per-agent workspaces (`install --name …`) |
+| `~/agentar-exports/` | write | Default directory for `export` ZIP output |
+| `<skill-dir>/skills/.credentials` | write (optional) | Written when install is run with `--api-key` |
 
 ## Commands
 
