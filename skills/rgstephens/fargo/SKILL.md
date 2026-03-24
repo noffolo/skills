@@ -1,7 +1,7 @@
 ---
-name: fargorate
+name: fargo
 description: Look up pool player ratings and handicap data from FargoRate. Use when the user asks about a pool player's rating, FargoRate ID, match odds, race-to recommendations, handicaps, top-ranked pool players, or rating changes over time. A local db can be enabled to track rating changes across runs. Contact fields in the db are local-only and never sent to an API.
-version: 0.3.6
+version: 0.4.0
 metadata:
   openclaw:
     emoji: "🎱"
