@@ -3,11 +3,16 @@
   "slug": "data-chart-tool",
   "displayName": "Data Chart Tool",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774021587717,
-    "commit": "https://github.com/openclaw/skills/commit/22ac86317eb4903ef2d305950a4bd033b5f4b10f"
+    "version": "1.1.0-premium",
+    "publishedAt": 1774116846824,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774021587717,
+      "commit": "https://github.com/openclaw/skills/commit/22ac86317eb4903ef2d305950a4bd033b5f4b10f"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773529782664,
