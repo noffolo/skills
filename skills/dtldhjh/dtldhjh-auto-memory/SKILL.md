@@ -1,7 +1,7 @@
 ---
 name: auto-memory
-version: 1.3.0
-description: 自动记忆更新机制 — 提取对话、清理过期、优先级过滤、跨Agent共享、智能摘要、增量索引、定期提炼。解决 agent 跨 session 记忆丢失问题。
+version: 3.0.0
+description: LLM 增强记忆系统 — 语义理解、智能摘要、敏感信息保护。三层架构自动管理 agent 记忆。
 author: dtldhjh
 license: MIT
 category: productivity
@@ -9,20 +9,46 @@ platforms:
   - openclaw
 ---
 
-# Auto Memory - 自动记忆更新 v1.3.0
+# Auto Memory - LLM 增强记忆系统 v3.0.0
 
-让你的 agent 拥有完整持久记忆系统，自动管理学习经验。
+LLM 驱动的智能记忆系统，让 agent 拥有完整的持久记忆能力。
 
-## v1.3.0 完整功能
+## v3.0.0 核心特性
 
-| 功能 | 说明 |
+| 特性 | 说明 |
 |------|------|
-| 🧹 自动过期清理 | 归档 30 天前的日志 |
-| 🎯 优先级过滤 | 只加载 critical/high 学习 |
-| 🌐 跨 Agent 共享 | 共享错误和最佳实践 |
-| 📝 智能摘要 | 自动提取关键词摘要 |
-| 🔄 增量索引 | 只索引变更文件 |
-| 📊 定期提炼 | 每周日提炼长期记忆 |
+| 🤖 LLM 分析 | 语义理解对话内容，智能分类 |
+| 🔒 敏感信息保护 | 自动检测并脱敏 API Key、Token、密码等 |
+| 📊 结构化提取 | 偏好/决策/待办/问题/学习 五维分类 |
+| 📝 智能摘要 | 自动生成对话摘要 |
+| 🔄 智能去重 | 跨次运行去重，不再重复累积 |
+
+---
+
+## 三层记忆架构
+
+```
+用户对话
+    ↓ (extract-memory.sh v3 + LLM)
+┌─────────────────────────┐
+│  memory/YYYY-MM-DD.md   │  日常日志
+│  - LLM 智能分析         │
+│  - 五维分类提取         │
+│  - 敏感信息脱敏         │
+└───────────┬─────────────┘
+            ↓ (update-long-memory.sh)
+┌─────────────────────────┐
+│      MEMORY.md          │  长期记忆
+│  - 用户偏好             │
+│  - 重要决策             │
+│  - 项目进展             │
+└───────────┬─────────────┘
+            ↓ (openclaw memory index)
+┌─────────────────────────┐
+│     向量数据库          │  可检索
+│  - openclaw memory search │
+└─────────────────────────┘
+```
 
 ---
 
@@ -31,126 +57,78 @@ platforms:
 ```bash
 # 创建目录
 mkdir -p ~/.openclaw/scripts
+mkdir -p ~/.openclaw/workspace/memory/archive
 mkdir -p ~/.openclaw/workspace/.learnings/shared
 
 # 下载脚本
-# 从 Gitee 克隆或下载
+# extract-memory.sh (v3.0 LLM 增强版)
+# update-long-memory.sh
 
-# 初始化所有 agent
-for agent in main python-expert architect product-manager operations-assistant data-analyst; do
-  dir="$HOME/.openclaw/workspaces/$agent"
-  [ "$agent" = "main" ] && dir="$HOME/.openclaw/workspace"
-  mkdir -p "$dir/memory" "$dir/.learnings" "$dir/.openclaw"
-done
+# 设置权限
+chmod +x ~/.openclaw/scripts/extract-memory.sh
+chmod +x ~/.openclaw/scripts/update-long-memory.sh
 ```
 
 ---
 
-## 文件结构
-
-```
-~/.openclaw/workspaces/<agent>/
-├── AGENTS.md
-├── MEMORY.md
-├── memory/
-│   ├── YYYY-MM-DD.md     # 日常日志
-│   └── archive/          # 过期归档
-├── .learnings/
-│   ├── LEARNINGS.md      # 学习经验
-│   ├── ERRORS.md         # 错误记录
-│   └── archive/          # 已解决归档
-└── .openclaw/
-    └── .index-state.json # 索引状态
-
-~/.openclaw/workspace/.learnings/shared/
-├── common-errors.md      # 共享错误
-└── best-practices.md     # 共享最佳实践
-```
-
----
-
-## 工作流程
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Session 开始                          │
-└────────────────────────┬────────────────────────────────┘
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│ 1. 自动清理                                             │
-│    - 归档 30 天前的 memory 日志                          │
-│    - 归档已解决的错误                                    │
-└────────────────────────┬────────────────────────────────┘
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│ 2. 加载学习经验                                         │
-│    - LEARNINGS.md (priority: critical/high)            │
-│    - ERRORS.md (priority: critical/high)               │
-│    - shared/common-errors.md                           │
-│    - shared/best-practices.md                          │
-└────────────────────────┬────────────────────────────────┘
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│ 3. 提取 session 对话                                    │
-│    - 检测重要对话 → memory/                             │
-│    - 检测错误 → ERRORS.md                              │
-│    - 检测纠正 → LEARNINGS.md                           │
-│    - 检测最佳实践 → shared/best-practices.md           │
-│    - 生成智能摘要（关键词提取）                          │
-└────────────────────────┬────────────────────────────────┘
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│ 4. 增量索引                                             │
-│    - 检查文件变更                                       │
-│    - 只在有变更时重建索引                               │
-└────────────────────────┬────────────────────────────────┘
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│ 5. 周报提炼（每周日）                                    │
-│    - 提炼项目、关键词、决策                             │
-│    - 更新 MEMORY.md                                    │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 自动检测规则
-
-### 错误 → ERRORS.md
-关键词：`错误`、`失败`、`报错`、`error`、`failed`、`exception`、`bug`、`崩溃`
-
-### 纠正 → LEARNINGS.md
-关键词：`不对`、`错了`、`应该`、`其实`、`实际上`、`不是`
-
-### 最佳实践 → shared/best-practices.md
-关键词：`最佳`、`推荐`、`建议`、`最好`、`优化`
-
-### 共享错误 → shared/common-errors.md
-包含 `API`、`网络`、`配置`、`权限` 的错误
-
----
-
-## 配置 Heartbeat
+## 配置 HEARTBEAT.md
 
 ```markdown
 ## 1. 自动记忆更新
-
 \`\`\`bash
-~/.openclaw/scripts/extract-memory.sh AGENT_ID
+~/.openclaw/scripts/extract-memory.sh main
+\`\`\`
+
+## 2. 长期记忆同步
+\`\`\`bash
+~/.openclaw/scripts/update-long-memory.sh main
 \`\`\`
 ```
 
-## 配置 AGENTS.md
+---
+
+## LLM 分析输出
 
 ```markdown
-## 每次会话开始时
+## LLM 分析 (10:34)
 
-1. 读取 `MEMORY.md` — 长期记忆
-2. 读取 `memory/YYYY-MM-DD.md` — 近期对话
-3. 读取 `.learnings/LEARNINGS.md` — 历史学习
-4. 读取 `.learnings/ERRORS.md` — 历史错误
-5. 读取 `.learnings/shared/` — 共享经验
+**摘要**: 本次对话完成了记忆系统的三层架构改造
+
+### 🎯 偏好
+- OpenCode 模型偏好设置
+- 服务开发配置：端口 10001-10100
+
+### 📋 决策
+- 采用三层互补架构管理记忆
+
+### 📌 待办
+- ✅ 优化脚本
+- ✅ 创建更新脚本
+
+### ❌ 问题
+- MEMORY.md 未及时更新
+
+### 💡 学习
+- 去重机制需要跨次检查
 ```
+
+---
+
+## 敏感信息保护
+
+| 类型 | 模式 | 替换为 |
+|------|------|--------|
+| API Key | `api_key=xxx` | `[REDACTED_KEY]` |
+| Token | `token=xxx` | `[REDACTED_TOKEN]` |
+| 密码 | `password=xxx` | `[REDACTED_PASSWORD]` |
+| 手机号 | `13812345678` | `[REDACTED_PHONE]` |
+| 邮箱 | `user@example.com` | `[REDACTED_EMAIL]` |
+| 内网 IP | `192.168.x.x` | `[REDACTED_IP]` |
+
+**脱敏流程：**
+1. 检测敏感模式
+2. 发送给 LLM 前脱敏
+3. LLM 返回结果再次检查
 
 ---
 
@@ -158,44 +136,29 @@ done
 
 ```
 🧹 检查过期文件...
-   📦 已归档 3 个过期日志
 📚 加载学习经验...
-   ⚠️ 学习经验: 2 条高优先级
-   🔴 错误记录: 1 条高优先级
-   🌐 共享错误: 5 条
-   💡 共享最佳实践: 8 条
-📄 分析 session: 2c36a403-xxx.jsonl
-✅ 已更新 memory: 12 条消息
-   📝 摘要: 记忆系统, 优化, 提取
+📄 分析 session: e0262284-xxx.jsonl
+   🤖 使用 LLM 分析对话...
+✅ LLM 分析完成
+   📝 摘要: 本次对话完成了记忆系统的三层架构改造...
 🔄 更新向量索引...
 ✅ 索引已更新
 ```
 
 ---
 
-## 配置参数
-
-```bash
-DAYS_TO_KEEP=30  # 日志保留天数
-```
-
----
-
 ## 更新日志
 
-### v1.3.0 (2026-03-12)
-- 📝 智能摘要（关键词提取）
-- 🔄 增量索引（只索引变更）
-- 📊 定期提炼（每周日）
+### v3.0.0 (2026-03-22)
+- 🤖 LLM 语义分析（使用当前模型）
+- 🔒 敏感信息自动脱敏
+- 📊 五维分类提取
+- 📝 智能摘要生成
+- 🔄 智能去重
 
-### v1.2.0 (2026-03-12)
-- 🧹 自动过期清理
-- 🎯 优先级过滤
-- 🌐 跨 Agent 共享
-
-### v1.1.0 (2026-03-12)
-- 整合 self-improvement
-- 主动加载历史学习
+### v2.0.0 (2026-03-22)
+- 三层记忆架构
+- 自动同步到 MEMORY.md
 
 ### v1.0.0 (2026-03-12)
 - 初始版本
