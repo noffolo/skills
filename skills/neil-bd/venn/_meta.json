@@ -3,11 +3,16 @@
   "slug": "venn",
   "displayName": "Venn - Secure Universal MCP (Google Workspace, Jira, GitHub, and more)",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1773705314892,
-    "commit": "https://github.com/openclaw/skills/commit/9a72d19a758bee6571cc6f6a17dce0e2f82a22d9"
+    "version": "1.0.5",
+    "publishedAt": 1774256563284,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1773705314892,
+      "commit": "https://github.com/openclaw/skills/commit/9a72d19a758bee6571cc6f6a17dce0e2f82a22d9"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1772733623902,
