@@ -37,48 +37,22 @@ Grid and DCA (Contract Martingale) trading bot management on OKX exchange. All g
 
    **If credentials are already configured** → proceed to step 3.
 
-   **If not configured**, choose one of:
+   **If not configured**:
 
-   **Option A — Interactive wizard** (run this yourself in terminal; preserves existing profiles):
    ```bash
-   okx config init          # demo mode (opens browser → OKX demo API page)
+   okx config init          # interactive wizard — demo mode (opens browser → OKX demo API page)
    okx config init          # run again for live mode (creates a second profile)
    ```
    Creates `okx-demo` (demo) and/or `okx-prod` (live) profiles. Each run safely merges into the existing config file without overwriting other profiles.
 
-   **Option B — Write config directly** (use when no config file exists yet; agent can do this if user provides credentials in chat):
+   Or set environment variables:
    ```bash
-   # Demo only
-   mkdir -p ~/.okx && cat > ~/.okx/config.toml << 'EOF'
-   default_profile = "okx-demo"
-
-   [profiles.okx-demo]
-   api_key = "YOUR_API_KEY"
-   secret_key = "YOUR_SECRET_KEY"
-   passphrase = "YOUR_PASSPHRASE"
-   demo = true
-   EOF
-
-   # Demo + live (both profiles)
-   mkdir -p ~/.okx && cat > ~/.okx/config.toml << 'EOF'
-   default_profile = "okx-demo"
-
-   [profiles.okx-demo]
-   api_key = "DEMO_API_KEY"
-   secret_key = "DEMO_SECRET_KEY"
-   passphrase = "DEMO_PASSPHRASE"
-   demo = true
-
-   [profiles.okx-prod]
-   api_key = "PROD_API_KEY"
-   secret_key = "PROD_SECRET_KEY"
-   passphrase = "PROD_PASSPHRASE"
-   demo = false
-   EOF
+   export OKX_API_KEY=your_key
+   export OKX_SECRET_KEY=your_secret
+   export OKX_PASSPHRASE=your_passphrase
    ```
-   > ⚠ If `~/.okx/config.toml` already exists with other profiles, use Option A (`okx config init`) instead to avoid overwriting them.
 
-   **After writing config**: CLI commands pick up the new credentials immediately. MCP tools require a reconnect (restart Claude Desktop or the MCP server process) to reload the config.
+   > **Security**: NEVER accept API credentials directly in chat. If the user pastes credentials, warn them and ask them to run `okx config init` or edit `~/.okx/config.toml` manually with their local editor instead. Credentials must never appear in conversation history.
 
    **Switch between profiles**:
    ```bash
@@ -304,6 +278,12 @@ Before any authenticated command:
 
 **After every command result:** append `[profile: live]` or `[profile: demo]` to the response
 
+### Critical: `algoId` and `algoOrdType` Rules
+
+- **`algoId`** is the bot's algo order ID (returned by `bot grid create` / `bot dca create` or listed by `bot grid orders` / `bot dca orders`). It is **NOT** a normal trade order ID (`ordId`). Never fabricate or guess an `algoId` — always obtain it from a prior create or list command.
+- **`algoOrdType`** for grid commands **must match the bot's actual type**. Always use the `algoOrdType` value from the `bot grid orders` response — do not infer from user description alone. Passing a mismatched type (e.g., `contract_grid` for a spot grid bot) causes error `50016`.
+- When operating on an existing bot (details, sub-orders, stop), **always retrieve the bot list first** to get the correct `algoId` and `algoOrdType` pair, unless the user provides them explicitly.
+
 ### Step 1: Identify Bot Type and Action
 
 - Grid bot create → `okx bot grid create`
@@ -382,6 +362,8 @@ okx bot grid stop --algoId <id> --algoOrdType <type> --instId <id> \
   [--stopType <1|2|3|5|6>] [--json]
 ```
 
+> **`--algoId`** and **`--algoOrdType`** must come from `bot grid orders` output. The `algoOrdType` must match the bot's actual type — do not guess.
+
 | `--stopType` | Behavior |
 |---|---|
 | `1` | Stop + sell/close all positions at market |
@@ -400,9 +382,9 @@ okx bot grid orders --algoOrdType <type> [--instId <id>] [--algoId <id>] [--hist
 
 | Param | Required | Default | Description |
 |---|---|---|---|
-| `--algoOrdType` | Yes | - | `grid` or `contract_grid` |
+| `--algoOrdType` | Yes | - | `grid` (spot), `contract_grid` (contract), or `moon_grid` (moon) |
 | `--instId` | No | - | Filter by instrument |
-| `--algoId` | No | - | Filter by algo ID |
+| `--algoId` | No | - | Filter by algo order ID (returned by create or previous list). NOT a normal trade order ID. |
 | `--history` | No | false | Show completed/stopped bots instead of active |
 
 ---
@@ -413,6 +395,8 @@ okx bot grid orders --algoOrdType <type> [--instId <id>] [--algoId <id>] [--hist
 okx bot grid details --algoOrdType <type> --algoId <id> [--json]
 ```
 
+> **`--algoId`** and **`--algoOrdType`** must come from `bot grid orders` output. The `algoOrdType` must match the bot's actual type.
+
 Returns: bot config, current PnL (`pnlRatio`), grid range, number of grids, state, position info.
 
 ---
@@ -422,6 +406,8 @@ Returns: bot config, current PnL (`pnlRatio`), grid range, number of grids, stat
 ```bash
 okx bot grid sub-orders --algoOrdType <type> --algoId <id> [--live] [--json]
 ```
+
+> **`--algoId`** and **`--algoOrdType`** must come from `bot grid orders` output.
 
 | Flag | Effect |
 |---|---|
@@ -468,20 +454,21 @@ okx bot dca stop --algoId <id> [--json]
 
 | Param | Required | Description |
 |---|---|---|
-| `--algoId` | Yes | Strategy id |
+| `--algoId` | Yes | DCA bot algo order ID (from `bot dca orders` or `bot dca create` output). NOT a normal trade order ID. |
 
 ---
 
 ### DCA Bot — List Orders
 
 ```bash
-okx bot dca orders [--history] [--instId <id>] [--json]
+okx bot dca orders [--algoId <id>] [--instId <id>] [--history] [--json]
 ```
 
 | Param | Required | Default | Description |
 |---|---|---|---|
-| `--history` | No | false | Show completed/stopped bots instead of active |
+| `--algoId` | No | - | Filter by DCA bot algo order ID (from create or previous list). NOT a normal trade order ID. |
 | `--instId` | No | - | Filter by instrument, e.g. `BTC-USDT-SWAP` |
+| `--history` | No | false | Show completed/stopped bots instead of active |
 
 ---
 
@@ -490,6 +477,8 @@ okx bot dca orders [--history] [--instId <id>] [--json]
 ```bash
 okx bot dca details --algoId <id> [--json]
 ```
+
+> **`--algoId`** must come from `bot dca orders` or `bot dca create` output. NOT a normal trade order ID.
 
 Returns: position details including `avgPx`, `upl`, `liqPx`, `sz`, `tpPx`, `slPx`, `initPx`, `fundingFee`, `fee`, `fillSafetyOrds`.
 
@@ -500,6 +489,8 @@ Returns: position details including `avgPx`, `upl`, `liqPx`, `sz`, `tpPx`, `slPx
 ```bash
 okx bot dca sub-orders --algoId <id> [--cycleId <id>] [--json]
 ```
+
+> **`--algoId`** must come from `bot dca orders` or `bot dca create` output.
 
 | Flag / Param | Effect |
 |---|---|
