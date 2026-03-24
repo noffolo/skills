@@ -196,9 +196,11 @@ POST https://api.atlascloud.ai/v1/chat/completions
 
 | 模型 | 用途 | 特点 |
 |-----|------|------|
-| `gemini-3.1-pro` | 产品分析 + 文案 | 支持视觉输入，理解产品特点 |
+| `zai-org/glm-5-turbo` | 产品分析 + 分镜脚本 | **推荐使用**，支持视觉输入 |
 | `deepseek-v3` | 纯文本文案优化 | 高性价比，强推理能力 |
 | `qwen-max` | 中文文案 | 优秀的中文表达能力 |
+
+**⚠️ 注意：Atlas Cloud 没有 Gemini 模型，请使用 `zai-org/glm-5-turbo` 替代！**
 
 ### 使用 OpenAI SDK
 
@@ -257,7 +259,7 @@ SLOGAN: [你的Slogan]
 画面描述: [英文，用于视频生成]"""
 
     response = client.chat.completions.create(
-        model="gemini-3.1-pro",
+        model="zai-org/glm-5-turbo",  # 注意：不是 gemini！
         messages=[
             {"role": "system", "content": system_prompt},
             {
