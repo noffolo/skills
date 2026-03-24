@@ -10,16 +10,17 @@
 """HaS Image — Privacy anonymization for images via YOLO11 instance segmentation.
 
 Usage:
-    uv run has_image.py scan --image photo.jpg [--types face,id_card] [--conf 0.5]
-    uv run has_image.py hide --image photo.jpg [--output masked.jpg] [--method mosaic]
-    uv run has_image.py hide --dir ./photos/  [--output-dir ./masked/]
+    has-image scan --image photo.jpg [--type face] [--type id_card] [--conf 0.5]
+    has-image hide --image photo.jpg [--output masked.jpg] [--method mosaic]
+    has-image hide --dir ./photos/ [--output-dir ./.has/masked/]
 
-See `uv run has_image.py <command> --help` for details.
+See `has-image <command> --help` for details.
 """
 
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import json
 import os
 import sys
@@ -60,24 +61,61 @@ _ID_TO_CAT = {int(c["id"]): c for c in CATEGORIES}
 _NAME_TO_ID = {c["name"]: int(c["id"]) for c in CATEGORIES}
 _ZH_TO_ID = {c["zh"]: int(c["id"]) for c in CATEGORIES}
 ALL_NAMES = [c["name"] for c in CATEGORIES]
+SCHEMA_VERSION = "1"
 
 
-def _resolve_types(types_str: str | None) -> set[int] | None:
-    """Parse --types into a set of class IDs, or None (= all)."""
-    if not types_str:
+@dataclass(frozen=True)
+class CLIError(Exception):
+    code: str
+    message: str
+
+    def __str__(self) -> str:
+        return self.message
+
+
+class StructuredArgumentParser(argparse.ArgumentParser):
+    """ArgumentParser that reports machine-readable errors."""
+
+    def error(self, message: str) -> None:
+        raise CLIError("invalid_arguments", message)
+
+
+def _emit_json(payload: dict[str, Any], *, stream=None) -> None:
+    target = stream or sys.stdout
+    print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), file=target)
+
+
+def _error_payload(code: str, message: str) -> dict[str, Any]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "error": {
+            "code": code,
+            "message": message,
+        },
+    }
+
+
+def _absolute_path(path: Path | str) -> str:
+    """Return a stable absolute path string without resolving symlink targets."""
+    return str(Path(path).expanduser().absolute())
+
+
+def _resolve_types(type_values: list[str] | None) -> set[int] | None:
+    """Parse repeated --type flags into a set of class IDs, or None (= all)."""
+    if not type_values:
         return None
     ids: set[int] = set()
-    for token in types_str.split(","):
-        token = token.strip()
+    for raw_token in type_values:
+        token = raw_token.strip()
         if not token:
-            continue
+            _die("invalid_type", "--type values must be non-empty strings.")
         # Try numeric ID
         if token.isdigit():
             cid = int(token)
             if cid in _ID_TO_CAT:
                 ids.add(cid)
             else:
-                _die(f"Unknown class ID: {cid}")
+                _die("unknown_type", f"Unknown class ID: {cid}")
         # Try english name
         elif token in _NAME_TO_ID:
             ids.add(_NAME_TO_ID[token])
@@ -90,18 +128,24 @@ def _resolve_types(types_str: str | None) -> set[int] | None:
             if len(matches) == 1:
                 ids.add(_NAME_TO_ID[matches[0]])
             elif len(matches) > 1:
-                _die(f"Ambiguous type '{token}', matches: {matches}")
+                _die("ambiguous_type", f"Ambiguous type '{token}', matches: {matches}")
             else:
                 _die(
+                    "unknown_type",
                     f"Unknown type '{token}'. "
                     f"Valid types: {', '.join(ALL_NAMES)}"
                 )
     return ids if ids else None
 
 
-def _die(msg: str) -> None:
-    print(f"Error: {msg}", file=sys.stderr)
-    sys.exit(1)
+def _die(code: str, msg: str) -> None:
+    raise CLIError(code, msg)
+
+
+def _verbose(message: str) -> None:
+    """Emit a progress message to stderr when --verbose is active."""
+    if os.environ.get("HAS_IMAGE_VERBOSE") == "1":
+        print(message, file=sys.stderr)
 
 
 def _is_within_directory(path: Path, directory: Path) -> bool:
@@ -140,11 +184,14 @@ def _load_model(model_path: str | None = None):
         path = model_path or os.environ.get("HAS_IMAGE_MODEL", _DEFAULT_MODEL_PATH)
         if not os.path.isfile(path):
             _die(
+                "model_not_found",
                 f"Model file not found: {path}\n"
                 f"Download it via: openclaw install has-anonymizer "
                 f"(or manually from HuggingFace)"
             )
+        _verbose(f"Loading image model from {path}...")
         _MODEL = YOLO(path)
+        _verbose("Image model loaded.")
         return _MODEL
 
 
@@ -223,12 +270,12 @@ def _resolve_output_path(image_path: str, output_path: str | None) -> str:
     """Resolve the output path and refuse to overwrite the source image."""
 
     image = Path(image_path)
-    target = Path(output_path) if output_path else image.parent / "masked" / f"{image.stem}{image.suffix}"
+    target = Path(output_path) if output_path else image.parent / ".has" / "masked" / f"{image.stem}{image.suffix}"
 
     if target.resolve(strict=False) == image.resolve(strict=False):
-        _die("Refusing to overwrite the original image; choose a different output path")
+        _die("refusing_overwrite", "Refusing to overwrite the original image; choose a different output path")
 
-    return str(target)
+    return _absolute_path(target)
 
 
 # ---------------------------------------------------------------------------
@@ -279,13 +326,13 @@ def _parse_color(color_str: str) -> tuple[int, int, int]:
     """Parse hex color string to BGR tuple (OpenCV format)."""
     color_str = color_str.lstrip("#")
     if len(color_str) != 6:
-        _die(f"Invalid color format: #{color_str}. Expected #RRGGBB")
+        _die("invalid_color", f"Invalid color format: #{color_str}. Expected #RRGGBB")
     try:
         r = int(color_str[0:2], 16)
         g = int(color_str[2:4], 16)
         b = int(color_str[4:6], 16)
     except ValueError:
-        _die(f"Invalid color format: #{color_str}. Expected #RRGGBB")
+        _die("invalid_color", f"Invalid color format: #{color_str}. Expected #RRGGBB")
     return (b, g, r)  # BGR for OpenCV
 
 
@@ -318,7 +365,7 @@ def _run_hide(
 
     image = cv2.imread(image_path)
     if image is None:
-        _die(f"Failed to read image: {image_path}")
+        _die("read_failed", f"Failed to read image: {image_path}")
 
     h, w = image.shape[:2]
     detections = []
@@ -337,7 +384,7 @@ def _run_hide(
                 image = _apply_blur(image, mask, strength)
             elif method == "fill":
                 if fill_color is None:
-                    _die("Fill color is required when --method=fill")
+                    _die("missing_fill_color", "Fill color is required when --method=fill")
                 image = _apply_fill(image, mask, fill_color)
 
             detections.append(det)
@@ -347,10 +394,10 @@ def _run_hide(
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     if not cv2.imwrite(output_path, image):
-        _die(f"Failed to write masked image: {output_path}")
+        _die("write_failed", f"Failed to write masked image: {output_path}")
 
     return {
-        "output": str(Path(output_path).resolve()),
+        "output": _absolute_path(output_path),
         "detections": detections,
         "summary": summary,
         "method": method,
@@ -365,21 +412,30 @@ def _run_hide(
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff", ".tif"}
 
 
-def _iter_images(dir_path: str):
-    """Yield image file paths from a directory."""
+def _collect_images(dir_path: str) -> tuple[list[str], list[dict[str, str]]]:
+    """Collect immediate image files from a directory plus skipped entries."""
     d = Path(dir_path)
     if not d.is_dir():
-        _die(f"Not a directory: {dir_path}")
+        _die("invalid_directory", f"Not a directory: {dir_path}")
     root = d.resolve()
+    image_paths: list[str] = []
+    skipped: list[dict[str, str]] = []
     for f in sorted(d.iterdir()):
-        if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS:
-            try:
-                resolved = f.resolve()
-            except OSError:
-                continue
-            if not _is_within_directory(resolved, root):
-                continue
-            yield str(f)
+        if not f.is_file():
+            continue
+        if f.suffix.lower() not in IMAGE_EXTENSIONS:
+            skipped.append({"file": _absolute_path(f), "reason": "unsupported_extension"})
+            continue
+        try:
+            resolved = f.resolve()
+        except OSError as exc:
+            skipped.append({"file": _absolute_path(f), "reason": str(exc)})
+            continue
+        if not _is_within_directory(resolved, root):
+            skipped.append({"file": _absolute_path(f), "reason": "symlink_escape"})
+            continue
+        image_paths.append(_absolute_path(f))
+    return image_paths, skipped
 
 
 def run_scan_batch(
@@ -387,13 +443,19 @@ def run_scan_batch(
     model_path: str | None,
     conf: float,
     type_ids: set[int] | None,
+    skipped: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Scan a batch of images serially while preserving input order."""
     if not image_paths:
-        return {"results": [], "count": 0, "summary": {}}
+        result: dict[str, Any] = {"results": [], "count": 0, "summary": {}}
+        if skipped:
+            result["skipped"] = skipped
+            result["skipped_count"] = len(skipped)
+        return result
 
     results = []
-    for image_path in image_paths:
+    for idx, image_path in enumerate(image_paths):
+        _verbose(f"Scanning image {idx + 1}/{len(image_paths)}: {Path(image_path).name}")
         result = _run_detection(image_path, model_path, conf, type_ids)
         result["file"] = image_path
         results.append(result)
@@ -403,11 +465,15 @@ def run_scan_batch(
         for cat, count in result.get("summary", {}).items():
             merged_summary[cat] = merged_summary.get(cat, 0) + count
 
-    return {
+    result = {
         "results": results,
         "count": len(results),
         "summary": merged_summary,
     }
+    if skipped:
+        result["skipped"] = skipped
+        result["skipped_count"] = len(skipped)
+    return result
 
 
 def run_hide_batch(
@@ -419,13 +485,19 @@ def run_hide_batch(
     method: str,
     strength: int,
     fill_color: tuple[int, int, int] | None,
+    skipped: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Hide privacy regions in a batch of images serially while preserving input order."""
     if not image_paths:
-        return {"results": [], "count": 0}
+        result: dict[str, Any] = {"results": [], "count": 0}
+        if skipped:
+            result["skipped"] = skipped
+            result["skipped_count"] = len(skipped)
+        return result
 
     results = []
-    for image_path in image_paths:
+    for idx, image_path in enumerate(image_paths):
+        _verbose(f"Masking image {idx + 1}/{len(image_paths)}: {Path(image_path).name}")
         output_path = str(Path(output_dir) / Path(image_path).name)
         result = _run_hide(
             image_path,
@@ -440,7 +512,11 @@ def run_hide_batch(
         result["file"] = image_path
         results.append(result)
 
-    return {"results": results, "count": len(results)}
+    result = {"results": results, "count": len(results)}
+    if skipped:
+        result["skipped"] = skipped
+        result["skipped_count"] = len(skipped)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -448,23 +524,25 @@ def run_hide_batch(
 # ---------------------------------------------------------------------------
 
 def cmd_scan(args: argparse.Namespace) -> None:
-    type_ids = _resolve_types(args.types)
+    type_ids = _resolve_types(args.type)
 
     t0 = time.time()
     if args.dir:
+        image_paths, skipped = _collect_images(args.dir)
         batch_result = run_scan_batch(
-            list(_iter_images(args.dir)),
+            image_paths,
             args.model,
             args.conf,
             type_ids,
+            skipped,
         )
-        batch_result["elapsed_ms"] = round((time.time() - t0) * 1000)
-        _output(batch_result, args.pretty)
+        elapsed_ms = round((time.time() - t0) * 1000)
+        _output("scan", batch_result, timing=args.timing, elapsed_ms=elapsed_ms)
     else:
         # Single image mode
         result = _run_detection(args.image, args.model, args.conf, type_ids)
-        result["elapsed_ms"] = round((time.time() - t0) * 1000)
-        _output(result, args.pretty)
+        elapsed_ms = round((time.time() - t0) * 1000)
+        _output("scan", result, timing=args.timing, elapsed_ms=elapsed_ms)
 
 
 # ---------------------------------------------------------------------------
@@ -472,14 +550,20 @@ def cmd_scan(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 def cmd_hide(args: argparse.Namespace) -> None:
-    type_ids = _resolve_types(args.types)
+    type_ids = _resolve_types(args.type)
     fill_color = _resolve_fill_color(args.method, args.fill_color)
 
     t0 = time.time()
     if args.dir:
-        output_dir = args.output_dir or str(Path(args.dir) / "masked")
+        if args.output:
+            _die(
+                "invalid_output_usage",
+                "hide --dir does not support --output; use --output-dir instead.",
+            )
+        output_dir = args.output_dir or str(Path(args.dir) / ".has" / "masked")
+        image_paths, skipped = _collect_images(args.dir)
         batch_result = run_hide_batch(
-            list(_iter_images(args.dir)),
+            image_paths,
             output_dir,
             args.model,
             args.conf,
@@ -487,18 +571,24 @@ def cmd_hide(args: argparse.Namespace) -> None:
             args.method,
             args.strength,
             fill_color,
+            skipped,
         )
-        batch_result["elapsed_ms"] = round((time.time() - t0) * 1000)
-        _output(batch_result, args.pretty)
+        elapsed_ms = round((time.time() - t0) * 1000)
+        _output("hide", batch_result, timing=args.timing, elapsed_ms=elapsed_ms)
     else:
+        if args.output_dir:
+            _die(
+                "invalid_output_usage",
+                "hide --image does not support --output-dir; use --output instead.",
+            )
         # Single image mode
         result = _run_hide(
             args.image, args.output, args.model,
             args.conf, type_ids, args.method,
             args.strength, fill_color,
         )
-        result["elapsed_ms"] = round((time.time() - t0) * 1000)
-        _output(result, args.pretty)
+        elapsed_ms = round((time.time() - t0) * 1000)
+        _output("hide", result, timing=args.timing, elapsed_ms=elapsed_ms)
 
 
 # ---------------------------------------------------------------------------
@@ -506,18 +596,35 @@ def cmd_hide(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 def cmd_categories(args: argparse.Namespace) -> None:
-    _output({"categories": CATEGORIES}, args.pretty)
+    if args.model is not None:
+        _die(
+            "invalid_model_usage",
+            "categories does not support --model because it does not load the detection model.",
+        )
+    t0 = time.time()
+    elapsed_ms = round((time.time() - t0) * 1000)
+    _output("categories", {"categories": CATEGORIES}, timing=args.timing, elapsed_ms=elapsed_ms)
 
 
 # ---------------------------------------------------------------------------
 # Output
 # ---------------------------------------------------------------------------
 
-def _output(data: Any, pretty: bool = False) -> None:
-    if pretty:
-        print(json.dumps(data, ensure_ascii=False, indent=2))
-    else:
-        print(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+def _output(
+    command: str,
+    data: dict[str, Any],
+    *,
+    timing: bool = False,
+    elapsed_ms: int | None = None,
+) -> None:
+    payload: dict[str, Any] = {
+        "schema_version": SCHEMA_VERSION,
+        "command": command,
+    }
+    payload.update(data)
+    if timing and elapsed_ms is not None:
+        payload["elapsed_ms"] = elapsed_ms
+    _emit_json(payload)
 
 
 # ---------------------------------------------------------------------------
@@ -525,32 +632,50 @@ def _output(data: Any, pretty: bool = False) -> None:
 # ---------------------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="has_image",
+    prog_name = os.environ.get("HAS_CLI_PROG", "has-image")
+    shared_options = argparse.ArgumentParser(add_help=False)
+    shared_options.add_argument(
+        "--timing",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Include elapsed_ms in the JSON output",
+    )
+    shared_options.add_argument(
+        "--verbose",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Emit runtime status and progress messages to stderr",
+    )
+    model_option = argparse.ArgumentParser(add_help=False)
+    model_option.add_argument(
+        "--model",
+        default=argparse.SUPPRESS,
+        help=f"Model file path (env: HAS_IMAGE_MODEL, default: {_DEFAULT_MODEL_PATH})",
+    )
+    parser = StructuredArgumentParser(
+        parents=[shared_options, model_option],
+        prog=prog_name,
         description="HaS Image — Privacy anonymization for images (YOLO11)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  has_image scan --image photo.jpg --types face,id_card\n"
-            "  has_image hide --image photo.jpg --method mosaic --strength 20\n"
-            "  has_image hide --dir ./photos/ --output-dir ./masked/ --types face\n"
-            "  has_image categories\n"
+            f"  {prog_name} scan --image photo.jpg --type face --type id_card\n"
+            f"  {prog_name} hide --image photo.jpg --method mosaic --strength 20\n"
+            f"  {prog_name} hide --dir ./photos/ --output-dir .has/masked/ --type face\n"
+            f"  {prog_name} categories\n"
         ),
     )
 
-    parser.add_argument(
-        "--pretty", action="store_true", help="Pretty-print JSON output"
+    subparsers = parser.add_subparsers(
+        dest="command",
+        help="Available commands",
+        parser_class=StructuredArgumentParser,
     )
-    parser.add_argument(
-        "--model", default=None,
-        help=f"Model file path (env: HAS_IMAGE_MODEL, default: {_DEFAULT_MODEL_PATH})",
-    )
-
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # --- scan ---
     scan_parser = subparsers.add_parser(
         "scan",
+        parents=[shared_options, model_option],
         help="Scan image for privacy regions (no masking)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -558,8 +683,8 @@ def build_parser() -> argparse.ArgumentParser:
     scan_img_group.add_argument("--image", help="Input image path")
     scan_img_group.add_argument("--dir", help="Input directory for batch scanning")
     scan_parser.add_argument(
-        "--types", default=None,
-        help="Comma-separated category filter (e.g. face,id_card,license_plate). Default: all",
+        "--type", action="append", default=None,
+        help="Category filter; repeat the flag to add more categories. Default: all",
     )
     scan_parser.add_argument(
         "--conf", type=float, default=0.25,
@@ -570,6 +695,7 @@ def build_parser() -> argparse.ArgumentParser:
     # --- hide ---
     hide_parser = subparsers.add_parser(
         "hide",
+        parents=[shared_options, model_option],
         help="Detect and mask privacy regions",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -579,8 +705,8 @@ def build_parser() -> argparse.ArgumentParser:
     hide_parser.add_argument("--output", default=None, help="Output image path")
     hide_parser.add_argument("--output-dir", default=None, help="Output directory (batch mode)")
     hide_parser.add_argument(
-        "--types", default=None,
-        help="Comma-separated category filter (e.g. face,id_card). Default: all",
+        "--type", action="append", default=None,
+        help="Category filter; repeat the flag to add more categories. Default: all",
     )
     hide_parser.add_argument(
         "--method", choices=["mosaic", "blur", "fill"], default="mosaic",
@@ -603,6 +729,7 @@ def build_parser() -> argparse.ArgumentParser:
     # --- categories ---
     cat_parser = subparsers.add_parser(
         "categories",
+        parents=[shared_options],
         help="List all supported privacy categories",
     )
     cat_parser.set_defaults(func=cmd_categories)
@@ -612,13 +739,25 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     parser = build_parser()
-    args = parser.parse_args()
-
-    if not args.command:
-        parser.print_help()
+    args: argparse.Namespace | None = None
+    try:
+        args = parser.parse_args()
+        args.timing = getattr(args, "timing", False)
+        args.verbose = getattr(args, "verbose", False)
+        args.model = getattr(args, "model", None)
+        if not args.command:
+            raise CLIError("missing_command", "Choose a subcommand: scan, hide, or categories.")
+        if args.verbose:
+            os.environ["HAS_IMAGE_VERBOSE"] = "1"
+        else:
+            os.environ.pop("HAS_IMAGE_VERBOSE", None)
+        args.func(args)
+    except CLIError as exc:
+        _emit_json(_error_payload(exc.code, exc.message))
         sys.exit(1)
-
-    args.func(args)
+    except (OSError, RuntimeError, ValueError) as exc:
+        _emit_json(_error_payload("runtime_error", str(exc)))
+        sys.exit(1)
 
 
 if __name__ == "__main__":
