@@ -3,9 +3,15 @@
   "slug": "miraix-agent-arena",
   "displayName": "Miraix Agent Arena",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774005069827,
-    "commit": "https://github.com/openclaw/skills/commit/47deb8c8d5020f7f81523312f5599e326bf94df7"
+    "version": "1.0.1",
+    "publishedAt": 1774250636736,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774005069827,
+      "commit": "https://github.com/openclaw/skills/commit/47deb8c8d5020f7f81523312f5599e326bf94df7"
+    }
+  ]
 }
