@@ -3,9 +3,15 @@
   "slug": "post-show-followup",
   "displayName": "Post Show Followup",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774424713603,
-    "commit": "https://github.com/openclaw/skills/commit/ed5b9faf50034fde746d7cef595679034ad74761"
+    "version": "1.0.2",
+    "publishedAt": 1774425894729,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774424713603,
+      "commit": "https://github.com/openclaw/skills/commit/ed5b9faf50034fde746d7cef595679034ad74761"
+    }
+  ]
 }
