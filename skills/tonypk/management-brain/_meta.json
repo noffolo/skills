@@ -1,13 +1,18 @@
 {
   "owner": "tonypk",
   "slug": "management-brain",
-  "displayName": "AI Management Brain",
+  "displayName": "Openclaw Skill",
   "latest": {
-    "version": "2.2.0",
-    "publishedAt": 1774065627770,
-    "commit": "https://github.com/openclaw/skills/commit/4f287b57c32ed88371eed2194ae20397aa54e5f8"
+    "version": "1.3.0",
+    "publishedAt": 1774352529407,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.0",
+      "publishedAt": 1774065627770,
+      "commit": "https://github.com/openclaw/skills/commit/4f287b57c32ed88371eed2194ae20397aa54e5f8"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1774061745269,
