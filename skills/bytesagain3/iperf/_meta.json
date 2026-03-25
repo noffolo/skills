@@ -3,9 +3,15 @@
   "slug": "iperf",
   "displayName": "Iperf",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1773897536384,
-    "commit": "https://github.com/openclaw/skills/commit/7fc2199012ece7d138d2843b7a4da5c9fdd5833e"
+    "version": "2.0.1",
+    "publishedAt": 1774231926886,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1773897536384,
+      "commit": "https://github.com/openclaw/skills/commit/7fc2199012ece7d138d2843b7a4da5c9fdd5833e"
+    }
+  ]
 }
