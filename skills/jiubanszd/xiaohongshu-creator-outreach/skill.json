@@ -1,0 +1,39 @@
+{
+  "name": "xiaohongshu-creator-outreach",
+  "version": "1.0.0",
+  "description": "小红书创作者建联 - 自动发送私信并记录建联状态",
+  "author": "OpenClaw",
+  "entry": "skill.py",
+  "triggers": [
+    "/小红书创作者建联",
+    "/私信创作者",
+    "/xhs-outreach"
+  ],
+  "keywords": [
+    "小红书",
+    "创作者",
+    "私信",
+    "建联",
+    " outreach",
+    "消息发送"
+  ],
+  "inputs": {
+    "message_template": {
+      "type": "string",
+      "description": "私信内容模板",
+      "default": "你好！我是AI短番的运营小伙伴...",
+      "required": false
+    },
+    "daily_limit": {
+      "type": "number",
+      "description": "每日发送上限",
+      "default": 20,
+      "required": false
+    }
+  },
+  "dependencies": [
+    "playwright>=1.40.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0"
+  ]
+}

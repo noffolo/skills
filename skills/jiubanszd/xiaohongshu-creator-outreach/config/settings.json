@@ -1,0 +1,7 @@
+{
+  "comment_template": "内容很棒！对你的AI作品很感兴趣，已发私信～",
+  "daily_limit": 10,
+  "min_delay": 3,
+  "max_delay": 8,
+  "chrome_path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+}
