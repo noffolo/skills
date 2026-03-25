@@ -1,5 +1,3 @@
-![今日指数日K线](datas/output_snapshot/index_kline_2026-03-18.png)
-
 【2026-03-18】大盘数据
 【今日指数】
 - 成交额：2.05 万亿元

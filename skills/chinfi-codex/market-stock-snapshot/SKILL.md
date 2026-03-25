@@ -56,7 +56,7 @@ description: |
    - 如无日期：默认使用今天
 
 2. **确认运行前提**
-   - 准备 `TUSHARE_TOKEN`，或在当前工作目录下提供 `.streamlit/secrets.toml` 且包含 `tushare_token`
+   - 准备 `TUSHARE_TOKEN` 环境变量
    - 确认环境已安装 `akshare`、`pandas`、`tushare`、`matplotlib`
 
 3. **确认日期口径**
@@ -390,8 +390,4 @@ python scripts/fetch_market_and_stock_groups.py --date 2026-03-13 --force-date -
 ### TUSHARE_TOKEN（必需）
 ```bash
 export TUSHARE_TOKEN="your_token_here"
-```
-或在 `.streamlit/secrets.toml` 中添加：
-```toml
-tushare_token = "your_token_here"
 ```

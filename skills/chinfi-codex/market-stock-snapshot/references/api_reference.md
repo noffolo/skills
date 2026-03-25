@@ -10,7 +10,7 @@ pip install akshare pandas tushare matplotlib
 ### API 密钥
 
 #### 必需
-- `TUSHARE_TOKEN` 环境变量，或当前工作目录下 `.streamlit/secrets.toml` 中的 `tushare_token`
+- `TUSHARE_TOKEN` 环境变量
 
 ## 数据来源
 

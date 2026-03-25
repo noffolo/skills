@@ -3,9 +3,15 @@
   "slug": "market-stock-snapshot",
   "displayName": "Market Stock Snapshot",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773838793697,
-    "commit": "https://github.com/openclaw/skills/commit/9b518a96e38221ecf5e523dca513beb779a597df"
+    "version": "1.0.2",
+    "publishedAt": 1773881937605,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773838793697,
+      "commit": "https://github.com/openclaw/skills/commit/9b518a96e38221ecf5e523dca513beb779a597df"
+    }
+  ]
 }

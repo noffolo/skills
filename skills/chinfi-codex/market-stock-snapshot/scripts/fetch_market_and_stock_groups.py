@@ -67,22 +67,7 @@ def _get_tushare_token() -> str:
     if token:
         return token
 
-    # 兼容 streamlit secrets
-    secrets_path = Path(".streamlit/secrets.toml")
-    if secrets_path.exists():
-        try:
-            text = secrets_path.read_text(encoding="utf-8")
-            for line in text.splitlines():
-                s = line.strip()
-                if not s or s.startswith("#") or "=" not in s:
-                    continue
-                k, v = s.split("=", 1)
-                if k.strip() == "tushare_token":
-                    return v.strip().strip('"').strip("'")
-        except Exception:
-            pass
-
-    raise RuntimeError("未找到 TUSHARE_TOKEN，请设置环境变量或 .streamlit/secrets.toml")
+    raise RuntimeError("未找到 TUSHARE_TOKEN，请设置环境变量")
 
 
 def _parse_date(date_str: Optional[str]) -> dt.date:
