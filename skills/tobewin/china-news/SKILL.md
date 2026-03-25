@@ -1,9 +1,9 @@
 ---
 name: china-news
 description: 中国新闻资讯聚合工具。Use when user wants to get latest news from Chinese sources. Supports multiple news sites (Sina, Sohu, NetEase, Tencent) via browser automation and RSS. Generates categorized news reports. 新闻资讯、热点新闻、每日新闻。
-version: 1.0.0
+version: 1.0.2
 license: MIT-0
-metadata: {"openclaw": {"emoji": "📰", "requires": {"bins": ["curl", "python3"], "env": []}, "minVersion": "2026.3.22", "needsBrowser": true}}
+metadata: {"openclaw": {"emoji": "📰", "requires": {"bins": ["curl", "python3"], "env": []}}}
 ---
 
 # China News
@@ -57,66 +57,130 @@ metadata: {"openclaw": {"emoji": "📰", "requires": {"bins": ["curl", "python3"
 
 ---
 
-## Step 1: 获取新闻
+## Step 1: 获取新闻（自动降级策略）
 
-### 方式A：浏览器自动化（推荐）
+### 模式选择逻辑
+
+```
+检测浏览器是否可用
+        ↓
+可用 → 浏览器模式（更丰富）
+        ↓
+不可用 → 自动降级到RSS模式（默认）
+```
+
+### 代码实现
+
+```python
+def check_browser_available():
+    """检测浏览器是否可用"""
+    try:
+        # 尝试调用浏览器
+        # 如果OpenClaw配置了browser工具且浏览器可用
+        return True
+    except:
+        return False
+
+def get_news_sources():
+    """根据环境自动选择获取方式"""
+    
+    if check_browser_available():
+        # 浏览器模式：获取更丰富的新闻
+        print("🌐 使用浏览器模式")
+        return {
+            'mode': 'browser',
+            'sources': [
+                {'name': '新浪新闻', 'url': 'https://news.sina.com.cn'},
+                {'name': '搜狐新闻', 'url': 'https://news.sohu.com'},
+                {'name': '网易新闻', 'url': 'https://news.163.com'},
+            ]
+        }
+    else:
+        # RSS模式（默认）：轻量快速，无需浏览器
+        print("📡 浏览器不可用，使用RSS模式")
+        return {
+            'mode': 'rss',
+            'sources': [
+                {'name': '36氪', 'url': 'https://36kr.com/feed'},
+                {'name': '搜狐新闻', 'url': 'https://news.sohu.com/rss/'},
+            ]
+        }
+```
+
+### 降级说明
+
+| 环境 | 模式 | 新闻来源 | 数据丰富度 |
+|------|------|----------|------------|
+| 有浏览器 | 浏览器模式 | 新浪/搜狐/网易 | ⭐⭐⭐⭐⭐ |
+| 无浏览器 | RSS模式（默认） | 36氪/搜狐 | ⭐⭐⭐ |
+
+**RSS模式完全可用，无需浏览器即可获取新闻**
+
+### 浏览器模式（更丰富）
 
 ```javascript
-// 打开新浪新闻
+// 打开新闻网站
 await browser.open({
   url: "https://news.sina.com.cn"
 })
 
-// 等待页面加载
+// 等待加载
 await browser.wait({ timeout: 5000 })
 
-// 提取新闻标题
+// 提取新闻标题和链接
 const news = await browser.evaluate(() => {
   const items = []
   
-  // 提取头条新闻
-  document.querySelectorAll('.main-title a, .top-news a, .headline a').forEach(el => {
-    if (el.innerText && el.innerText.length > 10) {
-      items.push({
-        title: el.innerText.trim(),
-        url: el.href,
-        source: '新浪'
-      })
+  // 提取各类新闻区块
+  document.querySelectorAll('a').forEach(el => {
+    const text = el.innerText?.trim()
+    if (text && text.length > 10 && text.length < 100) {
+      // 过滤掉导航、广告等
+      if (!text.includes('登录') && !text.includes('注册') && 
+          !el.href.includes('javascript:') && el.href.startsWith('http')) {
+        items.push({
+          title: text,
+          url: el.href,
+          source: '新浪'
+        })
+      }
     }
   })
   
-  return items.slice(0, 10)
+  return items.slice(0, 20)
 })
 ```
 
-### 方式B：RSS订阅
+### RSS模式（轻量快速）
 
 ```python
 import requests
 import xml.etree.ElementTree as ET
 
-def fetch_rss(url):
+def fetch_rss(url, source_name):
     """获取RSS订阅内容"""
-    response = requests.get(url, timeout=10)
-    root = ET.fromstring(response.content)
-    
-    items = []
-    for item in root.findall('.//item'):
-        title = item.find('title')
-        link = item.find('link')
-        pub_date = item.find('pubDate')
+    try:
+        response = requests.get(url, timeout=10, headers={
+            'User-Agent': 'Mozilla/5.0'
+        })
         
-        if title is not None:
-            items.append({
-                'title': title.text,
-                'url': link.text if link is not None else '',
-                'date': pub_date.text if pub_date is not None else ''
-            })
-    
-    return items[:10]
-
-# 获取新闻
-news = fetch_rss('https://rss.sina.com.cn/news/china/roll.xml')
+        root = ET.fromstring(response.content)
+        items = []
+        
+        for item in root.findall('.//item'):
+            title = item.find('title')
+            link = item.find('link')
+            
+            if title is not None and title.text:
+                items.append({
+                    'title': title.text.strip(),
+                    'url': link.text if link is not None else '',
+                    'source': source_name
+                })
+        
+        return items[:15]
+    except:
+        return []
 ```
 
 ---

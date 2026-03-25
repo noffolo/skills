@@ -3,9 +3,15 @@
   "slug": "china-news",
   "displayName": "China News",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774407955546,
-    "commit": "https://github.com/openclaw/skills/commit/e6737462eece1179a81444964ca9cc48796e3ba6"
+    "version": "1.0.2",
+    "publishedAt": 1774408499298,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774407955546,
+      "commit": "https://github.com/openclaw/skills/commit/e6737462eece1179a81444964ca9cc48796e3ba6"
+    }
+  ]
 }
