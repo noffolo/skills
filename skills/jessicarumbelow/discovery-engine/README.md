@@ -1,4 +1,4 @@
-# Discovery Engine
+# Disco
 
 **Find novel, statistically validated patterns in tabular data** — feature interactions, subgroup effects, and conditional relationships that correlation analysis and LLMs miss.
 
@@ -11,7 +11,7 @@ Made by [Leap Laboratories](https://www.leap-labs.com).
 
 ## What it actually does
 
-Most data analysis starts with a question. Discovery Engine starts with the data.
+Most data analysis starts with a question. Disco starts with the data.
 
 Without biases or assumptions, it searches for combinations of feature conditions that significantly shift your target column — things like "patients aged 45–65 with low HDL *and* high CRP have 3× the readmission rate" — without you needing to hypothesise that interaction first.
 
@@ -119,7 +119,7 @@ The `result.summary` gives an LLM-generated narrative overview:
 
 ```python
 result.summary.overview
-# "Discovery Engine identified 14 statistically significant patterns. 5 are novel.
+# "Disco identified 14 statistically significant patterns. 5 are novel.
 #  The strongest driver is a previously unreported interaction between humidity
 #  and wind speed at specific thresholds."
 
@@ -133,7 +133,7 @@ result.summary.key_insights
 
 ## How it works
 
-Discovery Engine is a pipeline, not prompt engineering over data. It:
+Disco is a pipeline, not prompt engineering over data. It:
 
 1. Trains machine learning models on a subset of your data
 2. Uses interpretability techniques to extract learned patterns
@@ -144,19 +144,32 @@ You cannot replicate this by writing pandas code or asking an LLM to look at a C
 
 ---
 
+## Preparing your data
+
+Before running, exclude columns that would produce meaningless findings. Disco finds statistically real patterns — but if the input includes columns that are definitionally related to the target, the patterns will be tautological.
+
+**Exclude:**
+1. **Identifiers** — row IDs, UUIDs, patient IDs, sample codes
+2. **Data leakage** — the target renamed or reformatted (e.g., `diagnosis_text` when the target is `diagnosis_code`)
+3. **Tautological columns** — alternative encodings of the same construct as the target. If target is `serious`, then `serious_outcome`, `not_serious`, `death` are all part of the same classification. If target is `profit`, then `revenue` and `cost` together compose it. If target is a survey index, the sub-items are tautological.
+
+> Full guidance with examples: [SKILL.md](SKILL.md#preparing-your-data)
+
+---
+
 ## Parameters
 
 ```python
 await engine.discover(
     file="data.csv",           # path, Path, or pd.DataFrame
     target_column="outcome",   # column to predict/explain
-    depth_iterations=1,        # 1=fast, higher=deeper (max: num_columns − 2)
+    depth_iterations=2,        # 2=default, higher=deeper (max: num_columns − 2)
     visibility="public",       # "public" (free) or "private" (costs credits)
     column_descriptions={      # improves pattern explanations and literature context
         "bmi": "Body mass index",
         "hdl": "HDL cholesterol in mg/dL",
     },
-    excluded_columns=["id", "timestamp"],
+    excluded_columns=["id", "timestamp"],  # see "Preparing your data" above
     title="My dataset",
     description="...", # improves pattern explanations and literature context
 )
@@ -191,7 +204,7 @@ result = engine.run(file="data.csv", target_column="outcome", wait=True)
 
 ## MCP server
 
-Discovery Engine is available as an MCP server — no local install required.
+Disco is available as an MCP server — no local install required.
 
 ```json
 {

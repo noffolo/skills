@@ -1,10 +1,10 @@
-# Discovery Engine
+# Disco
 
 Find novel, statistically validated patterns in tabular data — feature interactions, subgroup effects, and conditional relationships that correlation analysis and LLMs miss.
 
 Made by Leap Laboratories (https://www.leap-labs.com).
 
-## When To Use Discovery Engine
+## When To Use Disco
 
 Use for exploratory data analysis when the goal is to discover new insights:
 - "What's really driving X?" — finds feature interactions and subgroup effects, not just correlations
@@ -49,7 +49,7 @@ result = await engine.discover(
     file="data.csv",               # str | Path | pd.DataFrame
     target_column="outcome",       # column to analyze
     visibility="public",           # "public" (free) | "private" (credits)
-    depth_iterations=1,            # higher = deeper search
+    depth_iterations=2,            # higher = deeper analysis
 )
 
 for pattern in result.patterns:
@@ -82,8 +82,8 @@ Agent skill file: https://github.com/leap-laboratories/discovery-engine/blob/mai
 
 ## Pricing
 
-- Public runs: Free (results published, depth locked to 1)
-- Private runs: 1 credit/MB/depth ($1.00/credit)
+- Public runs: Free (results published, depth locked to 2)
+- Private runs: Credits scale with file size and depth ($1.00/credit). Use estimate endpoint to check cost.
 - Free tier: 10 credits/month
 - Researcher: $49/month, 50 credits
 - Team: $199/month, 200 credits
@@ -101,6 +101,15 @@ estimate = await engine.estimate(
 # estimate["cost"]["free_alternative"]     → True
 # estimate["account"]["sufficient"]        → True/False
 ```
+
+## Preparing Your Data
+
+Before running, use `excluded_columns` to remove columns that would produce tautological findings:
+
+1. **Identifiers** — row IDs, UUIDs, patient IDs, sample codes
+2. **Data leakage** — the target column renamed or reformatted
+3. **Tautological columns** — alternative encodings of the same construct as the target (e.g., if target is `serious`, exclude `serious_outcome`, `not_serious`, `death` — they're all part of the same classification system; if target is `profit`, exclude `revenue` and `cost` which compose it)
+
 
 ## Supported File Formats
 

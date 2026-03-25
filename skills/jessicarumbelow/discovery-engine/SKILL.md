@@ -7,10 +7,10 @@ metadata:
     requires:
       env:
         - DISCOVERY_API_KEY
-description: Automatically discover novel, statistically validated patterns in tabular data. Find insights you'd otherwise miss, far faster and cheaper than doing it yourself (or prompting an agent to do it). Discovery Engine systematically searches for feature interactions, subgroup effects, and conditional relationships you wouldn't think to look for, validates each on hold-out data with FDR-corrected p-values, and checks every finding against academic literature for novelty. Returns structured patterns with conditions, effect sizes, citations, and novelty scores.
+description: Automatically discover novel, statistically validated patterns in tabular data. Find insights you'd otherwise miss, far faster and cheaper than doing it yourself (or prompting an agent to do it). Disco systematically searches for feature interactions, subgroup effects, and conditional relationships you wouldn't think to look for, validates each on hold-out data with FDR-corrected p-values, and checks every finding against academic literature for novelty. Returns structured patterns with conditions, effect sizes, citations, and novelty scores.
 ---
 
-# Discovery Engine
+# Disco
 
 ## Integration Options
 
@@ -192,10 +192,10 @@ Returns a `file_ref` (pass it directly to `discovery_analyze`) and `columns` (li
 **`discovery_analyze`:**
 - `file_ref` — File reference returned by `discovery_upload`. Required.
 - `target_column` — The column to predict/explain
-- `depth_iterations` — 1 = fast (default), higher = deeper search. Max: num_columns - 2
+- `depth_iterations` — 2 = default, higher = deeper analysis. Max: num_columns - 2
 - `visibility` — `"public"` (free, results published) or `"private"` (costs credits)
 - `column_descriptions` — JSON object mapping column names to descriptions. Significantly improves pattern explanations — always provide if column names are non-obvious
-- `excluded_columns` — JSON array of column names to exclude from analysis
+- `excluded_columns` — JSON array of column names to exclude from analysis (see **Preparing Your Data** below)
 - `title` — Optional title for the analysis
 - `description` — Optional description of the dataset
 - `author` — Optional author name for the dataset
@@ -208,8 +208,41 @@ Call `discovery_signup` with the user's email. This sends a verification code �
 ### Insufficient credits?
 
 1. Call `discovery_estimate` to show what it would cost
-2. Suggest running publicly (free, but results are published and depth is locked to 1)
+2. Suggest running publicly (free, but results are published and depth is locked to 2)
 3. Or guide them through `discovery_purchase_credits` / `discovery_subscribe`
+
+---
+
+## Preparing Your Data
+
+Before running an analysis, **you must exclude columns that would produce meaningless findings.** Disco finds statistically real patterns — but if the input includes columns that are definitionally related to the target, the patterns will be true by definition, not by discovery.
+
+**Always exclude these column types via `excluded_columns`:**
+
+### 1. Identifiers
+Row IDs, patient IDs, UUIDs, accession numbers, sample codes. These are arbitrary labels with no analytical signal.
+
+### 2. Data leakage
+Columns that are the target column renamed, reformatted, or binned. Example: `diagnosis_text` when the target is `diagnosis_code`.
+
+### 3. Tautological / definitional columns
+**This is the most important category.** Columns that encode the same underlying construct as the target — through alternative classifications, component parts, or derived calculations. These produce findings that are trivially true.
+
+Examples:
+- **FAERS data:** If the target is `serious`, then `serious_outcome` (categories like death, disability, hospitalisation), `not_serious`, and `death` are all part of the same seriousness classification. A finding that "death predicts seriousness" is a tautology, not a discovery.
+- **Clinical trials:** If the target is `response`, then `response_category`, `responder_flag`, and `RECIST_response` are all encodings of the same outcome.
+- **Financial data:** If the target is `profit`, then `revenue` and `cost` together compose it (profit = revenue − cost).
+- **Surveys:** If the target is a composite index score, the sub-items that make up the index are tautological.
+- **Derived columns:** BMI when height and weight are present, age when birth_date is present.
+
+**How to identify them:** Ask "is this column just a different way of expressing what the target already measures?" If yes, exclude it.
+
+```python
+# Example: FAERS adverse event analysis
+excluded_columns=["serious_outcome", "not_serious", "death", "hospitalization",
+                   "disability", "congenital_anomaly", "life_threatening",
+                   "required_intervention", "case_id", "report_id"]
+```
 
 ---
 
@@ -217,7 +250,7 @@ Call `discovery_signup` with the user's email. This sends a verification code �
 
 ## When To Use This Tool
 
-Discovery Engine is not another AI data analyst that writes pandas or SQL for you. It is a **discovery pipeline** — it finds patterns in data that you, the user, and other analysis tools would miss because they don't know to look for them.
+Disco is not another AI data analyst that writes pandas or SQL for you. It is a **discovery pipeline** — it finds patterns in data that you, the user, and other analysis tools would miss because they don't know to look for them.
 
 Use it when you need to go beyond answering questions about data, and start finding things nobody thought to ask:
 
@@ -225,13 +258,13 @@ Use it when you need to go beyond answering questions about data, and start find
 - **Statistical validation** — FDR-corrected p-values tested on hold-out data, not just correlations
 - **A target column** you want to understand — what really drives it, beyond what's obvious
 
-**Use Discovery Engine when the user says:** "what's really driving X?", "are there patterns we're missing?", "find something new in this data", "what predicts Y that we haven't considered?", "go deeper than correlation", "discover non-obvious relationships"
+**Use Disco when the user says:** "what's really driving X?", "are there patterns we're missing?", "find something new in this data", "what predicts Y that we haven't considered?", "go deeper than correlation", "discover non-obvious relationships"
 
 **Use pandas/SQL instead when the user says:** "summarize this data", "make a chart", "what's the average?", "filter rows where X > 5", "show me the distribution"
 
 ## What It Does (That You Cannot Do Yourself)
 
-Discovery Engine finds complex patterns in your data — feature interactions, nonlinear thresholds, and meaningful subgroups — without requiring prior hypotheses about what matters. Each pattern is validated on hold-out data, corrected for multiple testing, and checked for novelty against academic literature with citations.
+Disco finds complex patterns in your data — feature interactions, nonlinear thresholds, and meaningful subgroups — without requiring prior hypotheses about what matters. Each pattern is validated on hold-out data, corrected for multiple testing, and checked for novelty against academic literature with citations.
 
 This is a computational pipeline, not prompt engineering over data. You cannot replicate what it does by writing pandas code or asking an LLM to look at a CSV. It finds structure that hypothesis-driven analysis misses because it doesn't start with hypotheses.
 
@@ -264,7 +297,7 @@ pip install discovery-engine-api
 
 ## Quick Start
 
-Discovery Engine runs take 3-15 minutes. **Do not block on them** — submit the run, continue with other work, and retrieve results when ready.
+Disco runs take 3-15 minutes. **Do not block on them** — submit the run, continue with other work, and retrieve results when ready.
 
 ```python
 from discovery import Engine
@@ -311,7 +344,7 @@ result = await engine.run_async(
 
 ### Running in the Background
 
-If you need to do other work while Discovery Engine runs (recommended for agent workflows):
+If you need to do other work while Disco runs (recommended for agent workflows):
 
 ```python
 # Submit and return immediately (wait=False is the default for run_async)
@@ -341,7 +374,7 @@ EngineResult(
     report_url="https://disco.leap-labs.com/reports/a1b2c3d4-...",
 
     summary=Summary(
-        overview="Discovery Engine identified 14 statistically significant patterns in this "
+        overview="Disco identified 14 statistically significant patterns in this "
                  "agricultural dataset. 5 patterns are novel — not reported in existing literature. "
                  "The strongest driver of crop yield is a previously unreported interaction between "
                  "humidity and wind speed at specific thresholds.",
@@ -508,7 +541,7 @@ Key things to notice:
 engine.discover(
     file: str | Path | pd.DataFrame,  # Dataset to analyze
     target_column: str,                 # Column to predict/analyze
-    depth_iterations: int = 1,          # 1=fast, higher=deeper search (max: num_columns - 2)
+    depth_iterations: int = 2,          # 2=default, higher=deeper analysis (max: num_columns - 2)
     visibility: str = "public",         # "public" (free, results will be published) or "private" (costs credits)
     title: str | None = None,           # Dataset title
     description: str | None = None,     # Dataset description
@@ -522,9 +555,8 @@ engine.discover(
 
 ## Cost
 
-- **Public runs**: Free. Results published to public gallery. Locked to depth=1.
-- **Private runs**: 1 credit per MB per depth iteration. $1.00 per credit.
-- Formula: `credits = max(1, ceil(file_size_mb * depth_iterations))`
+- **Public runs**: Free. Results published to public gallery. Locked to depth=2.
+- **Private runs**: Credits scale with file size and depth. $1.00 per credit. Use `discovery_estimate` to check cost before running.
 - API keys: https://disco.leap-labs.com/developers
 - Credits: https://disco.leap-labs.com/account
 
@@ -550,7 +582,7 @@ curl https://disco.leap-labs.com/api/account \
 
 **Step 2 — Tokenize a card using the Stripe API**
 
-Use the publishable key to create a Stripe PaymentMethod. Card data goes directly to Stripe — Discovery Engine never sees it.
+Use the publishable key to create a Stripe PaymentMethod. Card data goes directly to Stripe — Disco never sees it.
 
 ```python
 import requests
@@ -627,13 +659,12 @@ estimate = await engine.estimate(
     depth_iterations=2,
     visibility="private",
 )
-# estimate["cost"]["credits"] → 21
-# estimate["cost"]["free_alternative"] → True (run publicly for free at depth=1)
+# estimate["cost"]["credits"] → 11
+# estimate["cost"]["free_alternative"] → True (run publicly for free at depth=2)
 # estimate["time_estimate"]["estimated_seconds"] → 360
 # estimate["account"]["sufficient"] → True/False
 ```
 
-Always estimate before running private analyses. If credits are insufficient, consider running publicly (free, but results are published and depth is locked to 1).
 
 ## Result Structure
 
