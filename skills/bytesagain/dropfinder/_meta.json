@@ -3,9 +3,15 @@
   "slug": "dropfinder",
   "displayName": "Dropfinder",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1773840808970,
-    "commit": "https://github.com/openclaw/skills/commit/7eeff1f69b23c9679cd34317854ff43193bc825e"
+    "version": "2.0.4",
+    "publishedAt": 1774314902369,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1773840808970,
+      "commit": "https://github.com/openclaw/skills/commit/7eeff1f69b23c9679cd34317854ff43193bc825e"
+    }
+  ]
 }
