@@ -21,7 +21,7 @@ parameters:
 
 # Agent Creator Skill (自动化创建代理工具)
 
-When a user asks you to create a new agent, assistant, or proxy (e.g., "创建一个Java高级开发的代理", "帮我建一个产品经理agent"), you MUST use this skill to accomplish the task.
+When a user asks you to create a new agent, assistant, or proxy (e.g., "创建一个Java高级开发的代理", "Help me build a product manager agent"), you MUST use this skill to accomplish the task.
 
 ## SOP (Standard Operating Procedure):
 
