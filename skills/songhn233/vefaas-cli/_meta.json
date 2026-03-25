@@ -1,11 +1,17 @@
 {
   "owner": "songhn233",
   "slug": "vefaas-cli",
-  "displayName": "vefaas",
+  "displayName": "Vefaas Cli",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774065925171,
-    "commit": "https://github.com/openclaw/skills/commit/c109548980dde70464d59b9a12a5762efbf7b90e"
+    "version": "1.0.3",
+    "publishedAt": 1774167863989,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774065925171,
+      "commit": "https://github.com/openclaw/skills/commit/c109548980dde70464d59b9a12a5762efbf7b90e"
+    }
+  ]
 }

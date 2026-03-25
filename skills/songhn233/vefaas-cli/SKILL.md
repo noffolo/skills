@@ -2,6 +2,21 @@
 name: vefaas
 description: Deploy and manage serverless applications on Volcengine veFaaS. Use when the user wants to deploy web apps, manage functions (pull code, upload and deploy), configure environment variables, or work with veFaaS services.
 allowed-tools: Bash(vefaas:*)
+metadata:
+  clawdbot:
+    primaryEnv: VOLC_ACCESS_KEY_ID
+    requires:
+      bins:
+        - node
+        - npm
+        - vefaas
+      env:
+        - VOLC_ACCESS_KEY_ID
+        - VOLC_SECRET_ACCESS_KEY
+    install:
+      kind: tarball
+      url: https://vefaas-cli.tos-cn-beijing.volces.com/volcengine-vefaas-latest.tgz
+      bin: vefaas
 ---
 
 # vefaas: Volcengine FaaS CLI
@@ -13,6 +28,8 @@ allowed-tools: Bash(vefaas:*)
 ```bash
 npm i -g https://vefaas-cli.tos-cn-beijing.volces.com/volcengine-vefaas-latest.tgz
 ```
+
+> **Note**: This installs the latest release directly from Volcengine's official TOS bucket. The domain `volces.com` is owned and operated by Volcengine.
 
 Verify installation:
 ```bash
@@ -27,6 +44,7 @@ The typical deployment pattern:
    - If version is too low, switch using nvm (`nvm use 20`) or fnm (`fnm use 20`), or manually install a newer version
 2. **Check CLI**: `vefaas --version` to verify installation
 3. **Check Auth**: `vefaas login --check` to verify login status
+   - In some environments (e.g., managed sandboxes), credentials may be pre-injected automatically — if `--check` passes, proceed directly without any login step
    - If not logged in, run `vefaas login --sso` (opens browser, auto-completes when user authorizes - no manual input needed)
 4. **Deploy**: `vefaas deploy --newApp <name> --gatewayName $(vefaas run listgateways --first) --yes`
 5. **Access**: `vefaas domains` to view URLs
