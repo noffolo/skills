@@ -11,7 +11,15 @@ API_KEY 获取优先级：
   2. 配置文件 ~/.openclaw/.env 中的 AI_GATEWAY_API_KEY
   3. 命令行参数 --api-key
 
-依赖：需要安装第三方包 httpx。请求时忽略 HTTPS 证书校验。
+网关地址获取优先级：
+  1. 环境变量 AI_GATEWAY_HOST
+  2. 配置文件 ~/.openclaw/.env 中的 AI_GATEWAY_HOST
+  3. 默认值 https://ai-open-gateway.closeli.cn
+
+TLS 证书验证：
+  默认启用。设置环境变量 AI_GATEWAY_VERIFY_SSL=false 可禁用（仅限开发环境）。
+
+依赖：需要安装第三方包 httpx。
 """
 
 import argparse
@@ -26,12 +34,18 @@ except ImportError:
     print("❌ 缺少依赖 httpx，请先安装：python3 -m pip install httpx", file=sys.stderr)
     sys.exit(1)
 
-# 网关地址
-API_HOST = "https://ai-open-gateway.closeli.cn"
+# 默认网关地址
+DEFAULT_API_HOST = "https://ai-open-gateway.closeli.cn"
 
 
 def load_env_file():
-    """从 ~/.openclaw/.env 文件加载环境变量配置"""
+    """
+    从 ~/.openclaw/.env 文件加载环境变量配置。
+    设置环境变量 AI_GATEWAY_NO_ENV_FILE=true 可跳过读取（生产环境推荐）。
+    """
+    # 生产环境可通过此开关禁用 .env fallback，避免共享凭证文件的安全风险
+    if os.environ.get("AI_GATEWAY_NO_ENV_FILE", "").lower() in ("true", "1", "yes"):
+        return {}
     env_path = Path.home() / ".openclaw" / ".env"
     if not env_path.exists():
         return {}
@@ -40,7 +54,6 @@ def load_env_file():
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
-                # 跳过空行和注释
                 if not line or line.startswith("#"):
                     continue
                 if "=" in line:
@@ -60,33 +73,58 @@ def get_api_key(cli_key=None):
       2. ~/.openclaw/.env 配置文件
       3. 命令行参数 --api-key
     """
-    # 1. 环境变量
     key = os.environ.get("AI_GATEWAY_API_KEY")
     if key:
         return key
-
-    # 2. 配置文件
     env_vars = load_env_file()
     key = env_vars.get("AI_GATEWAY_API_KEY")
     if key:
         return key
-
-    # 3. 命令行参数
     if cli_key:
         return cli_key
-
     return None
 
 
-def call_device_list(api_key):
-    """调用设备列表接口"""
-    url = f"{API_HOST}/api/device/list"
+def get_api_host():
+    """
+    三级优先级获取网关地址：
+      1. 环境变量 AI_GATEWAY_HOST
+      2. ~/.openclaw/.env 配置文件中的 AI_GATEWAY_HOST
+      3. 默认值 DEFAULT_API_HOST
+    """
+    host = os.environ.get("AI_GATEWAY_HOST")
+    if host:
+        return host.rstrip("/")
+    env_vars = load_env_file()
+    host = env_vars.get("AI_GATEWAY_HOST")
+    if host:
+        return host.rstrip("/")
+    return DEFAULT_API_HOST
+
+
+def get_verify_ssl():
+    """
+    判断是否启用 TLS 证书验证。
+    默认启用。仅当环境变量 AI_GATEWAY_VERIFY_SSL 显式设为 false 时禁用。
+    """
+    val = os.environ.get("AI_GATEWAY_VERIFY_SSL", "true").lower()
+    return val not in ("false", "0", "no")
+
+
+def call_device_list(api_key, api_host, verify_ssl):
+    """
+    调用 POST /api/device/list 获取设备列表。
+
+    # Returns
+    * dict - 接口返回的完整 JSON 响应
+    """
+    url = f"{api_host}/api/device/list"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
     }
     try:
-        with httpx.Client(verify=False, timeout=120.0, headers=headers) as client:
+        with httpx.Client(verify=verify_ssl, timeout=120.0, headers=headers) as client:
             resp = client.post(url, content=b"")
             resp.raise_for_status()
             return resp.json()
@@ -95,7 +133,7 @@ def call_device_list(api_key):
         sys.exit(1)
     except httpx.RequestError as e:
         print(f"❌ 网络错误: {e}", file=sys.stderr)
-        print(f"   请确认网关服务 {API_HOST} 是否已启动", file=sys.stderr)
+        print(f"   请确认网关服务 {api_host} 是否已启动", file=sys.stderr)
         sys.exit(1)
 
 
@@ -113,10 +151,14 @@ def main():
         print("   3. 命令行:   --api-key your_key", file=sys.stderr)
         sys.exit(1)
 
-    # 2. 调用接口
-    result = call_device_list(api_key)
+    # 2. 获取网关地址和 TLS 配置
+    api_host = get_api_host()
+    verify_ssl = get_verify_ssl()
 
-    # 3. 输出结果
+    # 3. 调用设备列表接口
+    result = call_device_list(api_key, api_host, verify_ssl)
+
+    # 4. 输出结果
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

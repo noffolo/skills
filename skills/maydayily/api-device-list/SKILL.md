@@ -1,56 +1,21 @@
 ---
 name: api-device-list
 description: "调用 ai-open-gateway 的设备列表查询接口 POST /api/device/list，获取当前用户绑定的所有设备信息。Use when: 需要查看绑定了哪些设备、获取设备 MAC 地址、确认设备是否已绑定。⚠️ 需设置 AI_GATEWAY_API_KEY。"
+metadata:
+  openclaw:
+    requires:
+      bins: ["python3"]
+      env: ["AI_GATEWAY_API_KEY"]
+    primaryEnv: "AI_GATEWAY_API_KEY"
 ---
 
 # 设备列表查询接口
 
-## 接口概述
-
 `POST /api/device/list` 用于查询当前认证用户绑定的所有设备列表。该接口无需请求体，设备列表由 api_key 自动关联。
 
-## 📦 安装方式
+## ⚠️ 展示规则（MUST 严格遵守）
 
-提供两种安装方式，任选其一：
-
-### 方式一：ClawHub 安装（推荐）
-
-```bash
-npx clawhub@latest install closeli/api-device-list
-```
-
-自动下载到 `~/.openclaw/workspace/skills/api-device-list/` 并注册到 OpenClaw。
-
-### 方式二：手动安装
-
-1. 下载 skill 文件夹（包含 `SKILL.md` 和 `list_devices.py`）
-2. 复制到 OpenClaw skills 目录：
-
-```bash
-cp -r api-device-list ~/.openclaw/workspace/skills/
-```
-
-3. 在 `~/.openclaw/openclaw.json` 的 `skills.entries` 中注册：
-
-```json
-{
-  "skills": {
-    "entries": {
-      "api-device-list": {
-        "enabled": true
-      }
-    }
-  }
-}
-```
-
-安装完成后无需重启 OpenClaw，skill 会在下一次对话中自动生效。
-
----
-
-## ⚠️ 展示规则（必须严格遵守）
-
-调用成功后，禁止直接展示原始 JSON。必须按以下规则格式化输出：
+脚本输出 JSON 格式的结构化数据，这是预期行为。以下展示规则是给 agent 的格式化指令：agent MUST 解析脚本输出的 JSON，按下述规则转换为用户友好的格式后再展示，MUST NOT 直接展示原始 JSON。
 
 1. 当 `code == 0` 且 `data` 非空时，以表格展示：
 
@@ -58,96 +23,59 @@ cp -r api-device-list ~/.openclaw/workspace/skills/
 |----------|----------|
 | aabbccddeeff | 客厅摄像机 |
 
-**关键规则**：device_id 必须去掉 `xxxxS_` 前缀再展示。例如 `xxxxS_aabbccddeeff` → 展示为 `aabbccddeeff`。表头必须写"MAC 地址"，不要写"设备 ID"。
+关键规则：device_id MUST 去掉 `xxxxS_` 前缀再展示为 MAC 地址。表头 MUST 写"MAC 地址"，不要写"设备 ID"。
 
 2. 当 `data` 为空数组时，回复："当前账户下没有绑定任何设备。"
 3. 当 `code != 0` 时，回复："接口调用失败，错误码 {code}，原因：{message}"
 
----
+## 前置依赖
 
-## 🐍 前置准备
+脚本依赖 httpx。如果未安装，脚本会提示 `python3 -m pip install httpx`。
 
-本技能使用 Python 脚本调用接口，仅依赖 Python 标准库，无需安装第三方包。
+## 配置声明
 
-调用前请确认 Python 3 环境可用：
+本 skill 依赖以下配置项，agent 和用户 MUST 在运行前确认已正确配置。
 
-```bash
-python3 --version
-```
+### 必需配置
 
-如果提示 command not found，请先安装 Python 3（macOS: `brew install python3`，Windows: 从 python.org 下载安装，Linux: `sudo apt install python3` 或 `sudo yum install python3`）。
+| 配置项 | 传递方式 | 说明 |
+|--------|----------|------|
+| AI_GATEWAY_API_KEY | 环境变量（推荐）、`~/.openclaw/.env`（fallback）、命令行 `--api-key` | API 密钥，用于接口鉴权。脚本按此优先级自动获取 |
 
-## 🔑 凭证配置
+### 可选配置
 
-脚本通过三级优先级自动获取 API_KEY：
+| 配置项 | 传递方式 | 默认值 | 说明 |
+|--------|----------|--------|------|
+| AI_GATEWAY_HOST | 环境变量、`~/.openclaw/.env` | `https://ai-open-gateway.closeli.cn` | 网关地址 |
+| AI_GATEWAY_VERIFY_SSL | 环境变量 | true | 设为 false 可禁用 TLS 证书验证（仅限开发环境） |
+| AI_GATEWAY_NO_ENV_FILE | 环境变量 | false | 设为 true 可禁用 `~/.openclaw/.env` fallback 读取（生产环境推荐） |
 
-| 优先级 | 方式 | 说明 |
-|--------|------|------|
-| 1（最高） | 环境变量 | 系统环境变量 `AI_GATEWAY_API_KEY` |
-| 2 | 配置文件 | `~/.openclaw/.env` 文件 |
-| 3（最低） | 命令行参数 | `--api-key` 参数 |
+### Fallback 配置路径
 
-### 方式一：环境变量（当前终端会话有效，关闭终端后失效）
+脚本默认会读取 `~/.openclaw/.env` 文件作为 fallback 配置源。该文件为所有 skill 共享，格式为 `KEY=VALUE`（每行一条）。生产环境 MUST 设置 `AI_GATEWAY_NO_ENV_FILE=true` 禁用此 fallback，改为通过环境变量直接传递所有配置。
 
-macOS / Linux：
+## 安全注意事项
 
-```bash
-export AI_GATEWAY_API_KEY="your_api_key"
-```
+- 共享凭证文件 `~/.openclaw/.env` 可被同一用户下所有 skill 读取。生产环境 MUST 通过环境变量传递 API_KEY，MUST NOT 依赖共享凭证文件
+- TLS 证书验证默认启用，MUST NOT 在生产环境禁用（禁用会导致中间人攻击风险，攻击者可截获 API_KEY 和设备数据）
+- 使用前 MUST 确认 AI_GATEWAY_HOST 指向可信域名
+- MUST 使用最小权限的 API_KEY，避免复用高权限凭证。本 skill 仅需设备列表查询权限
 
-Windows CMD：
+## 网络访问声明
 
-```cmd
-set AI_GATEWAY_API_KEY=your_api_key
-```
+本 skill 仅访问以下端点（均为 AI_GATEWAY_HOST 下的路径）：
 
-Windows PowerShell：
+| 端点 | 方法 | 用途 |
+|------|------|------|
+| /api/device/list | POST | 查询用户绑定的设备列表 |
 
-```powershell
-$env:AI_GATEWAY_API_KEY="your_api_key"
-```
-
-### 方式二：配置文件（永久生效，推荐使用）
-
-在 `~/.openclaw/.env` 文件中添加一行（文件不存在则新建）：
-
-```
-AI_GATEWAY_API_KEY=your_api_key
-```
-
-所有 skill 共享同一个配置文件，配置一次即可。Windows 下路径为 `%USERPROFILE%\.openclaw\.env`。
-
-### 方式三：命令行参数（仅当次执行有效）
-
-```bash
-python3 list_devices.py --api-key your_api_key
-```
-
-### 如何获取 API 授权
-
-1. 打开我司 App，进入「AI 智能检测服务」（未开通服务的需要在开通服务后使用）
-2. 在页面底部的「事件设置」区域下方，点击「开发者 OpenAPI (用于 OpenClaw 等)」
-3. 在弹出的窗口中查看专属 AppID
-4. 点击 AppSecret 旁边的「显示」按钮查看完整密钥
-5. 分别点击「复制」按钮，将 AppID 和 Secret 粘贴到 OpenClaw 的配置栏中
-
-⚠️ 请务必妥善保管 AppSecret，任何人获得此密钥都可能访问摄像头视频流或检测数据。
+脚本不访问任何其他网络资源。
 
 ## 快速开始
 
 ```bash
 python3 list_devices.py
 ```
-
-如果未配置环境变量或 .env 文件，也可以通过命令行传参：
-
-```bash
-python3 list_devices.py --api-key your_api_key
-```
-
-## 服务地址
-
-部署环境地址为 `https://AI_GATEWAY_DOMAIN`，已硬编码在脚本中。正式部署时请替换为实际域名。
 
 ## 认证方式
 
@@ -168,36 +96,11 @@ python3 list_devices.py --api-key your_api_key
 
 ## 响应格式
 
-### 统一响应结构
-
 ```json
 {
   "code": 0,
   "message": "success",
   "request_id": "<32位请求追踪ID>",
-  "data": [...]
-}
-```
-
-- `code`: 业务错误码，0 表示成功
-- `message`: 提示信息
-- `request_id`: 请求唯一追踪 ID
-- `data`: 响应数据，失败时为 null
-
-### data 字段（设备数组）
-
-| 参数名 | 类型 | 说明 |
-|--------|------|------|
-| device_id | string | 设备 ID，格式: `xxxxS_<mac地址>`，后续接口均使用此格式 |
-| device_name | string | 设备名称，用户自定义的设备别名 |
-
-## 成功响应示例
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "request_id": "00000000000000000000000000000000",
   "data": [
     {
       "device_id": "xxxxS_aabbccddeeff",
@@ -207,16 +110,12 @@ python3 list_devices.py --api-key your_api_key
 }
 ```
 
-## 无设备时的响应
+### data 字段（设备数组）
 
-```json
-{
-  "code": 0,
-  "message": "success",
-  "request_id": "00000000000000000000000000000000",
-  "data": []
-}
-```
+| 参数名 | 类型 | 说明 |
+|--------|------|------|
+| device_id | string | 设备 ID，格式: `xxxxS_<mac地址>`，后续接口均使用此格式 |
+| device_name | string | 设备名称，用户自定义的设备别名 |
 
 ## 错误码
 
@@ -227,27 +126,6 @@ python3 list_devices.py --api-key your_api_key
 | 3001 | 502 | 网关内部服务调用失败 |
 | 3004 | 502 | 网关内部服务调用失败 |
 | 5000 | 500 | 内部错误 |
-
-## 使用场景
-
-| 场景 | 说明 |
-|------|------|
-| 📋 查看绑定设备 | 查询当前账户下绑定了哪些摄像机 |
-| 🔍 获取设备 MAC | 获取设备 MAC 地址，用于后续接口调用 |
-| ✅ 确认设备绑定 | 确认某台设备是否已绑定到当前账户 |
-| 🔗 联动其他接口 | 获取 device_id 后调用直播、状态、事件查询等接口 |
-
-## 数据流出说明
-
-本技能通过 Python 脚本调用自建网关，不直接访问第三方服务。
-
-```
-Agent (python3 list_devices.py) → ai-open-gateway (自建网关)
-```
-
-- ✅ 数据仅发送到自建网关
-- ✅ 凭证不暴露给调用方
-- ❌ 不会发送数据到其他外部服务
 
 ## 注意事项
 
