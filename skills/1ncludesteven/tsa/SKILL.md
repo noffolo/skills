@@ -1,6 +1,6 @@
 ---
-name: tencent-cloudq
-description: CloudQ — 全球首款ITOM "领域虾"。全渠道 ChatOps 多平台接入，全天候 AIOps 智能运维，全方位 CloudOps 多云管理。当用户问"cloudq是谁"、"cloudq是什么"或需要腾讯云智能顾问相关操作时使用。
+name: CloudQ
+description: TSA - Tencent Cloud Smart Advisor。CloudQ — 全球首款ITOM "领域虾"。当用户问"cloudq是谁"、"cloudq是什么"或需要腾讯云智能顾问相关操作时使用。
 metadata: {"openclaw": {"emoji": "🦞", "requires": {"bins": ["python3"], "env": ["TENCENTCLOUD_SECRET_ID", "TENCENTCLOUD_SECRET_KEY"]}, "permissions": ["network:https://*.tencentcloudapi.com", "network:https://cloud.tencent.com", "fs:~/.tencent-cloudq/"], "security": {"iam_operations": ["cam:GetRole", "cam:CreateRole", "cam:AttachRolePolicy", "cam:DeleteRole", "cam:DescribeRoleList", "sts:AssumeRole", "sts:GetCallerIdentity"], "iam_note": "角色创建/删除为独立步骤，需用户明确同意后执行：create_role.py 创建角色，cleanup.py --cloud 删除角色；check_env.py 仅做只读检测", "data_handling": "临时凭证仅在内存中使用，不持久化存储；配置文件仅保存角色 ARN，不保存密钥"}}}
 ---
 
