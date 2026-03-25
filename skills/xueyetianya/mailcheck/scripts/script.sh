@@ -3,7 +3,7 @@
 # Powered by BytesAgain | bytesagain.com | hello@bytesagain.com
 set -euo pipefail
 
-VERSION="2.0.0"
+VERSION="2.0.2"
 
 show_help() {
     cat << 'HELPEOF'
