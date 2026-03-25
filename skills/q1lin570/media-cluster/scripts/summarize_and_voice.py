@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Read MediaCrawler JSONL output, generate a Markdown report and a short voice script.
-TTS uses SenseAudio API (https://senseaudio.cn/docs/). Env vars read from .env in skill root.
+TTS uses SenseAudio API (https://senseaudio.cn/docs/). Requires SENSEAUDIO_API_KEY env var.
 """
 from __future__ import annotations
 
@@ -15,21 +15,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-# Load .env from skill root ({baseDir}/.env)
 _SKILL_ROOT = Path(__file__).resolve().parent.parent
-_ENV_PATH = _SKILL_ROOT / ".env"
-if _ENV_PATH.exists():
-    try:
-        from dotenv import load_dotenv
-        load_dotenv(_ENV_PATH)
-    except ImportError:
-        # Fallback: simple key=value parse
-        with open(_ENV_PATH, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, _, v = line.partition("=")
-                    os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
 try:
     import requests
@@ -218,13 +204,27 @@ def tts_senseaudio(
 
 
 def play_audio(path: Path) -> bool:
-    """Play audio file (macOS: afplay; Linux: aplay/ffplay if available)."""
+    """Play audio file (macOS: afplay, Windows: default player, Linux: paplay/aplay/ffplay)."""
+    p = str(path.resolve())
     if sys.platform == "darwin":
         try:
-            subprocess.run(["afplay", str(path)], check=True)
+            subprocess.run(["afplay", p], check=True)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             pass
+    elif sys.platform == "win32":
+        try:
+            os.startfile(p)
+            return True
+        except OSError:
+            pass
+    else:
+        for cmd in (["paplay", p], ["aplay", p], ["ffplay", "-nodisp", "-autoexit", p]):
+            try:
+                subprocess.run(cmd, check=True, capture_output=True)
+                return True
+            except (FileNotFoundError, subprocess.CalledProcessError):
+                continue
     return False
 
 
@@ -241,9 +241,9 @@ def main() -> None:
     parser.add_argument("--voice", action="store_true",
                         help="Generate TTS with SenseAudio API and save/play audio")
     parser.add_argument("--api-key", type=str, default=os.environ.get("SENSEAUDIO_API_KEY", ""),
-                        help="SenseAudio API key (default: from .env or SENSEAUDIO_API_KEY)")
+                        help="SenseAudio API key (default: from SENSEAUDIO_API_KEY env var)")
     parser.add_argument("--voice-id", type=str, default=os.environ.get("SENSEAUDIO_VOICE_ID", DEFAULT_VOICE_ID),
-                        help="SenseAudio voice_id (default: from .env or male_0004_a)")
+                        help="SenseAudio voice_id (default: from SENSEAUDIO_VOICE_ID env var or male_0004_a)")
     parser.add_argument("--voice-out", type=str, default="",
                         help="Path to save TTS audio (default: next to report, media_cluster_voice_<keyword>.mp3)")
     parser.add_argument("--file", type=str, default="",
@@ -284,7 +284,7 @@ def main() -> None:
     if args.voice:
         api_key = (args.api_key or os.environ.get("SENSEAUDIO_API_KEY") or "").strip()
         if not api_key:
-            print("(TTS 未执行：请在 .env 中设置 SENSEAUDIO_API_KEY 或使用 --api-key，参见 https://senseaudio.cn/docs/)", file=sys.stderr)
+            print("(TTS 未执行：请设置环境变量 SENSEAUDIO_API_KEY 或使用 --api-key，参见 https://senseaudio.cn/docs/)", file=sys.stderr)
         else:
             voice_out = args.voice_out
             if not voice_out:
