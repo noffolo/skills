@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * 推送到公众号。 HTML、config.json 和 此脚本 push-article-https.js 应该在同一个目录。HTML在其他路径时请先复制到本目录。执行时只传 HTML 文件名：
+ * 推送到公众号。 HTML、config.json 和 此脚本 push-article-https.js 应该在同一个目录。HTML在其他路径时请先复制到本目录。
  *
- * 用法：node push-article-https.js <HTML 文件名> 
- * 示例：node push-article-https.js 我的文章.html
+ * 用法：node push-article-https.js <HTML 文件名> [sendMode]
+ * 示例：node push-article-https.js 我的文章.html draft
+ * 说明：sendMode 缺省为 draft
  *
  * 标题从 HTML 的 <title>…</title> 取。
  */
@@ -73,8 +74,9 @@ function postJson(urlStr, body, timeoutMs = 120000) {
 
 async function main() {
   const htmlArg = process.argv[2];
+  const sendModeArg = process.argv[3];
   if (!htmlArg || !htmlArg.trim()) {
-    throw new Error('请传入 HTML 文件名（与脚本同目录）。例如: node push-article-https.js 我的文章.html');
+    throw new Error('请传入 HTML 文件名（与脚本同目录）。例如: node push-article-https.js 我的文章.html draft');
   }
   // 只从脚本同目录读，只取文件名，避免路径导致失败
   const fileName = path.basename(htmlArg.trim());
@@ -91,12 +93,13 @@ async function main() {
   }
 
   const apiBase = cfg.apiBase || DEFAULT_API;
+  const sendMode = (sendModeArg && sendModeArg.trim()) || 'draft';
   const body = {
     action: 'sendToWechat',
     openId: cfg.openId,
     title: title.slice(0, 64),
     content,
-    sendMode: 'draft',
+    sendMode,
   };
   if (cfg.pushMode === 'custom' && cfg.accountId != null && cfg.accountId !== '') {
     body.accountId = cfg.accountId;

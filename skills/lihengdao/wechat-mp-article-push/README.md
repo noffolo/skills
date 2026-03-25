@@ -69,13 +69,16 @@ node push-article-https.js 你的文章.html
 配置文件 `config.json` 包含以下关键字段:
 
 - `openId` - 微信用户 openId(必填)
-- `pushMode` - 推送模式: `default` 或 `custom`
+- `pushMode` - 推送模式: `default`（系统默认公众号） 或 `custom`（用户自定义公众号）
+- `isBindPhoneNumber` - 仅 pushMode=default 时有意义：boolean。用户配置向导中，用户选择是否绑定手机号。true → AI/脚本应用 sendMode可以是send（正式发布、长期有效文章链接）或draft（草稿预览链接12小时后失效）；false 或缺省 → sendMode仅可以是 draft。pushMode=custom 时为 null，可忽略
 - `accountId` - 公众号账号 ID(custom 模式必填)
  
 ## 🚨 注意事项
 
-- 未认证公众号只能推送到草稿箱
+- 通过系统默认公众号推送，若需要发布，则需要在向导中先绑定手机号
+- 通过自定义公众号推送，未认证公众号只能推送到草稿箱，认证的公众号可以使用草稿、发布或群发
 - 推送前请确保运行了配置向导并复制发给了AI
+- 推送公众号文章链路较长（转换、平台接口、异步任务等），若返回「超时」可视为成功，无需重复推送，请用户关注微信服务通知或草稿箱
 
 ## 📄 许可证
 
