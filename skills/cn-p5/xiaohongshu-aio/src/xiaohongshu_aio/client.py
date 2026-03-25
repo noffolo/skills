@@ -216,21 +216,3 @@ class XiaohongshuClient:
         if user_id:
             data["user_id"] = user_id
         return self._request("POST", "/api/v1/feeds/comment/reply", json=data)
-
-    def like_feed(self, feed_id: str, xsec_token: str, unlike: bool = False) -> Dict[str, Any]:
-        """Like feed"""
-        data = {
-            "feed_id": feed_id,
-            "xsec_token": xsec_token,
-            "unlike": unlike
-        }
-        return self._request("POST", "/api/v1/feeds/like", json=data)
-
-    def favorite_feed(self, feed_id: str, xsec_token: str, unfavorite: bool = False) -> Dict[str, Any]:
-        """Favorite feed"""
-        data = {
-            "feed_id": feed_id,
-            "xsec_token": xsec_token,
-            "unfavorite": unfavorite
-        }
-        return self._request("POST", "/api/v1/feeds/favorite", json=data)

@@ -28,9 +28,8 @@ A Python client for Xiaohongshu MCP (Model Context Protocol) REST API, providing
   - Get detailed feed information
 
 - **Interaction**
-  - Like/unlike feeds
-  - Favorite/unfavorite feeds
-  - Post comments
+  - Post comments on feeds
+  - Reply to comments on feeds
 
 - **User Information**
   - Get current user profile
@@ -45,8 +44,19 @@ A Python client for Xiaohongshu MCP (Model Context Protocol) REST API, providing
 ### Install from source
 ```bash
 cd xiaohongshu-aio
-pip install -e .
+uv sync
+uv run xhs --help
 ```
+
+### Install from PyPI (Recommended)
+```bash
+uv tool install xiaohongshu-aio
+```
+
+### Install and Start MCP Server
+1. Download MCP server: `xhs mcp download`
+2. Start MCP server: `xhs mcp start`
+3. Check status: `xhs mcp status`
 
 ## Usage
 
@@ -100,7 +110,7 @@ xhs login logout
 ### Publishing Content
 ```bash
 # Publish image content
-xhs publish "Title" "Content" "https://example.com/image1.jpg" "https://example.com/image2.jpg" --tags food travel
+xhs publish "Title" "Content" "https://example.com/image1.jpg" "https://example.com/image2.jpg" --tags food,travel
 
 # Publish video content
 xhs publish "Video Title" "Video content" "C:\path\to\video.mp4" --is-video
@@ -126,20 +136,14 @@ xhs feed list --base-url http://localhost:18060
 
 ### Interaction
 ```bash
-# Like a feed
-xhs interact like "feed123" "token123"
-
-# Unlike a feed
-xhs interact like "feed123" "token123" --unlike
-
-# Favorite a feed
-xhs interact favorite "feed123" "token123"
-
 # Post a comment
 xhs interact comment "feed123" "token123" --content "Great post!"
 
+# Reply to a comment
+xhs interact reply "feed123" "token123" --comment-id "comment_id" --content "Reply content"
+
 # Use custom server URL
-xhs interact like "feed123" "token123" --base-url http://localhost:18060
+xhs interact comment "feed123" "token123" --content "Great post!" --base-url http://localhost:18060
 ```
 
 ### User Information
@@ -152,6 +156,27 @@ xhs user profile --user-id "user123" --xsec-token "token123"
 
 # Use custom server URL
 xhs user me --base-url http://localhost:18060
+```
+
+### MCP Server Management
+```bash
+# Download MCP server
+xhs mcp download
+
+# Test MCP connection
+xhs mcp test
+
+# Start MCP server
+xhs mcp start
+
+# Stop MCP server
+xhs mcp stop
+
+# Restart MCP server
+xhs mcp restart
+
+# Check MCP server status
+xhs mcp status
 ```
 
 ## Configuration
@@ -174,7 +199,8 @@ xiaohongshu-aio/
 │       ├── __init__.py          # Package initialization
 │       ├── client.py            # REST API client
 │       ├── account.py           # Account management
-│       └── cli.py               # Command-line interface
+│       ├── cli.py               # Command-line interface
+│       └── mcp_service.py       # MCP server management
 ├── pyproject.toml               # Project configuration
 ├── README.md                    # This file
 ├── README_en.md                 # English README

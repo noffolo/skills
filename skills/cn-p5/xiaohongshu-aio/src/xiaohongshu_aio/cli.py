@@ -4,10 +4,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 from typing import Optional, List
-from datetime import datetime
 
 from .client import XiaohongshuClient
 from .account import AccountManager
+from .mcp_service import MCPServiceManager
 
 app = typer.Typer(help="Xiaohongshu MCP REST API Client")
 console = Console()
@@ -158,6 +158,16 @@ def publish_command(
     client = XiaohongshuClient(base_url=base_url)
     
     try:
+        if r"\r\n" in content:
+            content = content.replace(r"\r\n", "\r\n")
+        if r"\n" in content:
+            content = content.replace(r"\n", "\n")
+        if len(tags) == 1:
+            if "," in tags[0]:
+                tags = tags[0].split(",")
+        # console.print(f"[red]title: {title}[/red]")
+        # console.print(f"[red]content:\r\n {content}[/red]")
+        # console.print(f"[red]tags: {tags}[/red]")
         if is_video:
             if len(media) != 1:
                 console.print("[red]❌ Video publishing requires exactly one video file path[/red]")
@@ -254,32 +264,18 @@ def feed_command(
 # Interaction commands
 @app.command("interact")
 def interact_command(
-    action: str = typer.Argument(..., help="Action: like, favorite, comment"),
+    action: str = typer.Argument(..., help="Action: comment, reply"),
     feed_id: str = typer.Argument(..., help="Feed ID"),
     xsec_token: str = typer.Argument(..., help="Xsec token"),
     content: Optional[str] = typer.Option(None, help="Comment content"),
-    unlike: bool = typer.Option(False, help="Unlike"),
-    unfavorite: bool = typer.Option(False, help="Unfavorite"),
+    comment_id: Optional[str] = typer.Option(None, help="Comment ID to reply (for reply action)"),
+    user_id: Optional[str] = typer.Option(None, help="User ID to reply (for reply action)"),
     base_url: Optional[str] = typer.Option(None, help="MCP server base URL"),
 ):
     """Interact with feeds"""
     client = XiaohongshuClient(base_url=base_url)
     
-    if action == "like":
-        result = client.like_feed(feed_id=feed_id, xsec_token=xsec_token, unlike=unlike)
-        if result.get("success"):
-            console.print(f"[green]✅ {'Unliked' if unlike else 'Liked'} successfully![/green]")
-        else:
-            console.print(f"[red]❌ Error: {result.get('error', 'Unknown error')}[/red]")
-            
-    elif action == "favorite":
-        result = client.favorite_feed(feed_id=feed_id, xsec_token=xsec_token, unfavorite=unfavorite)
-        if result.get("success"):
-            console.print(f"[green]✅ {'Unfavorited' if unfavorite else 'Favorited'} successfully![/green]")
-        else:
-            console.print(f"[red]❌ Error: {result.get('error', 'Unknown error')}[/red]")
-            
-    elif action == "comment":
+    if action == "comment":
         if not content:
             console.print("[red]❌ Comment content is required[/red]")
             return
@@ -288,6 +284,26 @@ def interact_command(
             console.print("[green]✅ Comment posted successfully![/green]")
         else:
             console.print(f"[red]❌ Error: {result.get('error', 'Unknown error')}[/red]")
+            
+    elif action == "reply":
+        if not content:
+            console.print("[red]❌ Comment content is required[/red]")
+            return
+        if not comment_id and not user_id:
+            console.print("[red]❌ Either comment_id or user_id is required for reply[/red]")
+            return
+        result = client.reply_comment(
+            feed_id=feed_id,
+            xsec_token=xsec_token,
+            content=content,
+            comment_id=comment_id,
+            user_id=user_id
+        )
+        if result.get("success"):
+            console.print("[green]✅ Reply posted successfully![/green]")
+        else:
+            console.print(f"[red]❌ Error: {result.get('error', 'Unknown error')}[/red]")
+    
 
 
 # User commands
@@ -331,6 +347,76 @@ def user_command(
                 console.print(f"{interaction.get('name')}: {interaction.get('count')}")
         else:
             console.print(f"[red]❌ Error: {result.get('error', 'Unknown error')}[/red]")
+
+
+# MCP Service management commands
+@app.command("mcp")
+def mcp_command(
+    action: str = typer.Argument(..., help="Action: download, status, start, stop, restart, test"),
+    work_dir: Optional[str] = typer.Option(None, help="Working directory"),
+    force: bool = typer.Option(False, help="Force download"),
+):
+    """Manage MCP service"""
+    manager = MCPServiceManager(work_dir=work_dir)
+    
+    if action == "download":
+        console.print("[blue]Downloading MCP binaries...[/blue]")
+        if manager.download_binaries(force=force):
+            console.print("[green]✅ Download completed successfully![/green]")
+        else:
+            console.print("[red]❌ Download failed[/red]")
+            
+    elif action == "status":
+        console.print("[blue]Checking MCP service status...[/blue]")
+        status = manager.get_service_status()
+        
+        table = Table(title="MCP Service Status")
+        table.add_column("Item")
+        table.add_column("Value")
+        
+        table.add_row("Port", str(status["port"]))
+        table.add_row("Port In Use", "✅ Yes" if status["port_in_use"] else "❌ No")
+        if status["port_pid"]:
+            table.add_row("Port PID", str(status["port_pid"]))
+        table.add_row("Process Running", "✅ Yes" if status["process_running"] else "❌ No")
+        if status["process_pid"]:
+            table.add_row("Process PID", str(status["process_pid"]))
+        table.add_row("Server Binary", "✅ Exists" if status["server_binary_exists"] else "❌ Not Found")
+        table.add_row("Login Binary", "✅ Exists" if status["login_binary_exists"] else "❌ Not Found")
+        table.add_row("Server Path", status["server_path"])
+        
+        console.print(table)
+        
+    elif action == "start":
+        console.print("[blue]Starting MCP service...[/blue]")
+        if manager.start_service():
+            console.print("[green]✅ Service started successfully![/green]")
+        else:
+            console.print("[red]❌ Failed to start service[/red]")
+            
+    elif action == "stop":
+        console.print("[blue]Stopping MCP service...[/blue]")
+        if manager.stop_service():
+            console.print("[green]✅ Service stopped successfully![/green]")
+        else:
+            console.print("[red]❌ Failed to stop service[/red]")
+            
+    elif action == "restart":
+        console.print("[blue]Restarting MCP service...[/blue]")
+        if manager.restart_service():
+            console.print("[green]✅ Service restarted successfully![/green]")
+        else:
+            console.print("[red]❌ Failed to restart service[/red]")
+            
+    elif action == "test":
+        console.print("[blue]Testing MCP connection...[/blue]")
+        if manager.test_connection():
+            console.print("[green]✅ Connection successful![/green]")
+        else:
+            console.print("[red]❌ Connection failed[/red]")
+    else:
+        console.print(f"[red]Unknown action: {action}[/red]")
+        console.print("Available actions: download, status, start, stop, restart, test")
 
 
 if __name__ == "__main__":

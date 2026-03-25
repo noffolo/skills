@@ -1,8 +1,7 @@
 ---
-name: xiaohongshu-mcp-client
+name: xiaohongshu-aio
 description: |
-  小红书 MCP 客户端技能，用于管理小红书账号、登录、发布笔记、视频、图文内容、搜索、互动等操作。
-  支持账号管理、登录状态检查、内容发布、Feed管理、互动操作和用户信息查询。
+  小红书MCP服务下载、启动、重启、检测，小红书多账号管理、登录、状态检查、内容发布、小红书笔记和视频发布、点赞评论操作和用户信息查询等需要调用本技能。当用户需要从小红书获取笔记和视频数据、用户数据、发布笔记或视频时需要调用本技能。
 metadata:
   {
     "openclaw": {
@@ -13,7 +12,7 @@ metadata:
   }
 ---
 
-# 小红书 MCP 客户端技能
+# 小红书All in One技能
 
 ## 功能概述
 
@@ -27,19 +26,34 @@ metadata:
 - **互动操作**：点赞、收藏、发表评论
 - **用户信息**：获取当前用户和其他用户资料
 
-### 安装
+## 安装
+
+### 安装技能
+#### 方案1：从源代码安装
+1. 克隆本仓库到本地
+2. 进入项目目录
+3. 安装依赖
 
 ```bash
 cd xiaohongshu-aio
-pip install -e .
+uv sync
+uv run xhs --help
 ```
+
+#### 方案2：从 PyPI 安装(推荐)
+
+1. 执行：`uv tool install xiaohongshu-aio`
+
+### 安装启动 MCP 服务器
+1. 执行：`xhs mcp download` 下载 MCP 服务器
+2. 执行：`xhs mcp start` 启动 MCP 服务器
+3. 执行：`xhs mcp status` 检查 MCP 服务器状态
 
 ## 执行流程
 
 **执行任何操作前，都需要先检查 MCP 服务器是否运行**：
 ```bash
-chmod +x check-service.sh
-./check-service.sh
+xhs mcp status
 ```
 
 ### 1. 账号管理流程
@@ -89,13 +103,13 @@ chmod +x check-service.sh
    xhs publish "视频标题" "视频内容" "视频文件路径" --is-video
    ```
 
-### 4. Feed 管理流程
+### 4. 笔记管理流程
 
-#### 搜索内容
+#### 搜索笔记
 1. 执行：`xhs feed search --keyword "关键词"`
 2. 系统返回相关内容列表
 
-#### 获取内容详情
+#### 获取笔记详情
 1. 从搜索结果中获取 feed_id 和 xsec_token
 2. 执行：
    ```bash
@@ -104,10 +118,10 @@ chmod +x check-service.sh
 
 ### 5. 互动操作流程
 
-#### 点赞内容
+#### 点赞笔记
 1. 执行：`xhs interact like "feed_id" "token"`
 
-#### 发表评论
+#### 发表笔记评论
 1. 执行：
    ```bash
    xhs interact comment "feed_id" "token" --content "评论内容"
@@ -129,12 +143,12 @@ chmod +x check-service.sh
 - `xhs login logout [--base-url URL]` - 登出
 
 ### 内容发布
-- `xhs publish 标题 内容 媒体文件... [--tags 标签...] [--is-video] [--base-url URL]` - 发布内容
+- `xhs publish 标题 内容 媒体文件... [--tags 标签...] [--is-video] [--base-url URL]` - 发布笔记或视频内容
 
-### Feed 管理
-- `xhs feed list [--base-url URL]` - 列出推荐内容
-- `xhs feed search --keyword 关键词 [--base-url URL]` - 搜索内容
-- `xhs feed detail --feed-id ID --xsec-token 令牌 [--base-url URL]` - 获取内容详情
+### 笔记管理
+- `xhs feed list [--base-url URL]` - 列出推荐笔记
+- `xhs feed search --keyword 关键词 [--base-url URL]` - 搜索笔记
+- `xhs feed detail --feed-id ID --xsec-token 令牌 [--base-url URL]` - 获取笔记详情
 
 ### 互动操作
 - `xhs interact like  feed_id 令牌 [--unlike] [--base-url URL]` - 点赞/取消点赞
@@ -144,6 +158,20 @@ chmod +x check-service.sh
 ### 用户信息
 - `xhs user me [--base-url URL]` - 获取当前用户资料
 - `xhs user profile --user-id ID --xsec-token 令牌 [--base-url URL]` - 获取其他用户资料
+
+### MCP 服务器管理
+- `xhs mcp download` - 下载 MCP 服务器
+- `xhs mcp test` - 检查 MCP 服务器是否运行
+- `xhs mcp start` - 启动 MCP 服务器
+- `xhs mcp stop` - 停止 MCP 服务器
+- `xhs mcp status` - 检查 MCP 服务器状态
+- `xhs mcp restart` - 重启 MCP 服务器
+
+### 其他命令
+- `xhs --help` - 显示帮助信息
+- 具体的命令参考可以使用 `xhs 命令名['user', 'feed', 'interact', 'mcp'] --help` 查看详细帮助
+
+
 
 ## 配置
 
@@ -178,8 +206,7 @@ chmod +x check-service.sh
 
 **失败时重启 MCP 服务器**：
 ```bash
-chmod +x strart-service.sh
-./strart-service.sh
+xhs mcp restart
 ```
 
 ## 依赖
@@ -188,9 +215,8 @@ chmod +x strart-service.sh
 - 运行中的小红书 MCP 服务器
 - 依赖包：httpx, typer, pydantic, rich
 
-## 示例工作流
 
-### 完整发布流程
+## 完整发布流程
 
 1. **检查登录状态**
    ```bash
@@ -220,9 +246,4 @@ chmod +x strart-service.sh
 6. **搜索相关内容**
    ```bash
    xhs feed search --keyword "咖啡"
-   ```
-
-7. **点赞内容**
-   ```bash
-   xhs interact like "feed_id" "token"
    ```

@@ -1,11 +1,17 @@
 {
   "owner": "cn-p5",
   "slug": "xiaohongshu-aio",
-  "displayName": "小红书操作全集",
+  "displayName": "小红书操作全集 Xiaohongshu All In One 基于api接口稳定快速",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1774083613229,
-    "commit": "https://github.com/openclaw/skills/commit/2f36effcf5afdc4816088ba5e5324c9db4f54d6c"
+    "version": "0.1.6",
+    "publishedAt": 1774296103459,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1774083613229,
+      "commit": "https://github.com/openclaw/skills/commit/2f36effcf5afdc4816088ba5e5324c9db4f54d6c"
+    }
+  ]
 }
