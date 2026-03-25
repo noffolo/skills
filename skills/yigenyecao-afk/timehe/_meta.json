@@ -1,11 +1,17 @@
 {
   "owner": "yigenyecao-afk",
   "slug": "timehe",
-  "displayName": "Time Capsule - timehe.com",
+  "displayName": "时间胶囊",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773816982259,
-    "commit": "https://github.com/openclaw/skills/commit/6cccc12159eb81062e67339c6289cc16703f03be"
+    "version": "1.1.2",
+    "publishedAt": 1774245984645,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773816982259,
+      "commit": "https://github.com/openclaw/skills/commit/6cccc12159eb81062e67339c6289cc16703f03be"
+    }
+  ]
 }
