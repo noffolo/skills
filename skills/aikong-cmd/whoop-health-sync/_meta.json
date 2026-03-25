@@ -1,0 +1,11 @@
+{
+  "owner": "aikong-cmd",
+  "slug": "whoop-health-sync",
+  "displayName": "WHOOP Health Data Sync",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773907951801,
+    "commit": null
+  },
+  "history": []
+}
