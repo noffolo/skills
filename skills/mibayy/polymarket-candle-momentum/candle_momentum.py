@@ -20,8 +20,6 @@ import json
 import time
 import argparse
 import requests
-from pathlib import Path
-
 try:
     from simmer_sdk import SimmerClient
 except ImportError:
@@ -31,7 +29,6 @@ except ImportError:
 # ---- Constants ----
 TRADE_SOURCE = "sdk:polymarket-candle-momentum"
 SKILL_SLUG = "polymarket-candle-momentum"
-CONFIG_PATH = Path(__file__).parent / "config.json"
 
 BINANCE_KLINES_URL = "https://api.binance.com/api/v3/klines"
 
@@ -52,6 +49,7 @@ DEFAULTS = {
     "vol_threshold": 1.5,
     "max_position": 5.0,
     "asset": "BTC",
+    "assets": ["BTC", "ETH", "SOL", "XRP", "BNB"],
     "window": "5m",
     "min_time_remaining": 60,
     "lookback_candles": 3,
@@ -60,17 +58,8 @@ DEFAULTS = {
 
 
 def load_config():
-    """Load config from file, env vars, then defaults."""
+    """Load config from env vars and defaults."""
     cfg = dict(DEFAULTS)
-
-    # File overrides
-    if CONFIG_PATH.exists():
-        try:
-            with open(CONFIG_PATH) as f:
-                file_cfg = json.load(f)
-            cfg.update(file_cfg)
-        except Exception:
-            pass
 
     # Env var overrides
     env_map = {
@@ -92,9 +81,8 @@ def load_config():
 
 
 def save_config(cfg):
-    """Persist config to file."""
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(cfg, f, indent=2)
+    """Print config (no file persistence - use env vars to override)."""
+    print(json.dumps(cfg, indent=2))
 
 
 _client = None
@@ -106,7 +94,7 @@ def get_client():
         if not api_key:
             print("ERROR: SIMMER_API_KEY not set")
             sys.exit(1)
-        _client = SimmerClient(api_key=api_key, venue="polymarket")
+        _client = SimmerClient(api_key=api_key, venue=os.environ.get("TRADING_VENUE", "polymarket"))
     return _client
 
 
@@ -235,20 +223,24 @@ def get_candle_signal(cfg):
 
 # ---- Market Discovery ----
 
+SIMMER_API_BASE = "https://api.simmer.markets"
+
 def find_fast_markets(client, cfg):
-    """Find active fast markets for the configured asset."""
+    """Find active fast markets for the configured asset via Simmer REST API."""
     try:
-        resp = client._request(
-            "GET",
-            "/api/sdk/fast-markets",
+        api_key = os.environ.get("SIMMER_API_KEY", "")
+        resp = requests.get(
+            f"{SIMMER_API_BASE}/api/sdk/fast-markets",
+            headers={"Authorization": f"Bearer {api_key}"},
             params={
                 "asset": cfg["asset"],
                 "window": cfg["window"],
                 "limit": 10,
             },
+            timeout=10,
         )
-        markets = resp.get("markets", [])
-        return markets
+        resp.raise_for_status()
+        return resp.json().get("markets", [])
     except Exception as e:
         print(f"  ERROR discovering markets: {e}")
         return []
@@ -288,7 +280,7 @@ def select_best_market(markets, cfg):
 # ---- Main ----
 
 def run_cycle(client, cfg, live=False, quiet=False):
-    """Run one trading cycle."""
+    """Run one trading cycle across all configured assets."""
 
     if not quiet:
         mode = "LIVE" if live else "DRY RUN"
@@ -296,73 +288,81 @@ def run_cycle(client, cfg, live=False, quiet=False):
         print("=" * 50)
         print(f"  [{mode}]{'  Use --live to enable.' if not live else ''}")
         print(f"\n  Config:")
-        print(f"  Asset:          {cfg['asset']}")
+        print(f"  Assets:         {cfg.get('assets', [cfg['asset']])}")
         print(f"  Body threshold: {cfg['body_threshold']} (min candle body ratio)")
         print(f"  Vol threshold:  {cfg['vol_threshold']}x (min volume surge)")
         print(f"  Max position:   ${cfg['max_position']:.2f}")
         print()
 
-    # 1. Discover markets
-    if not quiet:
-        print(f"  Discovering {cfg['asset']} fast markets...")
-    markets = find_fast_markets(client, cfg)
-    if not markets:
+    assets = cfg.get("assets", [cfg["asset"]])
+
+    # Scan all assets, collect signals
+    best_signal = None  # (body_ratio * vol_surge score, asset, direction, body, vol, reasoning, market)
+
+    for asset in assets:
+        asset_cfg = dict(cfg)
+        asset_cfg["asset"] = asset
+
+        # Discover markets for this asset
+        markets = find_fast_markets(client, asset_cfg)
+        if not markets:
+            if not quiet:
+                print(f"  {asset}: no active fast markets")
+            continue
+
+        market = select_best_market(markets, asset_cfg)
+        if not market:
+            if not quiet:
+                print(f"  {asset}: no markets with >{cfg['min_time_remaining']}s remaining")
+            continue
+
+        direction, body_ratio, vol_surge, reasoning = get_candle_signal(asset_cfg)
+
+        if direction is None:
+            if not quiet:
+                print(f"  {asset}: skip ({reasoning})")
+            continue
+
+        # Check price divergence
+        yes_price = market.get("current_probability", 0.5)
+        if direction == "UP":
+            divergence = (0.50 + cfg["entry_threshold"]) - yes_price
+        else:
+            divergence = yes_price - (0.50 - cfg["entry_threshold"])
+
+        if divergence < 0:
+            if not quiet:
+                print(f"  {asset}: price already moved (YES=${yes_price:.3f})")
+            continue
+
+        score = body_ratio * vol_surge
+        if best_signal is None or score > best_signal[0]:
+            best_signal = (score, asset, direction, body_ratio, vol_surge, reasoning, market)
+            if not quiet:
+                print(f"  {asset}: SIGNAL body={body_ratio:.0%} vol={vol_surge:.1f}x dir={direction} score={score:.2f}")
+
+    if best_signal is None:
         if not quiet:
-            print("  No active fast markets found.")
-        return {"action": "skip", "reason": "no markets"}
+            print("  No tradeable signal across all assets.")
+        return {"action": "skip", "reason": "no signal"}
 
-    if not quiet:
-        print(f"  Found {len(markets)} active fast markets")
-
-    # 2. Select best market
-    market = select_best_market(markets, cfg)
-    if not market:
-        if not quiet:
-            print(f"  No markets with >{cfg['min_time_remaining']}s remaining.")
-        return {"action": "skip", "reason": "no viable markets"}
-
+    score, asset, direction, body_ratio, vol_surge, reasoning, market = best_signal
     market_id = market["id"]
     yes_price = market.get("current_probability", 0.5)
     remaining = market.get("_remaining", 0)
+    side = "yes" if direction == "UP" else "no"
 
     if not quiet:
-        print(f"\n  Selected: {market.get('question', market_id)[:60]}")
-        print(f"  Expires in: {int(remaining)}s")
-        print(f"  Current YES price: ${yes_price:.3f}")
-
-    # 3. Get candle signal
-    if not quiet:
-        print(f"\n  Fetching {cfg['asset']} candle data (binance)...")
-
-    direction, body_ratio, vol_surge, reasoning = get_candle_signal(cfg)
-
-    if direction is None:
-        if not quiet:
-            print(f"  No signal: {reasoning}")
-        return {"action": "skip", "reason": reasoning}
-
-    # 4. Check price divergence
-    if direction == "UP":
-        side = "yes"
-        expected = 0.50 + cfg["entry_threshold"]
-        divergence = expected - yes_price
-    else:
-        side = "no"
-        expected = 0.50 - cfg["entry_threshold"]
-        divergence = yes_price - expected
-
-    if divergence < 0:
-        if not quiet:
-            print(f"  Price already moved (YES=${yes_price:.3f}). No edge.")
-        return {"action": "skip", "reason": "no price divergence"}
+        print(f"\n  Best signal: {asset} {direction} (score={score:.2f})")
+        print(f"  Market: {market.get('question', market_id)[:60]}")
+        print(f"  Expires in: {int(remaining)}s | YES=${yes_price:.3f}")
 
     if not quiet:
-        print(f"\n  SIGNAL: BUY {side.upper()} (body={body_ratio:.0%}, vol={vol_surge:.1f}x, dir={direction})")
-        print(f"  Divergence: {divergence:.2f}c")
+        print(f"\n  SIGNAL: BUY {side.upper()} (body={body_ratio:.0%}, vol={vol_surge:.1f}x, {asset} {direction})")
 
     # 5. Execute or dry-run
     amount = cfg["max_position"]
-    full_reasoning = f"[candle-momentum] {reasoning}"
+    full_reasoning = f"[candle-momentum] {asset} {reasoning}"
 
     if not live:
         if not quiet:

@@ -1,9 +1,9 @@
 ---
 name: polymarket-candle-momentum
-description: Trade Polymarket 5-minute crypto fast markets using 1-minute candle body analysis and volume surge detection from Binance. Enters when the last candle has a strong body (>60% of range) confirmed by a volume spike (>1.5x average). Backtested at 86%+ win rate on BTC/ETH/SOL/XRP/BNB over 3 months. Use when user wants to trade crypto sprint markets with a data-driven candle signal.
+description: Trade Polymarket 5-minute crypto fast markets using 1-minute candle body analysis and volume surge detection from Binance. Scans BTC, ETH, SOL, XRP, BNB simultaneously and picks the strongest signal each cycle. Enters when the last candle has a strong body (>60% of range) confirmed by a volume spike (>1.5x average). Backtested at 86%+ win rate over 3 months.
 metadata:
-  author: "DarkPancakes"
-  version: "1.0.0"
+  author: "Mibayy"
+  version: "1.6.4"
   displayName: "Polymarket Candle Momentum"
   difficulty: "intermediate"
 ---
@@ -38,17 +38,20 @@ Backtested on BTC/ETH/SOL/XRP/BNB (3 months, 6131 five-minute slots):
 
 ## Setup
 
-1. **Get Simmer API key** from simmer.markets/dashboard
-2. Set `SIMMER_API_KEY` in your environment
-3. Optional: Set `WALLET_PRIVATE_KEY` for live Polymarket trading
+**pip dependencies:** `simmer-sdk`, `requests`
+
+**Environment variables:**
+- `SIMMER_API_KEY` (required) - get from simmer.markets/dashboard
+
+No other credentials needed. The script only reads `SIMMER_API_KEY` from the environment. All trades go through `SimmerClient.trade()` - no wallet private key, no direct CLOB access.
 
 ```bash
-export SIMMER_API_KEY="your-key-here"
+export SIMMER_API_KEY="your_key_here"
 
-# Dry run (default)
+# Dry run (default, no trades placed)
 python candle_momentum.py
 
-# Live trading
+# Live trading via SimmerClient
 python candle_momentum.py --live
 
 # Quiet mode for cron
@@ -57,19 +60,30 @@ python candle_momentum.py --live --quiet
 
 ## How to Run on a Loop
 
-The script runs one cycle. Set up a cron:
+The script runs one cycle. Set up a cron (every 2 min recommended for 5min markets):
 
 ```bash
-# Every 5 minutes
-*/5 * * * * cd /path/to/skill && python candle_momentum.py --live --quiet
-
-# Every 1 minute (catches mid-window entries)
-* * * * * cd /path/to/skill && python candle_momentum.py --live --quiet
+*/2 * * * * cd /path/to/skill && SIMMER_API_KEY=your_key python candle_momentum.py --live --quiet
 ```
+
+## Security Notes
+
+- Only `SIMMER_API_KEY` is read from environment. Nothing else.
+- No host files are read. No logs written outside the script's own stdout.
+- `automaton.managed` is `false` - the skill does not auto-execute.
+- Dry-run by default. `--live` must be passed explicitly.
+
+## Trade Execution Path
+
+1. Fetches Binance public klines (no auth) for BTC, ETH, SOL, XRP, BNB
+2. Scans all 5 assets, picks strongest signal (body_ratio x vol_surge score)
+3. Finds matching Polymarket fast market via `SimmerClient`
+4. If `--live`: calls `SimmerClient.trade()` with side, amount, reasoning
+5. If dry-run: logs the signal, no trade placed
 
 ## Configuration
 
-Via `config.json`, environment variables, or `--set`:
+Via environment variables only (no local file persistence):
 
 ```bash
 python candle_momentum.py --set body_threshold=0.65
@@ -84,7 +98,8 @@ python candle_momentum.py --set vol_threshold=2.0
 | `body_threshold` | 0.60 | `CM_BODY_THRESHOLD` | Min candle body/range ratio (0-1) |
 | `vol_threshold` | 1.5 | `CM_VOL_THRESHOLD` | Min volume surge vs 3-candle average |
 | `max_position` | 5.0 | `CM_MAX_POSITION` | Max USD per trade |
-| `asset` | BTC | `CM_ASSET` | Asset to trade (BTC, ETH, SOL, XRP, BNB) |
+| `assets` | BTC,ETH,SOL,XRP,BNB | - | Assets to scan (picks best signal) |
+| `asset` | BTC | `CM_ASSET` | Single asset override (ignores `assets`) |
 | `window` | 5m | `CM_WINDOW` | Market window (5m or 15m) |
 | `min_time_remaining` | 60 | `CM_MIN_TIME` | Skip markets with less time (seconds) |
 | `lookback_candles` | 3 | `CM_LOOKBACK` | Candles for volume average |
