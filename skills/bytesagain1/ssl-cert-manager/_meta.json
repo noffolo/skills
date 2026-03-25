@@ -3,9 +3,15 @@
   "slug": "ssl-cert-manager",
   "displayName": "Ssl Cert Manager",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773962310777,
-    "commit": "https://github.com/openclaw/skills/commit/1793cec38b3f1aa9957fd13d6651cf74b7b36d5f"
+    "version": "2.0.1",
+    "publishedAt": 1774316886998,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773962310777,
+      "commit": "https://github.com/openclaw/skills/commit/1793cec38b3f1aa9957fd13d6651cf74b7b36d5f"
+    }
+  ]
 }
