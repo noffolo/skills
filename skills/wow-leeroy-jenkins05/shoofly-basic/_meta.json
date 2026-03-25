@@ -3,9 +3,15 @@
   "slug": "shoofly-basic",
   "displayName": "Shoofly Basic",
   "latest": {
-    "version": "1.2.0",
-    "publishedAt": 1774069457242,
-    "commit": "https://github.com/openclaw/skills/commit/89c1fa4023fdc47712aee581840a63406d8776fa"
+    "version": "1.2.5",
+    "publishedAt": 1774401404443,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.2.0",
+      "publishedAt": 1774069457242,
+      "commit": "https://github.com/openclaw/skills/commit/89c1fa4023fdc47712aee581840a63406d8776fa"
+    }
+  ]
 }
