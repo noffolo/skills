@@ -1,5 +1,5 @@
 ---
-name: mineru-document-extractor
+name: mineru
 description: MinerU document extraction CLI that converts PDFs, images, and web pages into Markdown, HTML, LaTeX, or DOCX via the MinerU API. Supports token-free flash extraction for quick start, precision extraction with table/formula recognition, web crawling, batch processing, and piped workflows.
 read_when:
   - Extracting text from PDF documents
@@ -13,7 +13,7 @@ read_when:
   - Extracting tables from documents
   - Converting Word documents
   - Quick document parsing without login
-metadata: {"openclaw":{"emoji":"📄","requires":{"bins":["mineru-open-api"]},"install":[{"id":"install-unix","kind":"download","os":["darwin","linux"],"bins":["mineru-open-api"],"url":"https://cdn-mineru.openxlab.org.cn/open-api-cli/install.sh","label":"Install mineru-open-api (Linux/macOS)"},{"id":"install-windows","kind":"download","os":["win32"],"bins":["mineru-open-api"],"url":"https://cdn-mineru.openxlab.org.cn/open-api-cli/install.ps1","label":"Install mineru-open-api (Windows)"}]}}
+metadata: {"openclaw":{"emoji":"📄","requires":{"bins":["mineru-open-api"]},"install":[{"id":"npm","kind":"node","package":"mineru-open-api","bins":["mineru-open-api"],"label":"Install via npm"},{"id":"go","kind":"go","package":"github.com/opendatalab/MinerU-Ecosystem/cli/mineru-open-api","bins":["mineru-open-api"],"label":"Install via go install","os":["darwin","linux"]}]}}
 allowed-tools: Bash(mineru-open-api:*)
 ---
 
@@ -21,16 +21,14 @@ allowed-tools: Bash(mineru-open-api:*)
 
 ## Installation
 
-### Linux / macOS
-
 ```bash
-curl -fsSL https://cdn-mineru.openxlab.org.cn/open-api-cli/install.sh | sh
+npm install -g mineru-open-api
 ```
 
-### Windows (PowerShell)
+Or via Go (macOS/Linux):
 
-```powershell
-irm https://cdn-mineru.openxlab.org.cn/open-api-cli/install.ps1 | iex
+```bash
+go install github.com/opendatalab/MinerU-Ecosystem/cli/mineru-open-api@latest
 ```
 
 ### Verify installation
