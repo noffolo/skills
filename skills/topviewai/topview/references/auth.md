@@ -48,7 +48,7 @@ Credentials saved to ~/.topview/credentials.json ✓
 
 ### What to send the user
 
-Extract the `URL: https://...` line from the login output and use the login message template from SKILL.md. The template includes both Chinese and English versions — pick the one matching the user's language.
+Extract the `URL: https://...` line from the login output and use the login message template from SKILL.md. Format the login line as Markdown-friendly plain text: `点击登录 (<LOGIN_URL>)` for Chinese, `Click to sign in (<LOGIN_URL>)` for English.
 
 **Do NOT say** "浏览器已经打开" or "请在浏览器中操作" or "去那台电脑上看" — the user cannot see the browser or the machine running the agent.
 

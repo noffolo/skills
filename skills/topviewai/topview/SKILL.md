@@ -10,16 +10,6 @@ metadata:
 
 # Topview AI Skill
 
-## Installation
-
-If `clawhub` installation fails, try one of the following methods:
-
-1. `https://github.com/topviewai/skill.git`
-2. `npx skills add topviewai/skill`
-3. `gh repo clone topviewai/skill`
-
-If it is already installed successfully, ignore this section.
-
 > Modular Python toolkit for the [Topview AI](https://www.topview.ai) API.
 
 ✨ **Generate. Edit. Collaborate. — All in One Place.** ✨
@@ -72,16 +62,16 @@ Example messages after submitting:
 
 **Required login message template**
 
-Replace `<LOGIN_URL>` with the actual link. Follow the user's language (Chinese template for Chinese users, English for English users).
+Replace `<LOGIN_URL>` with the actual link. Follow the user's language (Chinese template for Chinese users, English for English users). Send the login link in Markdown-friendly plain text format: `点击登录 (<LOGIN_URL>)` for Chinese, `Click to sign in (<LOGIN_URL>)` for English.
 
 中文模板：
 
 ```text
 安装完成，Topview Skill 已连接到你的智能助手。
 
-复制下方链接到浏览器中登录，登录后将解锁以下能力：
+点击下方登录链接，登录后将解锁以下能力：
 
-<LOGIN_URL>
+点击登录 (<LOGIN_URL>)
 
 🎬 视频生成
 文字转视频、图片转视频、参考视频生成，自动配音配乐。
@@ -111,9 +101,9 @@ English template:
 ```text
 Installation complete. Topview Skill is now connected to your agent.
 
-Copy the link below into your browser to sign in. After signing in, the following capabilities will be unlocked.
+Click the sign-in link below. After signing in, the following capabilities will be unlocked.
 
-<LOGIN_URL>
+Click to sign in (<LOGIN_URL>)
 
 🎬 Video Generation
 Text-to-video, image-to-video, reference-based generation with auto sound & music.
