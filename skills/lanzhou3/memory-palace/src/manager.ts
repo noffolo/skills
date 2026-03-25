@@ -14,14 +14,10 @@ import type {
   StoreParams,
   UpdateParams,
   RecallOptions,
-  RecallParams,
   SearchResult,
   ListOptions,
   Stats,
   VectorSearchProvider,
-  GetParams,
-  RelationType,
-  MemoryRelation,
 } from './types.js';
 import { TimeReasoningEngine, createTimeReasoning, type TimeContext } from './background/time-reasoning.js';
 import { ConceptExpander, createConceptExpander, type ConceptExpansion } from './background/concept-expansion.js';
@@ -49,18 +45,6 @@ export interface MemoryPalaceManagerOptions {
   
   /** Optional vector search provider */
   vectorSearch?: VectorSearchProvider;
-  
-  /** Enable Ebbinghaus forgetting curve decay mechanism */
-  decayEnabled?: boolean;
-  
-  /** Archive threshold for decay score (default: 0.1) */
-  decayArchiveThreshold?: number;
-  
-  /** Decay recovery factor on access (default: 0.2) */
-  decayRecoveryFactor?: number;
-  
-  /** Base decay multiplier (default: 0.9) */
-  decayBaseMultiplier?: number;
 }
 
 /**
@@ -78,12 +62,6 @@ export class MemoryPalaceManager {
   private conceptExpander: ConceptExpander;
   private experienceManager: ExperienceManager;
   
-  // Ebbinghaus decay settings
-  private decayEnabled: boolean;
-  private decayArchiveThreshold: number;
-  private decayRecoveryFactor: number;
-  private decayBaseMultiplier: number;
-  
   constructor(options: MemoryPalaceManagerOptions) {
     this.workspaceDir = options.workspaceDir;
     this.storagePath = path.join(options.workspaceDir, 'memory/palace');
@@ -92,16 +70,6 @@ export class MemoryPalaceManager {
     this.timeReasoning = createTimeReasoning();
     this.conceptExpander = createConceptExpander(options.vectorSearch);
     this.experienceManager = createExperienceManager(this);
-    
-    // Initialize decay settings from options or environment
-    this.decayEnabled = options.decayEnabled ?? 
-      process.env.MEMORY_DECAY_ENABLED !== 'false';
-    this.decayArchiveThreshold = options.decayArchiveThreshold ?? 
-      parseFloat(process.env.MEMORY_DECAY_ARCHIVE_THRESHOLD || '0.1');
-    this.decayRecoveryFactor = options.decayRecoveryFactor ?? 
-      parseFloat(process.env.MEMORY_DECAY_RECOVERY_FACTOR || '0.2');
-    this.decayBaseMultiplier = options.decayBaseMultiplier ?? 
-      parseFloat(process.env.MEMORY_DECAY_BASE_MULTIPLIER || '0.9');
   }
   
   /** Get storage path (needed by ExperienceManager) */
@@ -131,7 +99,6 @@ export class MemoryPalaceManager {
       updatedAt: now,
       type: params.type,
       experienceMeta: params.experienceMeta,
-      relations: params.relations || [],
     };
     
     await this.storage.save(memory);
@@ -154,165 +121,15 @@ export class MemoryPalaceManager {
   
   /**
    * Get a memory by ID
-   * @param params - Object-style: { id }
-   * @returns Memory if found, null if not found. Note: returns null for both
-   *          "ID does not exist" and "storage load error" cases. Use getOrThrow()
-   *          if you need to distinguish between these scenarios.
-   * @deprecated Use get({ id }) or get(id) for backward compatibility
    */
-  async get(params: string | GetParams): Promise<Memory | null> {
-    // Handle backward compatibility - accept string or object
-    const id = typeof params === 'string' ? params : params.id;
-    const memory = await this.storage.load(id);
-    
-    if (memory && this.decayEnabled) {
-      await this.updateDecay(memory);
-    }
-    
-    return memory;
-  }
-  
-  /**
-   * Get a memory by ID, throws if not found or on error
-   * @param id - Memory ID
-   * @throws Error if memory does not exist or cannot be loaded
-   */
-  async getOrThrow(id: string): Promise<Memory> {
-    const memory = await this.storage.load(id);
-    if (!memory) {
-      throw new Error(`Memory not found: ${id}`);
-    }
-    if (this.decayEnabled) {
-      await this.updateDecay(memory);
-    }
-    return memory;
-  }
-  
-  /**
-   * Update decay metrics after memory access
-   * Implements: decayScore = min(1, decayScore * baseMultiplier + recoveryFactor)
-   */
-  private async updateDecay(memory: Memory): Promise<void> {
-    const now = new Date();
-    
-    // Initialize decay if not present
-    if (!memory.decay) {
-      memory.decay = {
-        decayScore: 1.0,
-        accessCount: 0,
-        lastAccessedAt: undefined,
-      };
-    }
-    
-    // Update decay metrics
-    memory.decay.accessCount++;
-    memory.decay.lastAccessedAt = now;
-    
-    // Apply recovery formula: decayScore = min(1, decayScore * baseMultiplier + recoveryFactor)
-    memory.decay.decayScore = Math.min(
-      1,
-      memory.decay.decayScore * this.decayBaseMultiplier + this.decayRecoveryFactor
-    );
-    
-    // Check if should be auto-archived
-    if (memory.decay.decayScore < this.decayArchiveThreshold && memory.status === 'active') {
-      console.log(`[MemoryPalace] Memory ${memory.id} auto-archived (decayScore: ${memory.decay.decayScore.toFixed(3)})`);
-      memory.status = 'archived';
-    }
-    
-    memory.updatedAt = now;
-    await this.storage.save(memory);
-  }
-  
-  /**
-   * Get decay statistics for all memories
-   */
-  async getDecayStats(): Promise<{
-    enabled: boolean;
-    avgDecayScore: number;
-    archivedCount: number;
-    forgottenCount: number;
-    neverAccessedCount: number;
-  }> {
-    const ids = await this.storage.listFiles();
-    let totalDecayScore = 0;
-    let hasDecay = 0;
-    let archivedCount = 0;
-    let forgottenCount = 0;
-    let neverAccessedCount = 0;
-    
-    for (const id of ids) {
-      const memory = await this.storage.load(id);
-      if (!memory) continue;
-      
-      if (memory.decay) {
-        totalDecayScore += memory.decay.decayScore;
-        hasDecay++;
-        if (memory.status === 'archived') archivedCount++;
-        if (memory.decay.decayScore < this.decayArchiveThreshold) forgottenCount++;
-        if (memory.decay.accessCount === 0) neverAccessedCount++;
-      } else {
-        neverAccessedCount++;
-      }
-    }
-    
-    return {
-      enabled: this.decayEnabled,
-      avgDecayScore: hasDecay > 0 ? totalDecayScore / hasDecay : 1,
-      archivedCount,
-      forgottenCount,
-      neverAccessedCount,
-    };
-  }
-  
-  /**
-   * Restore an archived memory (resets decay score)
-   */
-  async restoreMemory(id: string): Promise<Memory | null> {
-    const memory = await this.storage.load(id);
-    if (!memory) return null;
-    
-    if (this.decayEnabled) {
-      // Reset decay score on restore
-      if (memory.decay) {
-        memory.decay.decayScore = 1.0;
-      }
-    }
-    
-    return this.update({ id, status: 'active' });
-  }
-  
-  /**
-   * Get memories sorted by decay score (most forgotten first)
-   */
-  async getForgottenMemories(limit: number = 20): Promise<Memory[]> {
-    const ids = await this.storage.listFiles();
-    const memories: Memory[] = [];
-    
-    for (const id of ids) {
-      const memory = await this.storage.load(id);
-      if (memory && memory.decay) {
-        memories.push(memory);
-      }
-    }
-    
-    // Sort by decay score (ascending - most forgotten first)
-    memories.sort((a, b) => 
-      (a.decay?.decayScore ?? 1) - (b.decay?.decayScore ?? 1)
-    );
-    
-    return memories.slice(0, limit);
+  async get(id: string): Promise<Memory | null> {
+    return this.storage.load(id);
   }
   
   /**
    * Update a memory
    */
-  async update(idOrParams: string | UpdateParams, relations?: MemoryRelation[]): Promise<Memory | null> {
-    // Support both: update({ id, ... }) and update(id, { relations })
-    const params: UpdateParams = typeof idOrParams === 'string'
-      ? { id: idOrParams, relations }
-      : idOrParams;
-    
+  async update(params: UpdateParams): Promise<Memory | null> {
     const memory = await this.storage.load(params.id);
     if (!memory) {
       return null;
@@ -341,10 +158,6 @@ export class MemoryPalaceManager {
     
     if (params.summary !== undefined) {
       memory.summary = params.summary;
-    }
-    
-    if (params.relations !== undefined) {
-      memory.relations = params.relations.slice(0, 5); // Max 5 relations
     }
     
     memory.updatedAt = new Date();
@@ -392,18 +205,9 @@ export class MemoryPalaceManager {
   
   /**
    * Search/recall memories with time reasoning and concept expansion
-   * @param params - Object-style: { query, options? } or legacy (query, options)
-   * @deprecated Use recall({ query, ...options }) or recall(query, options) for backward compatibility
    */
-  async recall(
-    queryOrParams: string | RecallParams,
-    options: RecallOptions = {}
-  ): Promise<SearchResult[]> {
-    // Handle backward compatibility - accept string or object
-    const query = typeof queryOrParams === 'string' ? queryOrParams : queryOrParams.query;
-    const opts = typeof queryOrParams === 'string' ? options : { ...options, ...queryOrParams };
-    
-    const topK = opts.topK || 10;
+  async recall(query: string, options: RecallOptions = {}): Promise<SearchResult[]> {
+    const topK = options.topK || 10;
     
     // Step 1: Parse time expressions in the query
     const timeContext = this.timeReasoning.parseTimeQuery(query);
@@ -430,25 +234,23 @@ export class MemoryPalaceManager {
     );
     
     // Step 4: Use vector search if available
-    let isFallback = false;
-    let searchResults: SearchResult[] = [];
-    
     if (this.vectorSearch) {
       const filter: Record<string, unknown> = {};
-      if (opts.location) {
-        filter.location = opts.location;
+      if (options.location) {
+        filter.location = options.location;
       }
-      if (opts.tags && opts.tags.length > 0) {
-        filter.tags = opts.tags;
+      if (options.tags && options.tags.length > 0) {
+        filter.tags = options.tags;
       }
       
       // Search with original query for semantic matching
       const results = await this.vectorSearch.search(query, topK * 2, filter);
       
+      const searchResults: SearchResult[] = [];
       for (const result of results) {
         const memory = await this.storage.load(result.id);
         if (memory && memory.status === 'active') {
-          if (opts.minImportance && memory.importance < opts.minImportance) {
+          if (options.minImportance && memory.importance < options.minImportance) {
             continue;
           }
           
@@ -465,22 +267,11 @@ export class MemoryPalaceManager {
       
       // Sort by boosted score and return top K
       searchResults.sort((a, b) => b.score - a.score);
-      searchResults = searchResults.slice(0, topK);
-    } else {
-      // Fallback to text search with enhanced keywords
-      console.warn('[MemoryPalace] Vector search unavailable, falling back to text search. Consider installing vector dependencies for better search quality.');
-      searchResults = await this.textSearch(query, { ...opts, enhancedKeywords, isFallback: true });
+      return searchResults.slice(0, topK);
     }
     
-    // Update decay metrics for accessed memories (async, non-blocking)
-    if (this.decayEnabled && searchResults.length > 0) {
-      // Update decay asynchronously to not block search response
-      Promise.all(searchResults.map(sr => this.updateDecay(sr.memory))).catch(() => {
-        // Silently ignore decay update errors
-      });
-    }
-    
-    return searchResults;
+    // Fallback to text search with enhanced keywords
+    return this.textSearch(query, { ...options, enhancedKeywords });
   }
   
   /**
@@ -538,7 +329,7 @@ export class MemoryPalaceManager {
    */
   private async textSearch(
     query: string, 
-    options: RecallOptions & { enhancedKeywords?: string[]; isFallback?: boolean } = {}
+    options: RecallOptions & { enhancedKeywords?: string[] } = {}
   ): Promise<SearchResult[]> {
     const topK = options.topK || 10;
     const queryLower = query.toLowerCase();
@@ -674,7 +465,6 @@ export class MemoryPalaceManager {
         memory,
         score,
         highlights: this.extractHighlights(memory.content, query),
-        isFallback: options.isFallback,
       };
     });
     
@@ -802,10 +592,6 @@ export class MemoryPalaceManager {
       byTag,
       avgImportance: ids.length > 0 ? totalImportance / ids.length : 0,
       storagePath: this.storagePath,
-      vectorSearch: {
-        enabled: !!this.vectorSearch,
-        provider: this.vectorSearch ? 'custom' : undefined,
-      },
     };
   }
   
@@ -842,119 +628,17 @@ export class MemoryPalaceManager {
     await this.storage.emptyTrash();
   }
   
-  // ==================== Memory Linking ====================
-  
-  /**
-   * Link two memories together
-   * @param id Source memory ID
-   * @param relation Relation to add (type, targetId, note?)
-   * @returns Updated source memory or null if not found
-   */
-  async linkMemories(id: string, relation: MemoryRelation): Promise<Memory | null> {
-    const memory = await this.storage.load(id);
-    if (!memory) {
-      return null;
-    }
-    
-    // Initialize relations array if not present
-    if (!memory.relations) {
-      memory.relations = [];
-    }
-    
-    // Check if relation already exists
-    const existingIndex = memory.relations.findIndex(
-      r => r.targetId === relation.targetId && r.type === relation.type
-    );
-    
-    if (existingIndex >= 0) {
-      // Update existing relation note if provided
-      if (relation.note) {
-        memory.relations[existingIndex].note = relation.note;
-      }
-    } else {
-      // Add new relation (max 5)
-      if (memory.relations.length >= 5) {
-        // Remove oldest relation
-        memory.relations.shift();
-      }
-      memory.relations.push({
-        type: relation.type,
-        targetId: relation.targetId,
-        note: relation.note,
-      });
-    }
-    
-    memory.updatedAt = new Date();
-    await this.storage.save(memory);
-    
-    return memory;
-  }
-  
-  /**
-   * Get all memories related to a given memory
-   * @param id Memory ID
-   * @param type Optional: filter by relation type
-   * @returns Array of related memories with their relation info
-   */
-  async getRelatedMemories(
-    id: string, 
-    type?: RelationType
-  ): Promise<Array<{ memory: Memory; relation: MemoryRelation }>> {
-    const memory = await this.storage.load(id);
-    if (!memory || !memory.relations) {
-      return [];
-    }
-    
-    // Filter by type if specified
-    const relations = type 
-      ? memory.relations.filter(r => r.type === type)
-      : memory.relations;
-    
-    // Fetch all related memories
-    const related: Array<{ memory: Memory; relation: MemoryRelation }> = [];
-    
-    for (const relation of relations) {
-      const relatedMemory = await this.storage.load(relation.targetId);
-      if (relatedMemory) {
-        related.push({
-          memory: relatedMemory,
-          relation,
-        });
-      }
-    }
-    
-    return related;
-  }
-  
   // ==================== Bulk Operations ====================
   
   /**
    * Store multiple memories at once
-   * Vector indexing is parallelized for better performance
    */
   async storeBatch(items: StoreParams[]): Promise<Memory[]> {
-    // First, create all memories (serial to avoid ID conflicts)
     const memories: Memory[] = [];
     for (const item of items) {
       const memory = await this.store(item);
       memories.push(memory);
     }
-    
-    // Then, index all in vector search in parallel
-    if (this.vectorSearch && memories.length > 0) {
-      await Promise.all(memories.map(memory => {
-        const textToIndex = memory.summary 
-          ? `${memory.content}\n\nSummary: ${memory.summary}`
-          : memory.content;
-        return this.vectorSearch!.index(memory.id, textToIndex, {
-          tags: memory.tags,
-          location: memory.location,
-          importance: memory.importance,
-          type: memory.type,
-        });
-      }));
-    }
-    
     return memories;
   }
   
@@ -963,34 +647,6 @@ export class MemoryPalaceManager {
    */
   async getBatch(ids: string[]): Promise<(Memory | null)[]> {
     return Promise.all(ids.map(id => this.get(id)));
-  }
-  
-  /**
-   * Delete multiple memories by IDs
-   * @param ids - Array of memory IDs to delete
-   * @param permanent - If true, permanently delete; otherwise soft delete
-   * @returns Object with deleted IDs and failed deletions
-   */
-  async deleteBatch(
-    ids: string[], 
-    permanent: boolean = false
-  ): Promise<{ 
-    deleted: string[]; 
-    failed: { id: string; error: string }[] 
-  }> {
-    const results = await Promise.allSettled(ids.map(id => this.delete(id, permanent)));
-    const deleted: string[] = [];
-    const failed: { id: string; error: string }[] = [];
-    
-    results.forEach((result, i) => {
-      if (result.status === 'fulfilled') {
-        deleted.push(ids[i]);
-      } else {
-        failed.push({ id: ids[i], error: result.reason?.message || String(result.reason) });
-      }
-    });
-    
-    return { deleted, failed };
   }
   
   // ==================== Experience Operations ====================
@@ -1011,16 +667,8 @@ export class MemoryPalaceManager {
   
   /**
    * Verify an experience's effectiveness
-   * @param options - Object: { id, effective } or legacy: (id, effective)
    */
-  async verifyExperience(
-    idOrOptions: string | VerifyExperienceOptions, 
-    effective?: boolean
-  ): Promise<Memory | null> {
-    // Support both: verifyExperience({ id, effective }) and verifyExperience(id, effective)
-    const options: VerifyExperienceOptions = typeof idOrOptions === 'string'
-      ? { id: idOrOptions, effective: effective! }
-      : idOrOptions;
+  async verifyExperience(options: VerifyExperienceOptions): Promise<Memory | null> {
     return this.experienceManager.verifyExperience(options);
   }
   
@@ -1041,5 +689,24 @@ export class MemoryPalaceManager {
     avgVerifiedCount: number;
   }> {
     return this.experienceManager.getExperienceStats();
+  }
+
+  async recordAccess(ids: string[]): Promise<void> {
+    const now = new Date();
+    for (const id of ids) {
+      const memory = await this.storage.load(id);
+      if (memory) {
+        memory.lastAccessedAt = now;
+        await this.storage.save(memory);
+      }
+    }
+  }
+
+  async getFrequentlyAccessed(limit: number = 10): Promise<Memory[]> {
+    const memories = await this.list({ limit: 1000 });
+    return memories
+      .filter(m => m.lastAccessedAt)
+      .sort((a, b) => (b.lastAccessedAt?.getTime() || 0) - (a.lastAccessedAt?.getTime() || 0))
+      .slice(0, limit);
   }
 }

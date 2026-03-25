@@ -8,7 +8,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import * as http from 'http';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
 import type { VectorSearchProvider, VectorSearchResult } from '../types.js';
 
 /**
@@ -322,9 +321,36 @@ export class LocalVectorSearchProvider implements VectorSearchProvider {
   }
 }
 
-/**
- * Create a LocalVectorSearchProvider with default configuration
- */
 export function createLocalVectorSearch(config?: LocalVectorSearchConfig): LocalVectorSearchProvider {
   return new LocalVectorSearchProvider(config);
+}
+
+export async function checkModelStatus(): Promise<{
+  isInstalled: boolean;
+  modelName: string;
+  cacheDir: string;
+  message: string;
+}> {
+  const cacheDir = process.env.BGE_MODEL_CACHE_DIR || '/data/agent-memory-palace/model_cache';
+  const modelName = process.env.BGE_MODEL || 'BAAI/bge-small-zh-v1.5';
+  const modelDir = `${cacheDir}/models--${modelName.replace('/', '--')}`;
+  
+  const fs = await import('fs');
+  const isInstalled = fs.existsSync(modelDir);
+  
+  return {
+    isInstalled,
+    modelName,
+    cacheDir,
+    message: isInstalled 
+      ? `Model ${modelName} is installed at ${cacheDir}`
+      : `Model ${modelName} is NOT installed. Run: bash scripts/install-vector-model.sh`,
+  };
+}
+
+export async function ensureModelInstalled(): Promise<void> {
+  const status = await checkModelStatus();
+  if (!status.isInstalled) {
+    throw new Error(`BGE model not found. ${status.message}`);
+  }
 }

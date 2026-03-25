@@ -206,32 +206,32 @@ export class TimeReasoningEngine {
         end.setHours(23, 59, 59, 999);
         break;
         
-      case 'this_week':
-        // Start from Monday of this week
-        const dayOfWeek = start.getDay() || 7; // Convert Sunday from 0 to 7
+      case 'this_week': {
+        const dayOfWeek = start.getDay() || 7;
         start.setDate(start.getDate() - dayOfWeek + 1);
         start.setHours(0, 0, 0, 0);
         end.setDate(start.getDate() + 6);
         end.setHours(23, 59, 59, 999);
         break;
+      }
         
-      case 'next_week':
-        // Start from Monday of next week
+      case 'next_week': {
         const nextWeekDay = start.getDay() || 7;
         start.setDate(start.getDate() - nextWeekDay + 8);
         start.setHours(0, 0, 0, 0);
         end.setDate(start.getDate() + 6);
         end.setHours(23, 59, 59, 999);
         break;
+      }
         
-      case 'last_week':
-        // Start from Monday of last week
+      case 'last_week': {
         const lastWeekDay = start.getDay() || 7;
         start.setDate(start.getDate() - lastWeekDay - 6);
         start.setHours(0, 0, 0, 0);
         end.setDate(start.getDate() + 6);
         end.setHours(23, 59, 59, 999);
         break;
+      }
         
       case 'this_month':
         start.setDate(1);

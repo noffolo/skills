@@ -163,8 +163,7 @@ export class SubagentClient {
    * Get default model string from config
    */
   private getDefaultModelString(config: OpenClawConfig): string | null {
-    const modelField = config.models?.defaultModel || 
-                       (config.agents?.defaults?.model as any)?.primary;
+    const modelField = config.models?.defaultModel;
     
     if (typeof modelField === 'string') {
       return modelField;
@@ -172,6 +171,16 @@ export class SubagentClient {
     
     if (typeof modelField === 'object' && modelField?.primary) {
       return modelField.primary;
+    }
+    
+    const agentModel = config.agents?.defaults?.model;
+    
+    if (typeof agentModel === 'string') {
+      return agentModel;
+    }
+    
+    if (typeof agentModel === 'object' && agentModel?.primary) {
+      return agentModel.primary;
     }
     
     // Fallback to first provider's first model

@@ -12,8 +12,6 @@ import type {
   GetExperiencesOptions,
   VerifyExperienceOptions,
   ExperienceCategory,
-  GetRelevantParams,
-  VerifiedExperienceResult,
 } from './types.js';
 import { MemoryPalaceManager } from './manager.js';
 import { ExperienceExtractor, defaultExtractor } from './llm/experience-extractor.js';
@@ -66,8 +64,6 @@ export class ExperienceManager {
         source: options.source,
         verified: false,
         verifiedCount: 0,
-        effectivenessScore: 0.1, // Initialize to minimum score
-        usageCount: 0,
       },
     });
 
@@ -94,9 +90,8 @@ export class ExperienceManager {
 
     // Filter by category
     if (category) {
-      const categoryStr = String(category).toLowerCase();
       experiences = experiences.filter(m => 
-        String(m.experienceMeta?.category).toLowerCase() === categoryStr
+        m.experienceMeta?.category === category
       );
     }
 
@@ -116,32 +111,18 @@ export class ExperienceManager {
       );
     }
 
-    // Sort by effectivenessScore (default), or by verification count if requested
+    // Sort by verification count if requested
     if (sortByVerified) {
       experiences.sort((a, b) => 
         (b.experienceMeta?.verifiedCount || 0) - (a.experienceMeta?.verifiedCount || 0)
       );
     } else {
-      // Default: sort by effectivenessScore descending
-      experiences.sort((a, b) => 
-        (b.experienceMeta?.effectivenessScore || 0) - (a.experienceMeta?.effectivenessScore || 0)
-      );
-    }
-    
-    // Increment usageCount and update lastUsedAt for queried experiences
-    const now = new Date();
-    for (const exp of experiences) {
-      if (exp.experienceMeta) {
-        exp.experienceMeta.usageCount = (exp.experienceMeta.usageCount || 0) + 1;
-        exp.experienceMeta.lastUsedAt = now;
-        // Update effectivenessScore
-        exp.experienceMeta.effectivenessScore = Math.min(1, 
-          (exp.experienceMeta.verifiedCount || 0) * 0.3 + 
-          exp.experienceMeta.usageCount * 0.1
-        );
-        // Save the update asynchronously
-        this.storage.save(exp).catch(() => {});
-      }
+      // Default: sort by importance then date
+      experiences.sort((a, b) => {
+        const impDiff = b.importance - a.importance;
+        if (impDiff !== 0) return impDiff;
+        return b.updatedAt.getTime() - a.updatedAt.getTime();
+      });
     }
 
     return experiences.slice(0, limit);
@@ -153,7 +134,7 @@ export class ExperienceManager {
    * @param options Verification options
    * @returns Updated memory or null if not found
    */
-  async verifyExperience(options: VerifyExperienceOptions): Promise<VerifiedExperienceResult | null> {
+  async verifyExperience(options: VerifyExperienceOptions): Promise<Memory | null> {
     const { id, effective } = options;
 
     // Get the experience
@@ -173,12 +154,6 @@ export class ExperienceManager {
       ? Math.min(1, memory.importance + 0.05) // Boost importance if effective
       : Math.max(0.3, memory.importance - 0.1); // Reduce if not effective
 
-    // Calculate new effectivenessScore: Math.min(1, verifiedCount * 0.3 + usageCount * 0.1)
-    const newEffectivenessScore = Math.min(1, 
-      newVerifiedCount * 0.3 + 
-      (memory.experienceMeta?.usageCount || 0) * 0.1
-    );
-
     // Update the memory
     const updatedMemory: Memory = {
       ...memory,
@@ -189,20 +164,13 @@ export class ExperienceManager {
         verified: newVerified,
         verifiedCount: newVerifiedCount,
         lastVerifiedAt: new Date(),
-        effectivenessScore: newEffectivenessScore,
       },
     };
 
     // Save directly to storage
     await this.storage.save(updatedMemory);
 
-    // Return with shortcut fields for convenience
-    return {
-      ...updatedMemory,
-      verified: updatedMemory.experienceMeta?.verified ?? false,
-      verifiedCount: updatedMemory.experienceMeta?.verifiedCount ?? 0,
-      verifiedAt: updatedMemory.experienceMeta?.lastVerifiedAt,
-    };
+    return updatedMemory;
   }
 
   /**
@@ -278,47 +246,21 @@ export class ExperienceManager {
   /**
    * Get relevant experiences for a given context
    * 
-   * @param params - Object-style: { context, limit? } or legacy (context, limit)
+   * @param context Current context/task description
+   * @param limit Maximum results
    * @returns Relevant experiences sorted by relevance
-   * @deprecated Use getRelevantExperiences({ context, limit }) for object-style API
    */
-  async getRelevantExperiences(
-    contextOrParams: string | GetRelevantParams,
-    limit?: number
-  ): Promise<Memory[]> {
-    // Handle backward compatibility - accept string or object
-    const context = typeof contextOrParams === 'string' ? contextOrParams : contextOrParams.context;
-    // For object style, use limit from object or fallback to parameter
-    const limitNum = typeof contextOrParams === 'string' 
-      ? (limit ?? 5) 
-      : (contextOrParams.limit ?? limit ?? 5);
-    
+  async getRelevantExperiences(context: string, limit: number = 5): Promise<Memory[]> {
     // Search experiences matching the context
     const results = await this.manager.recall(context, {
       location: 'experiences',
-      topK: limitNum * 2,
+      topK: limit * 2,
     });
 
     // Filter to only experience type
     const experiences = results
       .filter(r => r.memory.type === 'experience')
       .map(r => r.memory);
-
-    // Update usage metrics for these experiences
-    const now = new Date();
-    for (const exp of experiences) {
-      if (exp.experienceMeta) {
-        exp.experienceMeta.usageCount = (exp.experienceMeta.usageCount || 0) + 1;
-        exp.experienceMeta.lastUsedAt = now;
-        // Update effectivenessScore
-        exp.experienceMeta.effectivenessScore = Math.min(1, 
-          (exp.experienceMeta.verifiedCount || 0) * 0.3 + 
-          exp.experienceMeta.usageCount * 0.1
-        );
-        // Save the update asynchronously
-        this.storage.save(exp).catch(() => {});
-      }
-    }
 
     // Boost verified experiences
     experiences.sort((a, b) => {

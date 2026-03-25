@@ -118,20 +118,6 @@ function generateFrontmatter(memory: Memory): string {
     lines.push(`experienceMeta: ${JSON.stringify(memory.experienceMeta)}`);
   }
   
-  // Memory relations
-  if (memory.relations && memory.relations.length > 0) {
-    lines.push(`relations: ${JSON.stringify(memory.relations)}`);
-  }
-  
-  // Ebbinghaus decay metrics
-  if (memory.decay) {
-    lines.push(`decay: ${JSON.stringify({
-      decayScore: memory.decay.decayScore,
-      accessCount: memory.decay.accessCount,
-      lastAccessedAt: memory.decay.lastAccessedAt?.toISOString(),
-    })}`);
-  }
-  
   lines.push('---');
   
   return lines.join('\n');
@@ -178,22 +164,6 @@ export function deserializeMemory(content: string, id: string): Memory {
       verified: meta.verified as boolean,
       verifiedCount: meta.verifiedCount as number | undefined,
       lastVerifiedAt: meta.lastVerifiedAt ? new Date(meta.lastVerifiedAt as string) : undefined,
-      effectivenessScore: meta.effectivenessScore as number ?? 0,
-      usageCount: meta.usageCount as number ?? 0,
-      lastUsedAt: meta.lastUsedAt ? new Date(meta.lastUsedAt as string) : undefined,
-    };
-  }
-  
-  // Parse decay metrics if present (Ebbinghaus forgetting curve)
-  let decay: Memory['decay'] = undefined;
-  if (frontmatter.decay && typeof frontmatter.decay === 'object') {
-    const decayData = frontmatter.decay as Record<string, unknown>;
-    decay = {
-      decayScore: decayData.decayScore as number ?? 1.0,
-      accessCount: decayData.accessCount as number ?? 0,
-      lastAccessedAt: decayData.lastAccessedAt 
-        ? new Date(decayData.lastAccessedAt as string) 
-        : undefined,
     };
   }
   
@@ -211,8 +181,6 @@ export function deserializeMemory(content: string, id: string): Memory {
     deletedAt: frontmatter.deletedAt ? new Date(frontmatter.deletedAt as string) : undefined,
     type: frontmatter.type as MemoryType | undefined,
     experienceMeta,
-    decay,
-    relations: frontmatter.relations as Memory['relations'],
   };
 }
 
@@ -221,47 +189,77 @@ export function deserializeMemory(content: string, id: string): Memory {
  */
 export class FileStorage {
   private storagePath: string;
+  private indexCache: Map<string, { tags: string[]; location: string; status: string; importance: number; updatedAt: number }> | null = null;
   
   constructor(storagePath: string) {
     this.storagePath = storagePath;
   }
   
-  /**
-   * Ensure storage directory exists
-   */
   async ensureDir(): Promise<void> {
     await fs.mkdir(this.storagePath, { recursive: true });
-    
-    // Also ensure trash directory
     await fs.mkdir(path.join(this.storagePath, '.trash'), { recursive: true });
   }
   
-  /**
-   * Get file path for a memory
-   */
   private getFilePath(id: string): string {
     return path.join(this.storagePath, `${id}.md`);
   }
   
-  /**
-   * Get trash file path for a memory
-   */
   private getTrashPath(id: string): string {
     return path.join(this.storagePath, '.trash', `${id}.md`);
   }
-
-  /**
-   * Save a memory to file
-   */
+  
+  private getIndexPath(): string {
+    return path.join(this.storagePath, '.index.json');
+  }
+  
   async save(memory: Memory): Promise<void> {
     return fileLock.withLock(memory.id, async () => {
       await this.ensureDir();
       const filePath = this.getFilePath(memory.id);
       const content = serializeMemory(memory);
       await fs.writeFile(filePath, content, 'utf-8');
+      this.updateIndex(memory);
     });
   }
   
+  private updateIndex(memory: Memory): void {
+    if (!this.indexCache) return;
+    this.indexCache.set(memory.id, {
+      tags: memory.tags,
+      location: memory.location,
+      status: memory.status,
+      importance: memory.importance,
+      updatedAt: memory.updatedAt.getTime(),
+    });
+  }
+  
+  async loadIndex(): Promise<Map<string, { tags: string[]; location: string; status: string; importance: number; updatedAt: number }>> {
+    if (this.indexCache) return this.indexCache;
+    
+    const indexPath = this.getIndexPath();
+    try {
+      const content = await fs.readFile(indexPath, 'utf-8');
+      const data = JSON.parse(content);
+      this.indexCache = new Map(Object.entries(data));
+    } catch {
+      this.indexCache = new Map();
+    }
+    return this.indexCache;
+  }
+  
+  async saveIndex(): Promise<void> {
+    if (!this.indexCache) return;
+    const indexPath = this.getIndexPath();
+    const data = Object.fromEntries(this.indexCache);
+    await fs.writeFile(indexPath, JSON.stringify(data), 'utf-8');
+  }
+  
+  async listFiles(): Promise<string[]> {
+    await this.ensureDir();
+    const files = await fs.readdir(this.storagePath);
+    return files.filter(f => f.endsWith('.md') && !f.startsWith('.')).map(f => f.slice(0, -3));
+  }
+
   /**
    * Load a memory from file
    */
@@ -365,15 +363,6 @@ export class FileStorage {
         throw error;
       }
     });
-  }
-  
-  /**
-   * List all memory files
-   */
-  async listFiles(): Promise<string[]> {
-    await this.ensureDir();
-    const files = await fs.readdir(this.storagePath);
-    return files.filter(f => f.endsWith('.md')).map(f => f.slice(0, -3));
   }
   
   /**

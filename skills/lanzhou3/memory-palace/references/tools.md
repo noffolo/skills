@@ -1,46 +1,12 @@
----
-name: memory-palace
-description: Cognitive enhancement layer for OpenClaw agents with semantic search, time reasoning, knowledge graphs, experience accumulation, and LLM-enhanced features
-version: 1.6.5
-license: MIT
-allowed-tools: Bash(npx memory-palace:*)
----
+# 工具详细参数
 
-# Memory Palace
-
-为 AI Agent 提供持久化记忆管理，支持语义搜索、时间推理、经验积累。
-
-## ⚠️ 首次使用 - 向量模型安装
-
-语义搜索功能依赖 **BGE-small-zh-v1.5** 向量模型（约 100MB）。
-
-**安装脚本**:
-```bash
-cd /path/to/memory-palace
-bash scripts/install-vector-model.sh
-```
-
-**AI 必须检查**:
-1. 首次使用搜索功能时，检查模型是否存在
-2. 如用户反馈搜索不到相关内容，优先检查向量模型是否安装
-3. 未安装时提示用户安装，或主动帮用户执行安装脚本
-
-**无向量时**: 自动降级到纯文本关键词匹配，命中率下降
-
-## 新增功能 (v1.6.5)
-
-- **访问追踪**: 自动记录记忆被检索的时间 `lastAccessedAt`
-- **常访问记忆**: `getFrequentlyAccessed()` 获取最常访问的记忆
-- **自动压缩**: `BackgroundScheduler` 自动压缩旧记忆
-- **存储索引**: 索引缓存加速大量记忆的查询
+本文档包含 Memory Palace 所有工具的完整参数说明。
 
 ---
 
-## 工具详细参数
+## 基础操作
 
-### 基础操作
-
-#### memory_palace_write
+### memory_palace_write
 
 写入一条新记忆。
 
@@ -64,7 +30,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_get
+### memory_palace_get
 
 获取单条记忆。
 
@@ -75,7 +41,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_update
+### memory_palace_update
 
 更新记忆内容。
 
@@ -87,7 +53,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_delete
+### memory_palace_delete
 
 删除记忆。
 
@@ -96,7 +62,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_search
+### memory_palace_search
 
 搜索记忆。
 
@@ -117,7 +83,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_list
+### memory_palace_list
 
 列出所有记忆。
 
@@ -128,7 +94,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_stats
+### memory_palace_stats
 
 获取记忆统计信息。
 
@@ -138,7 +104,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_restore
+### memory_palace_restore
 
 从回收站恢复记忆。
 
@@ -147,9 +113,9 @@ bash scripts/install-vector-model.sh
 
 ---
 
-### 经验管理
+## 经验管理
 
-#### memory_palace_record_experience
+### memory_palace_record_experience
 
 记录一条可复用的经验。
 
@@ -171,17 +137,17 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_get_experiences
+### memory_palace_get_experiences
 
 获取所有经验。
 
 **参数**:
 - `category` (可选): 按类别过滤
-- `verified` (可选): 仅返回已验证的
+- `verified_only` (可选): 仅返回已验证的，默认 false
 
 ---
 
-#### memory_palace_verify_experience
+### memory_palace_verify_experience
 
 验证经验是否有效。
 
@@ -193,7 +159,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_get_relevant_experiences
+### memory_palace_get_relevant_experiences
 
 查找相关经验。
 
@@ -204,7 +170,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_get_frequently_accessed
+### memory_palace_get_frequently_accessed
 
 获取最常访问的记忆。
 
@@ -215,7 +181,7 @@ bash scripts/install-vector-model.sh
 
 ---
 
-#### memory_palace_record_access
+### memory_palace_record_access
 
 记录记忆被访问（更新 lastAccessedAt 时间戳）。
 
@@ -224,9 +190,9 @@ bash scripts/install-vector-model.sh
 
 ---
 
-### LLM 增强
+## LLM 增强
 
-#### memory_palace_summarize
+### memory_palace_summarize
 
 LLM 智能总结记忆。
 
@@ -249,7 +215,7 @@ LLM 智能总结记忆。
 
 ---
 
-#### memory_palace_extract_experience
+### memory_palace_extract_experience
 
 从记忆内容中提取可复用的经验。
 
@@ -260,7 +226,7 @@ LLM 智能总结记忆。
 
 ---
 
-#### memory_palace_parse_time_llm
+### memory_palace_parse_time_llm
 
 LLM 解析复杂时间表达式。
 
@@ -281,7 +247,7 @@ LLM 解析复杂时间表达式。
 
 ---
 
-#### memory_palace_expand_concepts_llm
+### memory_palace_expand_concepts_llm
 
 LLM 动态扩展搜索概念。
 
@@ -300,7 +266,7 @@ LLM 动态扩展搜索概念。
 
 ---
 
-#### memory_palace_compress
+### memory_palace_compress
 
 智能压缩多条记忆。
 
@@ -311,9 +277,9 @@ LLM 动态扩展搜索概念。
 
 ---
 
-### 辅助工具
+## 辅助工具
 
-#### memory_palace_time_parse
+### memory_palace_time_parse
 
 基于规则的时间解析。
 
@@ -324,7 +290,7 @@ LLM 动态扩展搜索概念。
 
 ---
 
-#### memory_palace_concept_expand
+### memory_palace_concept_expand
 
 基于规则的概念扩展。
 
@@ -335,9 +301,9 @@ LLM 动态扩展搜索概念。
 
 ---
 
-### 向量模型
+## 向量模型
 
-#### memory_palace_check_model_status
+### memory_palace_check_model_status
 
 检查 BGE 向量模型是否已安装。
 
@@ -347,16 +313,12 @@ LLM 动态扩展搜索概念。
   "isInstalled": true,
   "modelName": "BAAI/bge-small-zh-v1.5",
   "cacheDir": "/data/agent-memory-palace/model_cache",
-  "message": "Model BAAI/bge-small-zh-v1.5 is installed"
+  "message": "Model BAAI/bge-small-zh-v1.5 is installed at /data/agent-memory-palace/model_cache"
 }
 ```
 
----
+### memory_palace_install_model
 
-## 注意事项
+触发向量模型安装（执行安装脚本）。
 
-1. **LLM 工具超时**: 智能总结、经验提取等 LLM 工具有超时限制，失败会自动降级到规则引擎
-2. **经验验证**: 经验需要 2+ 次验证才能标记为有效，避免错误经验传播
-3. **重要性**: 建议给重要记忆设置较高的 importance 值（0.7+）
-4. **向量模型**: 语义搜索依赖 BGE 模型，未安装时自动降级到文本搜索
-5. **访问追踪**: 搜索会自动更新 `lastAccessedAt` 时间戳
+**注意**: 建议直接运行 `bash scripts/install-vector-model.sh`
