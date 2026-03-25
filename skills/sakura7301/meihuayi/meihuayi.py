@@ -93,10 +93,13 @@ def get_gua_name(upper: int, lower: int) -> str:
     return h["name"] if h else f"{TRIGRAMS[upper]['name']}{TRIGRAMS[lower]['name']}"
 
 def get_gua_full_name(upper: int, lower: int) -> str:
-    """上卦自然名 + 下卦自然名 + 短卦名，如 泽火革"""
+    """上卦自然名 + 下卦自然名 + 短卦名，如 天泽履"""
     short        = get_gua_name(upper, lower)
     upper_nature = TRIGRAM_NATURE.get(TRIGRAMS[upper]['name'], TRIGRAMS[upper]['name'])
     lower_nature = TRIGRAM_NATURE.get(TRIGRAMS[lower]['name'], TRIGRAMS[lower]['name'])
+    # 上下卦相同，如兑为泽、乾为天
+    if upper == lower:
+        return f"{short}为{lower_nature}"
     return f"{upper_nature}{lower_nature}{short}"
 
 def get_gua_symbol(upper: int, lower: int) -> str:
@@ -342,10 +345,8 @@ class PlumBlossom:
         lines.append(f"[主卦] {ben_sym} {ben_full_name}（{result['relation']}）")
         lines.append(f"        「{ben_ci}」")
 
-        # ── 互卦：互见XX（自然名）──
-        hu_upper_nature = TRIGRAM_NATURE.get(hu['upper']['name'], hu['upper']['name'])
-        hu_lower_nature = TRIGRAM_NATURE.get(hu['lower']['name'], hu['lower']['name'])
-        lines.append(f"[互卦] 互见{hu_upper_nature}{hu_lower_nature}")
+        # ── 互卦：互见XX（经卦卦名）──
+        lines.append(f"[互卦] 互见{hu['upper']['name']}{hu['lower']['name']}")
 
         # ── 变卦 ──
         bian_sym       = get_gua_symbol(bian_u, bian_l)
