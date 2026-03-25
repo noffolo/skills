@@ -1,0 +1,11 @@
+{
+  "owner": "tobewin",
+  "slug": "china-news",
+  "displayName": "China News",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774407955546,
+    "commit": null
+  },
+  "history": []
+}
