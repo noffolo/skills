@@ -3,11 +3,16 @@
   "slug": "windows-notifier",
   "displayName": "Windows Notifier",
   "latest": {
-    "version": "0.2.0",
-    "publishedAt": 1774083236474,
-    "commit": "https://github.com/openclaw/skills/commit/a6f42c7e0fce1ab3071f6da292300e462ef2f611"
+    "version": "1.0.3",
+    "publishedAt": 1774411548845,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.0",
+      "publishedAt": 1774083236474,
+      "commit": "https://github.com/openclaw/skills/commit/a6f42c7e0fce1ab3071f6da292300e462ef2f611"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1773978232256,
