@@ -1,0 +1,11 @@
+{
+  "owner": "suderbot",
+  "slug": "last-contact-detector",
+  "displayName": "Last Contact Detector",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774036466996,
+    "commit": null
+  },
+  "history": []
+}
