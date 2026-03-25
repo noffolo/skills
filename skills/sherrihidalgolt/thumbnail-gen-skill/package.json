@@ -1,1 +1,7 @@
-{"name":"thumbnail-gen-skill","version":"1.3.0","type":"module","description":"YouTube Thumbnail Generator — AI-powered ai youtube thumbnail generator","license":"MIT"}
+{
+  "name": "thumbnail-gen-skill",
+  "version": "1.3.5",
+  "type": "module",
+  "description": "YouTube Thumbnail Generator — AI-powered ai youtube thumbnail generator",
+  "license": "MIT"
+}
