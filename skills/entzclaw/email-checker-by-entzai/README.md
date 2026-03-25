@@ -243,4 +243,49 @@ chmod +x scripts/email/checker_wrapper.sh
 
 ---
 
+---
+
+## Changelog
+
+### v1.1.1 — 2026-03-24
+
+**Setup wizard hotfix**
+- LLM test now prints "please wait up to 15 seconds" — so users don't press Enter while waiting
+- Flush buffered stdin before the "Continue anyway?" prompt — prevents a stray Enter from auto-accepting
+- Changed "Continue anyway?" default from N (abort) to Y (continue) — LLM being offline shouldn't block the whole setup
+
+### v1.1.0 — 2026-03-24
+
+**Setup wizard improvements**
+- Removed `set -e` — wizard no longer quits silently on any non-zero exit
+- Required fields (name, email, model ID) now loop until valid — blank input re-prompts instead of saving empty values
+- Email address format validated before saving
+- LLM test captures both stdout and stderr — shows specific error (`CONNECTION_ERROR`, `HTTP_ERROR 401/404/400`) instead of a blank failure message
+- If LLM test fails, user is asked whether to continue or abort
+- Settings write is verified — exits with a clear error if `settings.json` fails to write
+- All Y/N prompts loop until valid input, with sensible defaults
+- Final success screen prints a summary: config path, schedule, report email, LLM model
+
+**Priority & drafts**
+- AI draft replies are now generated only for **HIGH** priority emails
+- MEDIUM and LOW emails show a preview only — faster and uses less LLM
+
+**Subject deduplication**
+- Thread subject normalisation now strips nested prefixes (`Re: Re: Re:`, `Fwd: Re:`)
+- Strips bracket tags (`[EXTERNAL]`, `[BULK]`) before comparing subjects
+- Strips trailing punctuation and symbols
+
+### v1.0.0 — 2026-03-02
+
+Initial release.
+
+- Automated inbox scanning via AppleScript and Mail.app
+- Priority scoring (HIGH / MEDIUM / LOW) with trusted sender boost
+- AI draft replies via LM Studio, Ollama, or OpenAI
+- Hourly email report sent to your personal address
+- Interactive setup wizard with crontab installer
+- Published to ClawHub as `email-checker-by-entzai`
+
+---
+
 _Built by EntzAI · Powered by OpenClaw_
