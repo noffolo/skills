@@ -1,11 +1,17 @@
 {
   "owner": "harrylabsj",
   "slug": "hospital",
-  "displayName": "Hospital Finder",
+  "displayName": "Hospital",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773713191075,
-    "commit": "https://github.com/openclaw/skills/commit/43944e6ee9b92a8c9839b9858933af26161b1d42"
+    "version": "1.0.2",
+    "publishedAt": 1774072538475,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773713191075,
+      "commit": "https://github.com/openclaw/skills/commit/43944e6ee9b92a8c9839b9858933af26161b1d42"
+    }
+  ]
 }
