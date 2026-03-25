@@ -3,9 +3,15 @@
   "slug": "launchpad",
   "displayName": "Launchpad",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774124295776,
-    "commit": "https://github.com/openclaw/skills/commit/56fc9e07231561438809c3fd50d681795f699cd2"
+    "version": "2.0.1",
+    "publishedAt": 1774312971535,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774124295776,
+      "commit": "https://github.com/openclaw/skills/commit/56fc9e07231561438809c3fd50d681795f699cd2"
+    }
+  ]
 }
