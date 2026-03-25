@@ -18,7 +18,7 @@ version: 1.0.0
 
 | 类型 | 内容 | 路径 |
 |------|------|------|
-| **配置** | openclaw.json, crons.json 等 | `~/.openclaw/` |
+| **配置** | openclaw.json, cron/jobs.json, crons.json(兼容) 等 | `~/.openclaw/` |
 | **数据** | memory/, workspace/ | `~/.openclaw/workspace/` |
 | **技能** | skills/ | `~/.openclaw/workspace/skills/` |
 | **Agent** | 所有 Agent 工作区 | `~/.openclaw/workspace-*/` |
