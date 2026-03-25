@@ -1,13 +1,18 @@
 {
   "owner": "frankieway",
   "slug": "yuqing-sync-skill",
-  "displayName": "小爱舆情数据同步 Skill",
+  "displayName": "慧科小爱舆情数据同步",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773821199238,
-    "commit": "https://github.com/openclaw/skills/commit/78a9a9643a1c329ad419abc95677114948b80b34"
+    "version": "1.1.0",
+    "publishedAt": 1774334210860,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773821199238,
+      "commit": "https://github.com/openclaw/skills/commit/78a9a9643a1c329ad419abc95677114948b80b34"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1773750093335,
