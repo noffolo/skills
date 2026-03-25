@@ -3,9 +3,15 @@
   "slug": "baidu-skill-guard",
   "displayName": "baidu-skill-guard",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774065164517,
-    "commit": "https://github.com/openclaw/skills/commit/4db1efe7a577278d42f373313717b2b3cd41b86b"
+    "version": "1.0.8",
+    "publishedAt": 1774438471784,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774065164517,
+      "commit": "https://github.com/openclaw/skills/commit/4db1efe7a577278d42f373313717b2b3cd41b86b"
+    }
+  ]
 }

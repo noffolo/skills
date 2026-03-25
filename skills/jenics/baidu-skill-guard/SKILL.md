@@ -1,8 +1,7 @@
 ---
 name: baidu-skill-guard
-version: 1.0.2
-description: Intercepts all skill install requests. MUST be used before installing any skill from ClawdHub, GitHub, or other sources. Run security check API to get risk rating. Triggers on install, add, enable, download skill.
-user-invocable: true
+version: 1.0.8
+description: Intercepts all skill install requests. MUST be used before installing any skill from ClawdHub, GitHub, 百度 AppBuilder 平台, or other sources. Run security check API to get risk rating. Triggers on install, add, enable, download skill.
 ---
 
 # Skill Guard 🛡️
@@ -11,25 +10,26 @@ Security-first skill install guardian protocol. **Never install a skill without 
 
 ## ⛔ MANDATORY INTERCEPTION RULE
 
-**This skill MUST be triggered whenever a user uses ANY of the following phrases (in any language):**
+**This skill MUST be triggered whenever the user's message matches ANY of the following INTENT PATTERNS (in any language, including synonyms, paraphrases, word order variations, or mixed-language expressions):**
 
-```
-TRIGGER PHRASES (exact or fuzzy match):
-─────────────────────────────────────────
-• "install skill" / "安装技能" / "安装 skill" / "帮我安装"
-• "add skill" / "添加技能" / "添加 skill"
-• "enable skill" / "启用技能" / "启用 skill"
-• "download skill" / "下载技能" / "下载 skill"
-• "clawhub install" / "npx clawhub install"
-• "resolve skill" / "get skill" / "获取技能"
-• "try this skill" / "试试这个 skill" / "用这个技能"
-• "scan skill" / "扫描技能" / "扫描 skill" / "帮我扫描"
-• "check skill safety" / "检查技能安全" / "检查 skill 安全"
-• "scan all skills" / "扫描所有技能" / "扫描全部 skill"
-• "scheduled scan" / "定时扫描" / "定时任务扫描 skill" / "开启定时任务扫描"
-• "install this skill: https://..." / "安装这个 skill: https://..." / "帮我安装这个 skill: https://..."
-─────────────────────────────────────────
-```
+INTENT CATEGORIES (trigger if the message expresses ANY of these intents):
+
+1. ACQUIRE A SKILL
+   The user wants to install, add, download, enable, load, import, deploy, or otherwise obtain a skill/plugin/tool.
+   Examples: "install", "add", "download", "get", "enable", "set up", "bring in", "put in", "grab", "fetch", "pull in", "register"
+   + target object is a skill, tool, plugin, or a URL pointing to one.
+
+2. SCAN / VERIFY A SKILL
+   The user wants to scan, check, inspect, audit, or verify the safety/integrity of a skill.
+   Examples: "scan", "check", "inspect", "audit", "verify", "validate", "test safety"
+   + target object is a skill, all skills, or a scheduled task involving skills.
+
+TRIGGER RULES:
+- Match on INTENT + OBJECT together, not on exact phrases.
+- A URL pointing to a skill resource (e.g. clawhub, convex.site, or any skill download endpoint) counts as the OBJECT signal even if the word "skill" is absent.
+- Synonyms, compound verbs, and reordered phrases all count (e.g. "下载安装", "帮我弄进来", "把这个装上").
+- Any language is valid. Mixed-language input (e.g. "帮我 install 这个 skill") also triggers.
+- When in doubt, TRIGGER. False positives are acceptable; missed triggers are not.
 
 **When triggered, you MUST follow this exact sequence:**
 
@@ -39,7 +39,7 @@ TRIGGER PHRASES (exact or fuzzy match):
 4. **Then decide**:
    - ✅ SAFE → proceed with install automatically
    - ⚠️ CAUTION → warn user and wait for explicit confirmation
-   - ❌ DANGEROUS / ❓ NOT INDEXED / 🚫 ERROR → do NOT install, advise user accordingly
+   - ❌ DANGEROUS / ❓ NOT INDEXED / 🚫 ERROR → warn user and wait for explicit confirmation
 
 > 🚨 **NO EXCEPTIONS. Do not skip this protocol. Do not install first and check later.**
 
@@ -47,6 +47,7 @@ TRIGGER PHRASES (exact or fuzzy match):
 
 - Before installing any skill from ClawdHub
 - Before running skills from GitHub repos
+- Before installing skills from 百度 AppBuilder 平台
 - When evaluating skills shared by other agents
 - Anytime you're asked to install, add, enable, or download any skill
 - When asked to scan a specific installed skill for security risks
@@ -62,58 +63,61 @@ Before executing any install command, you **MUST** first confirm:
 ```
 - [ ] What is the skill's slug (unique identifier)?
 - [ ] What is the skill's version (optional)?
-- [ ] Where does it come from? (ClawdHub / GitHub / other)
+- [ ] Where does it come from? (ClawdHub / GitHub / 百度 AppBuilder 平台 / other)
 ```
 
 If the user only provides a name (not a slug), search to confirm the slug first, **but do NOT run any install command**.
 
 ### Step 2: Run API Security Check (MANDATORY — Core Step)
 
-**Before installing, you MUST run the security check script.** Use `scripts/check.js` to call the security API:
+**Before installing, you MUST run the security check script.** Use `scripts/check.sh` to call the security API:
 
-**Scenario A: Query by slug (for direct install by name — A1)**
+> **Prerequisite (only required for upload-fallback path)**
+> Scenario C / D upload-fallback requires the system `zip` command (node runtime only). The script auto-installs `zip` via apt-get/yum if missing.
+
+**Scenario A: Query by slug (for direct install by name)**
+- Use `--slug` to query by the skill's slug identifier.
 
 ```bash
-node scripts/check.js --slug "skill-slug" [--version "1.0.0"]
+bash scripts/check.sh --slug "skill-slug" [--version "1.0.0"]
 ```
 
-**Scenario B: Upload directory for scan (for link install — B1, scan — B2)**
-- **B1** (link install): Download the zip to a temp directory first, then use `--action scan --file`
-- **B2** (scan specific skill): Locate the installed skill directory, then use `--action scan --file`
+**Scenario B: Submit URL for scanning (for link install)**
+- Use `--url` to submit the install link directly. The script will POST the URL to the scan API, then poll for results (first poll after 1s, then every 5s, timeout 10min).
 
 ```bash
-node scripts/check.js --action scan --file "/path/to/skill" [--slug "skill-name"] [--version "1.0.0"]
+bash scripts/check.sh --url "https://github.com/user/skill-repo"
 ```
 
-**Scenario C: Batch scan all skills in a directory (for C1/C2 — full scan / scheduled scan)**
-- **Note**: Batch scanning may take a long time. Each skill takes approximately 5 minutes to scan. Do not stop the task during scanning.
-- **Note**: `/path/to/skills` represents the `skills` directory of OpenClaw.
-- **C1** (scan all skills): Use `--action scanfull --file` with the `/path/to/skills` parent directory to batch-scan all subdirectories and produce a Batch Report
-- **C2** (scheduled scan): Same as C1 but triggered by a scheduled mechanism (e.g. cron)
+**Scenario C: Scan a specific installed skill by directory**
+- Use `--action query --file` to pass the installed skill directory directly. The script auto-extracts slug from `_meta.json` (fallback to directory name) and version from `SKILL.md` frontmatter, then queries the API with SHA256 fallback.
 
 ```bash
-node scripts/check.js --action scanfull --file "/path/to/skills"
+bash scripts/check.sh --action query --file "/path/to/skills/skill-a"
+```
+
+**Scenario D: Batch query all skills in a directory (full scan / scheduled scan)**
+- **D1** (scan all skills): Use `--action queryfull --file` with the `/path/to/skills` parent directory to batch-query all subdirectories by slug and produce a Batch Report
+- **D2** (scheduled scan): Same as D1 but triggered by a scheduled mechanism (e.g. cron)
+
+```bash
+bash scripts/check.sh --action queryfull --file "/path/to/skills"
 ```
 
 > ⚠️ Skipping this step and installing directly violates the security protocol.
 
 The script outputs JSON to stdout. **Exit code**: 0 = safe, 1 = non-safe or error.
 
-**Scenario A** (`--slug` query) — `<skill_item>` is in `data[]`:
+**Scenario A / B / C** (`--slug`, `--url`, or `--action query` query):
 ```json
-{ "code": "success", "data": [ { <skill_item> } ] }
+{ "code": "success", "data": [ ... ], "report": { <report> } }
 ```
 
-**Scenario B** (`--action scan`) — `<skill_item>` is in `data.results[]`:
-```json
-{ "code": "success", "data": { "task_id": "...", "status": "done", "results": [ { <skill_item> } ] } }
-```
-
-**Scenario C** (`--action scanfull`) — batch report with summary counts and per-skill results:
+**Scenario D** (`--action queryfull`) — batch report with summary counts and per-skill results:
 ```json
 {
   "code": "success",
-  "msg": "scanfull completed",
+  "msg": "queryfull completed",
   "ts": 1234567890,
   "total": 5,
   "safe_count": 3,
@@ -121,204 +125,159 @@ The script outputs JSON to stdout. **Exit code**: 0 = safe, 1 = non-safe or erro
   "caution_count": 0,
   "error_count": 1,
   "results": [
-    { "skill": "skill-dir-name", "code": "success", "msg": "success", "ts": 1234567890, "data": { "task_id": "...", "status": "done", "results": [ { <skill_item> } ] } },
-    { "skill": "another-skill", "code": "error", "msg": "...", "ts": 1234567890, "data": null }
+    { "slug": "skill-slug", "code": "success", "data": [ ... ], "report": { <report> } },
+    { "slug": "another-skill", "code": "error", "msg": "...", "data": [] }
   ]
 }
 ```
 
-Each `<skill_item>` fields — use `bd_confidence` for verdict, detail sections for report:
-- `slug`, `version`, `source`, `sha256`, `scanned_at`
-- `bd_confidence` (`safe` / `caution` / `dangerous`), `bd_describe`
-- `detail.github` (`name`, `account_type`, `created_at`, `followers`) — absent for uploaded skills, show N/A
-- `detail.openclaw` (`oc_status`, `oc_describe`, `oc_dimensions[]`, `oc_guidance`)
-- `detail.virustotal` (`vt_status`, `vt_describe`)
-- `detail.antivirus` (`total_files`, `virus_count`, `virus_details`)
-- `detail.skillscanner` (`risk_status`, `max_severity`, `findings[]`, `severity_counts`, `llm_overall_assessment`, `llm_primary_threats[]`)
+The `<report>` object is a **pre-processed** summary for direct template filling (only present when `data[]` is non-empty). When `data[]` has multiple items, `report` is built from `data[0]` only.
 
-> If `slug` is empty (common in scan), use the filename (minus `.zip`) as the display name.
+```json
+{
+  "name": "slug",                                 // ← data[0].slug
+  "version": "1.0.0",                             // ← data[0].version
+  "source": "ClawdHub",                           // ← data[0].source mapped: openclaw→ClawdHub, github→GitHub, appbuilder→百度AppBuilder, other→其他
+  "author": "username",                            // ← data[0].detail.github.name
+  "scanned_at": "2026-03-16 15:06:37",            // ← data[0].scanned_at (ms timestamp formatted)
+  "bd_confidence": "caution",                      // ← data[0].bd_confidence
+  "verdict": "⚠️ 灰名单，谨慎安装",                // ← mapped from bd_confidence
+  "final_verdict": "⚠️ 谨慎安装(需人工确认)",       // ← mapped from bd_confidence
+  "suggestion": "存在潜在风险，建议人工审查后再安装",  // ← mapped from bd_confidence
+  "bd_describe": "...",                            // ← data[0].bd_describe
+  "overview": "⚠️ Skill存在信誉风险，发现2项可疑行为", // ← assembled; null when safe
+  "virustotal": { "status": "Pending", "describe": null },       // ← describe is null when Benign/Pending/absent
+  "openclaw": { "status": "Benign", "describe": null },          // ← describe is null when Benign
+  "findings": [                                    // ← from detail.skillscanner.findings[], only severity/title/description
+    { "severity": "LOW", "title": "...", "description": "..." }
+  ],
+  "antivirus": {                                   // ← from detail.antivirus
+    "virus_count": 0,
+    "virus_list": []                               // ← from virus_details[], only virus_name/file; empty when virus_count=0
+  }
+}
+```
 
 ### Step 3: Show Security Report (MANDATORY — Must show before install)
 
 Based on the API result, you **MUST** show the user a security report **before deciding whether to proceed with installation**.
 
+> ⚠️ **STRICT FORMAT RULE**: You **MUST** use the exact report template below. Do NOT summarize, rephrase, reorganize, or generate free-form reports. Copy the template structure exactly, only replacing `[...]` placeholders with actual values from the `report` object. Any deviation from this format is a protocol violation.
+
 **单个 Skill 报告：**
 
-根据 `bd_confidence` 判断结果，使用对应的报告模板：
-
-**R1 — 判断"✅ 白名单(可信)，可安全安装"：**
+When `report.overview` is null → output 守卫摘要 + 最终裁决 only. When non-null → output full report.
 
 ```
 🛡️ Skill安全守卫报告
 ═══════════════════════════════════════
-📊守卫摘要
-评估时间：[YYYY-MM-DD HH:mm:ss]
-Skill名称: [name]
-来    源: [ClawdHub / GitHub / 其他]
-作    者: [author]
-版    本: [version]
-评估结果： ✅ 白名单(可信)，可安全安装
+📊 守卫摘要
+评估时间：[report.scanned_at]
+Skill名称：[report.name]
+来    源：[report.source]
+作    者：[report.author]
+版    本：[report.version]
+评估结果：[report.verdict]
 
-🗒安全评估详情
-[bd_describe 内容]
+[以下段落仅在 report.overview 非 null 时输出]
+───────────────────────────────────────
+📕 评估结果概述
+[report.overview]
 
 ───────────────────────────────────────
-🏁 最终裁决: [✅ 安全安装 / ⚠️ 谨慎安装(需人工确认) / ❌ 不建议安装]
-
-
-═══════════════════════════════════════
-```
-
-**R2 — 判断"⚠️ 灰名单(谨慎)，需人工确认，谨慎安装"：**
-
-```
-🛡️ Skill安全守卫报告
-═══════════════════════════════════════
-📊守卫摘要
-评估时间：[YYYY-MM-DD HH:mm:ss]
-Skill名称: [name]
-来    源: [ClawdHub / GitHub / 其他]
-作    者: [author]
-版    本: [version]
-评估结果： ⚠️ 灰名单(谨慎)，需人工确认，谨慎安装
-
-───────────────────────────────────────
-📕评估结果概述
-[⚠️Skill存在信誉风险，发现[X]项可疑行为/⚠️Skill存在信誉风险]
-───────────────────────────────────────
-🗒安全评估详情
-[bd_describe 内容]
+🗒 安全评估详情
+[report.bd_describe]
 
 评估过程
-• VirusTotal 扫描结果：[vt_status]，[除Benign外，需要填写[vt_describe]]
-• OpenClaw 扫描结果：[oc_status]，[除Benign外，需要填写[oc_describe]]
-• [发现[severity]行为，[title]，[description]]
-• [发现[severity]行为，[title]，[description]]
-• 病毒扫描结果：未检测到病毒
+- VirusTotal：[report.virustotal.status][，report.virustotal.describe（非null时追加，仅输出一句话结论，不输出原始报告正文）]
+- OpenClaw：[report.openclaw.status][，report.openclaw.describe（非null时追加）]
+- [发现[severity]行为，[title]]（遍历 report.findings[]，可多条）
+   - [description]
+- 病毒扫描：[report.antivirus.virus_count == 0 → 未检测到病毒 | virus_count > 0 → 发现[virus_name]，[file]（遍历 report.antivirus.virus_list[]，可多条）]
+[条件段落结束]
 
 ───────────────────────────────────────
-🏁 最终裁决: ⚠️ 谨慎安装(需人工确认)
+🏁 最终裁决：
+[report.final_verdict]
 
-💡 建议: [具体建议说明]
-
+[仅 report.overview 非 null 时输出]
+💡 建议：[report.suggestion]
 ═══════════════════════════════════════
 ```
 
-**R3 — 判断"🚫 黑名单(危险) ，❌ 不建议安装"：**
+**批量 Skill 报告（用于 Scenario D — 全量扫描）：**
+
+> ⚠️ **STRICT FORMAT RULE**: Batch reports **MUST strictly follow the template below**. Do NOT reorganize the format, add extra summaries, recommendation sections, security scores, or feature descriptions. ✅ Passed skills appear ONLY as a count in the header — **do NOT list them individually**. Only 🚫 Failed and ⚠️ Caution skills are shown using the single-skill report template above.
 
 ```
 🛡️ Skill安全守卫报告
 ═══════════════════════════════════════
-📊守卫摘要
-评估时间：[YYYY-MM-DD HH:mm:ss]
-Skill名称: [name]
-来    源: [ClawdHub / GitHub / 其他]
-作    者: [author]
-版    本: [version]
-评估结果： 🚫 黑名单(危险) ，❌ 不建议安装
 
+📊守卫摘要
+评估时间：[当前时间 YYYY-MM-DD HH:mm:ss]
+评估Skills总量：[total]个
+ ✅通过：[safe_count]个
+ 🚫不通过：[danger_count + error_count]个
+ ⚠️需关注：[caution_count]个
+═══════════════════════════════════════
+🚫不通过Skills（不建议安装，需人工确认）：
+
+[遍历 results[]，筛选 report.bd_confidence 为 dangerous 或未收录的，逐个输出以下条目；若无匹配条目则输出"无"]
 ───────────────────────────────────────
-📕评估结果概述
-[🚫Skill信誉高，发现[X]项危险行为，发现[X]项病毒风险/🚫Skill信誉中等，发现[X]项危险行为，发现[X]项病毒风险/🚫Skill信誉低，发现[X]项危险行为，发现[X]项病毒风险/❓Skill未收录，发现[X]项危险行为，[X]项病毒风险]
-───────────────────────────────────────
-🗒安全评估详情
-[bd_describe 内容]
+📌 [report.name] v[report.version]
+来源：[report.source] | 作者：[report.author]
+评估结果：[report.verdict]
+
+📕 [report.overview]
+
+🗒 [report.bd_describe]
 
 评估过程
-• VirusTotal 扫描结果：[[vt_status]，[除Benign外，需要填写[vt_describe]]/无扫描结果]
-• OpenClaw 扫描结果：[[oc_status]，[除Benign外，需要填写[oc_describe]]/无扫描结果]
-• [发现[severity]行为，[title]，[description]]
-• [发现[severity]行为，[title]，[description]]
-• 发现[virus_name][file]/病毒扫描结果：未检测到病毒
-• 发现[virus_name][file]
+- VirusTotal：[report.virustotal.status][，report.virustotal.describe（非null时追加，仅输出一句话结论，不输出原始报告正文）]
+- OpenClaw：[report.openclaw.status][，report.openclaw.describe（非null时追加）]
+- [发现[severity]行为，[title]]（遍历 report.findings[]，可多条）
+   - [description]
+- 病毒扫描：[report.antivirus.virus_count == 0 → 未检测到病毒 | virus_count > 0 → 发现[virus_name]，[file]（遍历 report.antivirus.virus_list[]，可多条）]
 
-───────────────────────────────────────
-🏁 最终裁决: ❌ 不建议安装
-
-💡 建议: [具体建议说明]
+🏁 最终裁决：[report.final_verdict]
+💡 建议：[report.suggestion]
+[条目结束，继续下一个]
 
 ═══════════════════════════════════════
-```
+⚠️需关注Skills（需谨慎安装）：
 
-**R4 — 判断"❓ 未收录，不建议安装"：**
-
-```
-🛡️ Skill安全守卫报告
-═══════════════════════════════════════
-📊守卫摘要
-评估时间：[YYYY-MM-DD HH:mm:ss]
-Skill名称: [name]
-来    源: [ClawdHub / GitHub / 其他]
-作    者: [author]
-版    本: [version]
-评估结果： [❓ 未收录，不建议安装]
-
+[遍历 results[]，筛选 report.bd_confidence 为 caution 的，逐个输出以下条目（格式同上）；若无匹配条目则输出"无"]
 ───────────────────────────────────────
-📕评估结果概述
-❓Skill未收录，未发现行为与病毒风险
-───────────────────────────────────────
-🗒安全评估详情
-[bd_describe 内容]
+📌 [report.name] v[report.version]
+来源：[report.source] | 作者：[report.author]
+评估结果：[report.verdict]
+
+📕 [report.overview]
+
+🗒 [report.bd_describe]
 
 评估过程
-• VirusTotal 扫描结果：无扫描结果
-• OpenClaw 扫描结果：无扫描结果
-• 危险行为检测：未发现危险行为
-• 病毒扫描结果：未检测到病毒
+- VirusTotal：[report.virustotal.status][，report.virustotal.describe（非null时追加，仅输出一句话结论，不输出原始报告正文）]
+- OpenClaw：[report.openclaw.status][，report.openclaw.describe（非null时追加）]
+- [发现[severity]行为，[title]]（遍历 report.findings[]，可多条）
+   - [description]
+- 病毒扫描：[report.antivirus.virus_count == 0 → 未检测到病毒 | virus_count > 0 → 发现[virus_name]，[file]（遍历 report.antivirus.virus_list[]，可多条）]
 
-───────────────────────────────────────
-🏁 最终裁决: ❌ 不建议安装
-
-💡 建议: [具体建议说明]
-
-═══════════════════════════════════════
-```
-
-**批量 Skill 报告（用于 C1 / C2 — 全量扫描）：**
-
-展示汇总头部，按裁决结果分组。
-
-```
-🛡️ Skill安全守卫报告
-═══════════════════════════════════════
-
-📊守卫摘要
-评估时间：[YYYY-MM-DD HH:mm:ss]
-评估Skills总量：XX个
- ✅通过：XX个
- 🚫不通过：X个
- ⚠️需关注：X个
-═══════════════════════════════════════
-🚫不通过Skills不建议安装，具体检查结果如下：
-
-（对每个不通过的skill，按上方「R3 黑名单」或「R4 未收录」报告格式展示完整报告）
-
-═══════════════════════════════════════
-⚠️需关注Skills需谨慎安装，具体检查结果如下：
-
-（对每个需关注的skill，按上方「R2 灰名单」报告格式展示完整报告）
+🏁 最终裁决：[report.final_verdict]
+💡 建议：[report.suggestion]
+[条目结束，继续下一个]
 
 ═══════════════════════════════════════
 ```
-
-## Risk Level & Verdict Mapping
-
-| bd_confidence | 评级 | 裁决 | 建议 |
-|:---:|:---:|:---:|:---|
-| safe | ✅ 白名单(可信) | ✅ 安全安装 | 已通过安全检查，可安全安装 |
-| caution | ⚠️ 灰名单(谨慎) | ⚠️ 谨慎安装(需人工确认) | 存在潜在风险，建议人工审查后再安装 |
-| dangerous | 🚫 黑名单(危险) | ❌ 不建议安装 | 发现严重安全风险，强烈建议不要安装 |
-| (未收录) | ❓ 未收录 | ❌ 不建议安装 | 尚未被安全系统收录，不建议安装 |
-| (服务异常) | 🚫 服务异常 | ❌ 暂缓安装 | 安全检查服务不可用，请稍后重试，不要跳过检查 |
 
 ## Important Notes
 
 - No skill is worth compromising security
 - When in doubt, don't install
 - Delegate high-risk decisions to human judgment
-- Document check results for future reference
 - When API call fails (timeout, network error, etc.), the script returns `"code": "error"` with exit code 1 — verdict is **❌ Hold off**, advise user to retry later, do not skip the check
 
 ---
+
 
 *Security is the bottom line, not an option.* 🛡️🦀
