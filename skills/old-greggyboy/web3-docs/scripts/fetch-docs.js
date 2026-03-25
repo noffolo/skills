@@ -18,6 +18,7 @@ const SOURCES = {
   hardhat:      'https://hardhat.org/hardhat-runner/docs/getting-started',
   'uniswap-v3': 'https://docs.uniswap.org/contracts/v3/overview',
   aave:         'https://docs.aave.com/developers/',
+  ethers:       'https://docs.ethers.org/v6/',
 };
 
 const topic = process.argv[2];

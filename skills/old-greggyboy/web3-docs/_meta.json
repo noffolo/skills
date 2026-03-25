@@ -3,9 +3,15 @@
   "slug": "web3-docs",
   "displayName": "Web3 Docs",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774141629387,
-    "commit": "https://github.com/openclaw/skills/commit/4234614fe5816f8f7f2a0c66229b1000aeec8f3c"
+    "version": "1.0.1",
+    "publishedAt": 1774389891080,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774141629387,
+      "commit": "https://github.com/openclaw/skills/commit/4234614fe5816f8f7f2a0c66229b1000aeec8f3c"
+    }
+  ]
 }
