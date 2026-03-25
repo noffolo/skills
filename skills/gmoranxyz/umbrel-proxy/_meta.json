@@ -1,0 +1,11 @@
+{
+  "owner": "gmoranxyz",
+  "slug": "umbrel-proxy",
+  "displayName": "Umbrel Proxy Manager",
+  "latest": {
+    "version": "1.0.3",
+    "publishedAt": 1774221700932,
+    "commit": null
+  },
+  "history": []
+}
