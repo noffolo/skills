@@ -3,9 +3,15 @@
   "slug": "china-video-gen",
   "displayName": "China Video Gen",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774105758561,
-    "commit": "https://github.com/openclaw/skills/commit/b4d0aaadeb056be5e87c1b14dcde3dee9c5baabe"
+    "version": "1.0.1",
+    "publishedAt": 1774246500124,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774105758561,
+      "commit": "https://github.com/openclaw/skills/commit/b4d0aaadeb056be5e87c1b14dcde3dee9c5baabe"
+    }
+  ]
 }

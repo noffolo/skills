@@ -3,12 +3,7 @@ name: china-video-gen
 description: 国内可用的 AI 视频生成技能。Use when the user wants to create a video from text — generates script, images (via china-image-gen), voiceover (via china-tts), and merges everything into an MP4 using ffmpeg. No time limit (unlike 15s AI video models), full control over pacing and content. Automatically checks and installs dependencies (ffmpeg, china-image-gen, china-tts). Domestic-friendly, no VPN required.
 version: 1.0.0
 license: MIT-0
-metadata:
-  openclaw:
-    emoji: "🎬"
-    requires:
-      bins:
-        - curl
+metadata: {"openclaw": {"emoji": "🎬", "requires": {"bins": ["curl", "python3"], "env": ["SILICONFLOW_API_KEY"]}, "primaryEnv": "SILICONFLOW_API_KEY"}}
 ---
 
 # 国内 AI 视频生成 China Video Gen
@@ -30,9 +25,9 @@ ffmpeg 合成参数 → `references/ffmpeg.md`
 
 ---
 
-## Step 0：环境检查与自动安装
+## Step 0：环境检查
 
-**每次执行前必须先检查依赖，缺失则自动安装并告知用户。**
+**每次执行前必须先检查依赖，缺失则提示用户手动安装。**
 
 ### 检查 ffmpeg
 
@@ -40,44 +35,15 @@ ffmpeg 合成参数 → `references/ffmpeg.md`
 if command -v ffmpeg &> /dev/null; then
   echo "✅ ffmpeg 已安装: $(ffmpeg -version 2>&1 | head -1)"
 else
-  echo "⚠️  ffmpeg 未安装，正在自动安装..."
-
-  # 检测操作系统
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    if command -v brew &> /dev/null; then
-      brew install ffmpeg
-    else
-      echo "正在安装 Homebrew..."
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      brew install ffmpeg
-    fi
-
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux
-    if command -v apt-get &> /dev/null; then
-      sudo apt-get update && sudo apt-get install -y ffmpeg
-    elif command -v yum &> /dev/null; then
-      sudo yum install -y ffmpeg
-    elif command -v dnf &> /dev/null; then
-      sudo dnf install -y ffmpeg
-    else
-      echo "❌ 无法自动安装 ffmpeg，请手动安装："
-      echo "   Ubuntu/Debian: sudo apt install ffmpeg"
-      echo "   CentOS/RHEL:   sudo yum install ffmpeg"
-      echo "   Arch Linux:    sudo pacman -S ffmpeg"
-      exit 1
-    fi
-
-  else
-    echo "❌ Windows 请手动安装 ffmpeg："
-    echo "   1. 访问 https://ffmpeg.org/download.html"
-    echo "   2. 下载 Windows 版本并解压"
-    echo "   3. 将 bin 目录添加到系统 PATH"
-    exit 1
-  fi
-
-  echo "✅ ffmpeg 安装完成"
+  echo "❌ ffmpeg 未安装，请手动安装："
+  echo ""
+  echo "  macOS:   brew install ffmpeg"
+  echo "  Ubuntu:  sudo apt install ffmpeg"
+  echo "  CentOS:  sudo yum install ffmpeg"
+  echo "  Windows: 从 https://ffmpeg.org/download.html 下载并添加到 PATH"
+  echo ""
+  echo "安装完成后重新运行本技能。"
+  exit 1
 fi
 ```
 
