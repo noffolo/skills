@@ -1,0 +1,11 @@
+{
+  "owner": "gora050",
+  "slug": "veracode",
+  "displayName": "Veracode",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774380209379,
+    "commit": null
+  },
+  "history": []
+}
