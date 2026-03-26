@@ -1,0 +1,44 @@
+{
+  "imap": {
+    "host": "imap.gmail.com",
+    "port": 993,
+    "ssl": true
+  },
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "ssl": true
+  },
+  "credentials": {
+    "env_file": "~/.openclaw/secrets/gmail.env"
+  },
+  "check": {
+    "max_emails": 20,
+    "peek_mode": true,
+    "body_preview_length": 200
+  },
+  "classification": {
+    "ai_confidence_threshold": 0.7
+  },
+  "notifications": {
+    "priority_threshold": 1,
+    "summary_time": "08:00",
+    "evening_check": "20:00"
+  },
+  "knowledge_base": {
+    "path": "~/.openclaw/workspace/knowledge/trade/",
+    "files": {
+      "inquiry": ["email-templates.md", "incoterms-2020.md"],
+      "order": ["export-process.md"],
+      "logistics": ["export-process.md"]
+    }
+  },
+  "reply": {
+    "default_language": "bilingual",
+    "require_confirmation": true,
+    "signature_template": "\n---\nBest regards,\n[Your Name]\n[Company Name]"
+  },
+  "maintenance": {
+    "cleanup_days": 30
+  }
+}

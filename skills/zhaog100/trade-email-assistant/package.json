@@ -1,0 +1,17 @@
+{
+  "name": "trade-email-assistant",
+  "version": "1.0.0",
+  "description": "外贸邮件 AI 助手 - IMAP 拉取、关键词分类、智能回复",
+  "author": "SJYKJ",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 思捷娅科技 (SJYKJ)",
+  "scripts": {
+    "check": "bash scripts/check-emails.sh",
+    "classify": "bash scripts/check-emails.sh | python3 scripts/classify-email.py",
+    "send": "bash scripts/send-email.sh",
+    "summary": "bash scripts/email-summary.sh",
+    "init-db": "python3 scripts/init-db.py"
+  },
+  "keywords": ["trade", "email", "assistant", "IMAP", "SMTP"],
+  "dependencies": {}
+}
