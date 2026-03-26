@@ -1,0 +1,11 @@
+{
+  "owner": "marcosnahuel",
+  "slug": "mercadolibre-mcp",
+  "displayName": "Mercado Libre MCP Server",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774380748998,
+    "commit": null
+  },
+  "history": []
+}
