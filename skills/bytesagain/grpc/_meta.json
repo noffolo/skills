@@ -1,0 +1,11 @@
+{
+  "owner": "bytesagain",
+  "slug": "grpc",
+  "displayName": "Grpc",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774304227387,
+    "commit": null
+  },
+  "history": []
+}
