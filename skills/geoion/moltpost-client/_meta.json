@@ -1,0 +1,11 @@
+{
+  "owner": "geoion",
+  "slug": "moltpost-client",
+  "displayName": "Client",
+  "latest": {
+    "version": "0.3.6",
+    "publishedAt": 1774425782607,
+    "commit": null
+  },
+  "history": []
+}
