@@ -1,0 +1,5 @@
+clawhub publish /Applications/develop/temp/skill_getTbMonthSale \
+  --slug tb-monthsale-query \
+  --name "阿里商品月销查询" \
+  --version 1.0.1 \
+  --tags latest
