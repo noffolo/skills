@@ -1,0 +1,11 @@
+{
+  "owner": "mrchop",
+  "slug": "veto-approval",
+  "displayName": "Veto Approval (Human-in-the-Loop)",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774380982919,
+    "commit": null
+  },
+  "history": []
+}
