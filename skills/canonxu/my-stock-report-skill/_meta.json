@@ -1,0 +1,11 @@
+{
+  "owner": "canonxu",
+  "slug": "my-stock-report-skill",
+  "displayName": "my_stock_report_skill",
+  "latest": {
+    "version": "1.0.3",
+    "publishedAt": 1774414271971,
+    "commit": null
+  },
+  "history": []
+}
