@@ -1,0 +1,39 @@
+{
+  "name": "newstoday",
+  "version": "1.0.0",
+  "description": "NewsToday — 中文新闻聚合 Skill。每日早报推送、多平台热榜聚合、分类速览、话题追踪。Chinese news aggregation: daily briefing push, trending, category browse, topic tracking.",
+  "keywords": [
+    "新闻推送",
+    "早报",
+    "新闻摘要",
+    "每日新闻",
+    "热榜",
+    "热搜",
+    "订阅新闻",
+    "话题追踪",
+    "微博热搜",
+    "知乎热榜",
+    "科技新闻",
+    "财经新闻",
+    "头条",
+    "news push",
+    "daily briefing",
+    "news summary",
+    "Chinese news",
+    "trending",
+    "topic tracking",
+    "morning briefing"
+  ],
+  "author": "jiajiaoy",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "push-on": "node scripts/push-toggle.js on",
+    "push-off": "node scripts/push-toggle.js off",
+    "push-status": "node scripts/push-toggle.js status",
+    "morning": "node scripts/morning-push.js",
+    "evening": "node scripts/evening-push.js"
+  }
+}
