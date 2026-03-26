@@ -1,0 +1,11 @@
+{
+  "owner": "chengzongxin",
+  "slug": "jenkins-build",
+  "displayName": "Jenkins Build",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774410677355,
+    "commit": null
+  },
+  "history": []
+}
