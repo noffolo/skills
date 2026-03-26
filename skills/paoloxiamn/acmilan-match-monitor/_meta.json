@@ -3,9 +3,15 @@
   "slug": "acmilan-match-monitor",
   "displayName": "AC Milan Match Monitor",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774332471632,
-    "commit": "https://github.com/openclaw/skills/commit/028dc51315b47e61ff9a79c05ffdeb904a8aec12"
+    "version": "1.2.1",
+    "publishedAt": 1774335547733,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774332471632,
+      "commit": "https://github.com/openclaw/skills/commit/028dc51315b47e61ff9a79c05ffdeb904a8aec12"
+    }
+  ]
 }
