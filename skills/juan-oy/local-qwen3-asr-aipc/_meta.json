@@ -1,0 +1,11 @@
+{
+  "owner": "juan-oy",
+  "slug": "local-qwen3-asr-aipc",
+  "displayName": "Local speech to text Qwen3-ASR w/ OpenVINO (no API key)",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774341616039,
+    "commit": null
+  },
+  "history": []
+}
