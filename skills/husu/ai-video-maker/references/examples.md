@@ -4,17 +4,7 @@
 
 Command:
 ```bash
-node scripts/run-workflow.mjs --model t2v --input ./examples/t2v-input.json
-```
-
-Input file (`examples/t2v-input.json`):
-```json
-{
-  "prompt": "A cinematic sunset over a futuristic city skyline",
-  "aspectRatio": "16:9",
-  "filterMode": "strict",
-  "duration": "8"
-}
+node scripts/run-workflow.mjs --model <model> --payload '<json_payload>'
 ```
 
 Skill runtime output:

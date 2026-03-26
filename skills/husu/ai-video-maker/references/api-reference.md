@@ -20,21 +20,18 @@ All requests require header:
 ##### `t2v` (Text to Video)
 - `prompt`: string, required
 - `aspectRatio`: `16:9` | `9:16` | `1:1`, required
-- `filterMode`: `strict` | `custom`, required
 - `duration`: `5` | `8`, required
 - Credits: `duration * 1`
 
 ##### `i2v` (Image to Video)
-- `image`: string (image URL), required
+- `image`: string (public image URL or `data:image/...;base64,...`), required
 - `prompt`: string | null, optional
-- `filterMode`: `strict` | `custom`, required
 - `duration`: `5` | `8`, required
 - Credits: `duration * 1`
 
 ##### `lv` (Long Video)
-- `image`: string (first frame URL), required
+- `image`: string (first frame URL or `data:image/...;base64,...`), required
 - `prompt`: string[] (max 6), required
-- `filterMode`: `strict` | `custom`, required
 - Credits: `prompt.length * 5 * 15`
 - Duration rule: each prompt segment equals 5 seconds
 
@@ -45,10 +42,16 @@ All requests require header:
 - Credits: `duration * 10`
 
 ##### `i2v_v3` (Image to Video V3)
-- `image`: string (image URL), required
+- `image`: string (public image URL or `data:image/...;base64,...`), required
 - `prompt`: string | null, optional
 - `duration`: `5` | `10` | `15` | `20`, required
 - Credits: `duration * 10`
+
+## Image input note
+- Skill contract accepts both public image URLs and `data:image/...;base64,...` for image inputs.
+- Prefer `data:image/...;base64,...` in OpenClaw to avoid unreachable URL issues.
+- Backend uploads base64 image to R2 first.
+- Task input stored in `/api/v1/tasks/{taskId}` keeps the R2 URL instead of the full base64 string.
 
 #### Raw API success response (from docs)
 ```json

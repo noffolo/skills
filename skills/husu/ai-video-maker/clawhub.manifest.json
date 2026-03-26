@@ -1,11 +1,28 @@
 {
   "name": "aivideo-api-executor",
   "displayName": "AIVideoMaker API Executor",
-  "version": "0.2.1",
+  "version": "1.0.14",
   "entry": "SKILL.md",
-  "language": ["en"],
-  "tags": ["api", "video-generation", "workflow", "automation"],
+  "language": [
+    "en"
+  ],
+  "tags": [
+    "api",
+    "video-generation",
+    "workflow",
+    "automation"
+  ],
   "requirements": {
+    "env_vars": {
+      "required": [
+        "AIVIDEO_API_KEY"
+      ],
+      "optional": [
+        "AIVIDEO_TIMEOUT_MS",
+        "AIVIDEO_MAX_RETRIES"
+      ]
+    },
+    "binaries": ["node"],
     "primaryCredential": "AIVIDEO_API_KEY",
     "environmentVariables": [
       {
@@ -24,19 +41,16 @@
         "required": false,
         "default": "3",
         "description": "Max retries for idempotent read requests"
-      },
-      {
-        "name": "SMOKE_TASK_ID",
-        "required": false,
-        "description": "Used only by scripts/smoke-test.mjs"
       }
     ]
   },
   "runtime": {
     "type": "node",
     "commands": [
-      "node scripts/run-workflow.mjs --model t2v --input ./examples/t2v-input.json",
-      "node scripts/run-workflow.mjs --action getStatus --taskId <taskId>"
+      "node scripts/run-workflow.mjs --model <model> --payload '<json_payload>'",
+      "node scripts/run-workflow.mjs --action getStatus --taskId <task_id>",
+      "node scripts/run-workflow.mjs --action getTask --taskId <task_id>",
+      "node scripts/run-workflow.mjs --action cancelTask --taskId <task_id>"
     ]
   }
 }

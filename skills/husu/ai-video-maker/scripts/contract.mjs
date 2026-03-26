@@ -8,7 +8,6 @@ export const ACTIONS = {
 };
 
 const ASPECT_RATIOS = ["16:9", "9:16", "1:1"];
-const FILTER_MODES = ["strict", "custom"];
 const DURATIONS_V1 = ["5", "8"];
 const DURATIONS_V3 = ["5", "10", "15", "20"];
 
@@ -18,6 +17,23 @@ function isNonEmptyString(value) {
 
 function isNullableString(value) {
   return value === null || typeof value === "string";
+}
+
+function isImageDataUri(value) {
+  return (
+    typeof value === "string" &&
+    value.startsWith("data:image/") &&
+    value.includes(";base64,") &&
+    value.split("base64,")[1]?.trim().length > 0
+  );
+}
+
+function isHttpImageUrl(value) {
+  return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"));
+}
+
+function isImageSource(value) {
+  return isImageDataUri(value) || isHttpImageUrl(value);
 }
 
 function ensure(value, rule, field, expected, errors) {
@@ -40,13 +56,6 @@ function validateT2V(payload, errors) {
     errors,
   );
   ensure(
-    payload.filterMode,
-    (v) => FILTER_MODES.includes(v),
-    "filterMode",
-    `one of ${FILTER_MODES.join(", ")}`,
-    errors,
-  );
-  ensure(
     payload.duration,
     (v) => DURATIONS_V1.includes(v),
     "duration",
@@ -56,15 +65,14 @@ function validateT2V(payload, errors) {
 }
 
 function validateI2V(payload, errors) {
-  ensure(payload.image, isNonEmptyString, "image", "non-empty string URL", errors);
-  ensure(payload.prompt, isNullableString, "prompt", "string or null", errors);
   ensure(
-    payload.filterMode,
-    (v) => FILTER_MODES.includes(v),
-    "filterMode",
-    `one of ${FILTER_MODES.join(", ")}`,
-    errors,
+    payload.image,
+    isImageSource,
+    "image",
+    "public image URL or image data URI (prefer data URI: data:image/...;base64,...)",
+    errors
   );
+  ensure(payload.prompt, isNullableString, "prompt", "string or null", errors);
   ensure(
     payload.duration,
     (v) => DURATIONS_V1.includes(v),
@@ -75,7 +83,13 @@ function validateI2V(payload, errors) {
 }
 
 function validateLV(payload, errors) {
-  ensure(payload.image, isNonEmptyString, "image", "non-empty string URL", errors);
+  ensure(
+    payload.image,
+    isImageSource,
+    "image",
+    "public image URL or image data URI (prefer data URI: data:image/...;base64,...)",
+    errors
+  );
   ensure(
     payload.prompt,
     (v) =>
@@ -85,13 +99,6 @@ function validateLV(payload, errors) {
       v.every((item) => typeof item === "string" && item.trim().length > 0),
     "prompt",
     "string[] with 1-6 non-empty items",
-    errors,
-  );
-  ensure(
-    payload.filterMode,
-    (v) => FILTER_MODES.includes(v),
-    "filterMode",
-    `one of ${FILTER_MODES.join(", ")}`,
     errors,
   );
 }
@@ -115,7 +122,13 @@ function validateT2VV3(payload, errors) {
 }
 
 function validateI2VV3(payload, errors) {
-  ensure(payload.image, isNonEmptyString, "image", "non-empty string URL", errors);
+  ensure(
+    payload.image,
+    isImageSource,
+    "image",
+    "public image URL or image data URI (prefer data URI: data:image/...;base64,...)",
+    errors
+  );
   ensure(payload.prompt, isNullableString, "prompt", "string or null", errors);
   ensure(
     payload.duration,

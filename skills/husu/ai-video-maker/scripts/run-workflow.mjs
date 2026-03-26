@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import fs from "node:fs/promises";
 import { createAIVideoClient } from "./aivideo-client.mjs";
 
 const TERMINAL_STATUSES = new Set(["COMPLETED", "FAILED", "CANCEL"]);
@@ -58,9 +57,12 @@ function failureSuggestions(result) {
   return ["Check request parameters and network state, then retry."];
 }
 
-async function readJson(path) {
-  const content = await fs.readFile(path, "utf8");
-  return JSON.parse(content);
+function parseJsonText(text, sourceLabel) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`${sourceLabel} must be valid JSON`);
+  }
 }
 
 function print(result) {
@@ -98,12 +100,15 @@ async function runAction(client, args) {
 
 async function runCreateAndPoll(client, args) {
   const model = args.model;
-  const inputPath = args.input;
+  const payloadText = args.payload;
 
   if (!model) throw new Error("--model is required");
-  if (!inputPath) throw new Error("--input is required");
+  if (!payloadText) {
+    throw new Error("--payload is required");
+  }
 
-  const payload = await readJson(inputPath);
+  // Production mode: only accept runtime payload to avoid stale template files.
+  const payload = parseJsonText(payloadText, "--payload");
   const createResult = await client.createGeneration({ model, payload });
   if (!createResult.ok) {
     print({
