@@ -1,0 +1,11 @@
+{
+  "owner": "ai-ggroup",
+  "slug": "gipformer",
+  "displayName": "Gipformer ASR",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774402817697,
+    "commit": null
+  },
+  "history": []
+}
