@@ -34,6 +34,8 @@ echo 'export MINIMAX_API_KEY="your_key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
+Note: `MINIMAX_API_HOST` is set automatically by the scripts (defaults to `https://api.minimaxi.com`).
+
 ## Step 3: Verify
 
 ```bash

@@ -18,6 +18,15 @@ def web_search(query):
         print("Please run: export MINIMAX_API_KEY=your_api_key", file=sys.stderr)
         sys.exit(1)
 
+    # Build environment with required variables
+    # Only pass necessary environment variables (avoid leaking other secrets)
+    env = {
+        'PATH': os.environ.get('PATH', ''),
+        'MINIMAX_API_KEY': api_key,
+        'MINIMAX_API_HOST': os.environ.get('MINIMAX_API_HOST', 'https://api.minimaxi.com'),
+        'MINIMAX_MCP_BASE_PATH': '/tmp/mcporter-output',
+    }
+
     requests = [
         {'jsonrpc': '2.0', 'id': 1, 'method': 'initialize',
          'params': {'protocolVersion': '2024-11-05', 'capabilities': {},
@@ -31,7 +40,7 @@ def web_search(query):
         proc = subprocess.Popen(
             ['uvx', 'minimax-coding-plan-mcp'],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, text=True
+            stderr=subprocess.PIPE, env=env, text=True
         )
         input_data = '\n'.join([json.dumps(r) for r in requests]) + '\n'
         stdout, stderr = proc.communicate(input=input_data, timeout=60)
@@ -57,7 +66,7 @@ def web_search(query):
         sys.exit(1)
     except FileNotFoundError:
         print("Error: uvx not found", file=sys.stderr)
-        print("Install: curl -LsSf https://astral.sh/uv/install.sh | sh", file=sys.stderr)
+        print("Install: brew install uv", file=sys.stderr)
         sys.exit(1)
 
 
