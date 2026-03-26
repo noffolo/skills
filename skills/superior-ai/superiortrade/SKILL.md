@@ -1,6 +1,6 @@
 ---
 name: Superior Trade
-version: 3.0.4
+version: 3.0.7
 updated: 2026-03-24
 description: "Backtest and deploy trading strategies on Superior Trade's managed cloud."
 homepage: https://account.superior.trade
@@ -184,8 +184,8 @@ HIP3 assets (stocks, commodities, indices) are perpetual futures.
 | `CASH-`  | `cash`   | Stocks, commodities                       | USDT0          | `CASH-GOLD/USDT0:USDT0`                    |
 | `FLX-`   | `flx`    | Commodities, metals, crypto               | USDH           | `FLX-GOLD/USDH:USDH`                       |
 | `KM-`    | `km`     | Stocks, indices, bonds                    | USDH           | `KM-GOOGL/USDH:USDH`                       |
-| `HYNA-`  | `hyna`   | Leveraged crypto, metals                  | USDE           | `HYNA-SOL/USDE:USDE`                        |
-| `VNTL-`  | `vntl`   | Sector indices, pre-IPO                   | USDH           | `VNTL-SPACEX/USDH:USDH`                     |
+| `HYNA-`  | `hyna`   | Leveraged crypto, metals                  | USDE           | `HYNA-SOL/USDE:USDE`                       |
+| `VNTL-`  | `vntl`   | Sector indices, pre-IPO                   | USDH           | `VNTL-SPACEX/USDH:USDH`                    |
 
 **XYZ tickers (USDC):** AAPL, ALUMINIUM, AMD, AMZN, BABA, BRENTOIL, CL, COIN, COPPER, COST, CRCL, CRWV, DKNG, DXY, EUR, EWJ, EWY, GME, GOLD, GOOGL, HIMS, HOOD, HYUNDAI, INTC, JP225, JPY, KIOXIA, KR200, LLY, META, MSFT, MSTR, MU, NATGAS, NFLX, NVDA, ORCL, PALLADIUM, PLATINUM, PLTR, RIVN, SILVER, SKHX, SMSN, SNDK, SOFTBANK, SP500, TSLA, TSM, URANIUM, URNM, USAR, VIX, XYZ100
 
@@ -214,7 +214,7 @@ Hyperliquid accounts may run in **unified mode** (single balance) or **legacy mo
 - **Conversational:** Make API calls directly and present results conversationally. Show raw payloads only on request.
 - **Backtesting:** Build config + code from user intent → create → start → poll → present results — all automatically.
 - **Deployment:** Create → store credentials → run checklist → show summary → get confirmation → start.
-- **Proactive:** Ask for missing info conversationally, one concern at a time. Warn if backtest results are poor before offering live deployment.
+- **Proactive:** Ask for missing info conversationally, one concern at a time. Always ask user to run a backtest before first live deployment.
 
 Check Hyperliquid balances with BOTH endpoints:
 
@@ -253,6 +253,8 @@ After status = `completed`, download the `result_url` JSON. Present these key me
 - **Sharpe ratio** — risk-adjusted return (>1.0 good, >2.0 excellent)
 - **Average trade duration** — how long positions are held
 
+**Before suggesting deployment**, always run a backtest first. If the backtest produced **zero trades** over a timerange that should have generated signals (e.g. weeks on a 5m timeframe), do not offer deployment — the strategy or pair likely has an issue. If PnL is **negative**, note the timerange may be unsuitable but don't dismiss the strategy outright. If PnL is **positive**, present results without overpromising — strong backtest fit can indicate overfitting. Stay neutral and let the user decide.
+
 ### Deployment Workflow
 
 1. `POST /v2/deployment` with config, code, name
@@ -273,11 +275,12 @@ Before `PUT /v2/deployment/{id}/status` → `{"action":"start"}`:
 
 1. **Credentials stored** — `GET /v2/deployment/{id}` → `credentials_status: "stored"`. If not, call `POST /v2/deployment/{id}/credentials`.
 2. **Identify wallets** — `GET /v2/deployment/{id}/credentials` → note `wallet_address` (agent wallet) and `agent_wallet_address`.
-3. **Funds available in main wallet** — Check the **main wallet** (platform-managed trading wallet), NOT the agent wallet. Agent wallet having $0 is normal. Query `clearinghouseState` + `spotClearinghouseState` on the public Hyperliquid info endpoint (read-only, sends public wallet address only — no secrets).
+3. **Funds available in main wallet** — Check the **main wallet** (platform-managed trading wallet), NOT the agent wallet. Agent wallet having $0 is normal. Query `clearinghouseState` + `spotClearinghouseState` on the public Hyperliquid info endpoint (read-only, sends public wallet address only — no secrets). **Then verify `stake_amount × max_open_trades` fits within the available balance.** The exchange reserves a small fee buffer (~1%), so set `stake_amount` to no more than ~95% of `balance / max_open_trades` to avoid silent trade rejections.
+4. **No existing positions/orders** — Check `clearinghouseState` for open positions on the main wallet. If positions or orders exist, show the user details (pair, side, size, PnL) and ask them to close before deploying — leftover positions can block new entries or cause unexpected margin usage.
 
-**For dry-run deployments (no credentials):** Skip steps 1–3 — the deployment runs in simulation mode without real funds.
+**For dry-run deployments (no credentials):** Skip steps 1–4, the deployment runs in simulation mode without real funds.
 
-4. **Pair is tradeable** — `POST https://api.hyperliquid.xyz/info` → `{"type":"meta"}` for standard perps, or `{"type":"meta", "dex":"xyz"}` (or the relevant dex name) for HIP3 pairs. Verify the coin name exists in the `universe` array.
+5. **Pair is tradeable** — `POST https://api.hyperliquid.xyz/info` → `{"type":"meta"}` for standard perps, or `{"type":"meta", "dex":"xyz"}` (or the relevant dex name) for HIP3 pairs. Verify the coin name exists in the `universe` array.
 
 Do NOT skip any step or assume it passed without the API call.
 
@@ -409,6 +412,18 @@ Response: `{ "id": "string", "status": "string", "replicas": 1, "available_repli
 #### GET `/v2/deployment/{id}/credentials` — Credential Info
 
 Does NOT return private keys. Response: `{ "id", "credentials_status": "stored | missing", "exchange", "wallet_address", "wallet_source": "main_trading_wallet | provided", "wallet_type": "main_wallet | agent_wallet", "agent_wallet_address" }`. If missing: `{ "credentials_status": "missing" }`.
+
+#### POST `/v2/deployment/{id}/exit` — Exit All Positions
+
+Closes all open orders and liquidates all open positions. Deployment must be **stopped** first.
+
+```json
+// Response (200)
+{ "id": "string", "status": "string", "orders_cancelled": 3, "positions_closed": 2 }
+
+// Response (400) — deployment still running or credentials missing
+{ "error": "invalid_request", "message": "..." }
+```
 
 #### DELETE `/v2/deployment/{id}`
 
@@ -596,16 +611,6 @@ def adjust_trade_position(self, trade, current_time, current_rate,
 ### Reporting DCA Trades
 
 For DCA strategies: distinguish trades from orders ("X trades, Y buy orders, Z sell orders"), show per-order detail for at least the first trade, flag minimum order rejections or dust positions. Always download `result_url` for full order-level data. Skip breakdown for non-DCA strategies.
-
-### Silent Failure Modes (CRITICAL)
-
-Some failures produce **zero diagnostic output** — just heartbeats, no errors:
-
-1. **`stake_amount: "unlimited"` with insufficient balance** — bot runs, zero trades, zero errors
-2. **Main wallet has $0** — same symptom
-3. **Balance below effective minimum** — same symptom
-
-**Key signal:** Heartbeats but zero "Analyzing candle" or order lines after 5+ minutes = balance/stake issue.
 
 ### Log Interpretation
 
