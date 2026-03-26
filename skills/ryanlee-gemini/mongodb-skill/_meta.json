@@ -1,0 +1,11 @@
+{
+  "owner": "ryanlee-gemini",
+  "slug": "mongodb-skill",
+  "displayName": "MongoDB Skill - 灵活的文档数据库管理",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774246698263,
+    "commit": null
+  },
+  "history": []
+}
