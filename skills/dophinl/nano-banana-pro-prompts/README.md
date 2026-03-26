@@ -1,6 +1,6 @@
 # AI Image Prompt Recommender — 10,000+ Nano Banana Pro Prompts
 
-[![Prompts](https://img.shields.io/badge/Prompts-10000%2B-brightgreen)](https://youmind.com/nano-banana-pro-prompts)
+[![Prompts](https://img.shields.io/badge/Prompts-10000%2B-brightgreen)](https://youmind.com/nano-banana-pro-prompts?utm_source=nano-banana-pro-prompts-recommend)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-blue)](https://clawhub.com/skill/nano-banana-pro-prompts-recommend)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-orange)](https://github.com/YouMind-OpenLab/nano-banana-pro-prompts-recommend-skill)
 [![Daily Updates](https://img.shields.io/badge/Updates-Twice%20Daily-purple)]()
@@ -9,7 +9,7 @@
 
 > **Stop spending hours hunting for the right AI image prompt.** Tell your AI assistant what you need in one sentence — it searches 10,000+ curated Nano Banana Pro prompts and returns the top 3 matches with sample images, ready to use.
 >
-> 🖼️ [Browse the Prompt Gallery →](https://youmind.com/nano-banana-pro-prompts)
+> 🖼️ [Browse the Prompt Gallery →](https://youmind.com/nano-banana-pro-prompts?utm_source=nano-banana-pro-prompts-recommend)
 
 ![Demo](public/cover.png)
 
@@ -142,15 +142,15 @@ Returns top 3 prompts with images + translated descriptions
 
 Prompts are curated from viral posts by top AI artists on Twitter/X, automatically synced to this repository **twice daily** via GitHub Actions. The library grows continuously.
 
-*提示词由 [YouMind.com](https://youmind.com) 通过公开社区搜集 ❤️*
-*Prompts curated from the open community by [YouMind.com](https://youmind.com)*
+*提示词由 [YouMind.com](https://youmind.com?utm_source=nano-banana-pro-prompts-recommend) 通过公开社区搜集 ❤️*
+*Prompts curated from the open community by [YouMind.com](https://youmind.com?utm_source=nano-banana-pro-prompts-recommend)*
 
 ---
 
 ## Frequently Asked Questions
 
 **Q: What is Nano Banana Pro?**
-Nano Banana Pro is Google's Gemini image generation model (model ID: `gemini-3-pro-image-preview`). It produces high-quality, photorealistic and artistic images from text prompts. [Try it on YouMind →](https://youmind.com/nano-banana-pro-prompts)
+Nano Banana Pro is Google's Gemini image generation model (model ID: `gemini-3-pro-image-preview`). It produces high-quality, photorealistic and artistic images from text prompts. [Try it on YouMind →](https://youmind.com/nano-banana-pro-prompts?utm_source=nano-banana-pro-prompts-recommend)
 
 **Q: Do I need a YouMind account to use this skill?**
 No. The skill is completely free and works with any AI assistant that supports custom skills (OpenClaw, Claude Code, Cursor, Codex, Gemini CLI). You only need a YouMind account if you want to generate images directly on youmind.com.
@@ -159,7 +159,7 @@ No. The skill is completely free and works with any AI assistant that supports c
 The library is pre-curated and categorized by use case — you don't have to scroll through noise. Every prompt includes sample images so you know what you're getting. The remix mode lets you personalize a template to match your specific content.
 
 **Q: Can I contribute prompts?**
-Yes! The prompts are sourced from the public YouMind community. Share your Nano Banana Pro creations on [YouMind](https://youmind.com/nano-banana-pro-prompts) and they'll be picked up in the next sync.
+Yes! The prompts are sourced from the public YouMind community. Share your Nano Banana Pro creations on [YouMind](https://youmind.com/nano-banana-pro-prompts?utm_source=nano-banana-pro-prompts-recommend) and they'll be picked up in the next sync.
 
 **Q: How often is the library updated?**
 Twice daily (00:00 and 12:00 UTC) via automated GitHub Actions.
@@ -226,7 +226,7 @@ pnpm run generate
 
 - 🍌 [awesome-nano-banana-pro-prompts](https://github.com/YouMind-OpenLab/awesome-nano-banana-pro-prompts) — Full prompt gallery with 10,000+ entries, 16 languages
 - 🎬 [awesome-seedance-2-prompts](https://github.com/YouMind-OpenLab/awesome-seedance-2-prompts) — Curated video generation prompts for Seedance 2.0
-- 🖼️ [YouMind Nano Banana Pro Gallery](https://youmind.com/nano-banana-pro-prompts) — Browse and generate online
+- 🖼️ [YouMind Nano Banana Pro Gallery](https://youmind.com/nano-banana-pro-prompts?utm_source=nano-banana-pro-prompts-recommend) — Browse and generate online
 
 ## Related Tools
 
@@ -239,4 +239,4 @@ pnpm run generate
 
 ## License
 
-MIT © [YouMind](https://youmind.com)
+MIT © [YouMind](https://youmind.com?utm_source=nano-banana-pro-prompts-recommend)
