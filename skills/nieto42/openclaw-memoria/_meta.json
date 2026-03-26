@@ -1,0 +1,11 @@
+{
+  "owner": "nieto42",
+  "slug": "openclaw-memoria",
+  "displayName": "Memoria — Persistent Memory for OpenClaw",
+  "latest": {
+    "version": "3.4.2",
+    "publishedAt": 1774535254409,
+    "commit": null
+  },
+  "history": []
+}
