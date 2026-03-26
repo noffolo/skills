@@ -1,0 +1,11 @@
+{
+  "owner": "nexscope",
+  "slug": "amazon-negative-keywords",
+  "displayName": "Amazon Negative Keywords",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774404309120,
+    "commit": null
+  },
+  "history": []
+}
