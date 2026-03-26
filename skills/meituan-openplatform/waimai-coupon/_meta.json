@@ -1,0 +1,11 @@
+{
+  "owner": "meituan-openplatform",
+  "slug": "waimai-coupon",
+  "displayName": "美团优惠券",
+  "latest": {
+    "version": "1.0.4",
+    "publishedAt": 1774494816107,
+    "commit": null
+  },
+  "history": []
+}
