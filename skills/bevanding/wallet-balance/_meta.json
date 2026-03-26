@@ -1,0 +1,11 @@
+{
+  "owner": "bevanding",
+  "slug": "wallet-balance",
+  "displayName": "Wallet Balance",
+  "latest": {
+    "version": "1.1.5",
+    "publishedAt": 1774481256881,
+    "commit": null
+  },
+  "history": []
+}
