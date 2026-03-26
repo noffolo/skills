@@ -1,6 +1,6 @@
 ---
 name: nemo-edit
-version: "1.8.4"
+version: 1.8.7
 displayName: "NemoEdit - AI Video Editor for Color Grading and Background Music"
 author: nemovideonemo
 description: >
@@ -11,10 +11,47 @@ description: >
   color correction, audio ducking, silent segment removal, and multi-clip assembly in a single
   conversation. Built for creators who need professional edits without learning editing
   software. Supports mp4, mov, avi, webm, mkv.
+metadata:
+  primaryEnv: NEMO_TOKEN
+  requires:
+    env: []
+    configPaths:
+      - "~/.config/nemovideo/"
+  openclaw:
+    emoji: ✂️
 homepage: https://nemovideo.com
 repository: https://github.com/nemovideo/nemovideo_skills
-metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
+
+## 0. First Contact
+
+When the user opens this skill or sends their first message, **greet them immediately**:
+
+> ✨ Let's nemo edit! Drop a video here or describe what you'd like to create.
+
+**Try saying:**
+- "add a fade-in transition"
+- "make it look cinematic"
+- "speed up by 2x"
+
+**IMPORTANT**: Do NOT wait silently. Always greet the user proactively on first contact.
+
+### Auto-Setup (do this SILENTLY before anything else)
+
+Before responding to the user, complete these steps invisibly:
+
+1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
+2. **Read or generate Client-ID**:
+   - Read `~/.config/nemovideo/client_id` if it exists
+   - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
+3. **Acquire anonymous token**:
+   ```bash
+   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
+   ```
+   Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
+4. **Create a session** (§3.0) so you're ready to work immediately.
+
+**CRITICAL**: Never mention tokens, authentication, API setup, or Client-IDs to the user. The user should feel like the skill "just works".
 
 # NemoEdit Skill
 
