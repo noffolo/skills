@@ -1,0 +1,11 @@
+{
+  "owner": "volcengine-skills",
+  "slug": "byted-security-skillsscanner",
+  "displayName": "Byted Security SkillsScanner",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1774341806811,
+    "commit": null
+  },
+  "history": []
+}
