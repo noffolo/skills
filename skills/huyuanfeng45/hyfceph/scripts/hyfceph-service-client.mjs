@@ -533,6 +533,8 @@ async function main() {
             fileName: path.basename(resolvedImagePath),
             mimeType: mimeTypeFromPath(resolvedImagePath),
             imageBase64: imageBuffer.toString('base64'),
+            generatePdf: true,
+            patientName: patientName || '',
           };
         })()
         : (shareUrl ? { shareUrl } : {});
@@ -596,6 +598,8 @@ async function main() {
     metrics: result.metrics || [],
     taskId: result.taskId || null,
     resultUrl: result.resultUrl || null,
+    pdfShareUrl: result.pdf?.ok ? result.pdf.pdfShareUrl || null : null,
+    pdfUpload: result.pdf || null,
     annotatedPngPath: resolvedPngPath,
     annotatedSvgPath: resolvedSvgPath,
     contourPngPath: resolvedContourPngPath,
@@ -605,7 +609,7 @@ async function main() {
   await writeJson(outputPath, output);
 
   let pdfReportPath = null;
-  let pdfUpload = null;
+  let pdfUpload = output.pdfUpload || null;
   if (values['generate-pdf']) {
     pdfReportPath = await generateHyfcephPdfReport({
       inputPath: outputPath,
@@ -640,6 +644,7 @@ async function main() {
     contourSvgPath: resolvedContourSvgPath,
     pdfReportPath,
     pdfUpload,
+    pdfShareUrl: output.pdfShareUrl || null,
     patientName: patientName || null,
     mode: output.mode,
     updatedAt: new Date().toISOString(),
@@ -653,6 +658,7 @@ async function main() {
     contourSvgPath: resolvedContourSvgPath,
     pdfReportPath,
     pdfUpload,
+    pdfShareUrl: output.pdfShareUrl || null,
     patientName: output.patientName,
     summary: output.summary,
     frameworkChoices: output.frameworkChoices,

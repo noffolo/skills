@@ -58,13 +58,13 @@ After the user has either provided an API key, or a valid saved key is already p
 1. If the user has provided one local ceph image, upload it to the portal and run:
 
 ```bash
-node scripts/hyfceph-service-client.mjs --image /path/to/ceph.png --generate-pdf
+node scripts/hyfceph-service-client.mjs --image /path/to/ceph.png
 ```
 
 If the user has just provided a new API key in this conversation, pass it once:
 
 ```bash
-node scripts/hyfceph-service-client.mjs --api-key 'user-api-key' --image /path/to/ceph.png --generate-pdf
+node scripts/hyfceph-service-client.mjs --api-key 'user-api-key' --image /path/to/ceph.png
 ```
 
 2. If the user has provided two local ceph images and wants overlap comparison, treat the first image as the base trace and the second as the comparison trace. Default to `SN` alignment unless the user explicitly asks for `FH`:
@@ -101,14 +101,9 @@ If you already know the exact result JSON path, you may use:
 node scripts/hyfceph-service-client.mjs --pdf-input /absolute/path/to/result.json --patient-name '患者姓名'
 ```
 
-For single-image measurement, generate the PDF by default even if the user did not explicitly ask yet. If the patient name is still unknown, it is acceptable to generate the first PDF without a name so the user can get the link immediately; if they later provide the patient name, regenerate the PDF with the name.
+For single-image measurement, generate the PDF by default even if the user did not explicitly ask yet. The preferred path is now portal-side generation: the measurement request should ask the portal to generate the PDF and upload it directly, then the reply should use the returned `pdfShareUrl`. If the patient name is still unknown, it is acceptable to generate the first PDF without a name so the user can get the link immediately; if they later provide the patient name, regenerate the PDF with the name.
 
-The PDF is generated locally on this machine first. After generation, the bundled client should also try to upload that PDF through the portal's OSS bridge and obtain a share link. In the user-facing reply, prefer sending both:
-
-- the local PDF file path
-- the uploaded PDF link
-
-If the upload fails, still send the local PDF and briefly note that the online link is temporarily unavailable. If the user later asks for additional analysis frameworks, or the case is a treatment-before/after overlap comparison, the PDF should include those framework tables and overlap comparison pages as well.
+If the portal-side PDF link is unavailable, only then fall back to local PDF generation. If the upload fails, still send the local PDF and briefly note that the online link is temporarily unavailable. If the user later asks for additional analysis frameworks, or the case is a treatment-before/after overlap comparison, the PDF should include those framework tables and overlap comparison pages as well.
 
 Before generating the PDF, ask the user once for the patient name if they have not already provided it. Put that name at the beginning of the PDF.
 
@@ -120,7 +115,7 @@ Prefer these reply-facing artifacts:
 
 - `annotatedPngPath`: PNG landmark overlay for direct display when the user asks for 标点图
 - `contourPngPath`: white-background PNG contour trace with tooth fill and no points, for direct display when the user asks for 轮廓图
-- `pdfShareUrl`: uploaded online PDF link when generation and OSS upload both succeed
+- `pdfShareUrl`: portal-side uploaded online PDF link when generation and OSS upload both succeed
 - `pdfReportPath`: local PDF path
 - `metrics`: supported measurements
 - `analysis.riskLabel`: short classification summary
@@ -142,8 +137,9 @@ When the run succeeds:
 8. If the user asks for 标点图, show `annotatedPngPath` directly with Markdown image syntax using the absolute local path.
 9. If the user asks for 轮廓图, show `contourPngPath` directly with Markdown image syntax using the absolute local path.
 10. Keep the existing data-and-analysis reply shape unchanged. The PDF and image artifacts are additional additions, not replacements for the normal measurement reply.
-11. For single-image measurement, proactively tell the user that the PDF has been generated and give both `pdfReportPath` and, if available, `pdfShareUrl`.
-12. If the uploaded share link is unavailable, briefly say that only the local PDF is available right now.
+11. For single-image measurement, proactively tell the user that the PDF has been generated and prefer `pdfShareUrl`.
+12. Only mention `pdfReportPath` when a local PDF was actually generated and available.
+13. If the uploaded share link is unavailable, briefly say that only the local PDF is available right now.
 
 Use this exact style for the closing choice line:
 
