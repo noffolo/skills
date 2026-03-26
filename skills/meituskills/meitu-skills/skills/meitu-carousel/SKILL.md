@@ -2,6 +2,7 @@
 name: meitu-carousel
 description: "一键生成轮播套组，封面+内页风格统一。适用于小红书组图笔记、知识卡片轮播、产品介绍套图。当用户提到套组、组图、轮播图、轮播套组、知识卡片套图、产品套图时触发。"
 version: "1.1.0"
+metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json","~/.openclaw/workspace/visual/"],"write":["~/.openclaw/workspace/visual/"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY

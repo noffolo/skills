@@ -2,6 +2,7 @@
 name: meitu-stickers
 description: "从用户上传的照片生成多风格四宫格表情包贴纸（内置 Q版、3D黏土、像素风、Emoji 风格，也支持自定义风格），拆分为 4 张独立贴纸，可选转成动态 GIF。当用户提到 表情包、贴纸、sticker pack、sticker、emoji pack、生成贴纸、做表情包、Q版贴纸、大头贴 时触发。"
 version: "1.1.0"
+metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json","~/.openclaw/workspace/visual/"],"write":["~/.openclaw/workspace/visual/"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY

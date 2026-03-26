@@ -1,7 +1,7 @@
 ---
 name: meitu-skills
 description: Root entry skill for Meitu capabilities. Routes requests to scene skills (meitu-poster, meitu-stickers, meitu-visual-me, meitu-product-swap, meitu-video-dance, meitu-upscale, meitu-product-view, meitu-image-fix, meitu-id-photo, meitu-cutout, meitu-carousel, meitu-beauty, meitu-image-adapt) or meitu-tools for direct Meitu CLI tool execution.
-metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"]},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
+metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json","~/.openclaw/workspace/visual/","./"],"write":["~/.openclaw/workspace/visual/","./"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY

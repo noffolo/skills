@@ -2,6 +2,7 @@
 name: meitu-image-fix
 description: "自动诊断图片的画质、人像、内容问题，按最优顺序串联 image-upscale/beauty-enhance/image-edit/cutout 修复。当用户说修图、变清晰、去水印、去路人、磨皮美颜、修一下这张图、图片模糊、老照片修复时触发。"
 version: "1.0.0"
+metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json","~/.openclaw/workspace/visual/"],"write":["~/.openclaw/workspace/visual/"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY

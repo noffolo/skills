@@ -2,6 +2,7 @@
 name: meitu-video-dance
 description: "将参考视频中的动作（舞蹈、手势、运动）迁移到目标人物或角色图片上，生成动作视频。当用户提到动作迁移、舞蹈视频、让照片跳舞、让人物动起来、dance transfer、motion transfer、视频动作复刻时触发。"
 version: "1.1.0"
+metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json","~/.openclaw/workspace/visual/"],"write":["~/.openclaw/workspace/visual/"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY

@@ -2,6 +2,7 @@
 name: meitu-product-view
 description: "从单张商品图生成多角度展示图（三视图、五视图、全角度）。支持白底、场景、透明底等背景模式，适配主流电商平台规格。当用户提到商品三视图、多角度展示、产品展示图、电商多角度、product multi-angle、三视图、转成三视图、生成多角度商品图时触发。"
 version: "1.1.0"
+metadata: {"openclaw":{"requires":{"bins":["meitu"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json","~/.openclaw/workspace/visual/"],"write":["~/.openclaw/workspace/visual/"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY

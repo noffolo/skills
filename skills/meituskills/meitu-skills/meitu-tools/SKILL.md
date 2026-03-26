@@ -1,7 +1,7 @@
 ---
 name: meitu-tools
 description: Unified Meitu CLI capability skill. Covers installation, credentials, command mapping, execution pattern, and user-facing error guidance for all built-in image/video commands.
-metadata: {"openclaw":{"requires":{"bins":["meitu","node"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"]},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
+metadata: {"openclaw":{"requires":{"bins":["meitu","node"],"env":["MEITU_OPENAPI_ACCESS_KEY","MEITU_OPENAPI_SECRET_KEY"],"paths":{"read":["~/.meitu/credentials.json"]}},"primaryEnv":"MEITU_OPENAPI_ACCESS_KEY"}}
 requirements:
   credentials:
     - name: MEITU_OPENAPI_ACCESS_KEY
