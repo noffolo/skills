@@ -1,0 +1,11 @@
+{
+  "owner": "gora050",
+  "slug": "ftrack",
+  "displayName": "Ftrack",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774440254887,
+    "commit": null
+  },
+  "history": []
+}
