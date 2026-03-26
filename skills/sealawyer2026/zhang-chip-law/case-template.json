@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "skill": "zhang-chip-law",
+    "version": "1.0.0",
+    "total_cases": 0,
+    "target_cases": 400,
+    "last_updated": "2026-03-24",
+    "categories": {
+      "ear_export_control": { "name": "EAR出口管制", "target": 120, "current": 0 },
+      "entity_list": { "name": "实体清单", "target": 80, "current": 0 },
+      "technology_transfer": { "name": "技术转让", "target": 60, "current": 0 },
+      "layout_design": { "name": "布图设计保护", "target": 50, "current": 0 },
+      "investment_review": { "name": "投资安全审查", "target": 40, "current": 0 },
+      "supply_chain": { "name": "供应链合规", "target": 30, "current": 0 },
+      "ip_layout": { "name": "半导体知产布局", "target": 20, "current": 0 }
+    }
+  },
+  "case_schema": {
+    "id": "string (CHP-001格式)",
+    "category": "string (对应categories的key)",
+    "title": "string (案例标题)",
+    "source": "string (案例来源: BIS/商务部/法院等)",
+    "date": "string (YYYY-MM-DD)",
+    "jurisdiction": "string (管辖区域: 美国/中国/欧盟等)",
+    "facts": "string (案情描述)",
+    "legal_issues": ["string (法律问题列表)"],
+    "applicable_regulations": ["string (适用法规: EAR/技术进出口管理条例等)"],
+    "eccn_classification": "string (ECCN编码，如有)",
+    "entities_involved": ["string (涉及实体名称)"],
+    "decision": "string (裁决/处理结果)",
+    "penalty": "string (处罚措施)",
+    "compliance_insights": "string (合规启示)",
+    "risk_level": "enum: high/medium/low",
+    "tags": ["string (关键词标签)"],
+    "related_cases": ["string (关联案例ID)"],
+    "created_at": "string (录入时间)",
+    "updated_at": "string (更新时间)"
+  },
+  "cases": []
+}
