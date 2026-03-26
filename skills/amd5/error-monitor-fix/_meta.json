@@ -1,0 +1,11 @@
+{
+  "owner": "amd5",
+  "slug": "error-monitor-fix",
+  "displayName": "Error Monitor Fix",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1774417625538,
+    "commit": null
+  },
+  "history": []
+}

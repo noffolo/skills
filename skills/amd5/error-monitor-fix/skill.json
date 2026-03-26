@@ -1,0 +1,16 @@
+{
+  "name": "Error Monitor Fix",
+  "description": "错误监控与自动修复技能 - 实时捕获 error 日志 + 自动修复",
+  "version": "1.0.1",
+  "identifier": "error-monitor-fix",
+  "author": "前端 ⚡",
+  "category": "monitoring",
+  "tags": ["error", "monitor", "auto-fix", "log"],
+  "requirements": {
+    "node": ">=18.0.0",
+    "systemd": true
+  },
+  "scripts": {
+    "postinstall": "bash scripts/install.sh"
+  }
+}
