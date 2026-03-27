@@ -1,0 +1,11 @@
+{
+  "owner": "diagnostikon",
+  "slug": "polymarket-48h-price-curve-arb-trader",
+  "displayName": "48h Price Curve Arbitrage Trader",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774605703595,
+    "commit": null
+  },
+  "history": []
+}
