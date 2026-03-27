@@ -1,0 +1,11 @@
+{
+  "owner": "sqlskills",
+  "slug": "sql-report-generator",
+  "displayName": "SQL Report Generator",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1774607830531,
+    "commit": null
+  },
+  "history": []
+}
