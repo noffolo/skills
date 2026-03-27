@@ -1,0 +1,11 @@
+{
+  "owner": "d2758695161",
+  "slug": "cron-parser-validator",
+  "displayName": "Cron Expression Parser & Validator",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774593193850,
+    "commit": null
+  },
+  "history": []
+}
