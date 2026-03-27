@@ -1,101 +1,85 @@
 ---
-name: "Beer"
-description: "Terminal-first Beer manager. Use when you need beer."
-version: "2.0.0"
+name: "Beer — Styles Encyclopedia, Food Pairing & Homebrew Guide"
+description: "Use when exploring beer styles, pairing beer with food, calculating ABV for homebrew, finding craft beer recommendations, or learning tasting techniques."
+version: "2.0.1"
 author: "BytesAgain"
 homepage: https://bytesagain.com
 source: https://github.com/bytesagain/ai-skills
-tags: ["food", "recipes", "kitchen", "beer", "cooking"]
+tags: ["beer", "craft-beer", "homebrew", "brewing", "ipa", "stout", "lifestyle"]
 ---
 
-# Beer
+# Beer — Styles Encyclopedia, Food Pairing & Homebrew Guide
 
-Terminal-first Beer manager. Keep your food & cooking data organized with simple commands.
+Your AI beer sommelier. Styles encyclopedia, food pairing guide, ABV calculator, tasting notes framework, and craft beer recommendations.
 
-## Why Beer?
-
-- Works entirely offline — your data never leaves your machine
-- Simple command-line interface, no GUI needed
-- Export to JSON, CSV, or plain text anytime
-- Automatic history and activity logging
-
-## Getting Started
-
-```bash
-# See what you can do
-beer help
-
-# Check current status
-beer status
-
-# View your statistics
-beer stats
-```
+## Requirements
+- bash 4+
 
 ## Commands
 
-| Command | What it does |
-|---------|-------------|
-| `beer run` | Run |
-| `beer check` | Check |
-| `beer convert` | Convert |
-| `beer analyze` | Analyze |
-| `beer generate` | Generate |
-| `beer preview` | Preview |
-| `beer batch` | Batch |
-| `beer compare` | Compare |
-| `beer export` | Export |
-| `beer config` | Config |
-| `beer status` | Status |
-| `beer report` | Report |
-| `beer stats` | Summary statistics |
-| `beer export` | <fmt>       Export (json|csv|txt) |
-| `beer search` | <term>      Search entries |
-| `beer recent` | Recent activity |
-| `beer status` | Health check |
-| `beer help` | Show this help |
-| `beer version` | Show version |
-| `beer $name:` | $c entries |
-| `beer Total:` | $total entries |
-| `beer Data` | size: $(du -sh "$DATA_DIR" 2>/dev/null | cut -f1) |
-| `beer Version:` | v2.0.0 |
-| `beer Data` | dir: $DATA_DIR |
-| `beer Entries:` | $(cat "$DATA_DIR"/*.log 2>/dev/null | wc -l) total |
-| `beer Disk:` | $(du -sh "$DATA_DIR" 2>/dev/null | cut -f1) |
-| `beer Last:` | $(tail -1 "$DATA_DIR/history.log" 2>/dev/null || echo never) |
-| `beer Status:` | OK |
-| `beer [Beer]` | run: $input |
-| `beer Saved.` | Total run entries: $total |
-| `beer [Beer]` | check: $input |
-| `beer Saved.` | Total check entries: $total |
-| `beer [Beer]` | convert: $input |
-| `beer Saved.` | Total convert entries: $total |
-| `beer [Beer]` | analyze: $input |
-| `beer Saved.` | Total analyze entries: $total |
-| `beer [Beer]` | generate: $input |
-| `beer Saved.` | Total generate entries: $total |
-| `beer [Beer]` | preview: $input |
-| `beer Saved.` | Total preview entries: $total |
-| `beer [Beer]` | batch: $input |
-| `beer Saved.` | Total batch entries: $total |
-| `beer [Beer]` | compare: $input |
-| `beer Saved.` | Total compare entries: $total |
-| `beer [Beer]` | export: $input |
-| `beer Saved.` | Total export entries: $total |
-| `beer [Beer]` | config: $input |
-| `beer Saved.` | Total config entries: $total |
-| `beer [Beer]` | status: $input |
-| `beer Saved.` | Total status entries: $total |
-| `beer [Beer]` | report: $input |
-| `beer Saved.` | Total report entries: $total |
+### styles
+Beer style encyclopedia with flavor profiles and examples.
+```bash
+bash scripts/script.sh styles ipa
+bash scripts/script.sh styles stout
+bash scripts/script.sh styles lager
+bash scripts/script.sh styles wheat
+bash scripts/script.sh styles sour
+bash scripts/script.sh styles porter
+bash scripts/script.sh styles pilsner
+bash scripts/script.sh styles list
+```
 
-## Data Storage
+### pair
+Beer and food pairing recommendations.
+```bash
+bash scripts/script.sh pair bbq
+bash scripts/script.sh pair pizza
+bash scripts/script.sh pair seafood
+bash scripts/script.sh pair cheese
+bash scripts/script.sh pair dessert
+bash scripts/script.sh pair spicy
+bash scripts/script.sh pair list
+```
 
-All data is stored locally at `~/.local/share/beer/`. Each action is logged with timestamps. Use `export` to back up your data anytime.
+### abv
+Calculate alcohol by volume for homebrewing.
+```bash
+bash scripts/script.sh abv 1.050 1.010
+```
+
+### taste
+Beer tasting notes framework and scoring guide.
+```bash
+bash scripts/script.sh taste
+```
+
+### homebrew
+Homebrew recipes and getting started guide.
+```bash
+bash scripts/script.sh homebrew starter
+bash scripts/script.sh homebrew wheat
+bash scripts/script.sh homebrew ipa
+bash scripts/script.sh homebrew list
+```
+
+### shop
+Craft beer and gear recommendations.
+```bash
+bash scripts/script.sh shop craft
+bash scripts/script.sh shop gear
+bash scripts/script.sh shop glasses
+```
+
+### help
+Show all commands.
+```bash
+bash scripts/script.sh help
+```
+
+## Output
+Structured guides, calculations, and recommendations to stdout.
 
 ## Feedback
-
-Found a bug or have a suggestion? Let us know: https://bytesagain.com/feedback/
-
----
-Powered by BytesAgain | bytesagain.com | hello@bytesagain.com
+https://bytesagain.com/feedback/
+Powered by BytesAgain | bytesagain.com
