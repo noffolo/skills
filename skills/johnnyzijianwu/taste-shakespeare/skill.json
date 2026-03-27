@@ -1,0 +1,17 @@
+{
+  "name": "taste-shakespeare",
+  "version": "1.0.0",
+  "description": "Aesthetic skill for AI agents — Shakespeare's literary voice and dramatic language. Style tokens and creative direction distilled from 111 works.",
+  "author": "InspiredHub",
+  "license": "MIT",
+  "homepage": "https://inspiredhub.ai/taste/shakespeare-william-literary",
+  "tags": [
+    "literature",
+    "aesthetics",
+    "writing",
+    "shakespeare",
+    "baroque",
+    "literary",
+    "taste"
+  ]
+}
