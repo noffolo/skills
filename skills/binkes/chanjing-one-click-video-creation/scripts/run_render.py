@@ -626,7 +626,7 @@ def run_tts_pipeline(
     retries: int,
     work: Path,
 ) -> tuple[Path, list[dict], list[str]]:
-    tts_create = script_path(root, "chanjing-tts", "create_task")
+    tts_create = script_path(root, "chanjing-tts", "create_task.py")
     get_token = import_tts_get_token(root)
     mp3_parts: list[Path] = []
     merged_subs: list[dict] = []
@@ -695,7 +695,7 @@ def run_tts_pipeline(
 
 
 def poll_compose(root: Path, video_id: str) -> str:
-    poll = script_path(root, "chanjing-video-compose", "poll_task")
+    poll = script_path(root, "chanjing-video-compose", "poll_task.py")
     return run_subprocess(
         [sys.executable, str(poll), "--id", video_id, "--interval", "10"],
         timeout=3600,
@@ -703,7 +703,7 @@ def poll_compose(root: Path, video_id: str) -> str:
 
 
 def poll_ai(root: Path, uid: str) -> str:
-    poll = script_path(root, "chanjing-ai-creation", "poll_task")
+    poll = script_path(root, "chanjing-ai-creation", "poll_task.py")
     return run_subprocess(
         [sys.executable, str(poll), "--unique-id", uid, "--interval", "10"],
         timeout=3600,
@@ -883,9 +883,9 @@ def main() -> None:
             ffmpeg_cut_audio(merged_mp3, t0, t1, wav)
             scene_wavs[sid] = wav
 
-        upload = script_path(root, "chanjing-video-compose", "upload_file")
-        compose_create = script_path(root, "chanjing-video-compose", "create_task")
-        ai_submit = script_path(root, "chanjing-ai-creation", "submit_task")
+        upload = script_path(root, "chanjing-video-compose", "upload_file.py")
+        compose_create = script_path(root, "chanjing-video-compose", "create_task.py")
+        ai_submit = script_path(root, "chanjing-ai-creation", "submit_task.py")
 
         first_dh_sid: Optional[int] = next(
             (int(s["scene_id"]) for s in scenes_sorted if s.get("use_avatar")),

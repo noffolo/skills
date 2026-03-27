@@ -41,7 +41,7 @@
 
 ### C.2 封装与编码（对齐数字人轨）
 
-**目标**：AI 等非数字人轨在进入最终 concat 前，与**本任务内**公共数字人 `poll_task` 落盘样例在分辨率、帧率、编码、码率量级上对齐。
+**目标**：AI 等非数字人轨在进入最终 concat 前，与**本任务内**公共数字人 `poll_task.py` 落盘样例在分辨率、帧率、编码、码率量级上对齐。
 
 | 步骤 | 要求 |
 |------|------|
@@ -55,16 +55,16 @@
 ### C.3 数字人（选型与合成）
 
 - 每次拉**最新**列表；不用过期 person id。
-- 请求里须显式提供 `person_id`/`avatar_id` 与 **`figure_type`**（公共多形态时与 `list_figures` 列一致）；**禁止**用环境变量覆盖数字人/形象类型。
-- **`list_figures` 默认 `--source customised`**，空列表正常；**公共形象**须显式执行 `list_figures --source common`（脚本无环境变量改默认源）。
+- 请求里须显式提供 `person_id`/`avatar_id` 与 **`figure_type`**（公共多形态时与 `list_figures.py` 列一致）；**禁止**用环境变量覆盖数字人/形象类型。
+- **`list_figures.py` 默认 `--source customised`**，空列表正常；**公共形象**须显式执行 `list_figures.py --source common`（脚本无环境变量改默认源）。
 - **选型须对比，勿默认列表排序**：`--json` 下对每条公共数字人比对 `name`、`figures[].type`、`figures[].width`/`height`、`audio_man_id`、`audio_name` 与当次策划/口播人设；必要时增大 `--page-size` 或翻页。**禁止**未比较即取返回列表最前几条。**默认偏好年轻形象**（名称或 `audio_name` 体现青年/元气/学生等气质者优先；题材需要成熟/中老年时再调整），与 **`chanjing-one-click-video-creation` `SKILL.md` §3** 一致。
 - TTS **`audio_man`** 宜与该形象返回的 **`audio_man_id`** 一致；**须在 `workflow.json` 中写明**，禁止依赖环境变量默认音色。
 - 失败可在**同套切段音频**下换列表中其它形象重试。
 
 **数字人镜操作**：
 
-- 上传该镜音频 `file_id`，`create_task` **音频驱动**。
-- 数字人镜字幕：**默认** **`--subtitle hide`**；`workflow.json` 根级 **`subtitle_required`: true** 时 **`--subtitle show`**。`show` 且未传 `--subtitle-color` 时默认 **`#FFFFFF`（白字）**，位置与其它样式见 **`chanjing-video-compose`** skill / `create_task`。
+- 上传该镜音频 `file_id`，`create_task.py` **音频驱动**。
+- 数字人镜字幕：**默认** **`--subtitle hide`**；`workflow.json` 根级 **`subtitle_required`: true** 时 **`--subtitle show`**。`show` 且未传 `--subtitle-color` 时默认 **`#FFFFFF`（白字）**，位置与其它样式见 **`chanjing-video-compose`** skill / `create_task.py`。
 - 公共多形态时 **`--figure-type` 与列表一致**。
 
 ### C.4 音频与 TTS
@@ -99,7 +99,7 @@
 ### C.7 收尾与并发
 
 - 各镜顺序拼成成片；成功记本地路径与 `mixed_dh_ai` 类标记。
-- 数字人与 AI **`poll_task` 可并行**。
+- 数字人与 AI **`poll_task.py` 可并行**。
 - CDN 下载限并发（见 **§4 硬性约束** 表 **#7**）。
 
 ---
@@ -115,7 +115,7 @@
 | 5 | **AI 提示词**：自动路径按 **非当代/当代** 与口播组装；缺省与文明圈推断见 **`storyboard_prompt.md`·D.0**；**非特定人物题材**见 **`storyboard_prompt.md`·D.1a**。人工覆盖以 `storyboard_prompt.md` 为主；**勿**写死行业长篇样例或抄用他题 `ref_prompt`（示例仅演示结构）。 |
 | 6 | **文生视频负向校验**：`ref_prompt` 须通过 **`storyboard_prompt.md`·D.1b**（负向清单 / 正向替换 / 可选英文否定短句）；命中负向而未改写不得提交。 |
 | 7 | **CDN**：下载限流，防 429。 |
-| 8 | **当次任务**：以**本次**任务 id 轮询为准；**勿**用 `list_tasks` 等历史列表替代当次提交与下载（除非用户明确要求复用历史任务）。 |
+| 8 | **当次任务**：以**本次**任务 id 轮询为准；**勿**用 `list_tasks.py` 等历史列表替代当次提交与下载（除非用户明确要求复用历史任务）。 |
 
 ---
 
