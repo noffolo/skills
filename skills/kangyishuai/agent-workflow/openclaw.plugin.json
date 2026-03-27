@@ -1,0 +1,21 @@
+{
+  "id": "agent-workflow",
+  "name": "Agent Workflow",
+  "description": "Structured workflow engine for agents. Guides work through brainstorm → plan → execute → verify → deliver with persistent state, branching, parallel context-plugins, and multi-project support.",
+  "skills": ["./skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "maxForks": {
+        "type": "number",
+        "default": 3,
+        "description": "Maximum number of concurrent parallel forks per workflow"
+      },
+      "storageDir": {
+        "type": "string",
+        "description": "Custom directory for workflow state files. Defaults to ~/.openclaw/workspace/agent-workflow/"
+      }
+    }
+  }
+}
