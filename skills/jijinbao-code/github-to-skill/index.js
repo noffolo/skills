@@ -29,10 +29,34 @@ async function run(options) {
     name,
     output,
     analyzeOnly = false,
+    confirm = false,  // Require explicit confirmation
   } = options;
 
   if (!input) {
     throw new Error('Input file path is required');
+  }
+
+  // Security warning
+  console.log(`\n[!] SECURITY WARNING / 安全警告`);
+  console.log(`This skill will:`);
+  console.log(`  1. Extract and analyze the .zip file you provide`);
+  console.log(`  2. Copy source code to a new skill directory`);
+  console.log(`  3. Execute Python analyzer script (read-only analysis)`);
+  console.log(`\nSensitive files (passwords, keys, tokens) will be automatically excluded.`);
+  console.log(`Only source code files will be copied.`);
+  console.log(`\n[!] LICENSE WARNING / 许可证警告`);
+  console.log(`  Please verify the license of the source project before reuse.`);
+  console.log(`  Ensure you have the right to convert and use the code.`);
+  console.log(`  Common open-source licenses: MIT, Apache-2.0, GPL, BSD.\n`);
+
+  if (!confirm) {
+    console.log(`❌ Execution cancelled. Use --confirm to proceed.`);
+    console.log(`   执行已取消。使用 --confirm 参数确认执行。`);
+    return {
+      success: false,
+      message: 'Execution cancelled: confirmation required / 执行已取消：需要确认',
+      hint: 'Add --confirm to proceed / 添加 --confirm 参数继续'
+    };
   }
 
   console.log(`🔧 GitHub to Skill Converter`);

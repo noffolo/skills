@@ -1,10 +1,10 @@
 {
   "name": "github-to-skill",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Convert GitHub projects to OpenClaw skills automatically - analyze source code and generate skill structure",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "python test_security.py",
     "analyze": "node index.js --analyze-only",
     "convert": "node index.js"
   },
@@ -19,12 +19,15 @@
   "author": "SuperMike",
   "license": "MIT",
   "dependencies": {},
-  "peerDependencies": {
-    "python": ">=3.8"
-  },
   "engines": {
-    "node": ">=18",
-    "python": ">=3.8"
+    "node": ">=18.0.0"
+  },
+  "runtime": {
+    "python": {
+      "version": ">=3.8.0",
+      "required": true,
+      "description": "Python 3.8+ required for source code analysis via analyzer.py"
+    }
   },
   "repository": {
     "type": "git",
