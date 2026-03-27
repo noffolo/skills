@@ -12,65 +12,42 @@
  *
  * Prerequisites (install once before first use):
  *   cd email-summarizer/scripts && npm install
- *   # or: npm install -g pst-extractor
  *
- * The script resolves pst-extractor from (in order):
- *   1. node_modules/ sibling to this script  (recommended: npm install in scripts/)
- *   2. Global npm prefix                     (npm install -g pst-extractor)
+ * The script resolves pst-extractor using Node's standard require() resolution:
+ *   - node_modules/ sibling to this script  (preferred, after `npm install`)
+ *   - Any parent node_modules/ up the directory tree (standard Node.js behaviour)
  *
- * NOTE: This script does NOT auto-install any packages at runtime.
- *       Run `npm install` in the scripts/ directory first.
+ * NOTE: This script does NOT execute any shell commands or spawn child processes.
  */
 
 'use strict';
 
 const fs   = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
-// ── Module resolution (no auto-install) ──────────────────────────────────────
+// ── Module resolution (pure Node.js, no shell execution) ─────────────────────
 
-function tryRequire(modName, searchDirs) {
-  for (const dir of searchDirs) {
-    const candidate = path.join(dir, 'node_modules', modName);
-    if (fs.existsSync(candidate)) {
-      return require(candidate);
-    }
-  }
-  return null;
+// Prepend the script's own directory to the module search path so that
+// `npm install` run inside scripts/ is found automatically, without any
+// shell calls or child_process usage.
+const scriptDir = __dirname;
+const localModules = path.join(scriptDir, 'node_modules');
+
+if (fs.existsSync(localModules)) {
+  // Insert at front so local node_modules takes priority over any global install
+  require('module').globalPaths.unshift(localModules);
 }
 
-const scriptDir = __dirname;
-
-let PSTFile, PSTFolder, PSTMessage, PSTAttachment;
+let PSTFile, PSTFolder, PSTMessage;
 
 try {
-  // 1. Look for node_modules next to this script
-  let mod = tryRequire('pst-extractor', [scriptDir]);
-
-  // 2. Fall back to global npm prefix
-  if (!mod) {
-    try {
-      const globalRoot = execSync('npm root -g', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-      const globalCandidate = path.join(globalRoot, 'pst-extractor');
-      if (fs.existsSync(globalCandidate)) mod = require(globalCandidate);
-    } catch (_) {}
-  }
-
-  if (!mod) {
-    process.stderr.write(
-      '[pst-helper] ERROR: pst-extractor not found.\n' +
-      'Please install it first:\n' +
-      '  cd email-summarizer/scripts && npm install\n' +
-      'or:\n' +
-      '  npm install -g pst-extractor\n'
-    );
-    process.exit(1);
-  }
-
-  ({ PSTFile, PSTFolder, PSTMessage, PSTAttachment } = mod);
+  ({ PSTFile, PSTFolder, PSTMessage } = require('pst-extractor'));
 } catch (e) {
-  process.stderr.write(`[pst-helper] Fatal: cannot load pst-extractor: ${e.message}\n`);
+  process.stderr.write(
+    '[pst-helper] ERROR: pst-extractor not found.\n' +
+    'Please install it first by running:\n' +
+    '  cd email-summarizer/scripts && npm install\n'
+  );
   process.exit(1);
 }
 
@@ -96,6 +73,24 @@ for (let i = 1; i < args.length; i++) {
 if (!fs.existsSync(pstPath)) {
   process.stderr.write(`[pst-helper] File not found: ${pstPath}\n`);
   process.exit(1);
+}
+
+// ── Recipient SMTP address extraction ────────────────────────────────────────
+
+function _getRecipientAddrs(item) {
+  const addrs = [];
+  try {
+    const n = item.numberOfRecipients || 0;
+    for (let i = 0; i < n; i++) {
+      const r = item.getRecipient(i);
+      const addr = (r.smtpAddress || r.emailAddress || '').trim();
+      // Skip Exchange internal DN addresses (start with /o= or /O=)
+      if (addr && !addr.startsWith('/') && addr.includes('@')) {
+        addrs.push(addr.toLowerCase());
+      }
+    }
+  } catch (_) {}
+  return addrs;
 }
 
 // ── HTML → plain text (lightweight) ──────────────────────────────────────────
@@ -191,6 +186,7 @@ function processFolder(folder, folderPath) {
                            ? `${item.senderName} <${item.senderEmailAddress || ''}>`
                            : (item.senderEmailAddress || ''),
             to:          item.displayTo  || '',
+            to_addrs:    _getRecipientAddrs(item),   // real SMTP addresses for owner inference
             cc:          item.displayCC  || '',
             subject:     item.subject    || '(no subject)',
             body,

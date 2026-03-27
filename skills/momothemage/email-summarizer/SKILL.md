@@ -1,383 +1,309 @@
 ---
 name: email-summarizer
-description: Email summary and contact profiling skill. Fetches and summarizes emails from the last N days, and generates gender/occupation/relationship profiles for contacts. Trigger when user says "summarize my emails", "check recent emails", "any important emails", "analyze my contacts", "who is this sender", "profile email contacts", "parse pst file", "analyze outlook export", etc. Supports 163, QQ, Tencent Exmail, Gmail, Outlook IMAP mailboxes AND local file formats: .pst, .mbox, .msg.
+description: Email summary and contact profiling skill. Fetch emails from an IMAP mailbox or parse local exports (.pst / .mbox / .msg), build a contact profile report (HTML + Excel), and optionally send it via email. Trigger when user says "summarize my emails", "check recent emails", "analyze my contacts", "profile email contacts", "parse pst file", "analyze outlook export", "send contact report", etc.
 
 # Runtime dependencies
-# Python packages (pip install -r requirements.txt):
+# Python (pip install -r requirements.txt):
 #   extract-msg>=0.52.0   — .msg file parsing
 #   openpyxl>=3.1.0       — Excel report generation
 #
-# Node.js packages (cd scripts && npm install):
-#   pst-extractor>=1.10.0 — native .pst parsing (optional; fallback: readpst system binary)
+# Node.js (cd scripts && npm install):
+#   pst-extractor>=1.10.0 — native .pst parsing (bundled via package.json)
 #
 # System tools (optional):
 #   readpst               — alternative .pst engine (apt install pst-utils / brew install libpst)
-#   python3               — required (stdlib: imaplib, mailbox, smtplib, email)
-#   node >= 16            — required only for native PST parsing
+#   node >= 16            — required for native PST parsing
 
-# Credentials (IMAP/SMTP modes only — not needed for local file parsing)
+# External process usage (declared for security review):
+#
+#   parse_file.py invokes TWO local executables via subprocess — no shell=True,
+#   no dynamic command construction, no network access:
+#
+#   1. node scripts/pst_extractor_helper.js <pst_file> [--since] [--until] [--max]
+#      Calls the Node.js script bundled in this skill's scripts/ directory.
+#      Used only when --pst is passed and engine is 'native' (default).
+#      node binary is resolved from NODE_BIN env var or system PATH.
+#
+#   2. readpst -o <tmp_dir> -M <pst_file>
+#      Calls the system-installed readpst binary (from pst-utils package).
+#      Used only when --pst-engine readpst is explicitly requested.
+#      Both executables accept only local file paths — no URLs, no user shell input.
+
+# Credentials (only needed for IMAP fetch and SMTP send; local file parsing needs none)
 env:
   EMAIL_USER:
-    description: Your email address (e.g. you@163.com). Used for IMAP fetch and SMTP send.
+    description: Your email address. Used for IMAP login and SMTP sender.
     required: false
     example: "you@163.com"
   EMAIL_PASS:
-    description: IMAP app password / authorization code (NOT your login password). Generate one in your mailbox settings under POP3/SMTP/IMAP.
+    description: IMAP/SMTP app password (NOT your login password). Generate in mailbox settings under POP3/SMTP/IMAP.
     required: false
     example: "your-app-password"
 ---
 
 # Email Summarizer + Contact Profiler
 
-Fetches emails from the last N days and produces a 4-dimension summary plus contact profile analysis.
+Three independent stages — run any subset depending on what you need:
 
-Supports two input modes:
-- **IMAP mode** (`fetch_emails.py`) — live connection to a remote mailbox
-- **Local file mode** (`parse_local.py`) — parse offline exports: `.pst`, `.mbox`, `.msg` files (no credentials needed)
+```
+[Data Source]          [Analysis]          [Delivery]
+fetch_imap.py    ──→                ──→
+parse_file.py    ──→  build_report.py ──→  send_report.py
+                       → .html + .xlsx
+```
+
+Each stage reads from / writes to files (or stdin/stdout), so they compose freely.
 
 ---
 
 ## Installation
 
 ```bash
-# 1. Python dependencies
+# Python dependencies
 pip install -r requirements.txt
 
-# 2. Node.js dependency (only needed for native .pst parsing)
+# Node.js dependency (only for native .pst parsing)
 cd scripts && npm install && cd ..
 ```
 
-> **Credentials** are only needed for IMAP/SMTP modes (fetching live mailbox or sending reports).
-> Local file parsing (`.pst`, `.mbox`, `.msg`) requires no credentials.
-
 ---
 
-## Mode A: IMAP (Live Mailbox)
+## Script Reference
 
-### Setup Credentials
+### Stage 1 — Data Source
 
-Set environment variables before first use:
-
-```bash
-export EMAIL_USER="your@email.com"
-export EMAIL_PASS="your-imap-app-password"   # NOT your login password!
-```
-
-### Usage
+#### `fetch_imap.py` — Fetch emails from a live IMAP mailbox
 
 ```bash
-# Basic: fetch inbox from last 3 days
-python3 scripts/fetch_emails.py --days 3 --preset 163
+export EMAIL_USER=you@163.com
+export EMAIL_PASS=your-app-password
 
-# With sent folder (better relationship analysis)
-python3 scripts/fetch_emails.py --days 7 --preset qq --with-sent
+# Fetch last 7 days (inbox only) → emails.json
+python3 scripts/fetch_imap.py --days 7 --output emails.json
 
-# Contact profile mode (aggregated contact data for AI analysis)
-python3 scripts/fetch_emails.py --days 30 --preset 163 --profile --with-sent
+# Fetch a date range, inbox + sent
+python3 scripts/fetch_imap.py --since 2026-03-01 --until 2026-03-28 \
+    --with-sent --preset 163 --output emails.json
+
+# Pipe directly to build_report.py (no intermediate file)
+python3 scripts/fetch_imap.py --days 30 | python3 scripts/build_report.py --output report
 ```
-
-### Supported Mailboxes
-
-| Mailbox | --preset | IMAP Server |
-|---------|----------|-------------|
-| 163 Mail | `163` | imap.163.com:993 |
-| QQ Mail | `qq` | imap.qq.com:993 |
-| Tencent Exmail | `exmail` | imap.exmail.qq.com:993 |
-| Gmail | `gmail` | imap.gmail.com:993 |
-| Outlook | `outlook` | outlook.office365.com:993 |
-
----
-
-## Mode B: Local File Parsing (No Credentials Needed)
-
-Use `parse_local.py` when the user has a local email export and does not want to configure IMAP.
-
-### Supported Formats
-
-| Format | How to obtain | Command flag |
-|--------|--------------|--------------|
-| `.pst` | Outlook → File → Export | `--pst FILE` |
-| `.mbox` | Any mail client export, or converted from .pst via readpst | `--mbox FILE` |
-| `.msg` folder | Outlook → drag-and-drop export multiple emails | `--msg-dir DIR` |
-
-### PST Parse Engine
-
-`.pst` parsing supports two engines (auto-selected by default):
-
-| Engine | Flag | Requires | Notes |
-|--------|------|----------|-------|
-| **native** (default) | `--pst-engine native` | Node.js + `pst-extractor` npm pkg | No system install needed; npm pkg auto-installed if missing |
-| **readpst** | `--pst-engine readpst` | `readpst` system binary | Traditional approach via libpst |
-| **auto** | `--pst-engine auto` | — | Tries native first, falls back to readpst |
-
-Native engine is preferred: works without any system-level install and handles Unicode folder names correctly.
-
-### Usage
-
-```bash
-# Parse a .pst file — native engine (default, no extra install needed)
-python3 scripts/parse_local.py --pst ~/Downloads/outlook.pst
-
-# Force native engine explicitly
-python3 scripts/parse_local.py --pst ~/Downloads/outlook.pst --pst-engine native
-
-# Force readpst engine (requires readpst system binary)
-python3 scripts/parse_local.py --pst ~/Downloads/outlook.pst --pst-engine readpst
-
-# Parse a .mbox file
-python3 scripts/parse_local.py --mbox ~/Downloads/Inbox.mbox
-
-# Parse inbox + sent mbox for better relationship analysis
-python3 scripts/parse_local.py --mbox Inbox.mbox --sent-mbox SentItems.mbox
-
-# Parse a folder of .msg files exported from Outlook
-python3 scripts/parse_local.py --msg-dir ~/Downloads/exported_msgs/
-
-# Limit by date range
-python3 scripts/parse_local.py --pst outlook.pst --days 30
-python3 scripts/parse_local.py --mbox Inbox.mbox --since 2026-01-01 --until 2026-03-01
-
-# Contact profile mode
-python3 scripts/parse_local.py --msg-dir ./msgs/ --profile
-```
-
-### parse_local.py options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--pst FILE` | — | Parse a .pst file via readpst |
-| `--mbox FILE` | — | Parse a .mbox file |
-| `--msg-dir DIR` | — | Parse all .msg files in a directory |
-| `--sent-mbox FILE` | — | Additional sent folder .mbox (mbox mode only) |
-| `--days N` | all | Only include emails from the last N days |
+| `--days N` | 7 | Fetch last N days. Ignored if `--since` is set. |
+| `--since DATE` | — | Start date inclusive (YYYY-MM-DD) |
+| `--until DATE` | — | End date exclusive (YYYY-MM-DD, default: today) |
+| `--max N` | 200 | Max emails per folder |
+| `--folder NAME` | INBOX | Inbox folder name |
+| `--preset NAME` | 163 | Mailbox preset: `163` \| `qq` \| `exmail` \| `gmail` \| `outlook` |
+| `--with-sent` | off | Also fetch Sent folder (recommended for relationship analysis) |
+| `--output FILE` | stdout | Write JSON to file; prints to stdout if omitted |
+
+Supported presets:
+
+| Preset | IMAP Server | Sent folder |
+|--------|-------------|-------------|
+| `163` | imap.163.com:993 | 已发送 |
+| `qq` | imap.qq.com:993 | Sent Messages |
+| `exmail` | imap.exmail.qq.com:993 | Sent Messages |
+| `gmail` | imap.gmail.com:993 | [Gmail]/Sent Mail |
+| `outlook` | outlook.office365.com:993 | Sent Items |
+
+---
+
+#### `parse_file.py` — Parse a local email export
+
+```bash
+# Parse a .pst file (native engine, no system install needed)
+python3 scripts/parse_file.py --pst ~/Downloads/archive.pst --output emails.json
+
+# Parse a .mbox file (inbox + sent)
+python3 scripts/parse_file.py --mbox Inbox.mbox --sent-mbox Sent.mbox --output emails.json
+
+# Parse a folder of .msg files, filter by date
+python3 scripts/parse_file.py --msg-dir ./exported/ --since 2026-01-01 --output emails.json
+
+# Pipe to build_report.py
+python3 scripts/parse_file.py --pst archive.pst | python3 scripts/build_report.py --output report
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--pst FILE` | — | Outlook .pst archive |
+| `--mbox FILE` | — | Unix mbox file |
+| `--msg-dir DIR` | — | Folder of .msg files |
+| `--sent-mbox FILE` | — | Additional sent-items mbox (with `--mbox`) |
+| `--pst-engine` | auto | `auto` \| `native` \| `readpst` |
+| `--days N` | all | Only include last N days |
 | `--since DATE` | — | Start date inclusive (YYYY-MM-DD) |
 | `--until DATE` | — | End date exclusive (YYYY-MM-DD) |
-| `--max N` | 500 | Max emails per source |
-| `--profile` | off | Output contact profile data |
-| `--pst-engine` | auto | PST engine: `auto` \| `native` \| `readpst` |
+| `--max N` | 500 | Max emails to load |
+| `--output FILE` | stdout | Write JSON to file; prints to stdout if omitted |
 
-### PST Dependencies
+PST engines:
 
-**Native engine (recommended, no system install needed):**
-
-```bash
-# Step 1: install Node.js dependency (one-time, ~2MB)
-cd email-summarizer/scripts && npm install
-
-# Step 2: use as normal — no extra flags needed
-python3 scripts/parse_local.py --pst ~/Downloads/outlook.pst
-```
-
-**readpst engine (traditional, requires system binary):**
-
-```bash
-# Linux (Debian/Ubuntu)
-sudo apt install pst-utils
-
-# Linux (RHEL/CentOS)
-sudo yum install libpst
-
-# macOS
-brew install libpst
-```
-
-### Dependencies for local mode
-
-```bash
-pip3 install extract-msg   # required for .msg parsing
-# .mbox parsing uses Python stdlib (mailbox) — no extra install needed
-# .pst parsing uses readpst system tool — no Python package needed
-```
+| Engine | Flag | Requires |
+|--------|------|----------|
+| Native (default) | `--pst-engine native` | `cd scripts && npm install` |
+| Readpst | `--pst-engine readpst` | `apt install pst-utils` or `brew install libpst` |
+| Auto | `--pst-engine auto` | Tries native first, falls back to readpst |
 
 ---
 
-## Part A: 4-Dimension Email Summary Template
+### Stage 2 — Analysis
 
-After fetching the email JSON, output a summary in the following four sections:
+#### `build_report.py` — Analyse emails → HTML + Excel report
 
-### 🔥 Part 1: Important Emails & Action Items
+```bash
+# From a file
+python3 scripts/build_report.py --input emails.json --output report
 
-Sort by priority:
+# Specify owner explicitly (when analysing someone else's PST)
+python3 scripts/build_report.py --input emails.json --output report \
+    --owner xiang-xiang.hu@connect.polyu.hk
 
+# From stdin (piped from Stage 1)
+python3 scripts/fetch_imap.py --days 30 | python3 scripts/build_report.py --output report
 ```
-🚨 [URGENT] Subject — Sender — Date
-   Summary: xxx
-   Action needed: xxx (Deadline: xxx)
-
-⚡ [IMPORTANT] Subject — Sender — Date
-   Summary: xxx / Action needed: xxx
-
-📌 [NOTE] Subject — Sender — Date
-   Summary: xxx
-```
-
-Priority criteria:
-- 🚨 Urgent: has deadline, escalation, approval request, or incident alert
-- ⚡ Important: requires reply, decision, or confirmation
-- 📌 Note: FYI but worth attention
-
-### 📊 Part 2: Grouped by Sender / Project
-
-```
-👤 Sender A (N emails)
-   • Subject 1 — Date
-   • Subject 2 — Date
-
-📁 Topic / Project B (N emails)
-   • Subject — Sender — Date
-```
-
-### ✅ Part 3: To-Do List
-
-```
-□ [Task] — From: xxx — Due: xxx
-□ No clear deadline: [Task] — From: xxx
-```
-
-### 📅 Part 4: Timeline
-
-```
-YYYY-MM-DD  Sender → Subject: one-line summary
-```
-
----
-
-## Part B: Contact Profile Analysis Template
-
-Use `--profile --with-sent` mode when the user requests contact profiling.
-
-Data field reference:
-- `received_from_count`: emails received from this contact
-- `sent_to_count`: emails the owner sent to this contact
-- `subjects`: list of email subjects in the exchange
-- `body_snippets`: short excerpts from email bodies
-- `is_system`: whether this is a system/bot sender
-
-### Contact Profile Output Format
-
-**Step 1: Sort by total interactions**
-
-Calculate `total = received_from_count + sent_to_count` for each contact, sort descending.
-System accounts (`is_system: true`) go to a separate table at the end.
-
-**Step 2: Overview table (sorted by interaction count)**
-
-```
-| # | Name | Email | Received | Sent | Total | Heat | Gender | Role | Relationship |
-|---|------|-------|----------|------|-------|------|--------|------|--------------|
-| 1 | xxx  | xxx   |    N     |  N   |   N   | 🔥 Heavy | Male | Engineer | Colleague |
-| 2 | xxx  | xxx   |    N     |  0   |   N   | ⚡ Active | Female | Recruiter | Stranger |
-...
-```
-
-Heat scale:
-- 🔥 Heavy: total ≥ 10
-- ⚡ Active: total 5–9
-- 💬 Moderate: total 2–4
-- 🌙 Light: total 1
-
-**Step 3: Detailed profile cards for contacts with heat ≥ Moderate**
-
-One card per contact, sorted by interaction count descending:
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 Rank #N | [Name] <email>   Total: N emails (Received: N / Sent: N)
-
-🧑 Gender       Male/Female/Unknown   Confidence: High/Medium/Low   Basis: xxx
-💼 Role/Title   xxx                   Basis: domain / signature / content keywords
-🔗 Relationship  Colleague / Friend / Family / Client / Institution / Stranger
-   Direction    Owner-initiated / Contact-initiated / Mutual
-   Basis: xxx
-
-📝 Typical Topics
-   • Subject 1
-   • Subject 2
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-**Step 4: System / institutional senders summary (separate table, no personal profiling)**
-
-```
-| Institution | Email | Received | Type |
-|-------------|-------|----------|------|
-| iCloud | noreply@icloud.com | N | Service notification |
-...
-```
-
-### Profiling Notes
-
-- Gender inference relies primarily on name and honorifics (Mr./Ms./Sir/Madam); always state confidence level
-- Contacts with only 1 email on record: note "Insufficient data — for reference only" in detailed card
-- Keep inferences objective; avoid over-speculation
-- If sent folder is not included (`--with-sent` not used), show `Sent: 0` for all contacts and note it in the table header
-
----
-
-## Full Workflow
-
-### IMAP mode (live mailbox)
-
-```
-User requests email summary
-  → python3 scripts/fetch_emails.py --days N --preset xxx > /tmp/emails.json
-  → AI reads JSON → outputs Part A 4-dimension summary
-
-User requests contact profiles (chat output)
-  → python3 scripts/fetch_emails.py --days 30 --profile --with-sent --preset xxx > /tmp/profile.json
-  → AI reads JSON → outputs Part B profile for each contact in the contacts field
-
-User requests contact profile report sent to email inbox
-  → EMAIL_USER=you@163.com EMAIL_PASS=xxx \
-    python3 scripts/send_contact_report.py --days 30 --preset 163 [--to recipient@email.com]
-  → Script fetches emails, builds a fully-English HTML report, and sends via SMTP
-  → Report columns: Preferred Name / Email / Company / Position / Subject Summary / Source / Emails
-```
-
-### Local file mode (no credentials needed)
-
-```
-User provides a .pst / .mbox / .msg export
-
-Email summary from local file:
-  → python3 scripts/parse_local.py --pst outlook.pst > /tmp/emails.json
-  → AI reads JSON → outputs Part A 4-dimension summary
-
-Contact profiles from local file:
-  → python3 scripts/parse_local.py --pst outlook.pst --profile > /tmp/profile.json
-  → AI reads JSON → outputs Part B contact profile analysis
-
-With .msg folder:
-  → python3 scripts/parse_local.py --msg-dir ./exported/ --profile > /tmp/profile.json
-
-With .mbox (inbox + sent):
-  → python3 scripts/parse_local.py --mbox Inbox.mbox --sent-mbox Sent.mbox --profile > /tmp/profile.json
-```
-
-### send_contact_report.py options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--days` | 30 | Look-back window |
-| `--max` | 100 | Max emails to fetch |
-| `--preset` | 163 | Mailbox preset (163/qq/exmail/gmail/outlook) |
-| `--to` | EMAIL_USER | Override recipient address |
+| `--input FILE` | stdin | Path to emails JSON from Stage 1 |
+| `--output PREFIX` | contact_report | Output path prefix. Writes `<prefix>.html` and `<prefix>.xlsx` |
+| `--owner EMAIL` | auto-inferred | Mailbox owner address. Auto-detected if omitted. |
 
-### Contact Profile Fields
+Output files:
+- `<prefix>.html` — self-contained HTML report (open in browser or attach to email)
+- `<prefix>.xlsx` — Excel spreadsheet with the same data
 
-| Field | Source | Notes |
-|-------|--------|-------|
-| Preferred Name | Display name → body signature → email local-part | Human-friendly name |
-| Email | IMAP header | Raw sender/recipient address |
-| Company | Domain lookup table → body text → domain label | Best-effort inference |
-| Position | Domain pattern → body signature → subject keywords | "Unknown" if not determinable |
-| Subject Summary | All subjects deduplicated → theme extraction | One-line synthesis |
-| Source | IMAP header fields | Coloured badges: 🔵 From / 🟢 To / 🟣 CC — a contact may have multiple |
-| Emails | Recv + Sent count | Badge colour: red ≥10, orange 5–9, blue 2–4, grey 1; Recv / Sent shown below |
+Report columns: `#` / `Preferred Name` / `Email` / `Company` / `Position` / `Subject Summary` / `Source` / `Emails (Recv/Sent)`
+
+---
+
+### Stage 3 — Delivery
+
+#### `send_report.py` — Send report files via SMTP
+
+```bash
+export EMAIL_USER=you@163.com
+export EMAIL_PASS=your-app-password
+
+# Send HTML + Excel to a recipient
+python3 scripts/send_report.py \
+    --html report.html --xlsx report.xlsx --to friend@example.com
+
+# Send to yourself (EMAIL_USER)
+python3 scripts/send_report.py --html report.html --xlsx report.xlsx
+
+# HTML only (no attachment)
+python3 scripts/send_report.py --html report.html --to friend@example.com
+
+# Custom subject
+python3 scripts/send_report.py --html report.html --subject "March Contact Report"
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--html FILE` | required | HTML file to use as email body |
+| `--xlsx FILE` | — | Excel file to attach (optional) |
+| `--to ADDR` | EMAIL_USER | Recipient address |
+| `--subject STR` | auto | Email subject (auto-generated if omitted) |
+| `--preset NAME` | 163 | SMTP preset: `163` \| `qq` \| `exmail` \| `gmail` \| `outlook` |
+
+---
+
+## Private library modules (not standalone scripts)
+
+| File | Provides |
+|------|----------|
+| `_core.py` | `decode_header`, `parse_addr`, `get_domain`, `strip_html`, `html_esc`, `get_body` |
+| `_analyze.py` | `infer_owner`, `build_contacts`, domain/company/position/name inference |
+| `_render.py` | `build_report_html`, `build_excel`, `SMTP_MAP` |
+
+---
+
+## Complete workflow examples
+
+### A — IMAP mailbox → report → send to self
+
+```bash
+export EMAIL_USER=you@163.com
+export EMAIL_PASS=your-app-password
+
+python3 scripts/fetch_imap.py --days 30 --with-sent --output /tmp/emails.json
+python3 scripts/build_report.py --input /tmp/emails.json --output /tmp/report
+python3 scripts/send_report.py --html /tmp/report.html --xlsx /tmp/report.xlsx --preset 163
+```
+
+### B — PST file → report → send to someone
+
+```bash
+python3 scripts/parse_file.py --pst ~/Downloads/archive.pst --output /tmp/emails.json
+python3 scripts/build_report.py --input /tmp/emails.json --output /tmp/report
+EMAIL_USER=sender@163.com EMAIL_PASS=xxx \
+  python3 scripts/send_report.py --html /tmp/report.html --xlsx /tmp/report.xlsx \
+    --to recipient@example.com
+```
+
+### C — One-liner (pipe, no intermediate files)
+
+```bash
+python3 scripts/parse_file.py --pst archive.pst \
+  | python3 scripts/build_report.py --output /tmp/report
+```
+
+### D — Report only, no email (open locally)
+
+```bash
+python3 scripts/parse_file.py --mbox Inbox.mbox --output /tmp/emails.json
+python3 scripts/build_report.py --input /tmp/emails.json --output /tmp/report
+# Open /tmp/report.html in a browser
+```
+
+---
+
+## AI analysis templates
+
+After loading the email JSON into the AI context, use the following templates:
+
+### Part A: 4-Dimension Email Summary
+
+```
+🔥 Part 1 — Important & Action Items
+  🚨 [URGENT]    Subject — Sender — Date | Summary | Action | Deadline
+  ⚡ [IMPORTANT] Subject — Sender — Date | Summary | Action
+  📌 [NOTE]      Subject — Sender — Date | Summary
+
+📊 Part 2 — Grouped by Sender / Topic
+
+✅ Part 3 — To-Do List
+
+📅 Part 4 — Timeline (YYYY-MM-DD  Sender → Subject: summary)
+```
+
+### Part B: Contact Profile Analysis
+
+Sort by total interactions. For each contact:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Rank #N | Name <email>   Total: N (Recv: N / Sent: N)
+🧑 Gender       M/F/Unknown  Confidence: H/M/L  Basis: …
+💼 Role         …            Basis: domain / signature / keywords
+🔗 Relationship Colleague / Client / Institution / Stranger
+   Direction    Mutual / Owner-initiated / Contact-initiated
+📝 Topics       • subject 1  • subject 2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Heat scale: 🔥 Heavy (≥10) · ⚡ Active (5–9) · 💬 Moderate (2–4) · 🌙 Light (1)
+
+---
 
 ## Notes
 
 - Credentials are passed via environment variables — never hardcoded
-- Script is read-only (IMAP readonly mode) — will not modify or delete any emails
-- Email body is truncated to 2000 characters; profile snippets to 300 characters
-- 163 Mail requires an IMAP ID command before SELECT — handled automatically; harmless on other servers
+- IMAP connections use readonly mode — emails are never modified or deleted
+- Body text is truncated to 2000 characters per email
+- `fetch_imap.py` sends an RFC 2971 ID command required by 163/188 servers; harmless on others
