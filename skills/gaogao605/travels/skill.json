@@ -1,0 +1,18 @@
+{
+  "name": "fbt-travel",
+  "version": "1.1.0",
+  "description": "分贝通旅行助手 - 一站式酒店预订、机票预订服务。支持酒店搜索、房型查询、预订下单；航班搜索、舱位查询、机票预订、改期、退票。",
+  "author": "OpenClaw",
+  "license": "MIT",
+  "metadata": {
+    "openclaw": {
+      "emoji": "🧳",
+      "category": "travel",
+      "tags": ["分贝通", "酒店", "机票", "航班", "预订", "旅行"],
+      "requires": {
+        "bins": ["python3"]
+      },
+      "required": true
+    }
+  }
+}
