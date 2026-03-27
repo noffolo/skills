@@ -5,7 +5,7 @@ Translates PPTX presentations while preserving all non-text content.
 
 Usage:
     python translate_ppt.py <input.pptx> [output.pptx]
-    python translate_ppt.py <input.pptx> --font "Arial" --model gpt-4o --verbose
+    python translate_ppt.py <input.pptx> --font "Arial" --model qwen2.5:14b --verbose
 """
 
 import argparse
@@ -29,9 +29,9 @@ except ImportError:
     sys.exit(1)
 
 try:
-    from openai import OpenAI, APIError, RateLimitError, AuthenticationError
+    import requests
 except ImportError:
-    print("Error: openai is required. Install with: pip install openai")
+    print("Error: requests is required. Install with: pip install requests")
     sys.exit(1)
 
 
@@ -66,7 +66,8 @@ CJK_RANGES = [
 ]
 
 DEFAULT_FONT = "Calibri"
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "qwen2.5:14b"
+DEFAULT_API_BASE = "http://localhost:11434/v1"
 DEFAULT_BATCH_SIZE = 20
 MAX_RETRIES = 3
 
@@ -173,6 +174,22 @@ def get_output_path(input_path: str, output_path: Optional[str] = None) -> str:
 
 
 # =============================================================================
+# LLM API Helpers
+# =============================================================================
+
+def check_api_connectivity(api_base: str) -> bool:
+    """Check if the LLM API endpoint is reachable."""
+    try:
+        # Try a simple GET to the base URL
+        resp = requests.get(api_base.rstrip('/v1').rstrip('/'), timeout=5)
+        return resp.status_code < 500
+    except requests.ConnectionError:
+        return False
+    except Exception:
+        return False
+
+
+# =============================================================================
 # Text Extraction
 # =============================================================================
 
@@ -266,85 +283,116 @@ def extract_all_texts(prs: Presentation) -> List[TextSegment]:
 
 def translate_batch(
     segments: List[TextSegment],
-    client: OpenAI,
     model: str,
+    api_base: str,
+    api_key: Optional[str] = None,
     verbose: bool = False
 ) -> List[str]:
-    """Translate a batch of text segments using LLM."""
+    """Translate a batch of text segments using OpenAI-compatible API."""
     if not segments:
         return []
-    
+
     texts = [seg.text for seg in segments]
-    numbered_text = "\n".join(f"{i+1}. {text}" for i, text in enumerate(texts))
-    
+    numbered_texts = "\n".join(f"{i+1}. {t}" for i, t in enumerate(texts))
+
+    url = f"{api_base}/chat/completions"
+
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": f"Translate the following {len(texts)} Chinese text segments to English. Return ONLY the translations, one per line, with matching line numbers:\n\n{numbered_texts}"
+            }
+        ],
+        "temperature": 0.3,
+        "stream": False
+    }
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     if verbose:
-        print(f"    Sending batch of {len(segments)} segments to API...")
-    
+        print(f"    Sending batch of {len(segments)} segments to LLM...")
+
     for attempt in range(MAX_RETRIES):
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": numbered_text}
-                ],
-                temperature=0.3  # Lower temperature for more consistent translations
-            )
-            
-            response_text = response.choices[0].message.content
-            translations = parse_numbered_response(response_text, len(segments))
-            
+            response = requests.post(url, json=payload, headers=headers, timeout=120)
+            response.raise_for_status()
+            result = response.json()
+            translated_text = result["choices"][0]["message"]["content"]
+            translations = parse_numbered_response(translated_text, len(segments))
+
             if verbose:
                 print(f"    Received {len(translations)} translations")
-            
+
             return translations
-            
-        except RateLimitError:
+
+        except requests.ConnectionError as e:
             if attempt < MAX_RETRIES - 1:
                 wait_time = 2 ** attempt
-                print(f"    Rate limit hit, waiting {wait_time}s before retry...")
+                print(f"    Connection error, waiting {wait_time}s before retry...")
                 sleep(wait_time)
             else:
-                print(f"    Warning: Rate limit exceeded, skipping batch")
+                print(f"    Warning: Cannot connect to LLM API after retries. Check your endpoint.")
                 return [seg.text for seg in segments]  # Return original texts
-                
-        except APIError as e:
+
+        except requests.Timeout as e:
             if attempt < MAX_RETRIES - 1:
-                print(f"    API error: {e}, retrying...")
+                wait_time = 2 ** attempt
+                print(f"    Request timed out, waiting {wait_time}s before retry...")
+                sleep(wait_time)
+            else:
+                print(f"    Warning: LLM request timed out. The model may be loading. Try again.")
+                return [seg.text for seg in segments]
+
+        except requests.HTTPError as e:
+            error_msg = str(e)
+            if "404" in error_msg:
+                print(f"    Error: Model '{model}' not found or endpoint not available.")
+                return [seg.text for seg in segments]
+            elif attempt < MAX_RETRIES - 1:
+                print(f"    HTTP error: {e}, retrying...")
                 sleep(1)
             else:
-                print(f"    Warning: API error after retries: {e}")
+                print(f"    Warning: HTTP error after retries: {e}")
                 return [seg.text for seg in segments]
-        
+
         except Exception as e:
             print(f"    Warning: Unexpected error during translation: {e}")
             return [seg.text for seg in segments]
-    
+
     return [seg.text for seg in segments]
 
 
 def translate_segments(
     segments: List[TextSegment],
-    client: OpenAI,
     model: str,
+    api_base: str,
+    api_key: Optional[str],
     batch_size: int,
     verbose: bool = False
 ) -> None:
     """Translate all segments in batches."""
     if not segments:
         return
-    
+
     total = len(segments)
     print(f"Translating {total} text segments in batches of {batch_size}...")
-    
+
     for i in range(0, total, batch_size):
         batch = segments[i:i + batch_size]
         batch_num = i // batch_size + 1
         total_batches = (total + batch_size - 1) // batch_size
-        
+
         print(f"  Batch {batch_num}/{total_batches} ({len(batch)} segments)...")
-        translations = translate_batch(batch, client, model, verbose)
-        
+        translations = translate_batch(batch, model, api_base, api_key, verbose)
+
         # Assign translations back to segments
         for segment, translation in zip(batch, translations):
             segment.translated = translation
@@ -590,52 +638,52 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # Use with local Ollama (default)
   python translate_ppt.py input.pptx
-  python translate_ppt.py input.pptx output.pptx --verbose
-  python translate_ppt.py input.pptx --font Arial --model gpt-4o-mini
+
+  # Use with Qoderwork or other OpenAI-compatible endpoint
+  python translate_ppt.py input.pptx --api-base http://localhost:PORT/v1 --model model-name
+
+  # Use with cloud API
+  python translate_ppt.py input.pptx --api-base https://api.example.com/v1 --api-key your-key --model gpt-4o
         """
     )
-    
+
     parser.add_argument("input_file", help="Input PPTX file path")
     parser.add_argument("output_file", nargs="?", help="Output PPTX file path (optional)")
     parser.add_argument("--font", default=DEFAULT_FONT, help=f"Target font (default: {DEFAULT_FONT})")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"LLM model (default: {DEFAULT_MODEL})")
-    parser.add_argument("--api-base", help="Custom API base URL")
-    parser.add_argument("--api-key", help="API key (or set OPENAI_API_KEY env var)")
-    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE, 
+    parser.add_argument("--api-base", default=DEFAULT_API_BASE, help=f"OpenAI-compatible API base URL (default: {DEFAULT_API_BASE})")
+    parser.add_argument("--api-key", default=None,
+                       help="API key for the LLM endpoint (optional, not needed for local models)")
+    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE,
                        help=f"Batch size for API calls (default: {DEFAULT_BATCH_SIZE})")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
-    
+
     args = parser.parse_args()
-    
+
     # Validate input file
     if not os.path.exists(args.input_file):
         print(f"Error: Input file not found: {args.input_file}")
         sys.exit(1)
-    
+
     if not args.input_file.lower().endswith('.pptx'):
         print("Error: Input file must be a .pptx file")
         sys.exit(1)
-    
+
     # Determine output path
     output_path = get_output_path(args.input_file, args.output_file)
-    
-    # Get API key
-    api_key = args.api_key or os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        print("Error: OpenAI API key is required. Set OPENAI_API_KEY environment variable or use --api-key")
-        sys.exit(1)
-    
-    # Initialize OpenAI client
-    try:
-        client_kwargs = {"api_key": api_key}
-        if args.api_base:
-            client_kwargs["base_url"] = args.api_base
-        client = OpenAI(**client_kwargs)
-    except Exception as e:
-        print(f"Error initializing OpenAI client: {e}")
-        sys.exit(1)
-    
+
+    # Get API key from args or environment
+    api_key = args.api_key or os.environ.get("LLM_API_KEY", "")
+
+    # Soft connectivity check (warning only)
+    print(f"Using LLM endpoint: {args.api_base}")
+    print(f"Model: {args.model}")
+    if not check_api_connectivity(args.api_base):
+        print("Warning: Could not verify API connectivity. The endpoint may be unreachable.")
+        print("         Will attempt translation anyway...")
+
     # Load presentation
     print(f"Loading presentation: {args.input_file}")
     try:
@@ -644,37 +692,37 @@ Examples:
         print(f"Error loading presentation: {e}")
         print("Hint: If the file appears corrupted, try opening and re-saving it in PowerPoint")
         sys.exit(1)
-    
+
     total_slides = len(prs.slides)
     print(f"Loaded {total_slides} slides")
-    
+
     # Extract all Chinese text segments
     print("Extracting Chinese text segments...")
     segments = extract_all_texts(prs)
-    
+
     if not segments:
         print("No Chinese text found in the presentation. Nothing to translate.")
         sys.exit(0)
-    
+
     print(f"Found {len(segments)} text segments to translate")
-    
+
     if args.verbose:
         for seg in segments[:10]:  # Show first 10
             print(f"  - Slide {seg.slide_idx + 1}: {seg.text[:50]}...")
         if len(segments) > 10:
             print(f"  ... and {len(segments) - 10} more")
-    
+
     # Translate segments
-    translate_segments(segments, client, args.model, args.batch_size, args.verbose)
-    
+    translate_segments(segments, args.model, args.api_base, api_key, args.batch_size, args.verbose)
+
     # Apply translations
     print("Applying translations to presentation...")
     applied_count = apply_translations(prs, segments, args.font, args.verbose)
-    
+
     # Font adjustment pass (catch any missed CJK fonts)
     print(f"Adjusting fonts to {args.font}...")
     adjust_all_fonts(prs, args.font)
-    
+
     # Save output
     print(f"Saving to: {output_path}")
     try:
@@ -682,7 +730,7 @@ Examples:
     except Exception as e:
         print(f"Error saving presentation: {e}")
         sys.exit(1)
-    
+
     # Summary
     print("\n" + "=" * 50)
     print("Translation Complete!")

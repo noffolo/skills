@@ -2,17 +2,24 @@
 
 ## Architecture Overview
 
-The translation pipeline consists of four main stages:
+The translation pipeline consists of four main stages using an OpenAI-compatible LLM API:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  1. Extraction  │───▶│  2. Batching    │───▶│  3. Translation │───▶│  4. Application │
 │                 │    │                 │    │                 │    │                 │
-│ - Parse PPTX    │    │ - Collect text  │    │ - LLM API call  │    │ - Replace text  │
+│ - Parse PPTX    │    │ - Collect text  │    │ - OpenAI API    │    │ - Replace text  │
 │ - Recurse shapes│    │ - Filter CJK    │    │ - Retry logic   │    │ - Adjust fonts  │
 │ - Extract runs  │    │ - Batch by size │    │ - Map responses │    │ - Resize boxes  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+The tool uses the standard OpenAI-compatible `/v1/chat/completions` API endpoint, enabling compatibility with:
+- **Qoderwork** built-in models
+- **Ollama** (via its OpenAI-compatible endpoint at `/v1`)
+- **OpenAI** API
+- **DeepSeek** and other cloud providers
+- Any other OpenAI-compatible LLM service
 
 ## Text Extraction
 
@@ -125,21 +132,34 @@ def create_batches(segments, batch_size=20):
     for i in range(0, len(segments), batch_size):
         yield segments[i:i + batch_size]
 
-# Translate batch
-def translate_batch(batch, client, model):
+# Translate batch using OpenAI-compatible API
+def translate_batch(batch, model, api_base, api_key=None):
     texts = [s["text"] for s in batch]
-    numbered_text = "\n".join(f"{i+1}. {t}" for i, t in enumerate(texts))
-    
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
+    numbered_texts = "\n".join(f"{i+1}. {t}" for i, t in enumerate(texts))
+
+    url = f"{api_base}/chat/completions"
+
+    payload = {
+        "model": model,
+        "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": numbered_text}
-        ]
-    )
-    
+            {"role": "user", "content": f"Translate the following {len(texts)} Chinese text segments to English. Return ONLY the translations, one per line:\n\n{numbered_texts}"}
+        ],
+        "temperature": 0.3,
+        "stream": False
+    }
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    response = requests.post(url, json=payload, headers=headers, timeout=120)
+    response.raise_for_status()
+    result = response.json()
+    translated_text = result["choices"][0]["message"]["content"]
+
     # Parse numbered response
-    translations = parse_numbered_response(response.choices[0].message.content)
+    translations = parse_numbered_response(translated_text, len(batch))
     return translations
 ```
 
@@ -288,16 +308,50 @@ Note: Text box adjustment is skipped for notes and table cells to avoid layout i
 
 ## API Configuration
 
-### OpenAI Client Setup
+### OpenAI-Compatible API Setup
+
+The tool uses the standard OpenAI `/v1/chat/completions` API format via the `requests` library:
 
 ```python
-from openai import OpenAI
+import requests
 
-client = OpenAI(
-    api_key=api_key or os.environ.get("OPENAI_API_KEY"),
-    base_url=api_base  # Optional, for compatible endpoints
-)
+def translate_batch(segments, model, api_base, api_key=None, verbose=False):
+    url = f"{api_base}/chat/completions"
+
+    texts = [seg.text for seg in segments]
+    numbered_texts = "\n".join(f"{i+1}. {text}" for i, text in enumerate(texts))
+
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"Translate the following {len(texts)} Chinese text segments to English. Return ONLY the translations, one per line:\n\n{numbered_texts}"}
+        ],
+        "temperature": 0.3,
+        "stream": False
+    }
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    response = requests.post(url, json=payload, headers=headers, timeout=120)
+    response.raise_for_status()
+    result = response.json()
+    return result["choices"][0]["message"]["content"]
 ```
+
+### Supported Providers
+
+The following providers are compatible with this tool:
+
+| Provider | API Base URL | Authentication |
+|----------|--------------|----------------|
+| Qoderwork | (provided by client) | As needed |
+| Ollama | `http://localhost:11434/v1` | None required |
+| OpenAI | `https://api.openai.com/v1` | API key required |
+| DeepSeek | `https://api.deepseek.com/v1` | API key required |
+| Other | Varies | Varies |
 
 ### System Prompt
 
@@ -306,34 +360,63 @@ You are a professional translator specializing in business and technical content
 Translate Chinese text to English following these rules:
 1. Maintain original meaning, tone, and intent
 2. Use professional business English for formal content
-3. Preserve formatting markers (bullet points, numbering)
+3. Preserve formatting markers (bullet points, numbering) in the translation
 4. Do not translate proper nouns unless they have standard English equivalents
-5. Return ONLY the translation, no explanations
+5. For mixed Chinese/English text, only translate the Chinese portions
+6. Return ONLY the translations, one per line, corresponding to each input line
+7. Do not add numbering, explanations, or any other text
 
 Input format: Numbered list of text segments
-Output format: Same numbered list with English translations
+Output format: Same numbered list with English translations only
 ```
+
+### Model Selection
+
+Translation quality varies significantly between models. Recommended models:
+
+| Model | Size | Quality | Best For |
+|-------|------|---------|----------|
+| `qwen2.5:14b` | ~9GB | ★★★★★ | Chinese-to-English business content |
+| `qwen2.5:7b` | ~4.7GB | ★★★★ | Good balance of quality and speed |
+| `llama3.1:8b` | ~4.7GB | ★★★ | General purpose |
+| `qwen2.5:3b` | ~2GB | ★★ | Quick tests, basic translations |
+
+For best results with Chinese-to-English business content, **Qwen2.5 14B is strongly recommended** as it has excellent Chinese language understanding.
 
 ### Retry Logic
 
 The `translate_batch` function implements inline retry with exponential backoff:
 
 ```python
-def translate_batch(segments, client, model, verbose=False):
+def translate_batch(segments, model, api_base, api_key=None, verbose=False):
     texts = [seg.text for seg in segments]
-    numbered_text = "\n".join(f"{i+1}. {text}" for i, text in enumerate(texts))
-    
+    numbered_texts = "\n".join(f"{i+1}. {text}" for i, text in enumerate(texts))
+
+    url = f"{api_base}/chat/completions"
+    payload = {...}  # See above
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     for attempt in range(MAX_RETRIES):  # MAX_RETRIES = 3
         try:
-            response = client.chat.completions.create(...)
-            return parse_numbered_response(response.choices[0].message.content, len(segments))
-        except RateLimitError:
+            response = requests.post(url, json=payload, headers=headers, timeout=120)
+            response.raise_for_status()
+            result = response.json()
+            return parse_numbered_response(result["choices"][0]["message"]["content"], len(segments))
+        except requests.ConnectionError:
             if attempt < MAX_RETRIES - 1:
                 wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
                 sleep(wait_time)
             else:
                 return [seg.text for seg in segments]  # Fallback to original
-        except APIError:
+        except requests.Timeout:
+            if attempt < MAX_RETRIES - 1:
+                wait_time = 2 ** attempt
+                sleep(wait_time)
+            else:
+                return [seg.text for seg in segments]  # Fallback to original
+        except requests.HTTPError:
             if attempt < MAX_RETRIES - 1:
                 sleep(1)
             else:
@@ -350,7 +433,8 @@ On failure after all retries, the function falls back to returning the original 
 
 | Error Type | Handling Strategy |
 |------------|-------------------|
-| Missing API Key | Exit with clear message before processing |
+| API not reachable | Soft check on startup, warning only, proceed with translation attempt |
+| Model not found | Log error, suggest checking model name or pulling for Ollama |
 | Invalid PPTX | Try-catch on `Presentation()` load, suggest re-saving |
 | API Timeout | Retry with backoff, skip batch on final failure |
 | Partial Translation | Log warning, keep original text for failed segments |

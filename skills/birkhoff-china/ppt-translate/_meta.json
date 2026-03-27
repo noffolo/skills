@@ -3,9 +3,15 @@
   "slug": "ppt-translate",
   "displayName": "Translate Chinese PPT to English",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774585275855,
-    "commit": "https://github.com/openclaw/skills/commit/8d648d7250a743ac649b6b87ba70b7dc82e17d95"
+    "version": "1.0.2",
+    "publishedAt": 1774595814850,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774585275855,
+      "commit": "https://github.com/openclaw/skills/commit/8d648d7250a743ac649b6b87ba70b7dc82e17d95"
+    }
+  ]
 }
