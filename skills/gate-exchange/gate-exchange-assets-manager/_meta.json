@@ -1,0 +1,11 @@
+{
+  "owner": "gate-exchange",
+  "slug": "gate-exchange-assets-manager",
+  "displayName": "Gate Exchange Assets Manager",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1774623560152,
+    "commit": null
+  },
+  "history": []
+}
