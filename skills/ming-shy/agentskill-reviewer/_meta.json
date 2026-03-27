@@ -1,0 +1,11 @@
+{
+  "owner": "ming-shy",
+  "slug": "agentskill-reviewer",
+  "displayName": "Evaluate AgentSkills' quality and generate a professional report in Chinese.",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774513647024,
+    "commit": null
+  },
+  "history": []
+}
