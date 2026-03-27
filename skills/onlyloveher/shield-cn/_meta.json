@@ -3,11 +3,16 @@
   "slug": "shield-cn",
   "displayName": "Shield Cn",
   "latest": {
-    "version": "817.0.0",
-    "publishedAt": 1774614296176,
-    "commit": "https://github.com/openclaw/skills/commit/fb677c8a08db8ba253cfb7680719316d382f01eb"
+    "version": "842.0.0",
+    "publishedAt": 1774614508436,
+    "commit": null
   },
   "history": [
+    {
+      "version": "817.0.0",
+      "publishedAt": 1774614296176,
+      "commit": "https://github.com/openclaw/skills/commit/fb677c8a08db8ba253cfb7680719316d382f01eb"
+    },
     {
       "version": "785.0.0",
       "publishedAt": 1774614036807,
