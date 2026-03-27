@@ -1,0 +1,11 @@
+{
+  "owner": "kuaidi100-api",
+  "slug": "kuaidi100-user",
+  "displayName": "kuaidi100-user",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774494256381,
+    "commit": null
+  },
+  "history": []
+}
