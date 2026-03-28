@@ -24,7 +24,7 @@ import json
 import math
 import os
 import re
-import subprocess
+import urllib.request
 import sys
 import uuid
 from datetime import datetime, timedelta
@@ -39,7 +39,19 @@ WORKSPACE = Path(os.environ.get("WORKSPACE", Path(__file__).resolve().parent.par
 STORE = WORKSPACE / "memory" / "metacognition.json"
 LENS_OUT = WORKSPACE / "scripts" / "metacognition-lens.md"
 MEMORY_DIR = WORKSPACE / "memory"
-EMBEDDINGS_URL = os.environ.get("EMBEDDINGS_URL", "http://localhost:11434/v1/embeddings")
+_raw_embeddings_url = os.environ.get("EMBEDDINGS_URL", "http://localhost:11434/v1/embeddings")
+
+# Security: enforce localhost-only embeddings endpoint
+# Remote URLs are rejected to prevent data exfiltration via embeddings
+from urllib.parse import urlparse as _urlparse
+_parsed = _urlparse(_raw_embeddings_url)
+_host = _parsed.hostname or ""
+if _host not in ("localhost", "127.0.0.1", "::1"):
+    import sys
+    print(f"WARNING: EMBEDDINGS_URL host '{_host}' is not localhost — embeddings disabled for security.", file=sys.stderr)
+    EMBEDDINGS_URL = None  # disables embeddings entirely
+else:
+    EMBEDDINGS_URL = _raw_embeddings_url
 
 VALID_TYPES = [
     "perceptions", "overrides", "protections",
@@ -70,16 +82,19 @@ def _test_embeddings() -> bool:
     global _embeddings_available
     if _embeddings_available is not None:
         return _embeddings_available
+    if EMBEDDINGS_URL is None:
+        _embeddings_available = False
+        return False
     try:
-        result = subprocess.run(
-            ["curl", "-s", "-m", "2", "-X", "POST", EMBEDDINGS_URL,
-             "-H", "Content-Type: application/json",
-             "-d", json.dumps({"input": "test"})],
-            capture_output=True, text=True, timeout=5,
+        req = urllib.request.Request(
+            EMBEDDINGS_URL,
+            data=json.dumps({"input": "test"}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
         )
-        if result.returncode == 0 and result.stdout.strip():
-            resp = json.loads(result.stdout)
-            if "data" in resp and resp["data"]:
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            body = json.loads(resp.read())
+            if "data" in body and body["data"]:
                 _embeddings_available = True
                 return True
     except Exception:
@@ -93,15 +108,15 @@ def get_embedding(text: str) -> "list":
     if not _test_embeddings():
         return None
     try:
-        result = subprocess.run(
-            ["curl", "-s", "-m", "10", "-X", "POST", EMBEDDINGS_URL,
-             "-H", "Content-Type: application/json",
-             "-d", json.dumps({"input": text[:2000]})],  # truncate long texts
-            capture_output=True, text=True, timeout=15,
+        req = urllib.request.Request(
+            EMBEDDINGS_URL,
+            data=json.dumps({"input": text[:2000]}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
         )
-        if result.returncode == 0:
-            resp = json.loads(result.stdout)
-            return resp["data"][0]["embedding"]
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = json.loads(resp.read())
+            return body["data"][0]["embedding"]
     except Exception:
         pass
     return None
