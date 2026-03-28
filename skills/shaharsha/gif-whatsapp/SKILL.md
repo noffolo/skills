@@ -1,6 +1,6 @@
 ---
 name: gif-whatsapp
-version: 1.1.0
+version: 1.2.0
 description: Search and send GIFs on WhatsApp. Handles the Tenor→MP4 conversion required for WhatsApp.
 author: Leo 🦁
 homepage: https://clawhub.com/skills/gif-whatsapp
@@ -41,10 +41,10 @@ ffmpeg -i /tmp/gif.gif -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/
 
 ### Step 4: Send via message tool
 ```
-message action=send to=NUMBER message="‎" filePath=/tmp/gif.mp4 gifPlayback=true
+message action=send to=NUMBER message=" " filePath=/tmp/gif.mp4 gifPlayback=true
 ```
 
-Note: Use invisible character `‎` (left-to-right mark, U+200E) as message to send GIF without visible caption.
+Use a single space as the message body — WhatsApp requires a non-empty message to send media, but the space won't be visible to the recipient.
 
 ## One-liner Example
 
@@ -88,7 +88,7 @@ ffmpeg -i /tmp/g.gif -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)
 
 - **Source domains**: gifgrep only searches trusted GIF providers (Tenor, Giphy)
 - **File handling**: All downloads go to `/tmp` and are overwritten each time (`-y` flag)
-- **Empty caption**: The `‎` character (U+200E, Left-to-Right Mark) is used as an invisible caption so WhatsApp sends the GIF without visible text. This is a standard Unicode control character, not an injection technique
+- **Empty caption**: A single space is used as the message body so WhatsApp sends the GIF without visible text
 - **WhatsApp integration**: Uses the platform's built-in `message` tool — no separate WhatsApp credentials needed
 - **ffmpeg safety**: Processes only GIF files from trusted providers; no arbitrary file execution
 
