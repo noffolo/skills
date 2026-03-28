@@ -3,11 +3,16 @@
   "slug": "cyber-security-engineer",
   "displayName": "Cyber Security Engineer",
   "latest": {
-    "version": "0.1.8",
-    "publishedAt": 1774653088473,
-    "commit": "https://github.com/openclaw/skills/commit/9bdc7fb5993d912757d1bd079b3f0abfc02e10f5"
+    "version": "0.1.9",
+    "publishedAt": 1774653914722,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.1.8",
+      "publishedAt": 1774653088473,
+      "commit": "https://github.com/openclaw/skills/commit/9bdc7fb5993d912757d1bd079b3f0abfc02e10f5"
+    },
     {
       "version": "0.1.6",
       "publishedAt": 1774652142645,
