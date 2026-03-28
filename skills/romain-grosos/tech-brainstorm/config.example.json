@@ -1,0 +1,59 @@
+{
+  "language": "fr",
+  "timezone": "Europe/Paris",
+
+  "max_sources": 10,
+  "search_depth": "medium",
+
+  "llm": {
+    "enabled": true,
+    "base_url": "https://api.openai.com/v1",
+    "api_key_file": "~/.openclaw/secrets/openai_api_key",
+    "model": "gpt-4o-mini",
+    "max_tokens": 4096,
+    "temperature": 0.7
+  },
+
+  "outputs": [],
+
+  "_comment_outputs_doc": {
+    "telegram_bot": {
+      "type": "telegram_bot",
+      "chat_id": "YOUR_CHAT_ID",
+      "content": "recap",
+      "enabled": false,
+      "_note": "bot_token auto-read from OpenClaw config (channels.telegram.botToken). Set chat_id to your Telegram user/chat ID."
+    },
+    "mail-client": {
+      "type": "mail-client",
+      "mail_to": "you@example.com",
+      "subject": "Tech Brainstorm - {topic} - {date}",
+      "content": "full_report",
+      "enabled": false,
+      "_note": "Delegates to mail-client skill if installed. Fallback: set smtp_host/smtp_port/smtp_user/smtp_app_key/mail_from here."
+    },
+    "nextcloud": {
+      "type": "nextcloud",
+      "path": "/Brainstorms/brainstorm.md",
+      "content": "full_report",
+      "mode": "append",
+      "enabled": false,
+      "_note": "Delegates to nextcloud skill. mode: append (default) or overwrite."
+    },
+    "file": {
+      "type": "file",
+      "path": "~/.openclaw/data/tech-brainstorm/reports/report-latest.md",
+      "content": "full_report",
+      "enabled": false
+    }
+  },
+
+  "_comment_profiles_doc": "Named output profiles - call with: tech_brainstorm.py send --profile NAME",
+  "profiles": {
+    "example-full": [
+      { "type": "telegram_bot", "chat_id": "YOUR_CHAT_ID", "content": "recap", "enabled": false },
+      { "type": "nextcloud", "path": "/Brainstorms/brainstorm.md", "content": "full_report", "mode": "append", "enabled": false },
+      { "type": "mail-client", "mail_to": "you@example.com", "content": "full_report", "enabled": false }
+    ]
+  }
+}
