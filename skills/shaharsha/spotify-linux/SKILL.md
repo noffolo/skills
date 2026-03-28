@@ -1,6 +1,6 @@
 ---
 name: spotify-linux
-version: 1.1.0
+version: 1.2.0
 description: Spotify CLI for headless Linux servers. Control Spotify playback via terminal using cookie auth (no OAuth callback needed). Perfect for remote servers without localhost access.
 author: Leo 🦁
 homepage: https://github.com/steipete/spogo
@@ -46,7 +46,8 @@ go install github.com/steipete/spogo/cmd/spogo@latest
 
 This installs to `~/go/bin/spogo`. Add to PATH if needed:
 ```bash
-sudo ln -s ~/go/bin/spogo /usr/local/bin/spogo
+echo 'export PATH=$PATH:~/go/bin' >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ### 3. Verify
@@ -73,7 +74,7 @@ Create `~/.config/spogo/config.toml`:
 default_profile = "default"
 
 [profile.default]
-cookie_path = "/root/.config/spogo/cookies/default.json"
+cookie_path = "~/.config/spogo/cookies/default.json"
 market = "IL"
 language = "en"
 ```
@@ -135,7 +136,11 @@ spogo status --json
 
 ## "missing device id" Error - Browser Fallback
 
-spogo needs an active Spotify session. If no device played recently:
+spogo needs an active Spotify session. If no device played recently, you can start one via the browser.
+
+> **Note:** This is optional and only needed when `spogo device list` returns no active devices.
+> It opens `open.spotify.com` in the agent's isolated browser profile (not the user's personal browser).
+> The agent only navigates to Spotify and clicks Play — no other browser state is accessed.
 
 1. **Open track in browser**:
 ```
@@ -149,7 +154,7 @@ browser open https://open.spotify.com/track/TRACK_ID profile=openclaw
 spogo device set "DEVICE_ID"
 ```
 
-The browser profile stays logged in (cookies persist). Session stays active for hours after playback.
+The Spotify session stays active for hours after playback.
 
 ## Rate Limits
 
