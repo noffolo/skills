@@ -20,6 +20,7 @@ metadata:
           ],
       },
   }
+disable-model-invocation: true
 ---
 
 # 🎧 CS Auto-Responder

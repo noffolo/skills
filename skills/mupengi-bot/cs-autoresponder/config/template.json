@@ -23,8 +23,8 @@
   "toneDescription": "친근하고 따뜻한 톤. 이모지 적당히 사용, 존댓말 기본",
   "escalationTarget": {
     "type": "discord",
-    "channelId": "1468204132920725535",
-    "mention": "형님"
+    "channelId": "YOUR_DISCORD_CHANNEL_ID",
+    "mention": "관리자"
   },
   "faqPath": "./config/faq-template.json",
   "responseConfig": {
