@@ -3,9 +3,15 @@
   "slug": "gate-mcp-codex-installer",
   "displayName": "Gate MCP Codex Installer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773374012451,
-    "commit": "https://github.com/openclaw/skills/commit/899fcdd56f1b7d13ffdb8972bf03cd284416a41e"
+    "version": "1.0.1",
+    "publishedAt": 1774617914504,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773374012451,
+      "commit": "https://github.com/openclaw/skills/commit/899fcdd56f1b7d13ffdb8972bf03cd284416a41e"
+    }
+  ]
 }
