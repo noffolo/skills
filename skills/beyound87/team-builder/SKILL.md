@@ -1,11 +1,11 @@
 ---
 name: team-builder
-description: Deploy a multi-agent SaaS growth team on OpenClaw with shared workspace, async inbox communication, cron-scheduled tasks, deep project code scanning (Deep Dive), and optional Telegram integration. Use when user wants to create an AI agent team, build a multi-agent system, set up a growth/marketing/product team, or deploy agents for a SaaS product matrix. Includes Project Deep Dive capability where fullstack-dev scans codebases to generate comprehensive product knowledge files (DB schema, routes, models, services, auth, integrations, tech debt, etc.) that all agents consume for informed decision-making. Supports customizable team name, agent roles, models, timezone, and Telegram bots.
+description: Deploy a multi-agent SaaS growth team on OpenClaw with shared workspace, async inbox communication, cron-scheduled tasks, deep project code scanning (Deep Dive), and optional Telegram integration. Use when building or upgrading multi-agent teams for SaaS/product-matrix work. Supports dual-development tracks by default: `devops` for delivery/deploy/environment/acceptance and `fullstack-dev` for implementation/module deep-dive/claude-only coding execution using direct acpx or existing session continuity. Includes Project Deep Dive capability so shared product knowledge files (DB schema, routes, models, services, auth, integrations, tech debt, etc.) can be generated and consumed efficiently by all agents. Supports customizable team name, agent roles, models, timezone, and Telegram bots.
 ---
 
 # Team Builder
 
-Deploy a 7-agent SaaS growth team on OpenClaw in one shot.
+Deploy a reusable multi-agent SaaS/growth team template on OpenClaw in one shot.
 
 ## System Impact & Prerequisites
 
@@ -28,9 +28,10 @@ Deploy a 7-agent SaaS growth team on OpenClaw in one shot.
 - Requires: network access to Telegram API (proxy configurable)
 
 ### Optional: ACP / Claude Code
-- The fullstack-dev agent is configured to spawn Claude Code via ACP for complex coding tasks
-- Requires: ACP-compatible coding agent configured in your OpenClaw environment
-- No extra setup needed if you don't use this feature
+- The `fullstack-dev` agent is configured as the implementation-focused Claude coding role
+- Current production path is **claude only**
+- Preferred execution modes: simple direct, medium Claude ACP `run` or direct acpx, complex work via existing fullstack-dev continuity + context files
+- Do not assume IM-bound ACP `session` persistence is available
 
 ### Credentials involved
 - **Telegram bot tokens** (optional) -- stored in openclaw.json, used for agent-to-Telegram binding
@@ -43,7 +44,7 @@ Deploy a 7-agent SaaS growth team on OpenClaw in one shot.
 
 ## Team Architecture
 
-Default 7-agent SaaS growth team (customizable to 2-10 agents):
+Default reference architecture for a SaaS/growth multi-agent team (customizable to 2-10 agents):
 
 ```
 CEO
@@ -53,7 +54,8 @@ CEO
  |-- Content Chief (strategy + writing + copywriting + i18n)
  |-- Intel Analyst (competitor monitoring + market trends)
  |-- Product Lead (product management + tech architecture)
- |-- Fullstack Dev (full-stack dev + ops, spawns Claude Code with role-based prompts)
+ |-- DevOps (delivery / deploy / environment / acceptance)
+ |-- Fullstack Dev (implementation / module deep dive / ACP coding session)
 ```
 
 ### Multi-Team Support
@@ -70,7 +72,7 @@ Named teams use prefixed agent IDs (`alpha-chief-of-staff`, `beta-growth-lead`) 
 
 ### Flexible Team Size
 
-The wizard lets you select 2-10 agents from the available roles. Skip roles you don't need. The 7-agent default covers most SaaS scenarios, but you can run leaner (3-4 agents) or expand with custom roles.
+The wizard lets you select 2-10 agents from the available roles. Skip roles you don't need. The 8-agent default covers most SaaS scenarios with dual-dev routing, but you can run leaner (3-4 agents) or expand with custom roles.
 
 ### Model Auto-Detection
 
@@ -83,6 +85,52 @@ The wizard scans your `openclaw.json` for registered model providers and auto-su
 | Fast | Lightweight tasks | /flash\|haiku\|mini/i |
 
 You can always override with manual model IDs.
+
+## Setup / Config / Scripts
+
+### Required Inputs
+- Team name
+- Workspace dir
+- Timezone
+- Morning brief hour
+- Evening brief hour
+- Thinking model
+- Execution model
+- CEO title
+
+### Optional Inputs
+- Telegram user ID
+- Telegram bot tokens
+- Proxy
+- ACP coding agent（给 fullstack-dev 使用）
+
+### Core Scripts
+```bash
+node <skill-dir>/scripts/deploy.js
+node <workspace-dir>/apply-config.js
+powershell <workspace-dir>/create-crons.ps1
+bash <workspace-dir>/create-crons.sh
+openclaw gateway restart
+```
+
+### Execution Priority
+- First: matched execution skill (for coding work, `coding-lead` if loaded)
+- Second: agent-role fallback when no matching skill is loaded
+- Third: templates/README explain boundaries and ownership only; they should not override matched skills
+
+### Context File Hygiene
+- Active context files live under `<project>/.openclaw/`
+- Reuse one context file per active code chain when possible
+- Naming pattern: `context-<task-slug>.md`
+- Active context file cap per project: **60**
+- Context-file lifecycle window per project: **100 total files** across active + archive
+- Completed or stale files should be deleted or moved to `.openclaw/archive/`
+
+### Current Dual-Dev Standard
+- fullstack-dev：实现、模块深挖、开发文档、接口文档、Claude coding 执行；默认 coding skill 可采用 `coding-lead`，其中 simple 任务直做，medium 倾向 Claude ACP `run` 或 direct acpx，complex 通过现有会话连续协作 + 上下文文件推进，不把 ACP `session` 持久线程作为正式主路径；context 活跃上限 60、生命周期总窗口 100；并行允许但必须先定义边界，总上限 5 个工作单元
+- devops：交付、部署、环境、回归、冒烟、自动QA、发布门禁
+- product-lead：澄清、PRD、验收标准，不完整不得派工
+- chief-of-staff：路由、裁决、控制 token 浪费
 
 ## Deployment Flow
 
@@ -110,6 +158,33 @@ node <skill-dir>/scripts/deploy.js
 ```
 
 Interactive -- asks all questions from Step 1, generates the full workspace.
+
+### Step 2b: Non-interactive / Verify Mode
+
+Prepare a JSON config file:
+
+```json
+{
+  "teamName": "Alpha Team",
+  "workspaceDir": "~/.openclaw/workspace-team",
+  "timezone": "Asia/Shanghai",
+  "morningHour": 8,
+  "eveningHour": 18,
+  "thinkingModel": "zai/glm-5",
+  "executionModel": "zai/glm-4.7",
+  "ceoTitle": "Boss",
+  "roles": ["chief-of-staff","data-analyst","growth-lead","content-chief","intel-analyst","product-lead","devops","fullstack-dev"]
+}
+```
+
+Run:
+
+```bash
+node <skill-dir>/scripts/deploy.js --config team-builder.json
+node <skill-dir>/scripts/deploy.js --verify --config team-builder.json
+```
+
+`--verify` checks that generated files contain the expected dual-dev model, role ownership, and cron entries.
 
 ### Step 3: Apply Config
 
@@ -146,10 +221,11 @@ User must edit:
 ### Step 7: Trigger Deep Dive Scans
 
 After filling in products with code directories, tell product-lead to trigger Deep Dive scans:
-1. Product-lead sends scan requests to fullstack-dev via inbox
-2. Fullstack-dev enters each project directory and generates knowledge files
-3. Product-lead reviews the generated files for completeness
-4. All agents now have deep project understanding for informed decisions
+1. Product-lead sends delivery-oriented scan requests to devops via inbox
+2. Devops enters each project directory and generates shared knowledge / deployment-oriented scan outputs
+3. Fullstack-dev picks up module-level deep dive or implementation follow-up when needed
+4. Product-lead reviews the generated files for completeness and acceptance impact
+5. All agents now have deep project understanding for informed decisions
 
 ## Cron Schedule
 
@@ -160,6 +236,7 @@ After filling in products with code directories, tell product-lead to trigger De
 | H | Chief of Staff | Morning brief (announced) | Daily |
 | H+1 | Growth Lead | GEO + SEO + community | Daily |
 | H+1 | Content Chief | Weekly content plan | Monday |
+| H+2 | DevOps | Delivery / environment / Deep Dive / acceptance | Daily |
 | H+10 | Chief of Staff | Evening brief (announced) | Daily |
 
 (H = morning brief hour)
@@ -170,7 +247,7 @@ After filling in products with code directories, tell product-lead to trigger De
 <workspace>/
 ├── AGENTS.md, SOUL.md, USER.md  (auto-injected)
 ├── apply-config.js, create-crons.ps1/.sh, README.md
-├── agents/<7 agent dirs>/       (SOUL.md + MEMORY.md + memory/)
+├── agents/<8 agent dirs>/       (SOUL.md + MEMORY.md + memory/)
 └── shared/
     ├── briefings/, decisions/, inbox/ (v2: with status tracking)
     ├── status/team-dashboard.md     (chief-of-staff maintains, all agents read first)
@@ -257,10 +334,11 @@ Agents can deeply understand each SaaS product through automated code scanning. 
 ### How It Works
 
 1. CEO adds a product to `shared/products/_index.md` (name, URL, code directory, tech stack)
-2. Product Lead triggers a Deep Dive scan by messaging Fullstack Dev via inbox
-3. Fullstack Dev enters the project directory (read-only) and scans the codebase
-4. Knowledge files are generated in `shared/products/{product}/`
-5. All agents consume these files **via manifest-based lazy loading** (never read all at once)
+2. Product Lead triggers a delivery-oriented Deep Dive scan by messaging DevOps via inbox
+3. DevOps enters the project directory (read-only) and generates shared knowledge / delivery-oriented scan outputs
+4. Fullstack Dev picks up module-level deep dive or implementation follow-up when needed
+5. Knowledge files are generated in `shared/products/{product}/`
+6. All agents consume these files **via manifest-based lazy loading** (never read all at once)
 
 ### Manifest-Based Lazy Loading (MANDATORY)
 
@@ -274,7 +352,7 @@ Each product directory includes a `manifest.json` (~200 tokens) that lists all f
 
 **Why:** With 15+ products × 20 files each, full loading = 40K+ tokens per product. Manifest loading = 200 tokens + only what's needed.
 
-**Fullstack Dev MUST regenerate `manifest.json`** after every scan (L0-L4). Template in `_template/manifest.json`.
+**DevOps MUST regenerate `manifest.json`** after every delivery-oriented scan (L0-L4). Fullstack Dev updates it when doing module-level follow-up that changes knowledge scope. Template in `_template/manifest.json`.
 
 ### Manifest Quality Standards
 
@@ -338,8 +416,10 @@ Knowledge files capture not just WHAT exists but WHY:
 
 | Role | Responsibility |
 |------|---------------|
-| Product Lead | **Governance**: trigger scans, review quality, track freshness, ensure completeness |
-| Fullstack Dev | **Execution**: enter code directory, scan, generate/update knowledge files |
+| Product Lead | **Clarification / PRD / acceptance**: complete clarification, PRD, user stories, acceptance criteria, and review knowledge freshness before delegating |
+| DevOps | **Delivery / QA gate / Deep Dive**: enter code directory for deployment-oriented scans, maintain release checklist, smoke/regression testing, auto-QA access, and generate/update shared product knowledge files |
+| Fullstack Dev | **Implementation / docs / Deep Dive follow-up**: continue module-level deep dive, code analysis, implementation, dev docs, interface docs, and ACP session work |
+| Chief of Staff | **Routing / escalation**: split implementation vs delivery tasks, prevent duplicate labor, escalate blockers |
 | All Agents | **Consumption**: read product knowledge before any product-related decision |
 
 ### Per-Stack Auto-Detection
@@ -387,9 +467,9 @@ The chief is upgraded from "briefing writer" to "active team router":
 | 07:00 | data-analyst | daily | Data pull + feedback scan |
 | 08:00 | chief-of-staff | **announce** | Morning: router scan + brief + quality |
 | 09:00 | growth-lead | daily | GEO/SEO/community |
-| 09:00 | product-lead | **daily (NEW)** | Inbox + knowledge governance + task delegation |
+| 09:00 | product-lead | **daily (NEW)** | Inbox + clarification/PRD + task delegation |
 | 10:00 | content-chief | **daily M-F (was weekly)** | Content creation + collaboration |
-| 10:00 | fullstack-dev | **daily (enhanced)** | Inbox + Deep Dive + dev tasks + patrol |
+| 10:00 | devops | **daily (delivery track)** | Inbox + Deep Dive + delivery + QA gate |
 | 12:00 | chief-of-staff | **patrol (NEW)** | Router scan only, no brief |
 | 15:00 | chief-of-staff | **patrol (NEW)** | Router scan only, no brief |
 | 18:00 | chief-of-staff | **announce** | Evening: router scan + summary + next day plan |
@@ -413,7 +493,8 @@ The chief is upgraded from "briefing writer" to "active team router":
 - **Chief as Router** — not just a briefing writer but active coordinator who detects and resolves blockers
 - **Team Dashboard** — single source of truth for team-wide status, maintained by chief every session
 - **GEO as #1 priority** (AI search = blue ocean)
-- **Fullstack Dev spawns Claude Code** via ACP for complex tasks
+- **Fullstack Dev spawns Claude Code** via ACP for complex implementation tasks
+- **DevOps owns delivery and QA gate** so implementation and release responsibilities stay separated
 - **Project Deep Dive** gives all agents deep codebase understanding, not just surface-level product overviews
 
 ## Customization
