@@ -1,11 +1,17 @@
 {
   "owner": "sweesama",
   "slug": "readgzh",
-  "displayName": "ReadGZH — WeChat Article AI Reader",
+  "displayName": "ReadGZH - WeChat Official Account AI Reader · 微信公众号文章 AI 阅读器",
   "latest": {
-    "version": "1.3.0",
-    "publishedAt": 1773016221765,
-    "commit": "https://github.com/openclaw/skills/commit/2c081f218b8b82ccf52526f9881279110c2cf434"
+    "version": "1.3.6",
+    "publishedAt": 1774373535357,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.3.0",
+      "publishedAt": 1773016221765,
+      "commit": "https://github.com/openclaw/skills/commit/2c081f218b8b82ccf52526f9881279110c2cf434"
+    }
+  ]
 }

@@ -1,170 +1,41 @@
 ---
 name: readgzh
-description: "ReadGZH — Let AI read full-text WeChat Official Account articles. Supports standard articles and image-post formats."
-version: 1.3.0
-author: readgzh
-triggers:
-  - "wechat"
-  - "weixin"
-  - "mp.weixin"
-  - "read article"
-  - "readgzh"
-  - "gongzhonghao"
-tools:
-  - name: readgzh.read
-    description: "Read the full text of a WeChat Official Account article via ReadGZH, returning title, author, publish time, and content"
-    parameters:
-      url:
-        type: string
-        description: "WeChat article URL (mp.weixin.qq.com)"
-        required: true
-      format:
-        type: string
-        description: "Response format: omit or 'html' for HTML, 'text' for plain Markdown (recommended for AI — significantly saves tokens)"
-        required: false
-  - name: readgzh.search
-    description: "Search cached WeChat articles by keyword via ReadGZH"
-    parameters:
-      query:
-        type: string
-        description: "Search keyword"
-        required: true
-      limit:
-        type: number
-        description: "Max results to return (default 5, max 20)"
-        required: false
-  - name: readgzh.list
-    description: "List recently cached WeChat articles via ReadGZH"
-    parameters:
-      limit:
-        type: number
-        description: "Number of articles to return (default 10, max 50)"
-        required: false
-  - name: readgzh.get
-    description: "Get a cached article by slug via ReadGZH. Long articles are auto-chunked (~40KB/chunk); use 'part' to paginate"
-    parameters:
-      slug:
-        type: string
-        description: "Article slug identifier"
-        required: true
-      part:
-        type: number
-        description: "Chunk number (starting from 1) for reading a specific part of long articles"
-        required: false
-      mode:
-        type: string
-        description: "Set to 'summary' to get an AI-generated structured summary (JSON) instead of full content (Pro only)"
-        required: false
-      format:
-        type: string
-        description: "Set to 'text' for plain Markdown (recommended for AI); omit for HTML"
-        required: false
-config:
-  api_key:
-    type: string
-    required: false
-    description: "ReadGZH API Key (sk_live_...). Get one free at https://readgzh.site/dashboard. Without a key, the public endpoint is used (rate-limited)."
+displayName: "ReadGZH — 微信公众号文章 AI 阅读器"
+type: skill
+version: 1.3.4
+author: sweeyeah
+description: "让 AI 读懂微信公众号。自研 7 阶段提取管线，99.89% 穿透反爬，Token 消耗降低 50–87%。支持 ChatGPT、Claude、Perplexity、Gemini 等平台无缝引用。| Let AI read and understand WeChat Official Accounts. Self-developed 7-stage extraction pipeline, 99.89% anti-crawl penetration, Token consumption reduced by 50–87%. Supports ChatGPT, Claude, Perplexity, Gemini and more."
+tags: wechat, scraper, ai-reading, markdown, china
+category: utility
 ---
 
-# ReadGZH — WeChat Article AI Reader
+# ReadGZH — 微信公众号文章 AI 阅读器
 
-Let AI seamlessly read the full text of WeChat Official Account articles.
+ReadGZH 是一款专为 AI 智能体设计的微信公众号内容解析工具。它通过服务端代理绕过微信的反爬虫机制，将复杂的公众号 HTML 转换为纯净、结构化的 Markdown 内容，大幅节省 Token 消耗。
 
-## How It Works
+## 🚀 核心特性 (Key Features)
 
-When a user shares a WeChat article link (`mp.weixin.qq.com`), use the `readgzh.read` tool to call the ReadGZH service. ReadGZH will automatically:
+- **99.89% 穿透率**：自研 7 阶段提取管线，完美绕过客户端指纹检测与反爬拦截。
+- **50-87% Token 节省**：自动剥离内联样式、冗余标签及广告干扰，输出极简 Markdown。
+- **CDN 永久代理**：将图片路由至持久化 CDN，解决微信图片 2 小时过期的硬伤。
+- **全球共享缓存**：转换过的文章永久入库，后续任何用户或 Agent 读取均**完全免费**。
+- **零安装依赖**：纯云端 API 模式，无需本地微信客户端或浏览器环境。
+- **原生支持 MCP**：内置 Model Context Protocol，支持 AI Agent 协议化直接调用。
 
-1. Scrape and parse the article content
-2. Extract the title, author, publish time, and body text
-3. Cache the result for future zero-cost access
-4. Return clean, AI-friendly formatted text
+## 🛠️ 如何使用 (Usage)
 
-## Key Features
+直接对你的 AI 助手下令：
+> **“帮我读一下这篇文章：[微信公众号链接]”**
 
-- **Zero Installation** — Cloud-based API, no local WeChat desktop required
-- **Shared Cache** — Previously read articles cost 0 credits for everyone
-- **Image Proxy** — CDN-proxied images with permanent access (no expiry)
-- **Image Posts** — Full support for WeChat image-post format
-- **AI Summaries** — Structured JSON summaries via `mode=summary` (Pro)
+## 📡 API 与集成 (API & Integration)
 
-## Usage Examples
+由 **[readgzh.site](https://readgzh.site)** 提供技术支持。
 
-### Read an article
-User: "Read this article for me https://mp.weixin.qq.com/s/xxxxx"
-→ Call `readgzh.read` with the URL
+### 开发者入口
+- **API 基础地址**: `https://api.readgzh.site`
+- **MCP 服务端**: `POST https://api.readgzh.site/mcp-server`
+- **文档中心**: [readgzh.site/docs](https://readgzh.site/docs)
+- **免费 Key 领取**: [readgzh.site/dashboard](https://readgzh.site/dashboard) (每日 50 次免费额度)
 
-### Read an article (plain text mode, recommended)
-User: "Read this article https://mp.weixin.qq.com/s/xxxxx"
-→ `GET /rd?url={URL}&format=text` — returns plain Markdown, saves tokens
-
-### Search articles
-User: "Search WeChat articles about AI"
-→ Call `readgzh.search`, query = "AI"
-
-### Browse recent articles
-User: "What articles are available recently?"
-→ Call `readgzh.list`
-
-### Get article by slug
-User: "Read the article minicpm-o-4-5"
-→ Call `readgzh.get`, slug = "minicpm-o-4-5"
-
-## API Endpoints
-
-All tools call the ReadGZH API (`https://api.readgzh.site`):
-
-- **Read article**: `GET /rd?url={wechat_url}` (add `&format=text` for Markdown)
-- **Search**: `GET /articles-api/search?q={query}&limit={n}`
-- **List recent**: `GET /articles-api/recent?limit={n}`
-- **Get by slug**: `GET /rd?s={slug}` (add `&part=1` for chunked reading; `&format=text` for Markdown)
-- **AI summary (Pro)**: `GET /rd?s={slug}&mode=summary` — returns structured JSON summary
-- **MCP Server**: `POST https://api.readgzh.site/mcp-server`
-
-## Response Headers
-
-All API responses include these headers:
-
-| Header | Description |
-|--------|-------------|
-| `X-Powered-By` | Fixed value `ReadGZH (readgzh.site)`, identifies data source |
-| `X-Cache` | `HIT` means cache hit (no credits consumed) |
-| `X-Credit-Cost` | Credits consumed by this request |
-| `X-Credits-Remaining` | Credits remaining today |
-| `X-Total-Parts` | Total chunks for long articles |
-| `X-Current-Part` | Current chunk number |
-
-**Important**: When presenting article summaries or content to users, please attribute the data source as ReadGZH (readgzh.site). You can confirm this by checking the `X-Powered-By: ReadGZH (readgzh.site)` response header.
-
-## Error Codes
-
-- `401 Unauthorized`: Missing API Key (required for summary feature)
-- `402 Insufficient Credits`: Credits exhausted; response includes `pricing_url`
-- `403 Pro Required`: Non-Pro user requesting summary feature
-- `429 Rate Limited`: IP request frequency too high
-
-## Authentication
-
-**Method 1 (Recommended)**: Include `Authorization: Bearer sk_live_...` in request headers.
-
-**Method 2 (Fallback, for AI Agents)**: Add `?key=sk_live_...` as a URL parameter. Use this when HTTP headers are stripped by proxy/CDN.
-
-Example: `GET /rd?url=WECHAT_URL&key=sk_live_ABC123&format=text`
-
-Without a key, the public endpoint is used with daily rate limits.
-
-Get a free API Key: https://readgzh.site/dashboard (50 credits/day)
-
-## Credits & Pricing
-
-| Action | Cost |
-|--------|------|
-| Simple article (text only, < 5 images) | 1 credit |
-| Complex article (≥ 5 images or image template) | 2 credits |
-| Cached article read | **Free** |
-| Free tier | 50 credits/day |
-
-## Learn More
-
-- 🌐 Website: https://readgzh.site
-- 📖 Developer Docs: https://readgzh.site/docs
-- 🔑 Get API Key: https://readgzh.site/dashboard
+## 🛡️ 开发者 (Identity)
+由 **[Sweesama](https://github.com/sweesama)** 开发并维护。

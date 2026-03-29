@@ -1,0 +1,8 @@
+{
+  "name": "readgzh",
+  "displayName": "ReadGZH — WeChat Article AI Reader",
+  "version": "1.3.0",
+  "author": "sweeyeah",
+  "description": "Let AI read full-text WeChat Official Account articles. Optimized for LLMs with 50-87% token savings, CDN image proxy, and shared cache.",
+  "type": "skill"
+}
