@@ -46,6 +46,8 @@ bwp init
 
 ✅ Directory structure created
 ✅ README.md created
+✅ .env created
+✅ server.py created
 
 📁 Project structure:
   articles/  - Technical articles and blog posts
@@ -63,6 +65,8 @@ Next steps:
 **说明**:
 - 创建完整的目录结构
 - 生成 README.md 说明文档
+- 自动生成 .env 配置文件（包含端口、认证信息）
+- 自动生成 server.py Web 服务器（支持 Markdown 渲染和 Basic Auth）
 - 只需执行一次，或在目录缺失时执行
 
 ---

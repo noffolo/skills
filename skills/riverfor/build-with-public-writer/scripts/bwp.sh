@@ -1,10 +1,10 @@
 #!/bin/bash
-# Build with Public (bwp) - Simplified helper for codewithriver
+# Build with Public (bwp) - Simplified helper for technical content creation
 # Usage: bwp <action> [options]
 
 set -e
 
-PROJECT_ROOT="/home/claw/codewithriver"
+PROJECT_ROOT="${BWP_PROJECT_ROOT:-/home/node/cwr}"
 ACTION="${1:-help}"
 
 show_help() {
@@ -38,7 +38,16 @@ get_date() {
 
 # Convert title to slug
 slugify() {
-    echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-'
+    local input="$1"
+    # 将输入转为小写，空格替换为横线
+    local slug=$(echo "$input" | awk '{print tolower($0)}' | sed 's/ /-/g')
+    # 移除特殊字符，保留字母数字
+    local ascii_slug=$(echo "$slug" | sed 's/[^a-z0-9\-]//g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
+    # 如果 ASCII 部分为空（全是中文等情况），使用默认标识
+    if [ -z "$ascii_slug" ] || [ "$ascii_slug" = "-" ]; then
+        ascii_slug="post"
+    fi
+    echo "$ascii_slug"
 }
 
 create_article() {
@@ -286,6 +295,9 @@ init_project() {
     echo "🚀 Initializing Build with Public project..."
     echo ""
     
+    # Extract project name from PROJECT_ROOT
+    PROJECT_NAME=$(basename "$PROJECT_ROOT")
+    
     # Create directory structure
     mkdir -p "$PROJECT_ROOT"/{articles,courses,theory,persona,images}
     
@@ -474,7 +486,7 @@ AUTH_PASSWORD=your_password
 
 ## 🔒 安全说明
 
-- 所有内容默认保存到 `/home/claw/codewithriver`
+- 所有内容默认保存到 `$PROJECT_ROOT`
 - Git 版本控制自动记录所有变更
 - 通过 Web 服务器可安全分享内容
 
@@ -483,8 +495,266 @@ AUTH_PASSWORD=your_password
 *Build with Public - 简化创作，专注内容 🚀*
 READMEEOF
     
+    # Replace hardcoded project name with actual project name
+    sed -i "s/codewithriver/$(basename "$PROJECT_ROOT")/g" "$PROJECT_ROOT/README.md"
+    sed -i "s|$PROJECT_ROOT|$PROJECT_ROOT|g" "$PROJECT_ROOT/README.md"
+    
     echo "✅ Directory structure created"
     echo "✅ README.md created"
+    
+    # Create .env file
+    cat > "$PROJECT_ROOT/.env" << 'ENVEOF'
+# Build with Public - Environment Configuration
+
+# Server port
+PORT=12000
+
+# Custom domain (optional, for generating shareable links)
+# CUSTOM_DOMAIN=your-domain.com
+
+# Authentication
+AUTH_USERNAME=user
+AUTH_PASSWORD=changeme
+ENVEOF
+    
+    # Create server.py with new features
+    cat > "$PROJECT_ROOT/server.py" << 'SERVERPYEOF'
+#!/usr/bin/env python3
+"""
+Build with Public - Simple HTTP Server
+Features: Basic Auth, Markdown rendering, Directory listing, Plain text/Preview modes
+"""
+
+import os
+import sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import unquote, urlparse, parse_qs
+
+CONFIG = {'PORT': 12000, 'AUTH_USERNAME': 'user', 'AUTH_PASSWORD': 'changeme'}
+
+if os.path.exists('.env'):
+    with open('.env', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                CONFIG[key] = value.strip().strip('"').strip("'")
+
+PORT = int(CONFIG.get('PORT', 12000))
+AUTH_USERNAME = CONFIG.get('AUTH_USERNAME', 'user')
+AUTH_PASSWORD = CONFIG.get('AUTH_PASSWORD', 'changeme')
+
+class AuthHandler(BaseHTTPRequestHandler):
+    def do_AUTHHEAD(self):
+        self.send_response(401)
+        self.send_header('WWW-Authenticate', 'Basic realm="Build with Public"')
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+    
+    def do_GET(self):
+        auth_header = self.headers.get('Authorization')
+        if not auth_header:
+            self.do_AUTHHEAD()
+            return
+        import base64
+        try:
+            auth_type, auth_string = auth_header.split(' ', 1)
+            decoded = base64.b64decode(auth_string).decode('utf-8')
+            username, password = decoded.split(':', 1)
+            if username != AUTH_USERNAME or password != AUTH_PASSWORD:
+                self.do_AUTHHEAD()
+                return
+        except Exception:
+            self.do_AUTHHEAD()
+            return
+        
+        # Parse URL to separate path from query string
+        parsed_url = urlparse(self.path)
+        path = unquote(parsed_url.path[1:]) if parsed_url.path[1:] else ''
+        safe_path = os.path.normpath(path) if path else '.'
+        if safe_path.startswith('..'):
+            self.send_error(403, "Forbidden")
+            return
+        
+        full_path = os.path.join(os.getcwd(), safe_path)
+        
+        if os.path.isdir(full_path):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html; charset=utf-8')
+            self.end_headers()
+            files = os.listdir(full_path)
+            
+            # Build directory listing with GitHub-style
+            dir_name = safe_path if safe_path != '.' else os.path.basename(os.getcwd())
+            html = f'''<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{dir_name}</title>
+<style>
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.6;color:#24292f;max-width:900px;margin:40px auto;padding:0 20px;background:#fff}}
+h1{{font-size:24px;font-weight:600;border-bottom:1px solid #d0d7de;padding-bottom:16px;margin-bottom:16px}}
+.file-list{{list-style:none;padding:0;margin:0}}
+.file-list li{{border-bottom:1px solid #eaecef;padding:8px 0;display:flex;align-items:center}}
+.file-list li:hover{{background:#f6f8fa}}
+.file-list a{{color:#0969da;text-decoration:none;display:flex;align-items:center;width:100%}}
+.file-list a:hover{{text-decoration:underline}}
+.icon{{width:20px;height:20px;margin-right:12px;display:inline-flex;align-items:center;justify-content:center}}
+.folder{{color:#54aeff}}
+.file{{color:#656d76}}
+.path{{color:#656d76;font-size:14px;margin-bottom:16px}}
+.path a{{color:#0969da;text-decoration:none}}
+.path a:hover{{text-decoration:underline}}
+</style>
+</head>
+<body>
+<div class="path"><a href="/">{os.path.basename(os.getcwd())}</a>{''.join(f' / <a href="/{"/".join(safe_path.split("/")[:i+1])}">{p}</a>' for i, p in enumerate(safe_path.split('/')) if p and safe_path != '.')}</div>
+<h1>📁 {dir_name}</h1>
+<ul class="file-list">
+'''
+            # Add parent directory link if not at root
+            if safe_path != '.':
+                parent = '/'.join(safe_path.split('/')[:-1]) if '/' in safe_path else '/'
+                html += f'<li><a href="{parent if parent != "/" else "/"}"><span class="icon folder">📁</span>..</a></li>'
+            
+            # Sort: directories first, then files
+            dirs = [f for f in files if os.path.isdir(os.path.join(full_path, f))]
+            files_only = [f for f in files if not os.path.isdir(os.path.join(full_path, f))]
+            
+            for f in sorted(dirs):
+                f_path = os.path.join(safe_path, f) if safe_path != '.' else f
+                html += f'<li><a href="/{f_path}"><span class="icon folder">📁</span>{f}</a></li>'
+            for f in sorted(files_only):
+                f_path = os.path.join(safe_path, f) if safe_path != '.' else f
+                html += f'<li><a href="/{f_path}"><span class="icon file">📄</span>{f}</a></li>'
+            
+            html += '</ul></body></html>'
+            self.wfile.write(html.encode('utf-8'))
+            return
+        
+        if not os.path.exists(full_path):
+            self.send_error(404, "File not found")
+            return
+        
+        # Parse query string to check for preview mode
+        query_params = parse_qs(parsed_url.query)
+        preview_mode = query_params.get('preview', [''])[0]
+        
+        self.send_response(200)
+        if full_path.endswith('.md'):
+            if preview_mode == 'html':
+                # HTML preview mode
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.end_headers()
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                import re
+                html = content
+                # Code blocks (```...```) - protect them first
+                code_blocks = []
+                def save_code_block(m):
+                    code_blocks.append(f'<pre><code>{m.group(2)}</code></pre>')
+                    return f'\x00CODEBLOCK{len(code_blocks)-1}\x00'
+                html = re.sub(r'```(\w+)?\n(.*?)```', save_code_block, html, flags=re.DOTALL)
+                # Headers
+                html = re.sub(r'^# (.+)$', r'<h1>\1</h1>', html, flags=re.MULTILINE)
+                html = re.sub(r'^## (.+)$', r'<h2>\1</h2>', html, flags=re.MULTILINE)
+                html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
+                # Bold (**text**) - must come before italic
+                html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', html, flags=re.DOTALL)
+                # Italic (*text* or _text_) - single asterisk not followed by another
+                html = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'<em>\1</em>', html)
+                html = re.sub(r'_(.+?)_', r'<em>\1</em>', html)
+                # Inline code (`code`)
+                html = re.sub(r'`([^`]+)`', r'<code>\1</code>', html)
+                # Links [text](url)
+                html = re.sub(r'\[(.+?)\]\((.+?)\)', r'<a href="\2">\1</a>', html)
+                # Images ![alt](url)
+                html = re.sub(r'!\[(.+?)\]\((.+?)\)', r'<img src="\2" alt="\1">', html)
+                # Blockquote (> text)
+                html = re.sub(r'^\> (.+)$', r'<blockquote>\1</blockquote>', html, flags=re.MULTILINE)
+                # Horizontal rule
+                html = re.sub(r'^---+$', r'<hr>', html, flags=re.MULTILINE)
+                # Lists (- item or * item)
+                html = re.sub(r'(?m)^- (.+)$', r'<li>\1</li>', html)
+                html = re.sub(r'(<li>.+</li>\n?)+', r'<ul>\g<0></ul>', html)
+                # Tables
+                def parse_table(match):
+                    rows = match.group(0).strip().split('\n')
+                    if len(rows) < 2:
+                        return match.group(0)
+                    separator = rows[1]
+                    if not re.match(r'^[\|\-\:\s]+$', separator):
+                        return match.group(0)
+                    html_table = '<table>'
+                    headers = [c.strip() for c in rows[0].split('|')[1:-1]]
+                    html_table += '<thead><tr>'
+                    for h in headers:
+                        html_table += f'<th>{h}</th>'
+                    html_table += '</tr></thead><tbody>'
+                    for row in rows[2:]:
+                        if row.strip():
+                            cells = [c.strip() for c in row.split('|')[1:-1]]
+                            html_table += '<tr>'
+                            for c in cells:
+                                html_table += f'<td>{c}</td>'
+                            html_table += '</tr>'
+                    html_table += '</tbody></table>'
+                    return html_table
+                html = re.sub(r'(?:^\|.+\|\n?)+', parse_table, html, flags=re.MULTILINE)
+                # Restore code blocks
+                for i, block in enumerate(code_blocks):
+                    html = html.replace(f'\x00CODEBLOCK{i}\x00', block)
+                # Line breaks for paragraphs
+                html = re.sub(r'\n\n+', '</p><p>', html)
+                html = '<p>' + html + '</p>'
+                html = re.sub(r'<p>(<h[123].*?>)', r'\1', html)
+                html = re.sub(r'(</h[123]>)', r'\1</p><p>', html)
+                html = re.sub(r'<p>(<ul>)', r'\1', html)
+                html = re.sub(r'(</ul>)', r'\1</p><p>', html)
+                html = re.sub(r'<p>(<blockquote>)', r'\1', html)
+                html = re.sub(r'(</blockquote>)', r'\1</p><p>', html)
+                html = re.sub(r'<p>(<hr>)', r'\1', html)
+                html = re.sub(r'(<hr>)', r'\1</p><p>', html)
+                html = re.sub(r'<p></p>', '', html)
+                html = f'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.6;color:#24292f;max-width:900px;margin:40px auto;padding:0 20px;background:#fff}}h1{{border-bottom:2px solid #eaecef;padding-bottom:10px;margin-top:0}}h2{{border-bottom:1px solid #eaecef;padding-bottom:8px;margin-top:30px}}h3{{margin-top:25px}}code{{background:#f6f8fa;padding:2px 6px;border-radius:3px;font-family:SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;font-size:85%}}pre{{background:#f6f8fa;padding:16px;border-radius:6px;overflow-x:auto}}pre code{{background:none;padding:0}}a{{color:#0969da;text-decoration:none}}a:hover{{text-decoration:underline}}blockquote{{border-left:4px solid #d0d7de;padding-left:16px;margin-left:0;color:#656d76}}table{{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}}th,td{{border:1px solid #d0d7de;padding:8px 12px;text-align:left}}th{{background:#f6f8fa;font-weight:600}}tr:nth-child(even){{background:#f6f8fa}}thead{{border-bottom:2px solid #d0d7de}}ul,ol{{padding-left:24px}}img{{max-width:100%;height:auto}}hr{{border:none;border-top:1px solid #d0d7de;margin:24px 0}}strong{{font-weight:700;color:#1f2328}}em{{font-style:italic}}ul{{margin:16px 0}}li{{margin:4px 0}}</style></head><body>{html}</body></html>'
+                self.wfile.write(html.encode('utf-8'))
+            else:
+                # Default: plain text mode (original markdown)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    self.wfile.write(f.read().encode('utf-8'))
+        else:
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(full_path)
+            self.send_header('Content-type', content_type or 'application/octet-stream')
+            self.end_headers()
+            with open(full_path, 'rb') as f:
+                self.wfile.write(f.read())
+    
+    def log_message(self, format, *args):
+        pass
+
+def main():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    server = HTTPServer(('', PORT), AuthHandler)
+    print(f"Server running at http://localhost:{PORT}")
+    print(f"Username: {AUTH_USERNAME}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServer stopped")
+        sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+SERVERPYEOF
+    
+    chmod +x "$PROJECT_ROOT/server.py"
+    echo "✅ .env created"
+    echo "✅ server.py created"
     echo ""
     echo "📁 Project structure:"
     echo "  articles/  - Technical articles and blog posts"
@@ -500,23 +770,43 @@ READMEEOF
 }
 
 list_content() {
-    echo "📁 Content in codewithriver:"
+    echo "📁 Content in cwr:"
     echo ""
     
-    echo "📄 Articles ($(ls $PROJECT_ROOT/articles/*.md 2>/dev/null | wc -l)):"
-    ls $PROJECT_ROOT/articles/*.md 2>/dev/null | xargs -n1 basename | head -10
+    local article_count=$(ls $PROJECT_ROOT/articles/*.md 2>/dev/null | wc -l)
+    echo "📄 Articles ($article_count):"
+    if [ $article_count -gt 0 ]; then
+        ls $PROJECT_ROOT/articles/*.md 2>/dev/null | xargs -n1 basename | head -10
+    else
+        echo "  (empty)"
+    fi
     echo ""
     
-    echo "📚 Courses ($(ls $PROJECT_ROOT/courses/ 2>/dev/null | wc -l)):"
-    ls $PROJECT_ROOT/courses/ 2>/dev/null | head -10
+    local course_count=$(ls -d $PROJECT_ROOT/courses/*/ 2>/dev/null | wc -l)
+    echo "📚 Courses ($course_count):"
+    if [ $course_count -gt 0 ]; then
+        ls -d $PROJECT_ROOT/courses/*/ 2>/dev/null | xargs -n1 basename | head -10
+    else
+        echo "  (empty)"
+    fi
     echo ""
     
-    echo "📖 Theory ($(ls $PROJECT_ROOT/theory/*.md 2>/dev/null | wc -l)):"
-    ls $PROJECT_ROOT/theory/*.md 2>/dev/null | xargs -n1 basename | head -10
+    local theory_count=$(ls $PROJECT_ROOT/theory/*.md 2>/dev/null | wc -l)
+    echo "📖 Theory ($theory_count):"
+    if [ $theory_count -gt 0 ]; then
+        ls $PROJECT_ROOT/theory/*.md 2>/dev/null | xargs -n1 basename | head -10
+    else
+        echo "  (empty)"
+    fi
     echo ""
     
-    echo "🎭 Persona ($(ls $PROJECT_ROOT/persona/*.md 2>/dev/null | wc -l)):"
-    ls $PROJECT_ROOT/persona/*.md 2>/dev/null | xargs -n1 basename | head -10
+    local persona_count=$(ls $PROJECT_ROOT/persona/*.md 2>/dev/null | wc -l)
+    echo "🎭 Persona ($persona_count):"
+    if [ $persona_count -gt 0 ]; then
+        ls $PROJECT_ROOT/persona/*.md 2>/dev/null | xargs -n1 basename | head -10
+    else
+        echo "  (empty)"
+    fi
 }
 
 git_commit() {
@@ -550,19 +840,19 @@ generate_link() {
     # Use CUSTOM_DOMAIN if set, otherwise fallback to localhost
     local hostname="${custom_domain:-localhost}"
     
-    echo "🔗 Shareable Link:"
-    echo "   http://${hostname}:${port}/${file}"
-    echo ""
-    echo "👤 Access credentials configured in .env"
-    echo "   (Check $PROJECT_ROOT/.env for AUTH_USERNAME and AUTH_PASSWORD)"
+    # Output only the clickable link
+    echo "http://${hostname}:${port}/${file}"
 }
 
 show_status() {
     cd "$PROJECT_ROOT"
     
+    # Extract project name from PROJECT_ROOT
+    PROJECT_NAME=$(basename "$PROJECT_ROOT")
+    
     echo "📊 Build with Public - Status"
     echo ""
-    echo "📁 Project: codewithriver"
+    echo "📁 Project: $PROJECT_NAME"
     echo "📍 Location: $PROJECT_ROOT"
     echo ""
     

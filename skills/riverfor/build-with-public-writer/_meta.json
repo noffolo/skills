@@ -1,13 +1,18 @@
 {
   "owner": "riverfor",
   "slug": "build-with-public-writer",
-  "displayName": "Build with Public Writer",
+  "displayName": "Build With Public Writer",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1773382669502,
-    "commit": "https://github.com/openclaw/skills/commit/15b42cdd11872600298e3dcaa0401f34f6f74f98"
+    "version": "1.0.2",
+    "publishedAt": 1774495334370,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1773382669502,
+      "commit": "https://github.com/openclaw/skills/commit/15b42cdd11872600298e3dcaa0401f34f6f74f98"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1772504323871,
