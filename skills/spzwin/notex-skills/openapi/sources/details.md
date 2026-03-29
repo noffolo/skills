@@ -24,4 +24,4 @@
 
 ## 脚本映射
 
-- `../../scripts/sources/source-index-sync.js`
+- `../../scripts/sources/source_index_sync.py`

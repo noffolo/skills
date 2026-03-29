@@ -18,5 +18,5 @@
    - **详细文档**：`./taskStatus.md`
 
 脚本映射：
-- `../../scripts/creator/skills-run.js`（可独立执行）
+- `../../scripts/creator/skills_run.py`（可独立执行）
 - 执行前请先阅读上方接口文档获取完整入参说明

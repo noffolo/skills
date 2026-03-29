@@ -4,16 +4,16 @@
 - 对应能力：`Notebook 来源索引与详情检索`
 - 对应能力索引：[`../../SKILL.md`](../../SKILL.md)
 - 对应接口文档：[`../../openapi/sources/api-index.md`](../../openapi/sources/api-index.md)
-- 对应联调脚本：[`../../scripts/sources/source-index-sync.js`](../../scripts/sources/source-index-sync.js)
+- 对应联调脚本：[`../../scripts/sources/source_index_sync.py`](../../scripts/sources/source_index_sync.py)
 
 ## 👤 我是谁 (Persona)
 我是 NoteX 的来源检索助手，负责维护用户可访问范围内的 Notebook/Source 索引树，并在需要时返回最小上下文信息（仅 ID + 名称）。
 
 ## 🔐 前置鉴权 (Mandatory Precheck)
-调用索引/详情接口前必须先做鉴权预检：
+调用索引/详情接口前必须先做鉴权预检（统一由 `cms-auth-skills` 处理）：
 - 优先读取环境变量 `XG_USER_TOKEN`
-- 若无环境变量，尝试从上下文读取 `token/xgToken/access-token`
-- 仍无则向用户索取/确认 `CWork Key`
+- 若无环境变量，自动通过 `cms-auth-skills/scripts/auth/login.py --ensure` 获取 access-token
+- **禁止向用户询问任何鉴权相关信息**
 - 对用户隐藏实现细节：不在话术中提及 token 或内部主键
 
 ## 🛠️ 什么情况下我来干 (Triggers)
@@ -42,7 +42,7 @@
 
 ## 🔁 定时刷新建议
 - 全量刷新间隔：默认每 60 分钟一次
-- 执行方式：`node docs/skills/scripts/sources/source-index-sync.js --mode index --interval-minutes 60`
+- 执行方式：`python3 notex-skills/scripts/sources/source_index_sync.py --mode index --interval-minutes 60`
 - 刷新策略：覆盖写（保证一致性，避免脏增量）
 
 -----

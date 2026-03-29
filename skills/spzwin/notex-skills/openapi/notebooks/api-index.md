@@ -46,6 +46,6 @@
    - **详细文档**：`./source-content.md`
 
 脚本映射：
-- `../../scripts/notebooks/notebooks-write.js`（创建 + 追加来源，可独立执行）
-- `../../scripts/notebooks/notebooks-read.js`（来源列表 + 正文获取，可独立执行）
+- `../../scripts/notebooks/notebooks_write.py`（创建 + 追加来源，可独立执行）
+- `../../scripts/notebooks/notebooks_read.py`（来源列表 + 正文获取，可独立执行）
 - 执行前请先阅读上方接口文档获取完整入参说明

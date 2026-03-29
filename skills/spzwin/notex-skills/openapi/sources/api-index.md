@@ -19,5 +19,5 @@
    - **详细文档**：`./details.md`
 
 脚本映射：
-- `../../scripts/sources/source-index-sync.js`（可独立执行）
+- `../../scripts/sources/source_index_sync.py`（可独立执行）
 - 执行前请先阅读上方接口文档获取完整入参说明

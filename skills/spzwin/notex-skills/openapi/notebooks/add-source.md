@@ -39,4 +39,4 @@
 
 ## 脚本映射
 
-- `../../scripts/notebooks/notebooks-write.js`
+- `../../scripts/notebooks/notebooks_write.py`

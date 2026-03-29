@@ -92,4 +92,4 @@
 
 ## 脚本映射
 
-- `../../scripts/creator/skills-run.js`
+- `../../scripts/creator/skills_run.py`

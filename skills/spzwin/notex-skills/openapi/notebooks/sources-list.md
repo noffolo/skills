@@ -24,4 +24,4 @@
 
 ## 脚本映射
 
-- `../../scripts/notebooks/notebooks-read.js`
+- `../../scripts/notebooks/notebooks_read.py`

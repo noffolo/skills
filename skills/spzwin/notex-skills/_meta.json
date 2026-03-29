@@ -1,13 +1,18 @@
 {
   "owner": "spzwin",
   "slug": "notex-skills",
-  "displayName": "note skills",
+  "displayName": "NoteX Skills",
   "latest": {
-    "version": "1.2.0",
-    "publishedAt": 1773414565502,
-    "commit": "https://github.com/openclaw/skills/commit/4c0311f471d3483721424b4b3dc9f0517b41c6a5"
+    "version": "1.3.0",
+    "publishedAt": 1774692818839,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.2.0",
+      "publishedAt": 1773414565502,
+      "commit": "https://github.com/openclaw/skills/commit/4c0311f471d3483721424b4b3dc9f0517b41c6a5"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1773325866821,
