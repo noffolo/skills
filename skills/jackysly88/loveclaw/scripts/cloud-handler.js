@@ -85,10 +85,11 @@ function getUserSession(userId) {
 
 /**
  * @param {string} userId - User identifier
- * @param {string} message - User message  
+ * @param {string} message - User message
  * @param {string} channel - User's channel (feishu/webchat/etc), defaults to webchat
+ * @param {string} mediaPath - Optional local file path for media attachments
  */
-async function handleMessage(userId, message, channel = 'webchat') {
+async function handleMessage(userId, message, channel = 'webchat', mediaPath = '') {
   const session = getUserSession(userId);
   
   // Ensure channel is stored in session for notification routing
@@ -101,6 +102,7 @@ async function handleMessage(userId, message, channel = 'webchat') {
     if (session.state === UserState.NONE) {
       if (['启动爱情龙虾技能','爱情龙虾','loveclaw','LoveClaw'].includes(message)) {
         session.state = UserState.PHONE;
+        saveSessionsToFile([{ userId, session }]);
         return { text: '请输入你的手机号（用于登录和匹配通知）' };
       }
       if (message === '我的档案' || message === '查看档案') {
@@ -124,10 +126,15 @@ async function handleMessage(userId, message, channel = 'webchat') {
 
     // ==================== PHONE ====================
     if (/^1\d{10}$/.test(message) && session.state === UserState.PHONE) {
-      // If phone already taken, reject (getProfile is async!)
-      const existing = await cloudData.getProfile(message);
+      const existing = await cloudData.getProfile(message).catch(() => null);
       if (existing) {
-        return { text: '该手机号已报名，请联系管理员或换一个手机号' };
+        // 已注册：加载已有档案进 session，跳到 CONFIRM 让用户选择
+        session.data = { ...existing, phone: message };
+        session.state = UserState.CONFIRM;
+        saveSessionsToFile([{ userId, session }]);
+        return {
+          text: `📱 检测到该手机号已报名。\n\n${formatSummary(session.data).text}\n\n回复「确认」保持现有信息，或直接修改任意字段重新填写。`
+        };
       }
       session.data.phone = message;
       // Keep BOTH keys (old userId AND phone) so subsequent messages from either ID work
@@ -138,6 +145,7 @@ async function handleMessage(userId, message, channel = 'webchat') {
         // Do NOT delete old key - keep both mappings active
       }
       session.state = UserState.NAME;
+      saveSessionsToFile([{ userId, session }]);
       return { text: `手机号 ${message} 已绑定\n请输入你的姓名（或昵称）` };
     }
 
@@ -145,6 +153,7 @@ async function handleMessage(userId, message, channel = 'webchat') {
     if (session.state === UserState.NAME) {
       session.data.name = message;
       session.state = UserState.GENDER;
+      saveSessionsToFile([{ userId, session }]);
       return { text: '请选择你的性别：男 / 女' };
     }
 
@@ -155,7 +164,8 @@ async function handleMessage(userId, message, channel = 'webchat') {
       }
       session.data.gender = message;
       session.state = UserState.PREFERRED_GENDER;
-      return { text: `你的性别是${message}，喜欢什么性别？` };
+      saveSessionsToFile([{ userId, session }]);
+      return { text: `你的性别是${message}，希望认识什么性别？\n请回复：男 / 女 / 不限` };
     }
 
     // ==================== PREFERRED GENDER ====================
@@ -165,6 +175,7 @@ async function handleMessage(userId, message, channel = 'webchat') {
       }
       session.data.preferredGender = message;
       session.state = UserState.BIRTH_DATE;
+      saveSessionsToFile([{ userId, session }]);
       return { text: '请输入你的出生日期\n格式：YYYY-MM-DD\n例如：1995-05-20' };
     }
 
@@ -181,6 +192,7 @@ async function handleMessage(userId, message, channel = 'webchat') {
       session.data.birthDate = message;
       session.data.birthDateObj = date;
       session.state = UserState.BIRTH_HOUR;
+      saveSessionsToFile([{ userId, session }]);
       return { text: '请输入出生时辰（小时 0-23）\n例如：14 代表下午2点\n或输入地支：子、丑、寅、卯、辰、巳、午、未、申、酉、戌、亥' };
     }
 
@@ -198,22 +210,62 @@ async function handleMessage(userId, message, channel = 'webchat') {
       }
       session.data.birthHour = hour;
       session.state = UserState.CITY;
-      return { text: '请输入你所在城市' };
+      saveSessionsToFile([{ userId, session }]);
+      return { text: '请输入你所在城市（例如：上海、北京、深圳）\n注意只写城市名，不要带「市」字' };
     }
 
     // ==================== CITY ====================
     if (session.state === UserState.CITY) {
       session.data.city = message;
       session.state = UserState.PHOTO;
+      saveSessionsToFile([{ userId, session }]);
       return { text: '请发送一张照片用于匹配展示\n（可上传图片，或回复「跳过」不展示照片）' };
     }
 
     // ==================== PHOTO ====================
     if (session.state === UserState.PHOTO) {
       if (message !== '跳过') {
-        session.data.photo = message; // store photo URL or path
+        try {
+          // 确定本地文件路径（多种来源）
+          // 1. mediaPath 参数（agent 传入的第4个参数）
+          // 2. 从 [media attached: /path/...] 格式中提取
+          // 3. message 本身是绝对路径
+          let localPath = '';
+          if (mediaPath && fs.existsSync(mediaPath)) {
+            localPath = mediaPath;
+          } else {
+            const mediaMatch = message.match(/\[media attached:\s*([^\s(]+)/);
+            if (mediaMatch && fs.existsSync(mediaMatch[1])) {
+              localPath = mediaMatch[1];
+            } else if (message.startsWith('/') && fs.existsSync(message)) {
+              localPath = message;
+            }
+          }
+
+          let photoInput;
+          if (localPath) {
+            // 读取本地文件转 base64
+            const imgBuffer = fs.readFileSync(localPath);
+            photoInput = imgBuffer.toString('base64');
+            console.log('[PHOTO] read local file:', localPath, 'size:', imgBuffer.length);
+          } else if (message.startsWith('http://') || message.startsWith('https://')) {
+            photoInput = message; // URL，交给云函数 fetch
+          } else {
+            // 其他情况（如 image_key），跳过上传
+            console.log('[PHOTO] unrecognized format, skipping:', message.substring(0, 60));
+            photoInput = null;
+          }
+
+          if (photoInput) {
+            const ossUrl = await cloudData.uploadPhoto(session.data.phone || userId, photoInput);
+            session.data.photoOssUrl = ossUrl;
+          }
+        } catch (e) {
+          console.error('[uploadPhoto error]', e.message);
+        }
       }
       session.state = UserState.CONFIRM;
+      saveSessionsToFile([{ userId, session }]);
       return formatSummary(session.data);
     }
 
@@ -235,7 +287,13 @@ async function handleMessage(userId, message, channel = 'webchat') {
           matchedWith: '',
           matchedWithHistory: []
         };
-        await cloudData.saveProfile(profile);
+        // 重试一次应对偶发 412/网络抖动
+        let saveErr;
+        for (let i = 0; i < 2; i++) {
+          try { await cloudData.saveProfile(profile); saveErr = null; break; }
+          catch (e) { saveErr = e; await new Promise(r => setTimeout(r, 1500)); }
+        }
+        if (saveErr) return { text: `保存遇到网络问题，请再回复一次「确认」重试` };
         // Clear session
         const phone = session.data.phone;
         saveSessionsToFile([{ userId, session: { state: UserState.NONE, data: { phone } } }]);
@@ -243,10 +301,10 @@ async function handleMessage(userId, message, channel = 'webchat') {
         userSessions.delete(userId);
         userSessions.delete(phone);
         return {
-          text: `报名成功！🎉\n\n已将你的信息纳入匹配队列，明日19:50自动匹配。\n匹配结果将于明晚8点前通知你，请保持手机畅通。\n\n回复「我的档案」可查看个人信息`
+          text: `报名成功！🎉\n\n已将你的信息纳入匹配队列，每日19:50自动匹配。\n匹配结果将于当晚8点通知你，请保持手机畅通。\n\n回复「我的档案」可查看个人信息`
         };
       } catch (e) {
-        return { text: '保存失败: ' + e.message };
+        return { text: `保存遇到网络问题，请再回复一次「确认」重试` };
       }
     }
 
@@ -303,19 +361,10 @@ function resetUserSession(userId) {
   userSessions.delete(userId);
 }
 
-// Auto-check and register cron jobs on first load
-try {
-  const { spawn } = require('child_process');
-  const cronJs = __dirname + '/cron.js';
-  spawn('node', [cronJs, 'ensure'], {
-    detached: true,
-    stdio: 'ignore'
-  }).unref();
-} catch (e) {}
+// 定时任务由 SKILL.md 初始化规则注册（agent 执行 openclaw cron add）
 
 module.exports = {
   handleMessage,
   resetUserSession,
   getUserSession: (uid) => userSessions.get(uid),
-  runEveningReports: () => require('./cron.js').runEveningReports()
 };

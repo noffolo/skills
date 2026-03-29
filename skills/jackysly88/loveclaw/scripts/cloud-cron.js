@@ -128,8 +128,24 @@ async function runEveningReports() {
     const matchedUsers = (data.matches || []).filter(m => !m.reported);
 
     for (const m of matchedUsers) {
-      const report = `🌟 今日匹配报告\n\n📍 ${m.city || '未知'}\n💕 匹配对象：${m.matchedWith}\n\n祝你们有美好的一天！`;
-      await notifyUser(m.channel, m.target, report);
+      const target = m.notificationTarget || m.userId;
+      if (!m.channel || !target) {
+        console.log('[报告任务] 跳过（无通知目标）:', m.userId);
+        continue;
+      }
+
+      // 构建报告文本
+      const photoLine = m.partnerPhotoOssUrl ? `📸 照片：${m.partnerPhotoOssUrl}\n` : '';
+      const report = `🌟 今日缘分报告\n\n` +
+        `你好 ${m.name || ''}，今日为你找到了一位缘分匹配！\n\n` +
+        `📍 城市：${m.city || '未知'}\n` +
+        `💕 对方姓名：${m.partnerName || '未知'}\n` +
+        `📱 对方手机：${m.partnerPhone || '未知'}\n` +
+        `${photoLine}` +
+        `\n快去联系ta吧！祝你们有美好的缘分 🍀`;
+
+      await notifyUser(m.channel, target, report);
+      console.log(`[报告任务] 已发送给 ${m.name}(${m.userId}) -> ${m.partnerName}`);
     }
 
     if (matchedUsers.length === 0) {

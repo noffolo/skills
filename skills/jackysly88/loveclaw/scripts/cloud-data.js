@@ -171,45 +171,24 @@ async function getRecentMatches() {
 }
 
 /**
- * 上传照片到 OSS（使用 STS Token）
+ * 上传照片（委托云函数处理 OSS，skill 侧不直连 OSS）
  */
 async function uploadPhoto(phone, photoData) {
-  // Step 1: 获取 OSS 上传凭证
-  const ossConfig = await getOSSConfigure();
-  
-  // Step 2: 上传文件到 OSS
-  const { accessKeyId, accessKeySecret, securityToken, bucket, region } = ossConfig;
-  const objectKey = `photos/${phone}/${Date.now()}.jpg`;
-  
-  // 使用阿里云 OSS SDK 上传
-  const { OSS } = await import('aliyun-sdk');
-  const ossClient = new OSS({
-    region,
-    accessKeyId,
-    accessKeySecret,
-    stsToken: securityToken,
-    bucket,
-  });
-  
-  // photoData 可以是 base64、ArrayBuffer 或 Blob
-  let buffer;
-  if (typeof photoData === 'string' && photoData.startsWith('data:')) {
-    // data URL format: data:image/jpeg;base64,/9j/4AAQ...
-    const base64 = photoData.split(',')[1];
-    buffer = Buffer.from(base64, 'base64');
+  let body;
+  if (typeof photoData === 'string' && (photoData.startsWith('http://') || photoData.startsWith('https://'))) {
+    // 飞书等渠道传来的图片 URL，让云函数去 fetch 后上传 OSS
+    body = { userId: phone, photoUrl: photoData };
+  } else if (typeof photoData === 'string' && photoData.startsWith('data:')) {
+    body = { userId: phone, photoData: photoData.split(',')[1] };
   } else if (typeof photoData === 'string') {
-    buffer = Buffer.from(photoData, 'base64');
+    body = { userId: phone, photoData };
   } else {
-    buffer = photoData;
+    body = { userId: phone, photoData: photoData.toString('base64') };
   }
-  
-  const result = await ossClient.put(objectKey, buffer, {
-    contentType: 'image/jpeg',
-  });
-  
-  // 构建公开访问 URL
-  const photoUrl = `https://${bucket}.oss-${region}.aliyuncs.com/${objectKey}`;
-  return photoUrl;
+
+  const data = await apiRequest('/api/photo', { method: 'POST', body });
+  if (!data.success) throw new Error(data.error || '照片上传失败');
+  return data.url;
 }
 
 /**
