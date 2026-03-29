@@ -1,0 +1,11 @@
+{
+  "owner": "superuser-fank",
+  "slug": "minimax-token-plan",
+  "displayName": "MiniMax Token Plan 余额查询",
+  "latest": {
+    "version": "1.0.7",
+    "publishedAt": 1774805591458,
+    "commit": null
+  },
+  "history": []
+}
