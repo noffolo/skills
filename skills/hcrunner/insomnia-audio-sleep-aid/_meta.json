@@ -3,11 +3,16 @@
   "slug": "insomnia-audio-sleep-aid",
   "displayName": "insomnia-audio-sleep-aid",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773627146520,
-    "commit": "https://github.com/openclaw/skills/commit/564e9466922f2c0312896b0ac204716a3d259c31"
+    "version": "1.0.3",
+    "publishedAt": 1774492252445,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773627146520,
+      "commit": "https://github.com/openclaw/skills/commit/564e9466922f2c0312896b0ac204716a3d259c31"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773396190157,

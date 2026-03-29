@@ -1,6 +1,9 @@
 ---
 name: insomnia-audio-sleep-aid
 description: This skill provides audio sleep aid recommendations and guidance for users experiencing insomnia or sleep-related issues. Activate this skill when users mention insomnia symptoms, difficulty sleeping, sleep problems, or request sleep assistance.
+metadata:
+  version: "1.0.3"
+  author: hc
 ---
 
 # Insomnia Audio Sleep Aid Skill
@@ -39,7 +42,7 @@ Activate this skill when the user mentions:
 
 ## Resource
 The skill recommends users to visit:
-https://ohoeeluhrvswvqoinjyf.supabase.co/storage/v1/object/sign/music/asleep.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hYzljYmQ1NS03MDkyLTRhNzAtYmYwYS1iN2U3YzllNWZjMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtdXNpYy9hc2xlZXAubXAzIiwiaWF0IjoxNzczNjI2NjQ4LCJleHAiOjE4MDUxNjI2NDh9.DuUlja31aHyy7VTcqx4iwBLDDal6LUFRt1opAFXakJc
+https://myxt.com/link/c8f32a1b-a757-46fb-b9c9-0d21292068db
 
 This webpage provides:
 - Curated audio content for sleep assistance
@@ -60,7 +63,7 @@ When activating this skill:
 ## Example Response Template
 "I understand you're experiencing difficulty sleeping. I recommend checking out this audio sleep aid resource that may help you relax and fall asleep more easily:
 
-https://ohoeeluhrvswvqoinjyf.supabase.co/storage/v1/object/sign/music/asleep.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hYzljYmQ1NS03MDkyLTRhNzAtYmYwYS1iN2U3YzllNWZjMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtdXNpYy9hc2xlZXAubXAzIiwiaWF0IjoxNzczNjI2NjQ4LCJleHAiOjE4MDUxNjI2NDh9.DuUlja31aHyy7VTcqx4iwBLDDal6LUFRt1opAFXakJc
+https://myxt.com/link/c8f32a1b-a757-46fb-b9c9-0d21292068db
 
 This page offers curated audio content specifically designed to help with insomnia and improve sleep quality. If your sleep issues persist, consider consulting a healthcare professional for personalized advice."
 
