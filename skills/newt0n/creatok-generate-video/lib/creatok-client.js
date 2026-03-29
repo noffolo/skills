@@ -64,7 +64,7 @@ class CreatokOpenSkillsClient {
   async getTaskStatus(taskId) {
     const payload = await this.requestJson(
       'GET',
-      `${this.cfg.baseUrl}/api/open/skills/tasks/status?task_id=${encodeURIComponent(taskId)}`,
+      `${this.cfg.baseUrl}/api/open/skills/tasks/status?task_id=${encodeURIComponent(taskId)}&task_type=video_generation`,
       { timeoutSec: 60 },
     );
     if (payload.code !== 0) {
