@@ -16,13 +16,14 @@ echo ""
 
 echo "=== 打开粉丝列表 ==="
 $CLI open "${BASE_URL}/${USER}/followers" 2>/dev/null
-sleep 8
+# 缩短等待以降低飞书等渠道 request timed out（整轮需在 ~60s 内）
+sleep 5
 
 echo "=== 处理「关注者」列表 ==="
 $CLI press "PageDown" 2>/dev/null || true
-sleep 2
+sleep 1
 $CLI press "PageDown" 2>/dev/null || true
-sleep 2
+sleep 1
 
 do_follow_back() {
   local SNAP REF
@@ -57,7 +58,7 @@ for i in $(seq 1 "$MAX"); do
   echo "  点击回关 ($((CLICKED+1))/$MAX) ref=$REF"
   $CLI click "$REF" 2>/dev/null
   CLICKED=$((CLICKED+1))
-  sleep 2
+  sleep 1
 done
 
 SNAP0=$($CLI snapshot 2>/dev/null)
@@ -66,11 +67,11 @@ if [ $CLICKED -lt $MAX ] && echo "$SNAP0" | grep -q 'tab.*认证关注者'; then
   if [ -n "$TAB_REF" ]; then
     echo "  切换到「认证关注者」标签，继续回关"
     $CLI click "$TAB_REF" 2>/dev/null
-    sleep 4
-    $CLI press "PageDown" 2>/dev/null || true
     sleep 2
     $CLI press "PageDown" 2>/dev/null || true
-    sleep 2
+    sleep 1
+    $CLI press "PageDown" 2>/dev/null || true
+    sleep 1
     while [ $CLICKED -lt $MAX ]; do
       REF=$(do_follow_back)
       if [ -z "$REF" ]; then
@@ -80,7 +81,7 @@ if [ $CLICKED -lt $MAX ] && echo "$SNAP0" | grep -q 'tab.*认证关注者'; then
       echo "  点击回关 ($((CLICKED+1))/$MAX) ref=$REF"
       $CLI click "$REF" 2>/dev/null
       CLICKED=$((CLICKED+1))
-      sleep 2
+      sleep 1
     done
   fi
 fi

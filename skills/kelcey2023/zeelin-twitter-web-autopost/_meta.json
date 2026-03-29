@@ -1,13 +1,18 @@
 {
   "owner": "kelcey2023",
   "slug": "zeelin-twitter-web-autopost",
-  "displayName": "Zeelin Twitter Web Autopost",
+  "displayName": "ZeeLin Twitter/X AutoPost",
   "latest": {
-    "version": "0.6.1",
-    "publishedAt": 1772890480432,
-    "commit": "https://github.com/openclaw/skills/commit/477f9f2a812cddc3733c9b1f436b91e7dd846ff6"
+    "version": "0.6.2",
+    "publishedAt": 1774347052669,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.6.1",
+      "publishedAt": 1772890480432,
+      "commit": "https://github.com/openclaw/skills/commit/477f9f2a812cddc3733c9b1f436b91e7dd846ff6"
+    },
     {
       "version": "1.2.0",
       "publishedAt": 1772607736294,
