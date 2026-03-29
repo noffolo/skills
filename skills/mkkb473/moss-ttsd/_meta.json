@@ -1,13 +1,18 @@
 {
   "owner": "mkkb473",
   "slug": "moss-ttsd",
-  "displayName": "MOSS TTSD 双人对话合成",
+  "displayName": "MOSS TTSD 多人对话合成",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773717334337,
-    "commit": "https://github.com/openclaw/skills/commit/5270228215601dbf1accb078b6401f07fcd425c2"
+    "version": "2.0.0",
+    "publishedAt": 1774593328042,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773717334337,
+      "commit": "https://github.com/openclaw/skills/commit/5270228215601dbf1accb078b6401f07fcd425c2"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773391638714,
