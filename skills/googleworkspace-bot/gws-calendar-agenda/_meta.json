@@ -3,11 +3,16 @@
   "slug": "gws-calendar-agenda",
   "displayName": "Gws Calendar Agenda",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774300424589,
-    "commit": "https://github.com/openclaw/skills/commit/498c29454b32fa8d624db084b945285bfcafb175"
+    "version": "1.0.11",
+    "publishedAt": 1774550954410,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774300424589,
+      "commit": "https://github.com/openclaw/skills/commit/498c29454b32fa8d624db084b945285bfcafb175"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1773441710727,
