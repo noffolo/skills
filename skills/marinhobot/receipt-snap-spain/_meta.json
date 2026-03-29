@@ -1,11 +1,17 @@
 {
   "owner": "marinhobot",
   "slug": "receipt-snap-spain",
-  "displayName": "Public Template",
+  "displayName": "Receipt Snap Spain",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774822332232,
-    "commit": "https://github.com/openclaw/skills/commit/c30edae0df8a294b3bb33b25a4364eac4927758e"
+    "version": "1.0.3",
+    "publishedAt": 1774822851301,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774822332232,
+      "commit": "https://github.com/openclaw/skills/commit/c30edae0df8a294b3bb33b25a4364eac4927758e"
+    }
+  ]
 }

@@ -12,6 +12,18 @@ description: >
 
 Process receipts for tax reporting. Handles receipt capture, currency conversion, Drive storage, and logging to Google Sheets.
 
+## Requirements
+
+**Binaries:**
+- `gog` CLI — install via `brew install faradayhq/gog/gog`, then authenticate with `gog auth login`
+
+**Environment variables** (set in shell, `.env` file, or launchd plist):
+- `RECEIPT_DRIVE_FOLDER_ID` — Google Drive folder ID to upload receipts
+- `RECEIPT_GOOGLE_SHEET_ID` — Google Sheet ID to append log rows
+- `RECEIPT_LOG_FILE` (optional) — local CSV backup path, default: `~/receipts/log.csv`
+
+**Google account:** The `gog` CLI must be authenticated with a Google account that has read/write access to the Drive folder and Sheet ID above.
+
 ## Model Usage
 
 **Cost optimization:** Prefer cheaper models for simple text extraction:

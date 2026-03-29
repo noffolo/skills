@@ -18,7 +18,7 @@ Designed for freelancers and small businesses in Spain who need to track expense
 ### Prerequisites
 
 - macOS or Linux
-- [gog CLI](https://github.com/yesoreyeram/gog) — `brew install yesoreyeram/tap/gog`
+- [gog CLI](https://github.com/faradayhq/gog) — `brew install faradayhq/gog/gog`
 - Google account with Google Drive and Google Sheets
 - OpenClaw or compatible AI assistant
 
