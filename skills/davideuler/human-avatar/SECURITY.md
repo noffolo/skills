@@ -60,6 +60,22 @@ for all Alibaba Cloud AI API clients.
 - Used only in HTTP `Authorization: Bearer` headers to `dashscope.aliyuncs.com`
 - Never logged or transmitted elsewhere
 
+### 5. Required binaries and auxiliary environment variables
+
+**Where**:
+- `ffmpeg`, `ffprobe`: `live_portrait.py`, `animate_anyone.py`, `image_to_video.py`
+- `OSS_BUCKET`, `OSS_ENDPOINT`: OSS upload/signing flows
+- `DASHSCOPE_BASE_URL`, `OSS_SIGNED_URL_EXPIRES`, `LINGMOU_VENV_PYTHON`: optional overrides
+
+**Why**:
+- `ffmpeg` / `ffprobe` are required for format conversion, frame/audio extraction, and media normalization
+- `OSS_BUCKET` / `OSS_ENDPOINT` identify the user's own OSS destination
+- The other env vars are legitimate operational overrides for endpoint selection, signed URL expiry, and Python runtime selection for LingMou SDK 1.7.0 testing
+
+**Registry metadata alignment**:
+- The SKILL frontmatter now explicitly declares the required binaries and primary env vars so registry security scans and users see the true dependency surface
+- Optional overrides remain documented in scripts/docs but are not required for the base skill to function
+
 ## Network Destinations
 
 All network calls in this skill go to these Alibaba Cloud official endpoints only:

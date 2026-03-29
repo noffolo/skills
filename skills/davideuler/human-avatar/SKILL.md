@@ -1,6 +1,22 @@
 ---
 name: human-avatar
-description: 使用阿里云 DashScope API 生成多种 AI 视频与语音内容。七种能力：① LivePortrait 人像口播（图+音频→说话视频，两步流程）② EMO 人像口播 ③ AA/AnimateAnyone 全身动画（三步流程）④ T2I 文生图（万相2.x，默认 wan2.2-t2i-flash）⑤ I2V 图生视频（万相2.x，默认 wan2.6-i2v-flash，支持 T2I→I2V 一条龙）⑥ Qwen TTS 文字转语音（自动按场景选模型音色，默认 qwen3-tts-vd-realtime-2026-01-15）⑦ 灵眸数字人模板视频。当用户需要制作口播/人像/全身动画/文生图/文生视频/语音合成时触发此技能。
+description: 使用阿里云 DashScope API 与阿里云 LingMou/灵眸生成多种 AI 视频与语音内容。七种能力：① LivePortrait 人像口播（图+音频→说话视频，两步流程）② EMO 人像口播 ③ AA/AnimateAnyone 全身动画（三步流程）④ T2I 文生图（万相2.x，默认 wan2.2-t2i-flash）⑤ I2V 图生视频（万相2.x，默认 wan2.6-i2v-flash，支持 T2I→I2V 一条龙）⑥ Qwen TTS 文字转语音（自动按场景选模型音色，默认 qwen3-tts-vd-realtime-2026-01-15）⑦ 灵眸数字人模板视频，支持随机模板、公共模板复制与脚本确认。当用户需要制作口播/人像/全身动画/文生图/文生视频/语音合成时触发此技能。
+metadata:
+  {
+    "openclaw": {
+      "emoji": "🎭",
+      "requires": {
+        "bins": ["ffmpeg", "ffprobe"],
+        "env": [
+          "DASHSCOPE_API_KEY",
+          "ALIBABA_CLOUD_ACCESS_KEY_ID",
+          "ALIBABA_CLOUD_ACCESS_KEY_SECRET",
+          "OSS_BUCKET",
+          "OSS_ENDPOINT"
+        ]
+      }
+    }
+  }
 ---
 
 # Human Avatar — 阿里云 AI 视频 & 语音生成
@@ -261,14 +277,70 @@ python scripts/portrait_animate.py \
 
 ## 7. 灵眸数字人 — 企业级模板视频
 
-**适用场景**：企业数字人播报、模板化新闻视频。
+**适用场景**：企业数字人播报、模板化新闻视频、上传人物图片并结合口播脚本生成模板播报视频。
+
+### 新工作流（优先无 `template_id`）
+
+- 若用户**给了 `template_id`**：直接使用该模板生成
+- 若用户**没给 `template_id`**：
+  1. 先列出账号下已有播报模板
+  2. 如果有模板，**随机选择一个模板**来创作
+  3. 如果没有模板，再尝试获取公共模板并**复制最多 3 个公共模板**到当前账号
+  4. 从复制结果里随机选择一个继续生成
+- **但要注意**：公共模板复制成功后，复制出的模板不一定立刻就是“可直接生成视频”的成熟模板；有些复制结果仍是草稿，可能缺少有效片段、素材或变量绑定，需要在灵眸侧补完
+- 若用户只给了图片和“做个口播视频”的要求，但**没有明确脚本**：先向用户确认口播文案，再继续生成
+
+### 当前脚本能力
+
+`scripts/avatar_video.py` 现在支持：
+- `--list-templates`：列出账号下已有模板
+- `--list-public-templates`：列出公共模板（SDK 1.7.0+）
+- `--copy-public-templates`：复制最多 3 个公共模板（SDK 1.7.0+）
+- 不传 `--template-id`：随机选择一个已有模板
+- 当本地模板为空时：自动尝试复制公共模板作为兜底
+- `--show-template-detail`：查看模板详情与可替换变量
+- 自动把输入文案填入模板里的 text 变量（优先 `text_content` / `test_text`）
+- 当公共模板复制后直接生成失败时，明确报错提示用户该模板仍需完善，而不是静默失败
 
 ```bash
+# 列出现有模板
+python scripts/avatar_video.py --list-templates
+
+# 列出公共模板（SDK 1.7.0+）
+python scripts/avatar_video.py --list-public-templates
+
+# 手动复制最多 3 个公共模板（SDK 1.7.0+）
+python scripts/avatar_video.py --copy-public-templates
+
+# 不指定 template_id，自动随机选一个已有模板来播报
+python scripts/avatar_video.py \
+  --text "大家好，欢迎收看今天的科技新闻。" \
+  --download
+
+# 指定 template_id
 python scripts/avatar_video.py \
   --template-id "BS1b2WNnRMu4ouRzT4clY9Jhg" \
   --text "大家好，欢迎收看今天的科技新闻。" \
   --download
+
+# 查看随机选中的模板详情
+python scripts/avatar_video.py \
+  --show-template-detail \
+  --text "这是一段测试播报文案"
 ```
+
+### 对话式使用约定
+
+当用户说：
+- “用这张图做一个口播视频”
+- “帮我做个数字人口播”
+- “上传图片，做个播报视频”
+
+按下面流程执行：
+1. 判断用户是否已经给出可直接播报的文案/脚本
+2. 如果没有，就先追问一句：**“口播的具体文案是什么？你也可以只给我要点，我来帮你整理成适合播报的脚本。”**
+3. 拿到脚本后，调用灵眸流程：优先随机已有模板；无本地模板时再尝试公共模板复制
+4. 如果用户上传了人物图片，但当前模板式灵眸接口并不需要该图片，明确告诉用户：这一路径主要依赖模板；若要强制使用用户图片做人像口播，应改走 LivePortrait / EMO
 
 ---
 
