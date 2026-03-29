@@ -3,10 +3,12 @@ import { mkdir, writeFile } from "node:fs/promises";
 
 type MediaKind = "image" | "video";
 type MediaHint = "image" | "unknown";
+type MediaSource = "remote" | "data";
 
 type MarkdownLinkCandidate = {
   url: string;
   hint: MediaHint;
+  source: MediaSource;
 };
 
 export type LocalizeMarkdownMediaOptions = {
@@ -22,8 +24,9 @@ export type LocalizeMarkdownMediaResult = {
   videoDir: string | null;
 };
 
-const MARKDOWN_LINK_RE = /(!?\[[^\]\n]*\])\((<)?(https?:\/\/[^)\s>]+)(>)?\)/g;
-const FRONTMATTER_COVER_RE = /^(coverImage:\s*")(https?:\/\/[^"]+)(")/m;
+const MARKDOWN_LINK_RE =
+  /(!?\[[^\]\n]*\])\((<)?((?:https?:\/\/[^)\s>]+)|(?:data:[^)>\s]+))(>)?\)/g;
+const FRONTMATTER_COVER_RE = /^(coverImage:\s*")((?:https?:\/\/[^"]+)|(?:data:[^"]+))(")/m;
 
 const IMAGE_EXTENSIONS = new Set([
   "jpg",
@@ -86,6 +89,10 @@ function resolveExtensionFromUrl(rawUrl: string): string | undefined {
   return undefined;
 }
 
+function resolveExtensionFromContentType(contentType: string): string | undefined {
+  return normalizeExtension(MIME_EXTENSION_MAP[contentType]);
+}
+
 function resolveKindFromContentType(contentType: string): MediaKind | undefined {
   if (!contentType) return undefined;
   if (contentType.startsWith("image/")) return "image";
@@ -124,7 +131,7 @@ function resolveOutputExtension(
   extension: string | undefined,
   kind: MediaKind
 ): string {
-  const extFromMime = normalizeExtension(MIME_EXTENSION_MAP[contentType]);
+  const extFromMime = resolveExtensionFromContentType(contentType);
   if (extFromMime) return extFromMime;
 
   const normalizedExt = normalizeExtension(extension);
@@ -150,6 +157,10 @@ function sanitizeFileSegment(input: string): string {
 }
 
 function resolveFileStem(rawUrl: string, extension: string): string {
+  if (isDataUri(rawUrl)) {
+    return "";
+  }
+
   try {
     const parsed = new URL(rawUrl);
     const base = path.posix.basename(parsed.pathname);
@@ -172,6 +183,26 @@ function buildFileName(kind: MediaKind, index: number, sourceUrl: string, extens
   return `${prefix}-${serial}${suffix}.${extension}`;
 }
 
+function isDataUri(value: string): boolean {
+  return value.startsWith("data:");
+}
+
+function parseBase64DataUri(rawUrl: string): { contentType: string; bytes: Buffer } | null {
+  const match = rawUrl.match(/^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!match?.[1] || !match[2]) return null;
+
+  const contentType = normalizeContentType(match[1]);
+  if (!contentType) return null;
+
+  try {
+    const bytes = Buffer.from(match[2].replace(/\s+/g, ""), "base64");
+    if (bytes.length === 0) return null;
+    return { contentType, bytes };
+  } catch {
+    return null;
+  }
+}
+
 function collectMarkdownLinkCandidates(markdown: string): MarkdownLinkCandidate[] {
   const candidates: MarkdownLinkCandidate[] = [];
   const seen = new Set<string>();
@@ -181,7 +212,11 @@ function collectMarkdownLinkCandidates(markdown: string): MarkdownLinkCandidate[
     const coverMatch = fmMatch[1]?.match(FRONTMATTER_COVER_RE);
     if (coverMatch?.[2] && !seen.has(coverMatch[2])) {
       seen.add(coverMatch[2]);
-      candidates.push({ url: coverMatch[2], hint: "image" });
+      candidates.push({
+        url: coverMatch[2],
+        hint: "image",
+        source: isDataUri(coverMatch[2]) ? "data" : "remote",
+      });
     }
   }
 
@@ -195,6 +230,7 @@ function collectMarkdownLinkCandidates(markdown: string): MarkdownLinkCandidate[
     candidates.push({
       url: rawUrl,
       hint: label.startsWith("![") ? "image" : "unknown",
+      source: isDataUri(rawUrl) ? "data" : "remote",
     });
   }
 
@@ -244,24 +280,45 @@ export async function localizeMarkdownMedia(
 
   for (const candidate of candidates) {
     try {
-      const response = await fetch(candidate.url, {
-        method: "GET",
-        redirect: "follow",
-        headers: {
-          "user-agent": DOWNLOAD_USER_AGENT,
-        },
-      });
+      let sourceUrl = candidate.url;
+      let contentType = "";
+      let extension: string | undefined;
+      let kind: MediaKind | undefined;
+      let bytes: Buffer | null = null;
 
-      if (!response.ok) {
-        log(`[url-to-markdown] Skip media (${response.status}): ${candidate.url}`);
-        continue;
+      if (candidate.source === "data") {
+        const parsed = parseBase64DataUri(candidate.url);
+        if (!parsed) {
+          log("[url-to-markdown] Skip embedded media: unsupported or invalid data URI");
+          continue;
+        }
+
+        contentType = parsed.contentType;
+        extension = resolveExtensionFromContentType(contentType);
+        kind = resolveMediaKind(sourceUrl, contentType, extension, candidate.hint);
+        bytes = parsed.bytes;
+      } else {
+        const response = await fetch(candidate.url, {
+          method: "GET",
+          redirect: "follow",
+          headers: {
+            "user-agent": DOWNLOAD_USER_AGENT,
+          },
+        });
+
+        if (!response.ok) {
+          log(`[url-to-markdown] Skip media (${response.status}): ${candidate.url}`);
+          continue;
+        }
+
+        sourceUrl = response.url || candidate.url;
+        contentType = normalizeContentType(response.headers.get("content-type"));
+        extension = resolveExtensionFromUrl(sourceUrl) ?? resolveExtensionFromUrl(candidate.url);
+        kind = resolveMediaKind(sourceUrl, contentType, extension, candidate.hint);
+        bytes = Buffer.from(await response.arrayBuffer());
       }
 
-      const sourceUrl = response.url || candidate.url;
-      const contentType = normalizeContentType(response.headers.get("content-type"));
-      const extension = resolveExtensionFromUrl(sourceUrl) ?? resolveExtensionFromUrl(candidate.url);
-      const kind = resolveMediaKind(sourceUrl, contentType, extension, candidate.hint);
-      if (!kind) {
+      if (!kind || !bytes) {
         continue;
       }
 
@@ -274,7 +331,6 @@ export async function localizeMarkdownMedia(
       const fileName = buildFileName(kind, nextIndex, sourceUrl, outputExtension);
       const absolutePath = path.join(targetDir, fileName);
       const relativePath = path.posix.join(dirName, fileName);
-      const bytes = Buffer.from(await response.arrayBuffer());
       await writeFile(absolutePath, bytes);
       replacements.set(candidate.url, relativePath);
 
@@ -305,6 +361,7 @@ export function countRemoteMedia(markdown: string): { images: number; videos: nu
   let images = 0;
   let videos = 0;
   for (const c of candidates) {
+    if (c.source !== "remote") continue;
     const ext = resolveExtensionFromUrl(c.url);
     const kind = resolveKindFromExtension(ext);
     if (kind === "video") {

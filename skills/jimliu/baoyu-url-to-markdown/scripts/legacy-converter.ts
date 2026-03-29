@@ -336,29 +336,32 @@ function tryNextDataExtraction(document: Document): ExtractionCandidate | null {
 
 function buildReadabilityCandidate(
   article: ReturnType<Readability["parse"]>,
-  document: Document,
+  referenceDocument: Document,
   method: string
 ): ExtractionCandidate | null {
   const textContent = article?.textContent?.trim() ?? "";
   if (textContent.length < MIN_CONTENT_LENGTH) return null;
 
   return {
-    title: pickString(article?.title, extractTitle(document)),
+    title: pickString(article?.title, extractTitle(referenceDocument)),
     byline: pickString((article as { byline?: string } | null)?.byline),
     excerpt: pickString(article?.excerpt, generateExcerpt(null, textContent)),
-    published: pickString((article as { publishedTime?: string } | null)?.publishedTime, extractPublishedTime(document)),
+    published: pickString(
+      (article as { publishedTime?: string } | null)?.publishedTime,
+      extractPublishedTime(referenceDocument)
+    ),
     html: article?.content ? sanitizeHtml(article.content) : null,
     textContent,
     method,
   };
 }
 
-function tryReadability(document: Document): ExtractionCandidate | null {
+function tryReadability(document: Document, referenceDocument: Document = document): ExtractionCandidate | null {
   try {
     const strictClone = document.cloneNode(true) as Document;
     const strictResult = buildReadabilityCandidate(
       new Readability(strictClone).parse(),
-      document,
+      referenceDocument,
       "readability"
     );
     if (strictResult) return strictResult;
@@ -366,7 +369,7 @@ function tryReadability(document: Document): ExtractionCandidate | null {
     const relaxedClone = document.cloneNode(true) as Document;
     return buildReadabilityCandidate(
       new Readability(relaxedClone, { charThreshold: 120 }).parse(),
-      document,
+      referenceDocument,
       "readability-relaxed"
     );
   } catch {
@@ -471,14 +474,15 @@ function pickBestCandidate(candidates: ExtractionCandidate[]): ExtractionCandida
   return ranked[0];
 }
 
-function extractFromHtml(html: string): ExtractionCandidate | null {
-  const document = parseDocument(html);
+function extractFromHtml(html: string, cleanedHtml: string = html): ExtractionCandidate | null {
+  const originalDocument = parseDocument(html);
+  const cleanedDocument = parseDocument(cleanedHtml);
 
-  const readabilityCandidate = tryReadability(document);
-  const nextDataCandidate = tryNextDataExtraction(document);
-  const jsonLdCandidate = tryJsonLdExtraction(document);
-  const selectorCandidate = trySelectorExtraction(document);
-  const bodyCandidate = tryBodyExtraction(document);
+  const readabilityCandidate = tryReadability(cleanedDocument, originalDocument);
+  const nextDataCandidate = tryNextDataExtraction(originalDocument);
+  const jsonLdCandidate = tryJsonLdExtraction(originalDocument);
+  const selectorCandidate = trySelectorExtraction(cleanedDocument);
+  const bodyCandidate = tryBodyExtraction(cleanedDocument);
 
   const candidates = [
     readabilityCandidate,
@@ -493,8 +497,8 @@ function extractFromHtml(html: string): ExtractionCandidate | null {
 
   return {
     ...winner,
-    title: winner.title ?? extractTitle(document),
-    published: winner.published ?? extractPublishedTime(document),
+    title: winner.title ?? extractTitle(originalDocument),
+    published: winner.published ?? extractPublishedTime(originalDocument),
     excerpt: winner.excerpt ?? generateExcerpt(null, winner.textContent),
   };
 }
@@ -521,14 +525,18 @@ turndown.addRule("collapseFigure", {
 
 turndown.addRule("dropInvisibleAnchors", {
   filter(node) {
-    return node.nodeName === "A" && !(node as Element).textContent?.trim();
+    return (
+      node.nodeName === "A" &&
+      !(node as Element).textContent?.trim() &&
+      !(node as Element).querySelector("img, video, picture, source")
+    );
   },
   replacement() {
     return "";
   },
 });
 
-function convertHtmlToMarkdown(html: string): string {
+export function convertHtmlFragmentToMarkdown(html: string): string {
   if (!html || !html.trim()) return "";
 
   try {
@@ -606,12 +614,16 @@ export function shouldCompareWithLegacy(markdown: string): boolean {
   );
 }
 
-export function convertWithLegacyExtractor(html: string, baseMetadata: PageMetadata): ConversionResult {
-  const extracted = extractFromHtml(html);
+export function convertWithLegacyExtractor(
+  html: string,
+  baseMetadata: PageMetadata,
+  cleanedHtml: string = html
+): ConversionResult {
+  const extracted = extractFromHtml(html, cleanedHtml);
 
-  let markdown = extracted?.html ? convertHtmlToMarkdown(extracted.html) : "";
+  let markdown = extracted?.html ? convertHtmlFragmentToMarkdown(extracted.html) : "";
   if (!markdown.trim()) {
-    markdown = extracted?.textContent?.trim() || fallbackPlainText(html);
+    markdown = extracted?.textContent?.trim() || fallbackPlainText(cleanedHtml);
   }
 
   return {

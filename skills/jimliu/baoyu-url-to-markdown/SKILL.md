@@ -1,7 +1,7 @@
 ---
 name: baoyu-url-to-markdown
 description: Fetch any URL and convert to markdown using Chrome CDP. Saves the rendered HTML snapshot alongside the markdown, uses an upgraded Defuddle pipeline with better web-component handling and YouTube transcript extraction, and automatically falls back to the pre-Defuddle HTML-to-Markdown pipeline when needed. If local browser capture fails entirely, it can fall back to the hosted defuddle.md API. Supports two modes - auto-capture on page load, or wait for user signal (for pages requiring login). Use when user wants to save a webpage as markdown.
-version: 1.58.1
+version: 1.59.0
 metadata:
   openclaw:
     homepage: https://github.com/JimLiu/baoyu-skills#baoyu-url-to-markdown
@@ -30,6 +30,9 @@ Fetches any URL via Chrome CDP, saves the rendered HTML snapshot, and converts i
 |--------|---------|
 | `scripts/main.ts` | CLI entry point for URL fetching |
 | `scripts/html-to-markdown.ts` | Markdown conversion entry point and converter selection |
+| `scripts/parsers/index.ts` | Unified parser entry: dispatches URL-specific rules before generic converters |
+| `scripts/parsers/types.ts` | Unified parser interface shared by all rule files |
+| `scripts/parsers/rules/*.ts` | One file per URL rule, for example X status and X article |
 | `scripts/defuddle-converter.ts` | Defuddle-based conversion |
 | `scripts/legacy-converter.ts` | Pre-Defuddle legacy extraction and markdown conversion |
 | `scripts/markdown-conversion-shared.ts` | Shared metadata parsing and markdown document helpers |
@@ -115,10 +118,14 @@ Full reference: [references/config/first-time-setup.md](references/config/first-
 ## Features
 
 - Chrome CDP for full JavaScript rendering
+- Browser strategy fallback: default headless first, then visible Chrome on technical failure
+- URL-specific parser layer for sites that need custom HTML rules before generic extraction
 - Two capture modes: auto or wait-for-user
 - Save rendered HTML as a sibling `-captured.html` file
 - Clean markdown output with metadata
 - Upgraded Defuddle-first markdown conversion with automatic fallback to the pre-Defuddle extractor from git history
+- X/Twitter pages can use HTML-specific parsing for Tweets and Articles, which improves title/body/media extraction on `x.com` / `twitter.com`
+- `archive.ph` / related archive mirrors can restore the original URL from `input[name=q]` and prefer `#CONTENT` before falling back to the page body
 - Materializes shadow DOM content before conversion so web-component pages survive serialization better
 - YouTube pages can include transcript/caption text in the markdown when YouTube exposes a caption track
 - If local browser capture fails completely, can fall back to `defuddle.md/<url>` and still save markdown
@@ -130,6 +137,12 @@ Full reference: [references/config/first-time-setup.md](references/config/first-
 ```bash
 # Auto mode (default) - capture when page loads
 ${BUN_X} {baseDir}/scripts/main.ts <url>
+
+# Force headless only
+${BUN_X} {baseDir}/scripts/main.ts <url> --browser headless
+
+# Force visible browser
+${BUN_X} {baseDir}/scripts/main.ts <url> --browser headed
 
 # Wait mode - wait for user signal before capture
 ${BUN_X} {baseDir}/scripts/main.ts <url> --wait
@@ -152,6 +165,9 @@ ${BUN_X} {baseDir}/scripts/main.ts <url> --download-media
 | `-o <path>` | Output file path — must be a **file** path, not directory (default: auto-generated) |
 | `--output-dir <dir>` | Base output directory — auto-generates `{dir}/{domain}/{slug}.md` (default: `./url-to-markdown/`) |
 | `--wait` | Wait for user signal before capturing |
+| `--browser <mode>` | Browser strategy: `auto` (default), `headless`, or `headed` |
+| `--headless` | Shortcut for `--browser headless` |
+| `--headed` | Shortcut for `--browser headed` |
 | `--timeout <ms>` | Page load timeout (default: 30000) |
 | `--download-media` | Download image/video assets to local `imgs/` and `videos/`, and rewrite markdown links to local relative paths |
 
@@ -159,13 +175,50 @@ ${BUN_X} {baseDir}/scripts/main.ts <url> --download-media
 
 | Mode | Behavior | Use When |
 |------|----------|----------|
-| Auto (default) | Capture on network idle | Public pages, static content |
+| Auto (default) | Try headless first, then retry in visible Chrome if needed | Public pages, static content, unknown pages |
 | Wait (`--wait`) | User signals when ready | Login-required, lazy loading, paywalls |
 
 **Wait mode workflow**:
 1. Run with `--wait` → script outputs "Press Enter when ready"
 2. Ask user to confirm page is ready
 3. Send newline to stdin to trigger capture
+
+**Default browser fallback**:
+1. Auto mode starts with headless Chrome and captures on network idle
+2. If headless capture fails technically, retry with visible Chrome
+3. If a shared Chrome session for this profile already exists, reuse it instead of launching a new browser
+4. The script does not hard-code login or paywall detection; the agent must inspect the captured markdown or HTML and decide whether to rerun with `--browser headed --wait`
+
+## Agent Quality Gate
+
+**CRITICAL**: The agent must treat headless capture as provisional. Some sites render differently in headless mode and can silently return an error shell, partially hydrated page, or low-quality extraction **without** causing the CLI to fail.
+
+After every run that used `--browser auto` or `--browser headless`, the agent **MUST** inspect the saved markdown first, and inspect the saved `-captured.html` when the markdown looks suspicious.
+
+### Quality checks the agent must perform
+
+1. Confirm the markdown title matches the target page, not a generic site shell
+2. Confirm the body contains the expected article or page content, not just navigation, footer, or a generic error
+3. Watch for obvious failure signs such as:
+   - `Application error`
+   - `This page could not be found`
+   - login, signup, subscribe, or verification shells
+   - extremely short markdown for a page that should be long-form
+   - raw framework payloads or mostly boilerplate content
+4. If the result is low quality, incomplete, or clearly wrong, do **not** accept the run as successful just because the CLI exited with code 0
+
+### Recovery workflow the agent must follow
+
+1. First run with default `auto` unless there is already a clear reason to use wait mode
+2. Review markdown quality immediately after the run
+3. If the content is low quality, rerun locally with visible Chrome:
+   - `--browser headed` for ordinary rendering issues
+   - `--browser headed --wait` when the page may need login, anti-bot interaction, cookie acceptance, or extra hydration time
+4. If `--wait` is used, tell the user exactly what to do:
+   - if login is required, ask them to sign in
+   - if the page needs time to hydrate, ask them to wait until the full content is visible
+   - once ready, ask them to press Enter so capture can continue
+5. Only fall back to hosted `defuddle.md` after the local browser strategies have failed or are clearly lower fidelity
 
 ## Output Format
 
@@ -201,14 +254,17 @@ When `--download-media` is enabled:
 
 Conversion order:
 
-1. Try Defuddle first
-2. For rich pages such as YouTube, prefer Defuddle's extractor-specific output (including transcripts when available) instead of replacing it with the legacy pipeline
-3. If Defuddle throws, cannot load, returns obviously incomplete markdown, or captures lower-quality content than the legacy pipeline, automatically fall back to the pre-Defuddle extractor
-4. If the entire local browser capture flow fails before markdown can be produced, try the hosted `https://defuddle.md/<url>` API and save its markdown output directly
-5. The legacy fallback path uses the older Readability/selector/Next.js-data based HTML-to-Markdown implementation recovered from git history
+1. Try the URL-specific parser layer first when a site rule matches
+2. If no specialized parser matches, try Defuddle
+3. For rich pages such as YouTube, prefer Defuddle's extractor-specific output (including transcripts when available) instead of replacing it with the legacy pipeline
+4. If Defuddle throws, cannot load, returns obviously incomplete markdown, or captures lower-quality content than the legacy pipeline, automatically fall back to the pre-Defuddle extractor
+5. If the agent determines the captured result is a login screen, verification screen, or paywall shell, rerun locally with `--browser headed --wait` and ask the user to complete access before capture
+6. If the entire local browser capture flow still fails before markdown can be produced, try the hosted `https://defuddle.md/<url>` API and save its markdown output directly
+7. The legacy fallback path uses the older Readability/selector/Next.js-data based HTML-to-Markdown implementation recovered from git history
 
 CLI output will show:
 
+- `Converter: parser:...` when a URL-specific parser succeeded
 - `Converter: defuddle` when Defuddle succeeds
 - `Converter: legacy:...` plus `Fallback used: ...` when fallback was needed
 - `Converter: defuddle-api` when local browser capture failed and the hosted API was used instead

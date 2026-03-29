@@ -29,10 +29,33 @@ interface Args {
   wait: boolean;
   timeout: number;
   downloadMedia: boolean;
+  browserMode: BrowserMode;
 }
 
+type BrowserMode = "auto" | "headless" | "headed";
+
+interface CaptureAttemptOptions {
+  headless: boolean;
+  wait: boolean;
+  existingPort?: number;
+  waitPrompt?: string;
+}
+
+interface CaptureSnapshot {
+  html: string;
+  finalUrl: string;
+}
+
+const BROWSER_MODES = new Set<BrowserMode>(["auto", "headless", "headed"]);
+
 function parseArgs(argv: string[]): Args {
-  const args: Args = { url: "", wait: false, timeout: DEFAULT_TIMEOUT_MS, downloadMedia: false };
+  const args: Args = {
+    url: "",
+    wait: false,
+    timeout: DEFAULT_TIMEOUT_MS,
+    downloadMedia: false,
+    browserMode: "auto",
+  };
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--wait" || arg === "-w") {
@@ -45,6 +68,12 @@ function parseArgs(argv: string[]): Args {
       args.outputDir = argv[++i];
     } else if (arg === "--download-media") {
       args.downloadMedia = true;
+    } else if (arg === "--browser") {
+      args.browserMode = (argv[++i] as BrowserMode | undefined) ?? "auto";
+    } else if (arg === "--headless") {
+      args.browserMode = "headless";
+    } else if (arg === "--headed" || arg === "--noheadless" || arg === "--no-headless") {
+      args.browserMode = "headed";
     } else if (!arg.startsWith("-") && !args.url) {
       args.url = arg;
     }
@@ -52,15 +81,71 @@ function parseArgs(argv: string[]): Args {
   return args;
 }
 
-function generateSlug(title: string, url: string): string {
-  const text = title || new URL(url).pathname.replace(/\//g, "-");
-  return text
+const SLUG_STOP_WORDS = new Set([
+  "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+  "have", "has", "had", "do", "does", "did", "will", "would", "shall",
+  "should", "may", "might", "must", "can", "could", "to", "of", "in",
+  "for", "on", "with", "at", "by", "from", "as", "into", "through",
+  "during", "before", "after", "above", "below", "between", "out",
+  "off", "over", "under", "again", "further", "then", "once", "here",
+  "there", "when", "where", "why", "how", "all", "both", "each",
+  "few", "more", "most", "other", "some", "such", "no", "nor", "not",
+  "only", "own", "same", "so", "than", "too", "very", "just", "but",
+  "and", "or", "if", "this", "that", "these", "those", "it", "its",
+  "http", "https", "www", "com", "org", "net", "post", "article",
+]);
+
+function extractSlugFromContent(content: string): string | null {
+  const body = content.replace(/^---\n[\s\S]*?\n---\n?/, "").slice(0, 1000);
+  const words = body
+    .replace(/[^\w\s-]/g, " ")
+    .split(/\s+/)
+    .filter((w) => /^[a-zA-Z]/.test(w) && w.length >= 2 && !SLUG_STOP_WORDS.has(w.toLowerCase()))
+    .map((w) => w.toLowerCase());
+
+  const unique: string[] = [];
+  const seen = new Set<string>();
+  for (const w of words) {
+    if (!seen.has(w)) {
+      seen.add(w);
+      unique.push(w);
+      if (unique.length >= 6) break;
+    }
+  }
+  return unique.length >= 2 ? unique.join("-").slice(0, 50) : null;
+}
+
+function generateSlug(title: string, url: string, content?: string): string {
+  const asciiWords = title
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => /[a-zA-Z]/.test(w) && w.length >= 2 && !SLUG_STOP_WORDS.has(w.toLowerCase()))
+    .map((w) => w.toLowerCase());
+
+  if (asciiWords.length >= 2) {
+    return asciiWords.slice(0, 6).join("-").slice(0, 50);
+  }
+
+  if (content) {
+    const contentSlug = extractSlugFromContent(content);
+    if (contentSlug) return contentSlug;
+  }
+
+  const GENERIC_PATH_SEGMENTS = new Set(["status", "article", "post", "posts", "p", "blog", "news", "articles"]);
+  const parsed = new URL(url);
+  const pathSlug = parsed.pathname
+    .split("/")
+    .filter((s) => s.length > 0 && !/^\d{10,}$/.test(s) && !GENERIC_PATH_SEGMENTS.has(s.toLowerCase()))
+    .join("-")
     .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
+    .replace(/[^\w-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
-    .slice(0, 50) || "page";
+    .slice(0, 40);
+
+  const prefix = asciiWords.slice(0, 2).join("-");
+  const combined = prefix ? `${prefix}-${pathSlug}` : pathSlug;
+  return combined.slice(0, 50) || "page";
 }
 
 function formatTimestamp(): string {
@@ -124,35 +209,42 @@ async function fetchDefuddleApiMarkdown(targetUrl: string): Promise<{ markdown: 
   };
 }
 
-async function generateOutputPath(url: string, title: string, outputDir?: string): Promise<string> {
+async function generateOutputPath(url: string, title: string, outputDir?: string, content?: string): Promise<string> {
   const domain = new URL(url).hostname.replace(/^www\./, "");
-  const slug = generateSlug(title, url);
+  const slug = generateSlug(title, url, content);
   const dataDir = outputDir ? path.resolve(outputDir) : resolveUrlToMarkdownDataDir();
-  const basePath = path.join(dataDir, domain, `${slug}.md`);
+  const basePath = path.join(dataDir, domain, slug, `${slug}.md`);
 
   if (!(await fileExists(basePath))) {
     return basePath;
   }
 
   const timestampSlug = `${slug}-${formatTimestamp()}`;
-  return path.join(dataDir, domain, `${timestampSlug}.md`);
+  return path.join(dataDir, domain, timestampSlug, `${timestampSlug}.md`);
 }
 
-async function waitForUserSignal(): Promise<void> {
-  console.log("Page opened. Press Enter when ready to capture...");
+function defaultWaitPrompt(): string {
+  return "A browser window has been opened. If the page requires login or verification, complete it first, then press Enter to capture.";
+}
+
+async function waitForUserSignal(prompt: string): Promise<void> {
+  console.log(prompt);
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   await new Promise<void>((resolve) => {
     rl.once("line", () => { rl.close(); resolve(); });
   });
 }
 
-async function captureUrl(args: Args): Promise<ConversionResult> {
-  const existingPort = await findExistingChromePort();
-  const reusing = existingPort !== null;
-  const port = existingPort ?? await getFreePort();
-  const chrome = reusing ? null : await launchChrome(args.url, port, false);
+async function captureUrlOnce(args: Args, options: CaptureAttemptOptions): Promise<ConversionResult> {
+  const reusing = options.existingPort !== undefined;
+  const port = options.existingPort ?? await getFreePort();
+  const chrome = reusing ? null : await launchChrome(args.url, port, options.headless);
 
-  if (reusing) console.log(`Reusing existing Chrome on port ${port}`);
+  if (reusing) {
+    console.log(`Reusing existing Chrome on port ${port}`);
+  } else {
+    console.log(`Launching Chrome (${options.headless ? "headless" : "headed"})...`);
+  }
 
   let cdp: CdpConnection | null = null;
   let targetId: string | null = null;
@@ -179,8 +271,8 @@ async function captureUrl(args: Args): Promise<ConversionResult> {
       await cdp.send("Page.enable", {}, { sessionId });
     }
 
-    if (args.wait) {
-      await waitForUserSignal();
+    if (options.wait) {
+      await waitForUserSignal(options.waitPrompt ?? defaultWaitPrompt());
     } else {
       console.log("Waiting for page to load...");
       await Promise.race([
@@ -195,11 +287,12 @@ async function captureUrl(args: Args): Promise<ConversionResult> {
     }
 
     console.log("Capturing page content...");
-    const { html } = await evaluateScript<{ html: string }>(
+    const snapshot = await evaluateScript<CaptureSnapshot>(
       cdp, sessionId, absolutizeUrlsScript, args.timeout
     );
-
-    return await extractContent(html, args.url);
+    return await extractContent(snapshot.html, snapshot.finalUrl || args.url, {
+      preserveBase64Images: args.downloadMedia,
+    });
   } finally {
     if (reusing) {
       if (cdp && targetId) {
@@ -216,10 +309,67 @@ async function captureUrl(args: Args): Promise<ConversionResult> {
   }
 }
 
+async function runHeadedFlow(
+  args: Args,
+  options: { existingPort?: number; wait: boolean; waitPrompt?: string }
+): Promise<ConversionResult> {
+  return await captureUrlOnce(args, {
+    headless: false,
+    wait: options.wait,
+    existingPort: options.existingPort,
+    waitPrompt: options.waitPrompt,
+  });
+}
+
+async function captureUrl(args: Args): Promise<ConversionResult> {
+  const existingPort = await findExistingChromePort();
+  if (existingPort !== null) {
+    console.log("Found an existing Chrome session for this profile. Reusing it instead of launching a new browser.");
+    return await runHeadedFlow(args, {
+      existingPort,
+      wait: args.wait,
+      waitPrompt: args.wait ? defaultWaitPrompt() : undefined,
+    });
+  }
+
+  if (args.browserMode === "headless") {
+    return await captureUrlOnce(args, { headless: true, wait: false });
+  }
+
+  if (args.browserMode === "headed") {
+    return await runHeadedFlow(args, {
+      wait: args.wait,
+      waitPrompt: args.wait ? defaultWaitPrompt() : undefined,
+    });
+  }
+
+  if (args.wait) {
+    return await runHeadedFlow(args, {
+      wait: true,
+      waitPrompt: defaultWaitPrompt(),
+    });
+  }
+
+  try {
+    return await captureUrlOnce(args, { headless: true, wait: false });
+  } catch (error) {
+    const headlessMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Headless capture failed: ${headlessMessage}`);
+    console.log("Retrying with a visible browser window...");
+
+    try {
+      return await runHeadedFlow(args, { wait: false });
+    } catch (headedError) {
+      const headedMessage = headedError instanceof Error ? headedError.message : String(headedError);
+      throw new Error(`Headless capture failed (${headlessMessage}); headed retry failed (${headedMessage})`);
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv);
   if (!args.url) {
-    console.error("Usage: bun main.ts <url> [-o output.md] [--output-dir dir] [--wait] [--timeout ms] [--download-media]");
+    console.error("Usage: bun main.ts <url> [-o output.md] [--output-dir dir] [--wait] [--browser auto|headless|headed] [--timeout ms] [--download-media]");
     process.exit(1);
   }
 
@@ -227,6 +377,16 @@ async function main(): Promise<void> {
     new URL(args.url);
   } catch {
     console.error(`Invalid URL: ${args.url}`);
+    process.exit(1);
+  }
+
+  if (!BROWSER_MODES.has(args.browserMode)) {
+    console.error(`Invalid --browser mode: ${args.browserMode}. Expected auto, headless, or headed.`);
+    process.exit(1);
+  }
+
+  if (args.wait && args.browserMode === "headless") {
+    console.error("Error: --wait requires a visible browser. Use --browser auto or --browser headed.");
     process.exit(1);
   }
 
@@ -240,6 +400,7 @@ async function main(): Promise<void> {
 
   console.log(`Fetching: ${args.url}`);
   console.log(`Mode: ${args.wait ? "wait" : "auto"}`);
+  console.log(`Browser: ${args.browserMode}`);
 
   let outputPath: string;
   let htmlSnapshotPath: string | null = null;
@@ -249,13 +410,12 @@ async function main(): Promise<void> {
 
   try {
     const result = await captureUrl(args);
-    outputPath = args.output || await generateOutputPath(args.url, result.metadata.title, args.outputDir);
+    document = createMarkdownDocument(result);
+    outputPath = args.output || await generateOutputPath(result.metadata.url || args.url, result.metadata.title, args.outputDir, document);
     const outputDir = path.dirname(outputPath);
     htmlSnapshotPath = deriveHtmlSnapshotPath(outputPath);
     await mkdir(outputDir, { recursive: true });
     await writeFile(htmlSnapshotPath, result.rawHtml, "utf-8");
-
-    document = createMarkdownDocument(result);
     conversionMethod = result.conversionMethod;
     fallbackReason = result.fallbackReason;
   } catch (error) {
@@ -265,10 +425,9 @@ async function main(): Promise<void> {
 
     try {
       const remoteResult = await fetchDefuddleApiMarkdown(args.url);
-      outputPath = args.output || await generateOutputPath(args.url, remoteResult.title, args.outputDir);
-      await mkdir(path.dirname(outputPath), { recursive: true });
-
       document = remoteResult.markdown;
+      outputPath = args.output || await generateOutputPath(args.url, remoteResult.title, args.outputDir, document);
+      await mkdir(path.dirname(outputPath), { recursive: true });
       conversionMethod = "defuddle-api";
       fallbackReason = `Local browser capture failed: ${primaryError}`;
     } catch (remoteError) {

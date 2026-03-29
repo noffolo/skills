@@ -12,9 +12,15 @@ import {
   scoreMarkdownQuality,
   shouldCompareWithLegacy,
 } from "./legacy-converter.js";
+import { tryUrlRuleParsers } from "./parsers/index.js";
+import { cleanContent } from "./content-cleaner.js";
 
 export type { ConversionResult, PageMetadata };
 export { createMarkdownDocument, formatMetadataYaml };
+
+export interface ExtractContentOptions {
+  preserveBase64Images?: boolean;
+}
 
 export const absolutizeUrlsScript = String.raw`
 (function() {
@@ -84,7 +90,10 @@ export const absolutizeUrlsScript = String.raw`
   absAttr(htmlClone, "video[poster]", "poster");
   absSrcset(htmlClone, "img[srcset], source[srcset]");
 
-  return { html: "<!doctype html>\n" + htmlClone.outerHTML };
+  return {
+    html: "<!doctype html>\n" + htmlClone.outerHTML,
+    finalUrl: location.href,
+  };
 })()
 `;
 
@@ -101,18 +110,36 @@ function shouldPreferDefuddle(result: ConversionResult): boolean {
   return /^##?\s+transcript\b/im.test(result.markdown);
 }
 
-export async function extractContent(html: string, url: string): Promise<ConversionResult> {
+export async function extractContent(
+  html: string,
+  url: string,
+  options: ExtractContentOptions = {}
+): Promise<ConversionResult> {
   const capturedAt = new Date().toISOString();
   const baseMetadata = extractMetadataFromHtml(html, url, capturedAt);
 
-  const defuddleResult = await tryDefuddleConversion(html, url, baseMetadata);
+  const specializedResult = tryUrlRuleParsers(html, url, baseMetadata);
+  if (specializedResult) {
+    return specializedResult;
+  }
+
+  let cleanedHtml = html;
+  try {
+    cleanedHtml = cleanContent(html, url, {
+      removeBase64Images: !options.preserveBase64Images,
+    });
+  } catch {
+    cleanedHtml = html;
+  }
+
+  const defuddleResult = await tryDefuddleConversion(cleanedHtml, url, baseMetadata);
   if (defuddleResult.ok) {
     if (shouldPreferDefuddle(defuddleResult.result)) {
-      return defuddleResult.result;
+      return { ...defuddleResult.result, rawHtml: html };
     }
 
     if (shouldCompareWithLegacy(defuddleResult.result.markdown)) {
-      const legacyResult = convertWithLegacyExtractor(html, baseMetadata);
+      const legacyResult = convertWithLegacyExtractor(html, baseMetadata, cleanedHtml);
       const legacyScore = scoreMarkdownQuality(legacyResult.markdown);
       const defuddleScore = scoreMarkdownQuality(defuddleResult.result.markdown);
 
@@ -124,10 +151,10 @@ export async function extractContent(html: string, url: string): Promise<Convers
       }
     }
 
-    return defuddleResult.result;
+    return { ...defuddleResult.result, rawHtml: html };
   }
 
-  const fallbackResult = convertWithLegacyExtractor(html, baseMetadata);
+  const fallbackResult = convertWithLegacyExtractor(html, baseMetadata, cleanedHtml);
   return {
     ...fallbackResult,
     fallbackReason: defuddleResult.reason,

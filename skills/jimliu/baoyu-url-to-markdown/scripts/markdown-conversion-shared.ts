@@ -300,6 +300,24 @@ export function createMarkdownDocument(result: ConversionResult): string {
   const escapedTitle = result.metadata.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const titleRegex = new RegExp(`^#\\s+${escapedTitle}\\s*(\\n|$)`, "i");
   const hasTitle = titleRegex.test(result.markdown.trimStart());
-  const title = result.metadata.title && !hasTitle ? `\n\n# ${result.metadata.title}\n\n` : "\n\n";
+  const firstMeaningfulLine = result.markdown
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line && !/^!?\[[^\]]*\]\([^)]+\)$/.test(line))
+    ?.replace(/^>\s*/, "")
+    ?.replace(/^#+\s+/, "")
+    ?.trim();
+  const comparableTitle = result.metadata.title.toLowerCase().replace(/(?:\.{3}|…)\s*$/, "");
+  const comparableFirstLine = firstMeaningfulLine?.toLowerCase() ?? "";
+  const titleRepeatsContent =
+    comparableTitle !== "" &&
+    comparableFirstLine !== "" &&
+    (comparableFirstLine === comparableTitle ||
+      comparableFirstLine.startsWith(comparableTitle) ||
+      comparableTitle.startsWith(comparableFirstLine));
+  const title = result.metadata.title && !hasTitle && !titleRepeatsContent
+    ? `\n\n# ${result.metadata.title}\n\n`
+    : "\n\n";
   return yaml + title + result.markdown;
 }
