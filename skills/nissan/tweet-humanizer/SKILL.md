@@ -1,3 +1,21 @@
+<!--
+## When to Use This vs Sara
+
+**Use tweet-humanizer when:**
+- You have existing tweets (AI-drafted or human-drafted) and want a QA pass to catch AI-pattern tells
+- Running a final audit on a batch before publishing to strip punchline addiction, uniform cadence, over-polished phrasing, etc.
+- Humanising tweets that weren't written by Sara (e.g., ad-hoc drafts, legacy content, imported threads)
+
+**Use Sara when:**
+- Writing tweets from scratch — Sara writes in Nissan's voice from the start
+- Running the insight-to-social or blog-to-social pipeline — Sara owns voice, tweet-humanizer is not a pipeline step
+- You want new content generated, not existing content audited
+
+**Rule of thumb:** Sara generates. tweet-humanizer audits. They are not substitutes for each other.
+- Voice guidelines live in: `playbooks/insight-to-social/PLAYBOOK.md` and `playbooks/blog-to-social/PLAYBOOK.md`
+- Sara's output should already pass most tweet-humanizer checks — if it doesn't, that's a Sara quality issue, not a humanizer task
+-->
+
 ---
 name: tweet-humanizer
 version: 1.0.0

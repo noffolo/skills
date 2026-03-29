@@ -3,9 +3,15 @@
   "slug": "tweet-humanizer",
   "displayName": "Tweet Humanizer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772829601438,
-    "commit": "https://github.com/openclaw/skills/commit/3c554f83233ff62e1d76a9729ffe9509f2415b69"
+    "version": "1.0.1",
+    "publishedAt": 1774670008452,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772829601438,
+      "commit": "https://github.com/openclaw/skills/commit/3c554f83233ff62e1d76a9729ffe9509f2415b69"
+    }
+  ]
 }
