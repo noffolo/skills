@@ -3,11 +3,16 @@
   "slug": "gws-tasks",
   "displayName": "Gws Tasks",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774300511439,
-    "commit": "https://github.com/openclaw/skills/commit/4ca6fe029fb5acde1cb3e25bd7afa07b0bbb5c98"
+    "version": "1.0.10",
+    "publishedAt": 1774551053762,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774300511439,
+      "commit": "https://github.com/openclaw/skills/commit/4ca6fe029fb5acde1cb3e25bd7afa07b0bbb5c98"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772757052246,
