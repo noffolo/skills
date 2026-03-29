@@ -3,11 +3,16 @@
   "slug": "localspeechrecognition",
   "displayName": "Local Speech Recognition",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774160926292,
-    "commit": "https://github.com/openclaw/skills/commit/2355a22117eca63d451128724f4756d2ad362835"
+    "version": "1.0.2",
+    "publishedAt": 1774708330346,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774160926292,
+      "commit": "https://github.com/openclaw/skills/commit/2355a22117eca63d451128724f4756d2ad362835"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772773379622,
