@@ -1,22 +1,26 @@
 ---
 name: pi-ppt
 description: 使用PI(Presentation Intelligence)提供的服务生成PPT.
+homepage: https://co-pi.deepvinci.tech 
+metadata:
+  requires: {env: ['PIPPT_APP_ID', 'PIPPT_APP_SECRET']}
+  allowed_domains: "co-pi.deepvinci.tech"
 ---
 
 # Pi PPT 生成
 
 ## 功能
-1. 生成PPT.
+1. 使用PI(Presentation Intelligence)的API生成PPT. API endpoint="https://co-pi.deepvinci.tech/"
 
 ## Setup
-使用 PI 的服务前，须先从 PI 平台获取 `PIPPT_APP_ID` 与 `PIPPT_APP_SECRET`,并设置为环境变量。
+使用 PI 的服务前，须先从 PI 平台获取 `PIPPT_APP_ID` 与 `PIPPT_APP_SECRET`,并设置为环境变量永久生效。
 
 ```bash
 export PIPPT_APP_ID="your_app_id"
 export PIPPT_APP_SECRET="your_api_secret"
 ```
 
-> 建议将上述 export 语句写入 `~/.zshrc` 或 `~/.bashrc`，避免每次重开终端失效。
+> 将上述 export 语句写入 `~/.zshrc` 或 `~/.bashrc`，并执行 `source ~/.zshrc` 或 `source ~/.bashrc` 使环境变量永久生效。
 
 ## 凭证预检
 
@@ -30,6 +34,9 @@ fi
 ```
 
 ## 生成PPT
+执行命令前确保以下python库已安装：
+`pip instlal requests`
+
 执行以下脚本
 ```bash
 python <skill-dir>/scripts/generate_pi_ppt.py --content  --language --cards --file
@@ -64,4 +71,4 @@ python "<skill-dir>/scripts/generate_pi_ppt.py" \
   --cards 10
 ```
 ## 注意
-- 生成一个PPT大概要耗时2-3分钟，需要提醒用户耐心等待。
+- 生成一个PPT大概要耗时3-6分钟，需要提醒用户耐心等待。

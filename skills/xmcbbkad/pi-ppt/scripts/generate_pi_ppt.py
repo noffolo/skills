@@ -167,8 +167,8 @@ def generate_pi_ppt(
     cards: int = 8,
     language: str = "zh",
     file_path: str = None,
-    timeout_s: int = 300,
-    poll_interval_s: int = 20,
+    timeout_s: int = 500,
+    poll_interval_s: int = 15,
 ) -> Dict[str, Any]:
     """
     完整流程：
@@ -217,8 +217,10 @@ def generate_pi_ppt(
                 "url": url,
                 "create_result": create_result,
             }
+        elif status == "running":
+            print(f"PPT generation is running, please wait... resource_id={resource_id}")
 
-        if status == "fail":
+        elif status == "fail":
             raise RuntimeError(f"PPT generation failed: {status_result}")
 
         time.sleep(poll_interval_s)
