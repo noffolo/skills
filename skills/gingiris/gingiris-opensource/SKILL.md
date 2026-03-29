@@ -5,6 +5,8 @@ description: |
 
   🇨🇳 开源项目营销手册 | 🇯🇵 オープンソースマーケティング | 🇰🇷 오픈소스 마케팅
 
+  Website: https://www.gingiris.com
+
   Keywords: GitHub stars, open source marketing, OSS launch, developer relations, DevRel, GitHub trending, awesome list, Reddit programming, HackerNews, developer community, 开源发布, GitHub Star 增长
 ---
 
