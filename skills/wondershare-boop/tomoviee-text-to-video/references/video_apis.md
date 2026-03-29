@@ -8,7 +8,7 @@ Tomoviee provides three video generation APIs supporting different input types a
 ### 1. Text-to-Video (tm_text2video_b)
 **Generate video from text description only**
 
-**Endpoint**: `https://open-api.wondershare.cc/v1/open/capacity/application/tm_text2video_b`
+**Endpoint**: `https://openapi.wondershare.cc/v1/open/capacity/application/tm_text2video_b`
 
 **Parameters**:
 - `prompt` (required): Text description for video generation
@@ -39,7 +39,7 @@ task_id = client.text_to_video(
 ### 2. Image-to-Video (tm_img2video_b)
 **Generate video from image + text description**
 
-**Endpoint**: `https://open-api.wondershare.cc/v1/open/capacity/application/tm_img2video_b`
+**Endpoint**: `https://openapi.wondershare.cc/v1/open/capacity/application/tm_img2video_b`
 
 **Parameters**:
 - `prompt` (required): Text description guiding video generation
@@ -73,7 +73,7 @@ task_id = client.image_to_video(
 ### 3. Video Continuation (tm_video_continuation_b)
 **Continue/extend existing video**
 
-**Endpoint**: `https://open-api.wondershare.cc/v1/open/capacity/application/tm_video_continuation_b`
+**Endpoint**: `https://openapi.wondershare.cc/v1/open/capacity/application/tm_video_continuation_b`
 
 **Parameters**:
 - `prompt` (required): Text description for continuation
@@ -151,7 +151,7 @@ All video APIs are asynchronous:
    - `6` = Timeout
 4. **Get Result**: When status=3, extract video URL from result JSON
 
-**Unified Result Endpoint**: `https://open-api.wondershare.cc/v1/open/pub/task`
+**Unified Result Endpoint**: `https://openapi.wondershare.cc/v1/open/pub/task`
 
 **Example Workflow**:
 ```python

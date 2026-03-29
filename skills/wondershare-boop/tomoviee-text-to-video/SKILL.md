@@ -1,17 +1,37 @@
 ---
-name: tomoviee-text2video
-description: Generate videos from text descriptions. Supports 720p/1080p, multiple aspect ratios (16:9, 9:16, 4:3, 3:4, 1:1), and 46 camera movement types. Returns 5-second video clips. Use when users request text-to-video generation, video creation from prompts, or generating video content with specific camera movements.
+name: tomoviee-text-to-video
+description: Generate 5-second videos from text prompts using Tomoviee Text-to-Video API (tm_text2video_b) via Wondershare OpenAPI gateway (https://openapi.wondershare.cc). Use when users request text-to-video creation with control over resolution, aspect ratio, and camera movement.
 ---
 
-# Tomoviee AI - 文生视频 (Text-to-Video)
+# Tomoviee AI Text-to-Video
 
 ## Overview
 
-Generate 5-second videos from text descriptions. Supports 720p/1080p resolution, flexible aspect ratios, and 46 camera movement effects.
+Generate 5-second videos from text descriptions.
 
-**API**: `tm_text2video_b`
+- API capability: `tm_text2video_b`
+- Supported resolutions: `720p`, `1080p`
+- Supported aspect ratios: `16:9`, `9:16`, `4:3`, `3:4`, `1:1`
+- Optional camera control: `camera_move_index` (1-46)
+
+## Provider and Endpoints
+
+Use the following provider and endpoint mapping to keep credentials and routing consistent:
+
+- Vendor portals: `https://www.tomoviee.ai` and `https://www.tomoviee.cn`
+- API gateway host used by this skill: `https://openapi.wondershare.cc`
+- Create-task endpoint pattern: `https://openapi.wondershare.cc/v1/open/capacity/application/<capacity_id>`
+- Result endpoint: `https://openapi.wondershare.cc/v1/open/pub/task`
+
+This skill sends API requests only to `openapi.wondershare.cc`.
 
 ## Quick Start
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Authentication
 
@@ -36,82 +56,56 @@ task_id = client.text_to_video(
     prompt="Golden retriever running through sunlit meadow, slow motion, cinematic",
     resolution="720p",
     aspect_ratio="16:9",
-    camera_move_index=5
+    camera_move_index=5,
 )
 
 result = client.poll_until_complete(task_id)
 import json
-video_url = json.loads(result['result'])['video_path'][0]
+video_url = json.loads(result["result"])["video_path"][0]
+print(video_url)
 ```
 
 ### Parameters
 
 - `prompt` (required): Text description (subject + action + scene + camera + lighting)
 - `resolution`: `720p` or `1080p` (default: `720p`)
-- `duration`: Duration in seconds (only `5` supported)
+- `duration`: duration in seconds (currently `5`)
 - `aspect_ratio`: `16:9`, `9:16`, `4:3`, `3:4`, `1:1`
-- `camera_move_index`: Camera movement type (1-46, optional)
+- `camera_move_index`: camera movement type (`1-46`, optional)
+- `callback`: callback URL (optional)
+- `params`: transparent passthrough params (optional)
 
 ## Async Workflow
 
-1. **Create task**: Get `task_id` from API call
-2. **Poll for completion**: Use `poll_until_complete(task_id)`
-3. **Extract result**: Parse returned JSON for video URL
+1. Create task: call `text_to_video()` and get `task_id`
+2. Poll status: call `poll_until_complete(task_id)`
+3. Parse result: read video URL from returned JSON
 
-**Status codes**:
-- 1 = Queued
-- 2 = Processing
-- 3 = Success (ready)
-- 4 = Failed
-- 5 = Cancelled
-- 6 = Timeout
+Status codes:
+- `1` queued
+- `2` processing
+- `3` success
+- `4` failed
+- `5` cancelled
+- `6` timeout
 
-**Generation time**: 1-5 minutes per 5-second video
-
-## Camera Movements
-
-All video APIs support 46 camera movement types via `camera_move_index`:
-- 5 = Slow zoom in
-- 12 = Pan right
-- 23 = Orbit/circular
-- None = Auto-select
-
-See `references/camera_movements.md` for all 46 types.
-
-## Prompt Engineering
-
-Effective prompts improve output quality dramatically.
-
-**Formula**: `Subject + Motion + Scene + Camera + Lighting + Atmosphere`
-
-**Example**:
-> "Red Ferrari speeding along coastal highway, camera tracking from side, golden hour sunset, cinematic and epic"
-
-See `references/prompt_guide.md` for detailed guidance.
+Typical generation time is 1-5 minutes per 5-second video.
 
 ## Resources
 
 ### scripts/
 - `tomoviee_text2video_client.py` - Text-to-Video API client
-- `generate_auth_token.py` - Auth token generator
+- `generate_auth_token.py` - auth token generator
 
 ### references/
-- `video_apis.md` - Detailed video API documentation
-- `camera_movements.md` - All 46 camera movement types
-- `prompt_guide.md` - Prompt engineering guide and best practices
+- `video_apis.md` - detailed video API documentation
+- `camera_movements.md` - camera movement index reference
+- `prompt_guide.md` - prompt writing best practices
 
 ## External Resources
 
-**🌐 Network Routing Notice:**
-- **Global / Overseas Network:** Access the international site (`.ai`).
-- **Mainland China Network:** Access the domestic site (`.cn`), which offers localized latency and compliance.
-
-### Global / Overseas (.AI)
-- **Developer Portal**: https://www.tomoviee.ai/developers.html
-- **API Documentation**: https://www.tomoviee.ai/doc/
-- **Get API Credentials**: Register at developer portal
-
-### Mainland China (.CN)
-- **Developer Portal**: https://www.tomoviee.cn/developers.html
-- **API Documentation**: https://www.tomoviee.cn/doc/
-- **Get API Credentials**: Register at developer portal
+- Developer portal (global): `https://www.tomoviee.ai/developers.html`
+- API docs (global): `https://www.tomoviee.ai/doc/`
+- Developer portal (mainland): `https://www.tomoviee.cn/developers.html`
+- API docs (mainland): `https://www.tomoviee.cn/doc/`
+- API host used by this skill: `https://openapi.wondershare.cc`
