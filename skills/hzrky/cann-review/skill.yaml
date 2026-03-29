@@ -1,5 +1,5 @@
 name: cann-review
-version: 3.0.2
+version: 4.1.0
 description: |
   CANN 代码审查技能。用于审查 GitCode 上的 CANN 项目 PR。
   自动分析代码变更，检查内存泄漏、安全漏洞和可读性，生成结构化报告并发布评论。
@@ -68,22 +68,10 @@ inputs:
     description: |
       自动审查模式（用于定时任务）：
       - false: 手动审查指定 PR (默认)
-      - true: 自动审查未读 MR
+      - true: 自动审查整点内所有新提交的 PR
     type: boolean
     required: false
     default: false
-
-  notice_url:
-    description: 未读 MR 通知页面 URL（自动模式使用）
-    type: string
-    required: false
-    default: "https://gitcode.com/notice?message_type=mention-kind"
-
-  max_reviews:
-    description: 单次自动审查的最大 MR 数量
-    type: integer
-    required: false
-    default: 5
 
 # 输出定义
 outputs:
@@ -136,19 +124,18 @@ examples:
       comment_posted: true
       lgtm_posted: true
 
-  - description: 自动审查未读 MR
+  - description: 自动审查整点内新提交的 PR
     input:
       auto_mode: true
-      max_reviews: 5
     output:
       total_reviewed: 3
       success_count: 3
       failed_count: 0
       results:
-        - pr_url: https://gitcode.com/cann/runtime/pull/472
+        - pr_url: https://gitcode.com/cann/runtime/pull/1270
           severity: low
           lgtm_posted: true
-        - pr_url: https://gitcode.com/cann/runtime/pull/475
+        - pr_url: https://gitcode.com/cann/runtime/pull/1271
           severity: medium
           lgtm_posted: true
 
