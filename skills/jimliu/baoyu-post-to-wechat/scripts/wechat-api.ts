@@ -694,6 +694,10 @@ async function main(): Promise<void> {
   }
 
   const creds = loadCredentials(resolved);
+  for (const skippedSource of creds.skippedSources) {
+    console.error(`[wechat-api] Skipped incomplete credential source: ${skippedSource}`);
+  }
+  console.error(`[wechat-api] Credentials source: ${creds.source}`);
   console.error("[wechat-api] Fetching access token...");
   const accessToken = await fetchAccessToken(creds.appId, creds.appSecret);
 
