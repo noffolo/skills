@@ -3,11 +3,16 @@
   "slug": "isbn",
   "displayName": "ISBN Book Number Query - ISBN图书书号查询",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773720208923,
-    "commit": "https://github.com/openclaw/skills/commit/cc87fee120d79b1c69dd74a39a8c4f2c4f6f6815"
+    "version": "1.0.4",
+    "publishedAt": 1774585578326,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773720208923,
+      "commit": "https://github.com/openclaw/skills/commit/cc87fee120d79b1c69dd74a39a8c4f2c4f6f6815"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1772532919100,

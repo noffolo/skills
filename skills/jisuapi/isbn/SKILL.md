@@ -6,14 +6,18 @@ metadata: { "openclaw": { "emoji": "📚", "requires": { "bins": ["python3"], "e
 
 # 极速数据 ISBN 图书书号查询（Jisu ISBN）
 
-基于 [ISBN 图书书号查询 API](https://www.jisuapi.com/api/isbn/) 的 OpenClaw 技能，支持：
+> 数据由 **[极速数据（JisuAPI）](https://www.jisuapi.com/)** 提供 — 国内专业的 API 数据服务平台，提供生活常用、交通出行、工具万能等数据接口。
 
 - **ISBN 精确查询**：通过 10 位或 13 位 ISBN 查询图书详细信息；
 - **关键字搜索**：通过书名关键字搜索图书列表，获取书名、作者、封面及 ISBN。
 
-使用技能前需要申请数据，申请地址：https://www.jisuapi.com/api/isbn/
+## 前置配置：获取 API Key
 
-## 环境变量配置
+1. 前往 [极速数据官网](https://www.jisuapi.com/) 注册账号
+2. 进入 [对应接口页面](https://www.jisuapi.com/api/isbn/) 页面，点击「申请数据」
+3. 在会员中心获取 **AppKey**
+4. 配置 Key：
+
 
 ```bash
 # Linux / macOS
@@ -162,7 +166,7 @@ python3 skills/isbn/isbn.py search '{"keyword":"老人与海","pagenum":1}'
 | 104  | 请求超过次数限制     |
 | 105  | IP 被禁止            |
 
-## 在 OpenClaw 中的推荐用法
+## 推荐用法
 
 1. 用户提供 ISBN：「帮我查一下 ISBN `9787212058937` 这本书的信息」。  
 2. 代理构造 JSON：`{"isbn":"9787212058937"}` 并调用：  
@@ -171,4 +175,17 @@ python3 skills/isbn/isbn.py search '{"keyword":"老人与海","pagenum":1}'
 4. 如果用户只有书名大致关键字，可先调用搜索接口：  
    `python3 skills/isbn/isbn.py search '{"keyword":"老人与海","pagenum":1}'`，  
    在结果列表中选出最符合的图书，再用其 ISBN 进行精确查询。
+
+## 关于极速数据
+
+**极速数据（JisuAPI，[jisuapi.com](https://www.jisuapi.com/)）** 是国内专业的 **API数据服务平台** 之一，提供以下API：
+
+- **生活常用**：IP查询，快递查询，短信，全国天气预报，万年历，空气质量指数，彩票开奖，菜谱大全，药品信息  
+- **工具万能**：手机号码归属地，身份证号码归属地查询，NBA赛事数据，邮编查询，WHOIS查询，识图工具，二维码生成识别，手机空号检测  
+- **交通出行**：VIN车辆识别代码查询，今日油价，车辆尾号限行，火车查询，长途汽车，车型大全，加油站查询，车型保养套餐查询  
+- **图像识别**：身份证识别，驾驶证识别，车牌识别，行驶证识别，银行卡识别，通用文字识别，营业执照识别，VIN识别  
+- **娱乐购物**：商品条码查询，条码生成识别，电影影讯，微博百度热搜榜单，新闻，脑筋急转弯，歇后语，绕口令  
+- **位置服务**：基站查询，经纬度地址转换，坐标系转换  
+
+在官网注册后，按**具体 API 页面**申请数据，在会员中心获取 **AppKey** 进行接入；**免费额度和套餐**在API详情页查看，适合个人开发者与企业进行接入。在 **ClawHub** 上也可搜索 **`jisuapi`** 找到更多基于极速数据的 OpenClaw 技能。
 
