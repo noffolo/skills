@@ -1,7 +1,7 @@
 ---
 name: trustlayer-sybil-scanner
-description: Feedback forensics for ERC-8004 agents. Detects Sybil rings, fake reviews, rating manipulation, and reputation laundering across 5 chains. 80K+ agents scored. No API key needed.
-version: 2.0.0
+description: Feedback forensics for ERC-8004 agents. Detects Sybil rings, fake reviews, rating manipulation, and reputation laundering across 20 chains. No API key needed.
+version: 4.0.0
 tags:
   - reputation
   - trust
@@ -11,7 +11,9 @@ tags:
   - security
   - agents
 metadata:
-  openclaw:
+  clawdbot:
+    emoji: "🔍"
+    homepage: "https://thetrustlayer.xyz"
     requires:
       bins:
         - curl
@@ -19,20 +21,20 @@ metadata:
 
 # TrustLayer Sybil Scanner — ERC-8004 Feedback Forensics
 
-Detects fake reviews, Sybil rings, rating manipulation, and reputation laundering in ERC-8004 agent ratings. Covers 80,000+ agents across Base, Ethereum, BSC, Polygon, and Monad.
+Detects fake reviews, Sybil rings, rating manipulation, and reputation laundering in ERC-8004 agent ratings across 20 chains including Base, Ethereum, BSC, Celo, Gnosis, Optimism, Arbitrum, Avalanche, Polygon, Monad, and Solana.
 
 Most agent reputation systems show you the rating. This one tells you if the rating is real.
 
 **API Base:** `https://api.thetrustlayer.xyz`
-**No API key required** (beta). Free during beta, x402 micropayments coming.
+**No API key required** (beta). x402 micropayments on paid endpoints ($0.001 USDC per query).
 
 ## What this catches that others don't
 
-- **Sybil rings**: Clusters of wallets that only review each other (299 flagged so far)
+- **Sybil rings**: Clusters of wallets that only review each other
 - **Reviewer quality**: A 5-star review from a trusted agent vs a throwaway wallet are not the same. Scores are weighted by reviewer reputation.
-- **Cross-chain laundering**: Agent has great reviews on BSC but terrible ones on Base? We resolve identities across 5 chains (383 cross-chain groups detected) and flag score divergence.
+- **Cross-chain laundering**: Agent has great reviews on BSC but terrible ones on Base? Identities are resolved across chains and score divergence is flagged.
 - **Temporal anomalies**: Sudden bursts of positive reviews after a period of bad ones. Review bombing. Rating manipulation patterns over time.
-- **Spam feedback**: 1,298+ spam feedbacks detected via tag analysis. Filtered before scoring.
+- **Spam feedback**: Known spam patterns detected via tag analysis and filtered before scoring.
 
 ## When to use this skill
 
@@ -48,7 +50,7 @@ Most agent reputation systems show you the rating. This one tells you if the rat
 curl -s "https://api.thetrustlayer.xyz/trust/<chain>:<agentId>"
 ```
 
-Replace `<chain>` with: base, ethereum, bsc, polygon, monad
+Replace `<chain>` with: base, ethereum, bsc, celo, gnosis, optimism, arbitrum, avalanche, polygon, monad, mantle, scroll, linea, metis, taiko, solana-mainnet (and more)
 Replace `<agentId>` with the numeric agent ID.
 
 Example:
@@ -109,20 +111,40 @@ If sybil_risk is high: "This agent's reviews show signs of Sybil manipulation. R
 
 ## Other endpoints
 
-Agent lookup (basic info, no scoring):
+Agent lookup (paid $0.001 USDC — returns full agent profile, metadata, and on-chain registration details):
 ```bash
 curl -s "https://api.thetrustlayer.xyz/agent/<chain>:<agentId>"
 ```
 
-Leaderboard (most trusted agents, Sybil-filtered):
+Leaderboard (most trusted agents, Sybil-filtered — rate-limited: 5 free per IP per hour, then 402):
 ```bash
 curl -s "https://api.thetrustlayer.xyz/leaderboard?chain=base&limit=10"
 ```
 
-Network stats (total agents, feedbacks, Sybil flags per chain):
+Network stats (live counts of total agents, Sybil flags, chains covered, and more):
 ```bash
 curl -s "https://api.thetrustlayer.xyz/stats"
 ```
+
+Reviewer lookup (paid $0.001 USDC — returns reviewer quality score, total reviews, unique agents reviewed, quality tier, and recent review history):
+```bash
+curl -s "https://api.thetrustlayer.xyz/reviewer/<wallet_address>"
+```
+Only 9 out of 11,247 reviewers score 80+. Use this to verify if a reviewer is trustworthy.
+
+Owner portfolio (paid $0.001 USDC — returns all agents owned by one wallet across chains, with cross-chain group info, average trust score, and risk assessment):
+```bash
+curl -s "https://api.thetrustlayer.xyz/owner/<wallet_address>"
+```
+Use for due diligence on an agent operator.
+
+Score history (paid $0.001 USDC — returns full daily score time-series, 7d/30d trajectory, and volatility):
+```bash
+curl -s "https://api.thetrustlayer.xyz/history/<chain>:<agentId>"
+```
+2.15M snapshots across 89K agents. Use to check if an agent's reputation is stable or volatile.
+
+Call `/stats` for current network coverage — agent counts, Sybil flags, cross-chain groups, and chain breakdown are all returned live.
 
 ## Visual reports
 
@@ -147,4 +169,4 @@ Six Sybil detection methods run on every sync:
 - Feedback timing anomaly detection
 - Tag-based spam filtering
 
-Scores update daily. Historical score snapshots retained for 90 days. 80,749 agents indexed across 5 chains as of February 2026.
+Scores update daily. Historical score snapshots retained for 90 days.
