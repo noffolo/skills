@@ -1,13 +1,18 @@
 {
   "owner": "gingiris",
   "slug": "github-stars-playbook",
-  "displayName": "GitHub Stars Growth Playbook",
+  "displayName": "Github Stars Playbook",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774234961935,
-    "commit": "https://github.com/openclaw/skills/commit/3b195d36be2d5cecb0d8d8d31a112cd0ff2a9bf4"
+    "version": "1.1.0",
+    "publishedAt": 1774840197830,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774234961935,
+      "commit": "https://github.com/openclaw/skills/commit/3b195d36be2d5cecb0d8d8d31a112cd0ff2a9bf4"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773716510117,
