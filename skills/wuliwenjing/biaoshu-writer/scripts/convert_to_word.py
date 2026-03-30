@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Markdown转Word技术标文档 - 转换脚本
-版本：v5.0 (2026-03-21)
+版本：v5.2 (2026-03-27)
 
 ## v4.0 新增功能
 1. 支持 Markdown 顶部格式指令动态配置字体/字号/行距/页边距
@@ -13,7 +13,7 @@ Markdown转Word技术标文档 - 转换脚本
 ```markdown
 <!-- doc-format
 font: SimSun
-body-size: 32pt
+body-size: 16pt
 title-level: 36pt
 sub-level: 32pt
 line-spacing: 26pt
@@ -26,7 +26,7 @@ first-line-indent: 0.74cm
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
 | font | SimSun | 正文字体（英文名） |
-| body-size | 32pt | 正文字号（三号=32pt） |
+| body-size | 32pt | 正文字号（三号=16pt） |
 | title-level | 36pt | 一级标题字号 |
 | sub-level | 32pt | 二级标题字号 |
 | line-spacing | 26pt | 行距 |
@@ -51,7 +51,7 @@ import re
 # 默认格式参数
 DEFAULT_FORMAT = {
     'font': 'SimSun',
-    'body-size': 32,      # pt
+    'body-size': 16,      # pt
     'title-size': 36,    # pt (一级标题)
     'sub-size': 32,      # pt (二级标题)
     'line-spacing': 26,   # pt
@@ -70,6 +70,27 @@ def parse_pt(value):
         return float(s)
     except:
         return None
+
+def clean_heading_text(text):
+    """清理标题中的描述性括号，如（深入说明）、（深入扩展）等"""
+    # 匹配全角括号（）或半角括号() 中的描述性词汇
+    patterns = [
+        r'（深入[^）]*）',      # （深入xxx）
+        r'（详细[^）]*）',      # （详细xxx）
+        r'（扩展[^）]*）',      # （扩展xxx）
+        r'（进一步[^）]*）',    # （进一步xxx）
+        r'（补充[^）]*）',      # （补充xxx）
+        r'（说明[^）]*）',      # （说明xxx）
+        r'\(深入[^)]*\)',      # (深入xxx)
+        r'\(详细[^)]*\)',      # (详细xxx)
+        r'\(扩展[^)]*\)',      # (扩展xxx)
+    ]
+    result = text.strip()
+    for pattern in patterns:
+        result = re.sub(pattern, '', result)
+    # 清理多余空格
+    result = re.sub(r'\s+', ' ', result).strip()
+    return result
 
 def parse_cm(value):
     """解析 cm 值，返回浮点数"""
@@ -225,7 +246,7 @@ def add_table(doc, headers, alignments, rows, set_font_fn):
         run = para.add_run(h)
         set_font_fn(run)
         run.font.bold = True
-        set_cell_shading(cell, "D9D9D9")
+        set_cell_shading(cell, "FFFFFF")
         
         align = alignments[i] if i < len(alignments) else 'left'
         if align == 'center':
@@ -320,29 +341,33 @@ def convert_md_to_word(input_md_path, output_docx_path):
         # 处理标题
         if line.startswith('# '):
             para = doc.add_paragraph()
-            run = para.add_run(line[2:])
+            run = para.add_run(clean_heading_text(line[2:]))
             run.font.size = Pt(fmt['title-size'])
             set_font(run)
             set_heading_style(para, 1)
         elif line.startswith('## '):
             para = doc.add_paragraph()
-            run = para.add_run(line[3:])
+            run = para.add_run(clean_heading_text(line[3:]))
             run.font.size = Pt(fmt['sub-size'])
             set_font(run)
             set_heading_style(para, 2)
         elif line.startswith('### '):
             para = doc.add_paragraph()
-            run = para.add_run(line[4:])
+            run = para.add_run(clean_heading_text(line[4:]))
             run.font.size = Pt(fmt['body-size'])
             set_font(run)
             set_heading_style(para, 3)
         elif line.startswith('#### '):
             para = doc.add_paragraph()
-            run = para.add_run(line[5:])
+            run = para.add_run(clean_heading_text(line[5:]))
             run.font.size = Pt(fmt['body-size'])
             set_font(run)
             set_heading_style(para, 4)
         elif line.strip() == '':
+            i += 1
+            continue
+        elif re.match(r'^[-*_]{3,}$', line.strip()):
+            # 跳过 Markdown 水平线（---、***、___）
             i += 1
             continue
         else:
