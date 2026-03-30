@@ -11,7 +11,7 @@
  *   需要在技能目录下创建 config.json，配置 teams 部分：
  *   {
  *     "teams": {
- *       "webhookUrl": "https://im.360teams.com/api/qfin-api/rce-app/robot/send?access_token=xxx",
+ *       "webhookUrl": "https://your-teams-server.com/api/robot/send?access_token=xxx",
  *       "secret": "your-teams-secret"
  *     }
  *   }

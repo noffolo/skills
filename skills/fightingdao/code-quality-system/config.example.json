@@ -1,7 +1,7 @@
 {
   "codebaseDir": "/path/to/your/codebase",
   "teams": {
-    "webhookUrl": "https://im.360teams.com/api/qfin-api/rce-app/robot/send?access_token=xxxxxxxxx",
+    "webhookUrl": "https://your-teams-server.com/api/robot/send?access_token=xxxxxxxxx",
     "secret": "your-teams-secret"
   },
   "smtp": {

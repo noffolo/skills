@@ -1,7 +1,7 @@
 ---
 name: code-quality-system
 description: 完整的代码质量分析系统，包含前后端服务和数据库。一键安装、简单配置即可使用。支持周/月维度分析、AI代码审查、Teams消息通知、邮件报告等功能。
-version: 1.0.0
+version: 1.0.1
 author: OpenClaw
 ---
 
@@ -24,11 +24,12 @@ clawhub install code-quality-system
 ```
 
 AI 助手会自动：
-1. 检查环境（Node.js、PostgreSQL）
-2. 安装依赖
-3. 初始化数据库
-4. 询问配置信息
-5. 启动服务
+1. 解压前后端代码（backend.zip、frontend.zip）
+2. 检查环境（Node.js、PostgreSQL）
+3. 安装依赖
+4. 初始化数据库
+5. 询问配置信息
+6. 启动服务
 
 ### 3. 你只需要提供三个配置
 
@@ -45,21 +46,53 @@ AI 助手会自动：
 
 ---
 
-## 二、配置说明
+## 二、初始化详细步骤
 
-### 2.1 配置文件位置
+### 2.1 解压代码
 
+```bash
+cd ~/.openclaw/skills/code-quality-system
+unzip backend.zip
+unzip frontend.zip
 ```
-~/.openclaw/skills/code-quality-system/config.json
+
+### 2.2 安装依赖
+
+```bash
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
-### 2.2 配置模板
+### 2.3 配置数据库
 
+1. 创建 PostgreSQL 数据库：
+```bash
+createdb code_quality
+```
+
+2. 创建后端环境变量文件 `backend/.env`：
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/code_quality?schema=public"
+PORT=3000
+NODE_ENV=development
+JWT_SECRET=your-secret-key
+```
+
+3. 初始化数据库：
+```bash
+cd backend
+npx prisma generate
+npx prisma migrate deploy
+```
+
+### 2.4 创建主配置文件
+
+创建 `config.json`：
 ```json
 {
   "codebaseDir": "/path/to/your/codebase",
   "teams": {
-    "webhookUrl": "https://im.360teams.com/api/qfin-api/rce-app/robot/send?access_token=xxx",
+    "webhookUrl": "https://your-teams-server.com/api/robot/send?access_token=xxx",
     "secret": "your-teams-secret"
   },
   "smtp": {
@@ -74,7 +107,28 @@ AI 助手会自动：
 }
 ```
 
-### 2.3 Teams 配置获取方式
+### 2.5 创建前端环境变量
+
+创建 `frontend/.env`：
+```env
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+### 2.6 启动服务
+
+```bash
+# 启动后端
+cd backend && npm run start:dev
+
+# 启动前端（新终端）
+cd frontend && npm run dev
+```
+
+---
+
+## 三、配置说明
+
+### 3.1 Teams 配置获取方式
 
 1. 在 360Teams 群里添加"群预警机器人"
 2. 开通"对话服务"
@@ -82,10 +136,10 @@ AI 助手会自动：
 
 **Webhook 地址格式**：
 ```
-https://im.360teams.com/api/qfin-api/rce-app/robot/send?access_token=xxxxxxxxx
+https://your-teams-server.com/api/robot/send?access_token=xxxxxxxxx
 ```
 
-### 2.4 SMTP 配置示例
+### 3.2 SMTP 配置示例
 
 **QQ邮箱**：
 ```json
@@ -107,33 +161,6 @@ https://im.360teams.com/api/qfin-api/rce-app/robot/send?access_token=xxxxxxxxx
   "user": "your-name@company.com",
   "pass": "邮箱密码"
 }
-```
-
----
-
-## 三、数据库配置
-
-### 3.1 后端环境变量
-
-```
-~/.openclaw/skills/code-quality-system/backend/.env
-```
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/code_quality?schema=public"
-PORT=3000
-NODE_ENV=development
-JWT_SECRET=your-secret-key
-```
-
-### 3.2 创建数据库
-
-```bash
-# macOS (Homebrew)
-createdb code_quality
-
-# 或使用 psql
-psql -U postgres -c "CREATE DATABASE code_quality;"
 ```
 
 ---
@@ -203,16 +230,6 @@ psql -U postgres -c "CREATE DATABASE code_quality;"
 
 **统计范围**：该月所有分支的所有提交
 
-### 5.3 数据同步顺序
-
-```
-1. code_analyses - 分析记录
-2. code_issues - AI代码审查问题
-3. code_reviews - 提交记录详情
-4. team_statistics - 团队统计
-5. project_statistics - 项目统计
-```
-
 ---
 
 ## 六、功能清单
@@ -241,82 +258,26 @@ psql -U postgres -c "CREATE DATABASE code_quality;"
 
 ---
 
-## 七、项目结构
+## 七、文件结构
 
 ```
 code-quality-system/
-├── config.json              # 主配置文件
-├── config.example.json      # 配置模板
-├── SKILL.md                 # 本文档
-├── backend/                 # NestJS 后端
-│   ├── src/
-│   │   ├── modules/
-│   │   │   ├── projects/    # 项目管理
-│   │   │   ├── users/       # 用户管理
-│   │   │   ├── teams/       # 团队管理
-│   │   │   ├── dashboard/   # 数据大盘
-│   │   │   └── code-review/ # 代码审查
-│   │   └── common/          # 公共模块
-│   ├── prisma/
-│   │   └── schema.prisma    # 数据库 Schema
-│   └── package.json
-├── frontend/                # React 前端
-│   ├── src/
-│   │   ├── pages/           # 页面组件
-│   │   ├── components/      # 通用组件
-│   │   ├── api/             # API 客户端
-│   │   └── stores/          # 状态管理
-│   └── package.json
-└── scripts/                 # 脚本
-    ├── analyze-code-v2.js   # 分析脚本
-    ├── sync-to-db.js        # 同步脚本
-    ├── notify-teams.js      # Teams 通知
-    └── weekly-analysis.sh   # 一键分析
+├── SKILL.md              # 本文档
+├── config.example.json   # 配置模板
+├── backend.zip           # 后端代码压缩包
+├── frontend.zip          # 前端代码压缩包
+├── scripts/              # 分析脚本
+│   ├── setup.js          # 安装脚本
+│   ├── analyze-code-v2.js
+│   ├── sync-to-db.js
+│   ├── notify-teams.js
+│   └── weekly-analysis.sh
+└── references/           # 参考文档
 ```
 
 ---
 
-## 八、⚠️⚠️⚠️ 重要注意事项（必读！）
-
-### 8.1 分析前必须做的事
-
-```
-□ git fetch 拉取所有项目最新变更
-□ 确认数据库服务已启动
-□ 确认后端服务已启动
-```
-
-### 8.2 数据同步注意事项
-
-| 问题 | 后果 | 解决方案 |
-|------|------|---------|
-| fileChanges 字段为空 | 类型分布显示空 | 分析脚本必须收集文件变更 |
-| code_issues 无数据 | 问题与建议显示空 | 必须执行 AI 代码审查 |
-| code_reviews 无数据 | 提交记录详情空 | 必须同步 commits 数据 |
-| team_statistics 无数据 | 大盘视图为 0 | 必须同步统计表 |
-| AI 评分缺失 | 评分显示默认值 | 必须执行 AI 评分 |
-
-### 8.3 用户管理规则
-
-**用户必须在前端"小组管理"页面预先添加，否则不会被统计！**
-
-流程：
-1. 前端添加成员 → 写入 `users` 表
-2. 分析脚本读取 `users` 表
-3. 只统计已添加用户的提交
-4. 未匹配的提交直接跳过
-
-### 8.4 常见错误
-
-| 错误 | 原因 | 解决 |
-|------|------|------|
-| 分支找不到 | 周期值不是周四 | 使用周四日期 |
-| 用户数据丢失 | 用户未在小组管理中添加 | 先添加用户再分析 |
-| 历史数据异常 | 字段名不一致 | 检查历史数据结构 |
-
----
-
-## 九、技术栈
+## 八、技术栈
 
 ### 后端
 - NestJS 10
@@ -330,21 +291,9 @@ code-quality-system/
 - Ant Design 5
 - Zustand 4
 
-### 脚本
-- Node.js 18+
-- Git 命令行
-
 ---
 
-## 十、更新记录
-
-| 版本 | 日期 | 更新内容 |
-|------|------|---------|
-| 1.0.0 | 2026-03-30 | 初始版本，开箱即用 |
-
----
-
-## 十一、常见问题
+## 九、常见问题
 
 ### Q: 如何添加新项目？
 
@@ -362,13 +311,9 @@ A: 可以通过 API 导出，或直接查询 PostgreSQL 数据库。
 
 A: 支持 Git、GitLab、GitHub、Gitee 等所有 Git 托管平台。
 
-### Q: 可以自定义评分规则吗？
-
-A: AI 评分由 AI 助手完成，评分标准在 SKILL.md 中定义。可以修改评分标准。
-
 ---
 
-## 十二、联系支持
+## 十、联系支持
 
 遇到问题？直接告诉 AI 助手：
 

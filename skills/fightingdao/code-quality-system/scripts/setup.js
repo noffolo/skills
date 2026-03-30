@@ -5,11 +5,11 @@
  * 用法：npm run setup
  * 
  * 此脚本会：
- * 1. 检查环境（Node.js、PostgreSQL）
- * 2. 安装依赖
- * 3. 初始化数据库
- * 4. 创建配置文件（如果不存在）
- * 5. 启动服务
+ * 1. 解压前后端代码
+ * 2. 检查环境（Node.js、PostgreSQL）
+ * 3. 安装依赖
+ * 4. 初始化数据库
+ * 5. 创建配置文件
  */
 
 const { execSync, spawn } = require('child_process');
@@ -22,6 +22,8 @@ const CONFIG_FILE = path.join(SKILL_DIR, 'config.json');
 const CONFIG_EXAMPLE = path.join(SKILL_DIR, 'config.example.json');
 const BACKEND_DIR = path.join(SKILL_DIR, 'backend');
 const FRONTEND_DIR = path.join(SKILL_DIR, 'frontend');
+const BACKEND_ZIP = path.join(SKILL_DIR, 'backend.zip');
+const FRONTEND_ZIP = path.join(SKILL_DIR, 'frontend.zip');
 const ENV_FILE = path.join(BACKEND_DIR, '.env');
 const ENV_EXAMPLE = path.join(BACKEND_DIR, '.env.example');
 
@@ -48,20 +50,51 @@ function checkCommand(command, name) {
   }
 }
 
-function checkPostgreSQL() {
-  try {
-    execSync('psql --version', { stdio: 'ignore' });
-    log('✅ PostgreSQL 已安装', 'green');
-    return true;
-  } catch {
-    log('⚠️ PostgreSQL 未安装或未配置 PATH', 'yellow');
-    log('   请先安装 PostgreSQL: https://www.postgresql.org/download/', 'yellow');
-    return false;
+function unzipFiles() {
+  log('\n📦 解压代码文件...', 'blue');
+  
+  // 检查压缩包是否存在
+  if (!fs.existsSync(BACKEND_ZIP)) {
+    log('   ⚠️ backend.zip 不存在，可能已解压', 'yellow');
+  } else {
+    try {
+      log('   解压 backend.zip...');
+      execSync(`unzip -o "${BACKEND_ZIP}" -d "${SKILL_DIR}"`, { stdio: 'inherit' });
+      log('   ✅ 后端代码已解压', 'green');
+    } catch (err) {
+      log('   ❌ 解压失败: ' + err.message, 'red');
+      return false;
+    }
   }
+  
+  if (!fs.existsSync(FRONTEND_ZIP)) {
+    log('   ⚠️ frontend.zip 不存在，可能已解压', 'yellow');
+  } else {
+    try {
+      log('   解压 frontend.zip...');
+      execSync(`unzip -o "${FRONTEND_ZIP}" -d "${SKILL_DIR}"`, { stdio: 'inherit' });
+      log('   ✅ 前端代码已解压', 'green');
+    } catch (err) {
+      log('   ❌ 解压失败: ' + err.message, 'red');
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 function installDependencies() {
   log('\n📦 安装依赖...', 'blue');
+  
+  if (!fs.existsSync(BACKEND_DIR)) {
+    log('   ❌ backend 目录不存在，请先解压代码', 'red');
+    return false;
+  }
+  
+  if (!fs.existsSync(FRONTEND_DIR)) {
+    log('   ❌ frontend 目录不存在，请先解压代码', 'red');
+    return false;
+  }
   
   try {
     log('   安装后端依赖...');
@@ -88,11 +121,9 @@ function initDatabase() {
   log('\n🗄️ 初始化数据库...', 'blue');
   
   try {
-    // 生成 Prisma Client
     log('   生成 Prisma Client...');
     execSync('npx prisma generate', { cwd: BACKEND_DIR, stdio: 'inherit' });
     
-    // 运行迁移
     log('   运行数据库迁移...');
     execSync('npx prisma migrate deploy', { cwd: BACKEND_DIR, stdio: 'inherit' });
     
@@ -119,56 +150,38 @@ function createConfigFiles() {
   }
   
   // 创建 .env
-  if (!fs.existsSync(ENV_FILE)) {
-    if (fs.existsSync(ENV_EXAMPLE)) {
-      fs.copyFileSync(ENV_EXAMPLE, ENV_FILE);
+  if (fs.existsSync(BACKEND_DIR)) {
+    const envExample = path.join(BACKEND_DIR, '.env.example');
+    const envFile = path.join(BACKEND_DIR, '.env');
+    if (!fs.existsSync(envFile) && fs.existsSync(envExample)) {
+      fs.copyFileSync(envExample, envFile);
+      log('   ✅ 创建 backend/.env（请修改数据库连接）', 'green');
+    } else if (fs.existsSync(envFile)) {
+      log('   ℹ️ backend/.env 已存在', 'yellow');
+    } else {
+      // 创建默认 .env
+      const defaultEnv = `DATABASE_URL="postgresql://postgres:postgres@localhost:5432/code_quality?schema=public"
+PORT=3000
+NODE_ENV=development
+JWT_SECRET=your-secret-key-change-in-production`;
+      fs.writeFileSync(envFile, defaultEnv);
       log('   ✅ 创建 backend/.env（请修改数据库连接）', 'green');
     }
-  } else {
-    log('   ℹ️ backend/.env 已存在', 'yellow');
   }
   
   // 创建前端 .env
-  const frontendEnvFile = path.join(FRONTEND_DIR, '.env');
-  const frontendEnvExample = path.join(FRONTEND_DIR, '.env.example');
-  if (!fs.existsSync(frontendEnvFile) && fs.existsSync(frontendEnvExample)) {
-    fs.copyFileSync(frontendEnvExample, frontendEnvFile);
-    log('   ✅ 创建 frontend/.env', 'green');
+  if (fs.existsSync(FRONTEND_DIR)) {
+    const frontendEnvFile = path.join(FRONTEND_DIR, '.env');
+    if (!fs.existsSync(frontendEnvFile)) {
+      const defaultFrontendEnv = 'VITE_API_BASE_URL=http://localhost:3000/api/v1';
+      fs.writeFileSync(frontendEnvFile, defaultFrontendEnv);
+      log('   ✅ 创建 frontend/.env', 'green');
+    } else {
+      log('   ℹ️ frontend/.env 已存在', 'yellow');
+    }
   }
   
   return true;
-}
-
-async function promptForConfig() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-  
-  return new Promise((resolve) => {
-    rl.question('\n请输入代码仓库目录路径（如 /Users/xxx/projects）: ', (codebaseDir) => {
-      rl.question('是否现在配置 Teams 和 SMTP？（y/n）: ', (configNow) => {
-        rl.close();
-        
-        if (configNow.toLowerCase() === 'y') {
-          log('\n请在 config.json 中配置以下内容：', 'yellow');
-          log('  - teams.webhookUrl（Webhook 地址）和 teams.secret');
-          log('  - smtp.host, smtp.user, smtp.pass');
-          log('  - emailRecipients（收件人邮箱列表）');
-        }
-        
-        // 更新配置文件
-        if (fs.existsSync(CONFIG_FILE)) {
-          const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
-          config.codebaseDir = codebaseDir.trim();
-          fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-          log('\n✅ 已更新代码仓库目录', 'green');
-        }
-        
-        resolve();
-      });
-    });
-  });
 }
 
 function printNextSteps() {
@@ -180,10 +193,12 @@ function printNextSteps() {
   log('2. 修改配置文件：');
   log('   - config.json（代码目录、Teams、SMTP）');
   log('   - backend/.env（数据库连接）');
-  log('3. 启动服务：npm run start');
+  log('3. 启动服务：');
+  log('   - 后端：cd backend && npm run start:dev');
+  log('   - 前端：cd frontend && npm run dev');
   log('4. 访问前端：http://localhost:5173');
   log('\n或者直接告诉 AI 助手：');
-  log('  "帮我初始化代码质量分析系统"\n');
+  log('  "帮我启动代码质量分析系统"\n');
 }
 
 async function main() {
@@ -195,10 +210,14 @@ async function main() {
   log('🔍 检查环境...', 'blue');
   const nodeOk = checkCommand('node', 'Node.js');
   const npmOk = checkCommand('npm', 'npm');
-  const pgOk = checkPostgreSQL();
   
   if (!nodeOk || !npmOk) {
     log('\n❌ 请先安装 Node.js: https://nodejs.org/', 'red');
+    process.exit(1);
+  }
+  
+  // 解压代码
+  if (!unzipFiles()) {
     process.exit(1);
   }
   
@@ -210,13 +229,17 @@ async function main() {
     process.exit(1);
   }
   
-  // 初始化数据库（如果 PostgreSQL 可用）
-  if (pgOk) {
+  // 检查 PostgreSQL
+  try {
+    execSync('psql --version', { stdio: 'ignore' });
+    log('\n✅ PostgreSQL 已安装', 'green');
+    
+    // 初始化数据库
     initDatabase();
+  } catch {
+    log('\n⚠️ PostgreSQL 未安装或未配置 PATH', 'yellow');
+    log('   请先安装 PostgreSQL 并创建数据库', 'yellow');
   }
-  
-  // 提示配置
-  await promptForConfig();
   
   // 打印下一步
   printNextSteps();

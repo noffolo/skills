@@ -1,13 +1,18 @@
 {
   "owner": "fightingdao",
   "slug": "code-quality-system",
-  "displayName": "Code Quality System Simple",
+  "displayName": "Code Quality System",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774841586310,
-    "commit": "https://github.com/openclaw/skills/commit/e905c2aa4d29ebee34ab3842fdd23f946260a5f0"
+    "version": "1.0.3",
+    "publishedAt": 1774842093002,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774841586310,
+      "commit": "https://github.com/openclaw/skills/commit/e905c2aa4d29ebee34ab3842fdd23f946260a5f0"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1774841252388,
