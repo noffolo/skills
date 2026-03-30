@@ -1,0 +1,10 @@
+ApiEnum:
+  #  database-url: mysql+pymysql://root:root@localhost:3306/health-cloud?charset=utf8mb4
+  database-url: mysql+pymysql://remoteuser:qA{tov-89atz0>opvim&!).@healthtest.lifeemergence.com:3306/health-cloud?charset=utf8mb4
+  base-url-open-api: "http://livemonitortest.lifeemergence.com/smyx-open-api"
+  #  base-url-health: "https://healthtest.lifeemergence.com/jeecg-boot"
+  base-url-health: "http://192.168.1.234:8080/jeecg-boot"
+
+ConstantEnum:
+#  is-debug: true
+#  current--user-name: zhangsan37

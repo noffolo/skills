@@ -1,0 +1,17 @@
+env: test
+
+ApiEnum:
+  database-url: mysql+pymysql://admin:Smyx2025@db@172.31.16.2:3306/health-cloud?charset=utf8mb4
+  base-url-open-api: "https://open.lifeemergence.com/smyx-open-api"
+  base-url-health: "https://lifeemergence.com/jeecg-boot"
+
+ConstantEnum:
+  is-debug: false
+  app--id: x1a3s4nwy1s2r4se
+  #  current--user-name: zhangsan38
+  #  current--tentant-code: "13260657008"
+  current--open-id: ou_86fdd8e0d5f116c18a9dd550abefe6d2
+  current--tentant-code: "PEI_NI_AN"
+  feishu-app--id: cli_a93d769369badcb1
+  feishu-app--secret: zYJMyYcB4kIF5uPCwFACBdmvbr3JkK8r
+#  feishu-app--receive-id: ou_2366005b2148449dd0d1309121298506
