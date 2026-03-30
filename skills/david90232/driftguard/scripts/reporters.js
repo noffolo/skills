@@ -101,22 +101,22 @@ function buildNextSteps(report) {
       steps.push("Baseline was created for a different root; confirm you are comparing the right target.");
     }
     if (drift.configChanged) {
-      steps.push("Baseline config differs from the current config; reconcile ignore paths/rules before trusting drift.");
+      steps.push("Baseline config differs from the current config; reconcile ignore paths/rules before re-trusting.");
     }
     if (driftCount > 0) {
-      steps.push("Diff added/removed/changed files against the baseline to explain drift.");
+      steps.push("Review added/removed/changed files to explain the drift.");
       if (level === "high" || level === "critical") {
-        steps.push("Do not refresh the baseline until high-risk changes are fully explained.");
+        steps.push("Do not re-trust until high-risk changes are fully explained.");
       }
-      steps.push("If changes are trusted, regenerate the baseline with --save-baseline <file>.");
+      steps.push("Once changes are reviewed, run `driftguard trust <path>` to update the baseline.");
     } else {
-      steps.push("No drift detected; keep the current baseline and re-scan after updates.");
+      steps.push("No drift detected; the current baseline is still valid.");
     }
     if (trustedFindings > 0 && findings === 0) {
-      steps.push("Findings match the trusted baseline; only re-approve if you intentionally changed those files.");
+      steps.push("All findings match the trusted baseline; re-trust only if you intentionally changed those files.");
     }
   } else if (level === "low" && findings === 0) {
-    steps.push("Consider saving a baseline with --save-baseline <file> for future compares.");
+    steps.push("Run `driftguard trust <path>` to save a baseline for future comparisons.");
   } else {
     steps.push("Re-scan after fixes to confirm risk reduction.");
   }
@@ -260,7 +260,7 @@ function buildTrustSummary(report) {
 function renderMarkdown(report) {
   if (!report.verdict) attachVerdict(report);
   const lines = [];
-  lines.push(`# Driftguard Integrity Report`);
+  lines.push(`# DriftGuard Integrity Report`);
   lines.push("");
   lines.push(`- Version: ${report.version || VERSION}`);
   lines.push(`- Root: ${report.rootPath}`);
@@ -499,67 +499,77 @@ function printSummary(report) {
   }, {});
 
   const lines = [];
-  lines.push("Driftguard Integrity Summary");
+  lines.push("DriftGuard Summary");
   lines.push(`Root: ${report.rootPath}`);
-  lines.push(`Overall Risk: ${report.risk.level.toUpperCase()} (score ${report.risk.score})`);
-  lines.push(`Findings: ${report.stats.findings}`);
-  if (report.trust && report.verdict.mode === "compare") {
-    lines.push(`Trust Recommendation: ${report.trust.label}`);
-    if (report.trust.reasons.length) {
-      lines.push(`Trust Reasons: ${report.trust.reasons.join("; ")}`);
-    }
-  }
-  if (report.stats.symlinks !== undefined) {
-    lines.push(`Symlinks: ${report.stats.symlinks}`);
-  }
-  if (report.stats.totalFindings !== undefined) {
-    lines.push(`Total Findings: ${report.stats.totalFindings}`);
-  }
-  if (report.stats.unscoredFindings !== undefined) {
-    lines.push(`Unscored Findings: ${report.stats.unscoredFindings}`);
-  }
-  if (report.stats.trustedFindings !== undefined) {
-    lines.push(`Trusted Findings: ${report.stats.trustedFindings}`);
-  }
-  lines.push(`Combo Risks: ${report.stats.comboFindings || 0}`);
+  lines.push(`Risk: ${report.risk.level.toUpperCase()} (score ${report.risk.score})`);
   lines.push(
     `Severity: critical=${bySeverity.critical || 0} high=${bySeverity.high || 0} medium=${bySeverity.medium || 0} low=${bySeverity.low || 0}`
   );
+  lines.push(`Findings: ${report.stats.findings}`);
+  lines.push(`Combo Risks: ${report.stats.comboFindings || 0}`);
+  if (report.stats.symlinks !== undefined) {
+    lines.push(`Symlinks: ${report.stats.symlinks}`);
+  }
 
   if (report.drift) {
+    lines.push("");
+    lines.push("--- What Changed Since Trust ---");
+    if (report.trust) {
+      lines.push(`Trust: ${report.trust.label}`);
+      if (report.trust.reasons.length) {
+        for (const reason of report.trust.reasons) lines.push(`  - ${reason}`);
+      }
+    }
     lines.push(
-      `Since trust: added=${report.drift.added.length} removed=${report.drift.removed.length} changed=${report.drift.changed.length} unchanged=${report.drift.unchangedCount}`
+      `Files: +${report.drift.added.length} added, -${report.drift.removed.length} removed, ~${report.drift.changed.length} changed, ${report.drift.unchangedCount} unchanged`
     );
     if (report.drift.symlinks) {
-      lines.push(
-        `Symlinks since trust: added=${report.drift.symlinks.added.length} removed=${report.drift.symlinks.removed.length} changed=${report.drift.symlinks.changed.length} unchanged=${report.drift.symlinks.unchangedCount}`
-      );
+      const sl = report.drift.symlinks;
+      if (sl.added.length || sl.removed.length || sl.changed.length) {
+        lines.push(
+          `Symlinks: +${sl.added.length} added, -${sl.removed.length} removed, ~${sl.changed.length} changed`
+        );
+      }
     }
-    if (report.drift.configChanged !== undefined) {
-      lines.push(`Baseline config changed: ${report.drift.configChanged ? "yes" : "no"}`);
+    if (report.drift.highlights) {
+      const h = report.drift.highlights;
+      if (h.newCapabilities && h.newCapabilities.length) {
+        for (const cap of h.newCapabilities) lines.push(`  ! ${cap}`);
+      }
+      if (h.dependencyChanges && h.dependencyChanges.length) {
+        lines.push(`  ! Dependency changes: ${h.dependencyChanges.join(", ")}`);
+      }
     }
-    if (report.drift.rootMismatch !== undefined) {
-      lines.push(`Baseline root mismatch: ${report.drift.rootMismatch ? "yes" : "no"}`);
+    if (report.drift.configChanged) {
+      lines.push(`  ! Baseline config differs from current config`);
+    }
+    if (report.drift.rootMismatch) {
+      lines.push(`  ! Baseline was created for a different root path`);
+    }
+    if (report.stats.trustedFindings) {
+      lines.push(`Trusted (unchanged) findings: ${report.stats.trustedFindings}`);
     }
   }
 
   const topFindings = scoredFindings.slice(0, 5).map(formatFinding);
   if (topFindings.length) {
+    lines.push("");
     lines.push("Top findings:");
-    for (const line of topFindings) lines.push(`- ${line}`);
+    for (const line of topFindings) lines.push(`  ${line}`);
   }
 
   if (report.comboRisks && report.comboRisks.length) {
-    lines.push("Top combo risks:");
+    lines.push("Combo risks:");
     for (const combo of report.comboRisks.slice(0, 3)) {
-      lines.push(`- ${combo.severity.toUpperCase()} ${combo.id}`);
+      lines.push(`  ${combo.severity.toUpperCase()} ${combo.id}: ${combo.description}`);
     }
   }
 
   if (report.verdict && report.verdict.nextSteps.length) {
+    lines.push("");
     lines.push("Next steps:");
     for (const step of report.verdict.nextSteps) {
-      lines.push(`- ${step}`);
+      lines.push(`  - ${step}`);
     }
   }
 

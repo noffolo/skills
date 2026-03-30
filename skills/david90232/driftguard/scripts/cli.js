@@ -17,11 +17,12 @@ function toPosix(value) {
 }
 
 function printHelp() {
-  console.log(`Driftguard Integrity Scanner (v${VERSION})
+  console.log(`DriftGuard (v${VERSION}) — trust-then-verify integrity scanner
 
 Usage:
-  node ./scripts/cli.js scan <path> [options]
-  node ./scripts/cli.js compare <path> --baseline <file> [options]
+  driftguard scan <path> [options]        Scan and report findings
+  driftguard trust <path> [options]       Scan, report, and save a trusted baseline
+  driftguard compare <path> [options]     Compare current state against a trusted baseline
 
 Options:
   --out <dir>             Output directory for reports (default: ./reports)
@@ -29,17 +30,21 @@ Options:
   --md <file>             Markdown report path
   --config <file>         Config path (default: <root>/.driftguard.json)
   --save-baseline <file>  Write baseline hash file after scan
-  --baseline <file>       Baseline hash file (compare mode only)
+  --baseline <file>       Baseline hash file (compare/trust mode)
   --skills-summary        Concise summary when scanning a directory of skills
   --help, -h              Show help
 
+Workflow:
+  1. Scan a repo or skill to review findings
+  2. If acceptable, trust it to save a baseline
+  3. After changes, compare to see what drifted since trust
+
 Examples:
-  node ./scripts/cli.js scan ./skills
-  node ./scripts/cli.js scan ./skills --out ./reports
-  node ./scripts/cli.js scan ./skills --json ./reports/scan.json --md ./reports/scan.md
-  node ./scripts/cli.js scan ./skills --save-baseline ./reports/baseline.json
-  node ./scripts/cli.js compare ./skills --baseline ./reports/baseline.json
-  node ./scripts/cli.js scan ./skills --skills-summary
+  driftguard scan ./skills
+  driftguard trust ./skills
+  driftguard trust ./skills --baseline ./baselines/skills.json
+  driftguard compare ./skills --baseline ./reports/baseline.json
+  driftguard scan ./skills --skills-summary
 `);
 }
 
@@ -462,7 +467,7 @@ function discoverSkillDirs(rootPath) {
 
 function renderSkillsSummary(rootPath, summaries, overall) {
   const lines = [];
-  lines.push("Driftguard Skills Summary");
+  lines.push("DriftGuard Skills Summary");
   lines.push(`Root: ${path.relative(process.cwd(), rootPath) || "."}`);
   lines.push(`Skills scanned: ${summaries.length}`);
   lines.push(
@@ -543,7 +548,7 @@ function runScan(rootPath, options) {
     const baselinePath = resolveOptionalPath(options.saveBaseline);
     requireValue("--save-baseline", baselinePath);
     saveBaseline(baselinePath, report);
-    console.log(`Trusted baseline saved: ${baselinePath}`);
+    console.log(`Baseline saved (trusted): ${baselinePath}`);
   }
 
   console.log(printSummary(report));
@@ -700,7 +705,7 @@ function runCompare(rootPath, options) {
 
 function main() {
   const { command, target, options, unknown, errors } = parseArgs(process.argv);
-  if (!command || options.help) {
+  if (!command || options.help || command === "--help" || command === "-h") {
     printHelp();
     process.exit(0);
   }
@@ -723,7 +728,7 @@ function main() {
     process.exit(1);
   }
 
-  if (command !== "scan" && command !== "compare") {
+  if (command !== "scan" && command !== "compare" && command !== "trust") {
     console.error(`Unknown command: ${command}`);
     printHelp();
     process.exit(1);
@@ -732,7 +737,16 @@ function main() {
   const rootPath = resolveTarget(target);
   ensurePathExists("Path", rootPath);
 
-  if (command === "scan") {
+  if (command === "trust") {
+    if (options.baselinePath && !options.saveBaseline) {
+      options.saveBaseline = options.baselinePath;
+    }
+    if (!options.saveBaseline) {
+      const outDir = resolveOptionalPath(options.outDir) || path.join(process.cwd(), "reports");
+      options.saveBaseline = path.join(outDir, "baseline.json");
+    }
+    runScan(rootPath, options);
+  } else if (command === "scan") {
     runScan(rootPath, options);
   } else {
     runCompare(rootPath, options);
