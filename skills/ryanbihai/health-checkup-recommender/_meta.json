@@ -3,11 +3,16 @@
   "slug": "health-checkup-recommender",
   "displayName": "Health Checkup Recommender",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774622742009,
-    "commit": "https://github.com/openclaw/skills/commit/c8a33ea95af264430f399ccdba4bfeead483510b"
+    "version": "2.0.0",
+    "publishedAt": 1774834989443,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774622742009,
+      "commit": "https://github.com/openclaw/skills/commit/c8a33ea95af264430f399ccdba4bfeead483510b"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774621367035,
