@@ -3,11 +3,16 @@
   "slug": "mikrotik-encyclopedia",
   "displayName": "MikroTik Encyclopedia",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774191788104,
-    "commit": "https://github.com/openclaw/skills/commit/cf1a995f28c4ed83f5b10480d1aed370ac42de3d"
+    "version": "1.0.5",
+    "publishedAt": 1774653724670,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774191788104,
+      "commit": "https://github.com/openclaw/skills/commit/cf1a995f28c4ed83f5b10480d1aed370ac42de3d"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774123598741,

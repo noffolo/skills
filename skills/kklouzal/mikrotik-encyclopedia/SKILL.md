@@ -1,6 +1,17 @@
 ---
 name: mikrotik-encyclopedia
-description: MikroTik and RouterOS documentation-first workflow for questions, troubleshooting, command planning, live CLI/API work, config review, log analysis, security review, performance tuning, and diagnostics. Use whenever MikroTik, RouterOS, RouterBOARD, CAPsMAN, WinBox, MikroTik CLI, RouterOS terminal commands, SSH access to a MikroTik, API access to a MikroTik, firewall rules, NAT, filter, raw, mangle, bridge, switch, VLAN, DHCP, DNS, queues, wireless, WiFi, CAP, CAPsMAN provisioning, routing, packet flow, connection tracking, or MikroTik device management is mentioned, implied, or required. Also use before answering direct or indirect MikroTik questions and before performing any direct inspection or action against a MikroTik device.
+description: >-
+  MikroTik RouterOS documentation-first workflow for MikroTik-specific
+  questions, troubleshooting, command planning, live CLI/API work, config
+  review, log analysis, security review, performance tuning, and diagnostics.
+  Use when the request is clearly about MikroTik or RouterOS: MikroTik
+  devices, RouterOS, RouterBOARD, CAPsMAN, WinBox, RouterOS CLI/API/SSH
+  access, or networking topics specifically in a MikroTik context such as
+  firewall, NAT, filter/raw/mangle, bridge, switch, VLAN, DHCP, DNS, queues,
+  wireless/WiFi, routing, packet flow, connection tracking, or device
+  management. Do not use for generic networking theory, generic firewall
+  design, or generic Linux router/admin work unless the MikroTik/RouterOS
+  context is explicit.
 metadata: {"openclaw":{"emoji":"📡","homepage":"https://help.mikrotik.com/docs/"}}
 ---
 
@@ -10,11 +21,14 @@ metadata: {"openclaw":{"emoji":"📡","homepage":"https://help.mikrotik.com/docs
 
 Use a docs-first workflow for MikroTik work. Prefer the official MikroTik documentation at `https://help.mikrotik.com/docs/`, consult cached local copies under `.MikroTik-Encyclopedia/` before re-fetching, and record useful official-doc excerpts plus environment-specific operational learnings so future work gets faster and safer.
 
+This skill is for the **MikroTik RouterOS/device layer**. It should trigger for real RouterOS behavior, configuration, and device-management questions — not for generic networking advice or generic Linux firewall/router administration.
+
 ## Workflow
 
 1. **Classify the task**
    - Decide whether the task is a MikroTik question, troubleshooting task, command-planning task, config review, or live SSH/API task.
-   - If any meaningful MikroTik dependency exists, use this skill.
+   - Use this skill when the request is clearly about MikroTik hardware, RouterOS behavior, or a networking/admin task in a MikroTik context.
+   - Do not use this skill for generic networking theory, vendor-neutral firewall design, or generic Linux firewall/admin work unless the MikroTik/RouterOS context is explicit.
 
 2. **Check local cache first**
    - Use `.MikroTik-Encyclopedia/` as the local knowledge/cache root.
@@ -89,6 +103,12 @@ Use `scripts/init_workspace.py` to create or repair the expected directory struc
 - Reusable RouterOS patterns/gotchas → `.MikroTik-Encyclopedia/notes/patterns/<topic>.md`
 - Environment-wide topology/access info → `.MikroTik-Encyclopedia/inventory/*.md`
 - Cached official docs → `.MikroTik-Encyclopedia/docs/help.mikrotik.com/docs/...`
+
+## Secrets / Sensitive Data
+
+- Do not store plaintext credentials, API keys, session tokens, private URLs, recovery codes, or other secrets in the encyclopedia notes/inventory tree.
+- If a note needs to mention access details, keep it high-level and redact or omit secret material.
+- Treat these workspace notes as operational memory, not as a secrets vault.
 
 ## Resources
 
