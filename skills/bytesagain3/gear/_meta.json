@@ -3,9 +3,15 @@
   "slug": "gear",
   "displayName": "Gear",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774009100931,
-    "commit": "https://github.com/openclaw/skills/commit/0deb1b2a1b3f60d53c51fb425631e3ea146e5322"
+    "version": "2.0.1",
+    "publishedAt": 1774536928769,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774009100931,
+      "commit": "https://github.com/openclaw/skills/commit/0deb1b2a1b3f60d53c51fb425631e3ea146e5322"
+    }
+  ]
 }
