@@ -3,11 +3,16 @@
   "slug": "tracebit-canaries",
   "displayName": "Tracebit Canaries",
   "latest": {
-    "version": "1.0.9",
-    "publishedAt": 1773941451963,
-    "commit": "https://github.com/openclaw/skills/commit/f3400b3b16339d2281d41a7d17b81a86ef218eb0"
+    "version": "1.0.11",
+    "publishedAt": 1774543830619,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.9",
+      "publishedAt": 1773941451963,
+      "commit": "https://github.com/openclaw/skills/commit/f3400b3b16339d2281d41a7d17b81a86ef218eb0"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773833874066,

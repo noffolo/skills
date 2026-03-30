@@ -8,7 +8,7 @@
 #   bash skills/tracebit-canaries/scripts/test-canary.sh cookie    # Cookie canary
 #   bash skills/tracebit-canaries/scripts/test-canary.sh email     # Email canary
 #
-# Expected outcome: alert email in Gmail within 1–15 minutes (SSH is fastest)
+# Expected outcome: alert email in your inbox within 1–15 minutes (SSH is fastest)
 
 set -euo pipefail
 
@@ -92,12 +92,12 @@ case "$TYPE" in
 esac
 echo ""
 echo "  Watch for:"
-echo "  1. Alert email in Gmail (check spam folder too)"
-echo "  2. OpenClaw webhook fires → agent session spawns"
+echo "  1. Alert email in your inbox (check spam folder too)"
+echo "  2. Heartbeat detects alert → agent investigates"
 echo "  3. Notification in your messaging channel"
 echo ""
 echo "  Manual verification:"
 echo "    tracebit show          — check dashboard for recent alerts"
 echo "    tracebit portal        — open web dashboard"
-echo "    openclaw gateway logs  — check for webhook receipt"
+echo "    check HEARTBEAT.md     — verify heartbeat alert check is configured"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
