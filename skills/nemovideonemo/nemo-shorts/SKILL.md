@@ -1,19 +1,27 @@
 ---
 name: nemo-shorts
-version: "1.8.3"
-displayName: "NemoShorts - Short Video Maker: TikTok, Reels, YouTube Shorts"
+version: 1.8.7
+displayName: "NemoShorts - Vertical Video and Short Form Video Maker for TikTok Reels and Shorts"
 author: nemovideonemo
 description: >
   Short video maker, reels maker, and TikTok video maker — generate vertical video for
   TikTok, Instagram Reels, and YouTube Shorts from a text description or existing footage.
   Auto-crops to 9:16 portrait, adds captions with platform-matched styling, layers trending
-  background music, and exports a scroll-ready vertical video. Handles the full short form
-  video pipeline: script to screen in one conversation, no timeline or editing software.
-  Built for creators who need daily vertical content without manual editing. Supports mp4,
-  mov, webm.
+  background music, and exports a scroll-ready vertical video. Works as a short form video
+  creator and vertical video editor: script to screen in one conversation, no timeline or
+  editing software. Built for creators who need daily vertical content without manual
+  editing. Supports mp4, mov, webm.
 metadata:
+  primaryEnv: NEMO_TOKEN
+  requires:
+    env: ["NEMO_TOKEN"]
+    configPaths:
+      - "~/.config/nemovideo/"
   openclaw:
     emoji: 📱
+homepage: https://nemovideo.com
+apiDomain: https://mega-api-prod.nemovideo.ai
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
 # NemoShorts Skill

@@ -1,13 +1,18 @@
 {
   "owner": "nemovideonemo",
   "slug": "nemo-shorts",
-  "displayName": "NemoShorts - Short Video Maker: TikTok, Reels, YouTube Shorts",
+  "displayName": "Nemo Shorts",
   "latest": {
-    "version": "1.8.3",
-    "publishedAt": 1774141103961,
-    "commit": "https://github.com/openclaw/skills/commit/1fa4e77df0a1b9fc7e67ae17495e59678b9570e1"
+    "version": "1.8.11",
+    "publishedAt": 1774745634243,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.8.3",
+      "publishedAt": 1774141103961,
+      "commit": "https://github.com/openclaw/skills/commit/1fa4e77df0a1b9fc7e67ae17495e59678b9570e1"
+    },
     {
       "version": "1.8.1",
       "publishedAt": 1773900287464,
