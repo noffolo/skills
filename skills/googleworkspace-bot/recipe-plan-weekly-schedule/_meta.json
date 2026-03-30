@@ -3,11 +3,16 @@
   "slug": "recipe-plan-weekly-schedule",
   "displayName": "Recipe Plan Weekly Schedule",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774300627589,
-    "commit": "https://github.com/openclaw/skills/commit/26cca3c720dff93d8f570ec5912546f52718692c"
+    "version": "1.0.10",
+    "publishedAt": 1774551168983,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774300627589,
+      "commit": "https://github.com/openclaw/skills/commit/26cca3c720dff93d8f570ec5912546f52718692c"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773482899512,
