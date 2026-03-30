@@ -3,11 +3,16 @@
   "slug": "a-share-trading",
   "displayName": "A-Share-Trading",
   "latest": {
-    "version": "0.0.3",
-    "publishedAt": 1773938147968,
-    "commit": "https://github.com/openclaw/skills/commit/dabaa9a0b457f8434dbd4b9d11b9fa9341864533"
+    "version": "0.0.6",
+    "publishedAt": 1774772647254,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.0.3",
+      "publishedAt": 1773938147968,
+      "commit": "https://github.com/openclaw/skills/commit/dabaa9a0b457f8434dbd4b9d11b9fa9341864533"
+    },
     {
       "version": "0.0.2",
       "publishedAt": 1773812143646,

@@ -14,6 +14,8 @@ A股历史数据脚本（历史K线 / 财务报表 / 指数成分 / 宏观经济
   python3 fetch_history.py --financials sh.600519 --start 2024-01-01 --end 2026-01-01
   python3 fetch_history.py --profit sh.600519 --year 2024 --quarter 4
   python3 fetch_history.py --dividend sh.600519 --year 2024
+  python3 fetch_history.py --all-stocks
+  python3 fetch_history.py --all-stocks --market sh
   python3 fetch_history.py --hs300
   python3 fetch_history.py --industry --code sh.600519
   python3 fetch_history.py --trade-dates --start 2026-03-01 --end 2026-03-18
@@ -24,23 +26,72 @@ A股历史数据脚本（历史K线 / 财务报表 / 指数成分 / 宏观经济
 import argparse
 import json
 import sys
+import signal
 from contextlib import contextmanager
 from datetime import datetime
 
 import baostock as bs
 import pandas as pd
+import akshare as ak
+import requests
+
+
+def _patch_requests_default_timeout(timeout_sec: int = 10):
+    """为 akshare 内部 requests 调用注入默认超时，避免卡死。"""
+    orig_request = requests.sessions.Session.request
+
+    def _wrapped(self, method, url, **kwargs):
+        kwargs.setdefault("timeout", timeout_sec)
+        return orig_request(self, method, url, **kwargs)
+
+    requests.sessions.Session.request = _wrapped
+
+
+_patch_requests_default_timeout(10)
+
+
+class _CallTimeout(Exception):
+    pass
+
+
+@contextmanager
+def _time_limit(seconds: int):
+    def _handler(signum, frame):
+        raise _CallTimeout(f"timeout>{seconds}s")
+
+    old_handler = signal.signal(signal.SIGALRM, _handler)
+    signal.alarm(max(1, int(seconds)))
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+
+
+def _safe_call(fn, *args, timeout_sec: int = 12, **kwargs):
+    with _time_limit(timeout_sec):
+        return fn(*args, **kwargs)
 
 
 @contextmanager
 def bs_session():
-    lg = bs.login()
-    if lg.error_code != "0":
-        print(f"Baostock 登录失败：{lg.error_msg}", file=sys.stderr)
-        sys.exit(1)
+    lg = None
+    for _ in range(2):
+        try:
+            lg = _safe_call(bs.login, timeout_sec=8)
+        except Exception:
+            lg = None
+        if lg is not None and getattr(lg, "error_code", None) == "0":
+            break
+    if lg is None or lg.error_code != "0":
+        raise RuntimeError(f"Baostock 登录失败：{getattr(lg, 'error_msg', 'timeout_or_unknown')}")
     try:
         yield
     finally:
-        bs.logout()
+        try:
+            _safe_call(bs.logout, timeout_sec=5)
+        except Exception:
+            pass
 
 
 def normalize_code(code: str) -> str:
@@ -60,29 +111,132 @@ def _bs_to_df(rs) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=rs.fields) if rows else pd.DataFrame()
 
 
+def _kline_fallback_ak(code: str, start: str, end: str, freq: str, adjust: str) -> pd.DataFrame:
+    """Baostock 不可用时的兜底历史K线（优先新浪链路）。"""
+    if freq not in ("d", "w", "m"):
+        return pd.DataFrame()
+    symbol = code.replace('.', '')
+    adjust_map = {"1": "hfq", "2": "qfq", "3": ""}
+    try:
+        # 新浪日线稳定性优于东财 hist
+        df = ak.stock_zh_a_daily(symbol=symbol, adjust=adjust_map.get(adjust, ""))
+        if df is None or df.empty:
+            return pd.DataFrame()
+        out = df.copy()
+        out["date"] = pd.to_datetime(out["date"])
+        s = pd.to_datetime(start)
+        e = pd.to_datetime(end)
+        out = out[(out["date"] >= s) & (out["date"] <= e)]
+        if out.empty:
+            return pd.DataFrame()
+        out["code"] = code
+        if "turnover" in out.columns:
+            out["turn"] = pd.to_numeric(out["turnover"], errors="coerce") * 100
+        if "preclose" not in out.columns:
+            out["preclose"] = out["close"].shift(1)
+        if "pctChg" not in out.columns:
+            out["pctChg"] = (pd.to_numeric(out["close"], errors="coerce") / pd.to_numeric(out["preclose"], errors="coerce") - 1) * 100
+        cols = ["date", "code", "open", "high", "low", "close", "preclose", "volume", "amount", "pctChg", "turn"]
+        out = out[[c for c in cols if c in out.columns]]
+        out["date"] = out["date"].dt.strftime("%Y-%m-%d")
+        return out
+    except Exception:
+        return pd.DataFrame()
+
+
 def cmd_kline(code: str, start: str, end: str, freq: str, adjust: str, limit: int, output_json: bool):
     code = normalize_code(code)
     fields = "date,code,open,high,low,close,preclose,volume,amount,pctChg,turn,peTTM,pbMRQ"
-    with bs_session():
-        rs = bs.query_history_k_data_plus(code, fields, start_date=start, end_date=end,
-                                           frequency=freq, adjustflag=adjust)
-        df = _bs_to_df(rs)
+    # 先走 akshare（网络稳定性更好），失败再回退 Baostock
+    df = _kline_fallback_ak(code, start, end, freq, adjust)
+    bs_err = None
+
     if df.empty:
-        print(f"未找到 {code} 在 {start}~{end} 的K线数据")
+        try:
+            with bs_session():
+                rs = _safe_call(
+                    bs.query_history_k_data_plus,
+                    code,
+                    fields,
+                    start_date=start,
+                    end_date=end,
+                    frequency=freq,
+                    adjustflag=adjust,
+                    timeout_sec=12,
+                )
+                df = _bs_to_df(rs)
+        except Exception as e:
+            bs_err = e
+
+    if df.empty:
+        if bs_err:
+            print(f"未找到 {code} 在 {start}~{end} 的K线数据（Baostock异常: {bs_err}）")
+        else:
+            print(f"未找到 {code} 在 {start}~{end} 的K线数据")
         return
+
     df = df.tail(limit)
     if output_json:
         print(df.to_json(orient="records", force_ascii=False))
     else:
         adj_label = {"1": "后复权", "2": "前复权", "3": "不复权"}.get(adjust, adjust)
-        print(f"【{code} 历史K线】{start}~{end}  频率={freq}  复权={adj_label}  共{len(df)}条  数据源：Baostock")
+        source = "Baostock" if "preclose" in df.columns or "peTTM" in df.columns else "akshare(兜底)"
+        print(f"【{code} 历史K线】{start}~{end}  频率={freq}  复权={adj_label}  共{len(df)}条  数据源：{source}")
         print(df.to_string(index=False))
 
 
 def cmd_basic(code: str, output_json: bool):
     code = normalize_code(code)
+    digits = code.split('.')[-1]
+    tdx = code.replace('.', '')
+
+    # 先用新浪实时接口拿基础字段（稳定）
+    try:
+        url = f"https://hq.sinajs.cn/list={tdx}"
+        text = requests.get(url, timeout=8, headers={"Referer": "https://finance.sina.com.cn"}).text
+        if '="' in text and '";' in text:
+            payload = text.split('="', 1)[1].rsplit('";', 1)[0]
+            parts = payload.split(',')
+            if len(parts) > 5 and parts[0]:
+                data = {
+                    "code": code,
+                    "name": parts[0],
+                    "open": parts[1],
+                    "preclose": parts[2],
+                    "price": parts[3],
+                    "high": parts[4],
+                    "low": parts[5],
+                    "volume": parts[8] if len(parts) > 8 else None,
+                    "amount": parts[9] if len(parts) > 9 else None,
+                }
+                if output_json:
+                    print(json.dumps([data], ensure_ascii=False))
+                else:
+                    print(f"【{code} 基本信息】数据源：新浪")
+                    for k, v in data.items():
+                        print(f"  {k}: {v}")
+                return
+    except Exception:
+        pass
+
+    # 再试 akshare(东财)
+    try:
+        info = ak.stock_individual_info_em(symbol=digits)
+        if info is not None and not info.empty:
+            info = info.rename(columns={"item": "字段", "value": "值"})
+            if output_json:
+                print(info.to_json(orient="records", force_ascii=False))
+            else:
+                print(f"【{code} 基本信息】数据源：akshare")
+                for _, row in info.iterrows():
+                    print(f"  {row.iloc[0]}: {row.iloc[1]}")
+            return
+    except Exception:
+        pass
+
+    # 最后回退 Baostock
     with bs_session():
-        rs = bs.query_stock_basic(code=code)
+        rs = _safe_call(bs.query_stock_basic, code=code, timeout_sec=12)
         df = _bs_to_df(rs)
     if df.empty:
         print(f"未找到 {code} 的基本信息")
@@ -97,7 +251,7 @@ def cmd_basic(code: str, output_json: bool):
 
 def _fetch_financial(func, code: str, year: str, quarter: int) -> pd.DataFrame:
     with bs_session():
-        rs = func(code=code, year=year, quarter=quarter)
+        rs = _safe_call(func, code=code, year=year, quarter=quarter, timeout_sec=12)
         return _bs_to_df(rs)
 
 
@@ -150,7 +304,7 @@ def cmd_financials(code: str, start: str, end: str, output_json: bool):
                     ("dupont", bs.query_dupont_data),
                 ]:
                     try:
-                        rs = func(code=code, year=year, quarter=q)
+                        rs = _safe_call(func, code=code, year=year, quarter=q, timeout_sec=12)
                         if rs.error_code == "0" and rs.next():
                             row = rs.get_row_data()
                             for i, f in enumerate(rs.fields):
@@ -176,10 +330,10 @@ def cmd_performance(kind: str, code: str, start: str, end: str, output_json: boo
     code = normalize_code(code)
     with bs_session():
         if kind == "express":
-            rs = bs.query_performance_express_report(code=code, start_date=start, end_date=end)
+            rs = _safe_call(bs.query_performance_express_report, code=code, start_date=start, end_date=end, timeout_sec=12)
             label = "业绩快报"
         else:
-            rs = bs.query_forecast_report(code=code, start_date=start, end_date=end)
+            rs = _safe_call(bs.query_forecast_report, code=code, start_date=start, end_date=end, timeout_sec=12)
             label = "业绩预告"
         df = _bs_to_df(rs)
     if df.empty:
@@ -195,7 +349,7 @@ def cmd_performance(kind: str, code: str, start: str, end: str, output_json: boo
 def cmd_dividend(code: str, year: str, output_json: bool):
     code = normalize_code(code)
     with bs_session():
-        rs = bs.query_dividend_data(code=code, year=year, yearType="report")
+        rs = _safe_call(bs.query_dividend_data, code=code, year=year, yearType="report", timeout_sec=12)
         df = _bs_to_df(rs)
     if df.empty:
         print(f"未找到 {code} {year}年的分红数据")
@@ -209,7 +363,7 @@ def cmd_dividend(code: str, year: str, output_json: bool):
 
 def cmd_industry(code: str, output_json: bool):
     with bs_session():
-        rs = bs.query_stock_industry(code=normalize_code(code) if code else None)
+        rs = _safe_call(bs.query_stock_industry, code=normalize_code(code) if code else None, timeout_sec=12)
         df = _bs_to_df(rs)
     if df.empty:
         print("未找到行业数据")
@@ -220,6 +374,87 @@ def cmd_industry(code: str, output_json: bool):
         label = f"{code} 所属行业" if code else "全市场行业分类"
         print(f"【{label}】数据源：Baostock")
         print(df.to_string(index=False))
+
+
+def cmd_all_stocks(output_json: bool, market: str = None):
+    """
+    获取全市场股票列表（代码+名称）
+    数据源：新浪财经
+    
+    Args:
+        output_json: 是否输出JSON格式
+        market: 市场筛选，可选 'sh'(上海) / 'sz'(深圳) / None(全部)
+    """
+    # 创建不使用代理的 session
+    session = requests.Session()
+    session.trust_env = False  # 忽略环境变量中的代理设置
+    
+    # 新浪节点映射
+    node_map = {
+        None: 'hs_a',   # 全A股
+        'sh': 'sh_a',   # 上海
+        'sz': 'sz_a',   # 深圳
+    }
+    node = node_map.get(market, 'hs_a')
+    
+    # 获取总数
+    count_url = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeStockCount'
+    try:
+        r = session.get(count_url, params={'node': node}, timeout=30)
+        total = int(r.text.strip('"'))
+    except Exception:
+        total = 5000  # 默认值
+    
+    # 分页获取数据
+    all_stocks = []
+    page_size = 100  # 新浪接口限制每页最多100条
+    total_pages = (total + page_size - 1) // page_size
+    
+    data_url = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData'
+    
+    try:
+        for page in range(1, total_pages + 1):
+            params = {
+                'page': page,
+                'num': page_size,
+                'sort': 'symbol',
+                'asc': 1,
+                'node': node,
+                'symbol': '',
+                '_s_r_a': 'page'
+            }
+            r = session.get(data_url, params=params, timeout=30)
+            r.raise_for_status()
+            data = r.json()
+            
+            if not data:
+                break
+            
+            for s in data:
+                code = s.get('symbol', '')
+                name = s.get('name', '')
+                # 过滤掉北交所股票（bj开头）和无效数据
+                if code and name and not code.startswith('bj'):
+                    all_stocks.append({'代码': code, '名称': name})
+        
+        if not all_stocks:
+            print("未获取到股票列表数据")
+            return
+        
+        # 转换为 DataFrame 并排序
+        df = pd.DataFrame(all_stocks)
+        df = df.sort_values('代码').reset_index(drop=True)
+        
+        if output_json:
+            print(df.to_json(orient="records", force_ascii=False))
+        else:
+            market_label = {'sh': '上海', 'sz': '深圳'}.get(market, '全市场')
+            print(f"【{market_label}股票列表】共 {len(df)} 只  数据源：新浪财经")
+            print(df.to_string(index=False))
+            
+    except Exception as e:
+        print(f"获取股票列表失败：{e}")
+        sys.exit(1)
 
 
 def cmd_index_members(index: str, date: str, output_json: bool):
@@ -234,7 +469,7 @@ def cmd_index_members(index: str, date: str, output_json: bool):
         print(f"不支持的指数：{index}，可选：hs300 / sz50 / zz500")
         sys.exit(1)
     with bs_session():
-        rs = func(date=date) if date else func()
+        rs = _safe_call(func, date=date, timeout_sec=12) if date else _safe_call(func, timeout_sec=12)
         df = _bs_to_df(rs)
     if df.empty:
         print(f"未找到 {index} 成分股数据")
@@ -247,8 +482,28 @@ def cmd_index_members(index: str, date: str, output_json: bool):
 
 
 def cmd_trade_dates(start: str, end: str, output_json: bool):
+    # 优先新浪交易日历
+    try:
+        cal = ak.tool_trade_date_hist_sina()
+        if cal is not None and not cal.empty:
+            cal = cal.rename(columns={"trade_date": "date"})
+            cal["date"] = pd.to_datetime(cal["date"])
+            s = pd.to_datetime(start) if start else cal["date"].min()
+            e = pd.to_datetime(end) if end else cal["date"].max()
+            df = cal[(cal["date"] >= s) & (cal["date"] <= e)].copy()
+            df["is_trading_day"] = "1"
+            df["date"] = df["date"].dt.strftime("%Y-%m-%d")
+            if output_json:
+                print(df.to_json(orient="records", force_ascii=False))
+            else:
+                print(f"【交易日历】{start or '默认'}~{end or '今日'}  共{len(df)}个交易日  数据源：新浪")
+                print(df.to_string(index=False))
+            return
+    except Exception:
+        pass
+
     with bs_session():
-        rs = bs.query_trade_dates(start_date=start, end_date=end)
+        rs = _safe_call(bs.query_trade_dates, start_date=start, end_date=end, timeout_sec=12)
         df = _bs_to_df(rs)
     if df.empty:
         print("未找到交易日数据")
@@ -264,19 +519,19 @@ def cmd_trade_dates(start: str, end: str, output_json: bool):
 def cmd_macro(kind: str, start: str, end: str, period: str, output_json: bool):
     with bs_session():
         if kind == "deposit":
-            rs = bs.query_deposit_rate_data(start_date=start, end_date=end)
+            rs = _safe_call(bs.query_deposit_rate_data, start_date=start, end_date=end, timeout_sec=12)
             label = "存款基准利率"
         elif kind == "loan":
-            rs = bs.query_loan_rate_data(start_date=start, end_date=end)
+            rs = _safe_call(bs.query_loan_rate_data, start_date=start, end_date=end, timeout_sec=12)
             label = "贷款基准利率"
         elif kind == "reserve":
-            rs = bs.query_required_reserve_ratio_data(start_date=start, end_date=end)
+            rs = _safe_call(bs.query_required_reserve_ratio_data, start_date=start, end_date=end, timeout_sec=12)
             label = "存款准备金率"
         elif kind == "money" and period == "month":
-            rs = bs.query_money_supply_data_month(start_date=start, end_date=end)
+            rs = _safe_call(bs.query_money_supply_data_month, start_date=start, end_date=end, timeout_sec=12)
             label = "货币供应量（月）"
         elif kind == "money" and period == "year":
-            rs = bs.query_money_supply_data_year(start_date=start, end_date=end)
+            rs = _safe_call(bs.query_money_supply_data_year, start_date=start, end_date=end, timeout_sec=12)
             label = "货币供应量（年）"
         else:
             print("不支持的宏观数据类型")
@@ -321,6 +576,9 @@ def main():
 
     parser.add_argument("--industry", action="store_true", help="行业分类")
     parser.add_argument("--code", help="配合 --industry 指定股票代码")
+
+    parser.add_argument("--all-stocks", action="store_true", help="获取全市场股票列表（代码+名称）")
+    parser.add_argument("--market", choices=["sh", "sz"], help="配合 --all-stocks 筛选市场：sh=上海 / sz=深圳")
 
     parser.add_argument("--hs300", action="store_true", help="沪深300成分股")
     parser.add_argument("--sz50", action="store_true", help="上证50成分股")
@@ -380,6 +638,8 @@ def main():
         cmd_dividend(args.dividend, args.year, args.output_json)
     elif args.industry:
         cmd_industry(args.code, args.output_json)
+    elif args.all_stocks:
+        cmd_all_stocks(args.output_json, args.market)
     elif args.hs300:
         cmd_index_members("hs300", args.date, args.output_json)
     elif args.sz50:
