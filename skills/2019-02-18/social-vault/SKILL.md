@@ -24,10 +24,11 @@ tools:
   - bash
   - browser
 external_endpoints:
-  - "https://oauth.reddit.com/api/v1/me (Reddit login verification)"
-  - "https://www.reddit.com/api/v1/access_token (Reddit OAuth token)"
-  - "https://api.x.com/2/users/me (X/Twitter verification)"
-  - "https://www.xiaohongshu.com (Xiaohongshu browser verification)"
+  - "https://www.xiaohongshu.com/explore (Xiaohongshu verification)"
+  - "https://api.bilibili.com/x/web-interface/nav (Bilibili verification)"
+  - "https://passport.bilibili.com/x/passport-login/web/qrcode/generate (Bilibili QR login)"
+  - "https://www.zhihu.com/api/v4/me (Zhihu verification)"
+  - "https://tieba.baidu.com/f/user/json_userinfo (Tieba verification)"
 files:
   - "vault/ (encrypted credentials storage, runtime data)"
   - "adapters/ (platform adapter definitions)"
@@ -117,7 +118,7 @@ cron:
 - 检查适配器中标注的必要 Cookie 字段是否存在。
 - 按适配器的 `session_check` 配置验证登录态：
   - `method: api`：使用凭证直接发起 HTTP 请求到验证端点。
-  - `method: browser`：使用 browser 工具注入 Cookie 后访问验证页面。
+  - `method: browser`：使用 browser 工具注入 Cookie 后访问验证页面（仅当 API 方式不可用时使用）。
 - 验证成功：
   - 提取用户名和 profile 信息。
   - 生成账号 ID（格式：`<platform>-<name>`）。
@@ -129,7 +130,6 @@ cron:
 
 **API Token 流程**：
 - 读取适配器中的 API Token 认证步骤，分步引导用户获取凭证。
-- 以 Reddit 为例：引导创建 App → 获取 client_id/client_secret → 提供用户名密码换取 token。
 - **用户密码仅用于换取 Token，获取后立即丢弃，绝不存储密码**。
 - 验证 Token 有效性后加密存储。
 - 记录 Token 过期时间，设置自动刷新。
@@ -175,7 +175,7 @@ cron:
       - api_token 账号使用 `session_check` 配置（API 验证）。
       - cookie_paste 账号优先使用 `session_check_cookie` 配置（如存在），否则使用默认 `session_check`。
    d. API 验证：调用 `npx tsx scripts/run-health-check.ts vault` 执行自动检查。
-   e. Browser 验证：使用 browser 工具注入 Cookie → 访问验证页面 → 检查页面内容。
+   e. 如果适配器配置了 browser 方式（旧版适配器），需通过 Agent 执行 browser 验证。
    f. 更新 accounts.json 中的状态和 lastValidatedAt。
 3. 输出检查报告：
    - 列出每个账号的验证结果。
@@ -247,7 +247,7 @@ cron:
 | 平台 | 认证方式 | 支持操作 | 来源 |
 |------|----------|----------|------|
 
-当前内置适配器：Reddit、X/Twitter、小红书。
+当前内置适配器：小红书、哔哩哔哩、知乎、百度贴吧。
 
 ### `socialvault adapter create <platform>`
 
@@ -333,7 +333,8 @@ Vault 加密: ✅ 已启用 (AES-256-GCM)
 1. 执行 `npx tsx scripts/run-health-check.ts vault`
 2. 对所有非 expired 账号的登录态进行检查：
    - API Token 账号：直接发送 HTTP 请求验证。
-   - Cookie 账号（browser 验证方式）：保持当前状态不变（browser 验证需要 Agent 交互，不在 Cron 中执行）。
+   - Cookie 账号（API 验证方式）：通过 HTTP 请求验证。
+   - Cookie 账号（旧版 browser 验证方式）：保持当前状态不变（browser 验证需要 Agent 交互，不在 Cron 中执行）。
 3. 失效账号推送告警消息：
 
 ```
@@ -417,11 +418,11 @@ Vault 加密: ✅ 已启用 (AES-256-GCM)
 
 其他 Skill 通过对话调用 SocialVault 的能力：
 
-1. **查询状态**："socialvault status of reddit-main" → 返回账号状态信息
-2. **加载凭证**："socialvault use reddit-main" → 配置 browser profile 并注入凭证
-3. **获取 Token**："socialvault token reddit-main" → 返回 API access_token（仅 api_token 方式）
-4. **回收凭证**："socialvault release reddit-main" → 导出更新后的 Cookie，加密存储，清除明文
-5. **检查单账号**："socialvault check reddit-main" → 验证并返回当前状态
+1. **查询状态**："socialvault status of bilibili-main" → 返回账号状态信息
+2. **加载凭证**："socialvault use bilibili-main" → 配置 browser profile 并注入凭证
+3. **获取 Token**："socialvault token bilibili-main" → 返回 API access_token（仅 api_token 方式）
+4. **回收凭证**："socialvault release bilibili-main" → 导出更新后的 Cookie，加密存储，清除明文
+5. **检查单账号**："socialvault check bilibili-main" → 验证并返回当前状态
 
 ## 内置平台
 
@@ -429,9 +430,10 @@ SocialVault 内置以下平台适配器：
 
 | 平台 | 适配器 | 认证方式 | Cookie 有效期 |
 |------|--------|----------|---------------|
-| Reddit | `adapters/reddit.md` | API Token（推荐）/ Cookie | ~14 天 |
-| X (Twitter) | `adapters/x-twitter.md` | Cookie（推荐）/ API Token | ~30 天 |
 | 小红书 | `adapters/xiaohongshu.md` | Cookie / 扫码登录 | ~7 天 |
+| 哔哩哔哩 | `adapters/bilibili.md` | Cookie / 扫码登录 | ~30 天 |
+| 知乎 | `adapters/zhihu.md` | Cookie | ~30 天 |
+| 百度贴吧 | `adapters/tieba.md` | Cookie | ~180 天 |
 
 用户可通过 `socialvault adapter create` 添加更多平台。
 
@@ -449,13 +451,12 @@ SocialVault 内置以下平台适配器：
 
 `session-verifier.ts` 内置**硬编码域名白名单**，仅允许向以下受信任域名发送认证头：
 
-- Reddit: `reddit.com`, `oauth.reddit.com`, `api.reddit.com`
-- X/Twitter: `x.com`, `api.x.com`, `twitter.com`, `api.twitter.com`
 - 小红书: `xiaohongshu.com`, `edith.xiaohongshu.com`
-- 哔哩哔哩: `bilibili.com`, `api.bilibili.com`, `space.bilibili.com`
+- 哔哩哔哩: `bilibili.com`, `api.bilibili.com`, `space.bilibili.com`, `passport.bilibili.com`
 - 微博: `weibo.com`, `api.weibo.com`
 - 抖音: `douyin.com`
-- 知乎: `zhihu.com`
+- 知乎: `zhihu.com`, `www.zhihu.com`
+- 百度贴吧: `tieba.baidu.com`, `baidu.com`
 
 **安全机制**：
 - 白名单在代码中硬编码，不可通过适配器文件修改。

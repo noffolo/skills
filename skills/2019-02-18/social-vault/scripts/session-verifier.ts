@@ -18,15 +18,6 @@ import type { AccountStatus, VaultEntry } from "./types.js";
  * 新增平台时需在此处显式添加域名。
  */
 const TRUSTED_DOMAINS: readonly string[] = [
-  "reddit.com",
-  "www.reddit.com",
-  "oauth.reddit.com",
-  "api.reddit.com",
-  "x.com",
-  "www.x.com",
-  "api.x.com",
-  "twitter.com",
-  "api.twitter.com",
   "xiaohongshu.com",
   "www.xiaohongshu.com",
   "edith.xiaohongshu.com",
@@ -42,6 +33,9 @@ const TRUSTED_DOMAINS: readonly string[] = [
   "www.douyin.com",
   "zhihu.com",
   "www.zhihu.com",
+  "tieba.baidu.com",
+  "baidu.com",
+  "www.baidu.com",
 ];
 
 /**
@@ -88,7 +82,20 @@ export async function verifyViaApi(
   }
 
   try {
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Cache-Control": "max-age=0",
+      "Sec-Fetch-Dest": "document",
+      "Sec-Fetch-Mode": "navigate",
+      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-User": "?1",
+      "Upgrade-Insecure-Requests": "1",
+      "Sec-Ch-Ua": "\"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+      "Sec-Ch-Ua-Mobile": "?0",
+      "Sec-Ch-Ua-Platform": "\"Windows\"",
+    };
 
     if (credential.authMethod === "api_token" && credential.accessToken) {
       headers["Authorization"] = `Bearer ${credential.accessToken}`;
@@ -105,10 +112,12 @@ export async function verifyViaApi(
     const response = await fetch(endpoint, { headers, redirect: "follow" });
 
     if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      const bodyHint = errBody.slice(0, 200);
       if (response.status === 401 || response.status === 403) {
-        return { status: "expired", message: `验证失败：HTTP ${response.status}，登录态已失效。` };
+        return { status: "expired", message: `验证失败：HTTP ${response.status}，登录态已失效。${bodyHint ? ` 响应: ${bodyHint}` : ""}` };
       }
-      return { status: "degraded", message: `验证异常：HTTP ${response.status}。` };
+      return { status: "degraded", message: `验证异常：HTTP ${response.status}。${bodyHint ? ` 响应: ${bodyHint}` : ""}` };
     }
 
     const body = await response.text();

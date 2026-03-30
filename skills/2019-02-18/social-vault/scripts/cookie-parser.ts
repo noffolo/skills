@@ -93,7 +93,7 @@ export function parseJsonArray(input: string): CookieEntry[] {
  * raw header 格式不包含 domain 等元数据，调用方需额外提供 domain。
  *
  * @param input - raw header 字符串
- * @param domain - 目标域名，如 `.reddit.com`
+ * @param domain - 目标域名，如 `.bilibili.com`
  * @returns 标准化的 CookieEntry 数组
  * @throws 解析失败时抛出异常
  */

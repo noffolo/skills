@@ -15,15 +15,16 @@
 
 | 平台 | 认证方式 | Cookie 有效期 |
 |------|----------|---------------|
-| Reddit | API Token（推荐）/ Cookie | ~14 天 |
-| X (Twitter) | Cookie（推荐）/ API Token | ~30 天 |
 | 小红书 | Cookie / 扫码登录 | ~7 天 |
+| 哔哩哔哩 | Cookie / 扫码登录 | ~30 天 |
+| 知乎 | Cookie | ~30 天 |
+| 百度贴吧 | Cookie | ~180 天 |
 
 ## 快速开始
 
 ```
-# 添加 Reddit 账号
-socialvault add reddit
+# 添加 B站 账号
+socialvault add bilibili
 
 # 查看所有账号
 socialvault list
@@ -32,7 +33,7 @@ socialvault list
 socialvault check
 
 # 使用账号凭证
-socialvault use reddit-main
+socialvault use bilibili-main
 ```
 
 ## 安全性
@@ -61,15 +62,16 @@ socialvault/
 ├── adapters/         # 平台适配器
 │   ├── _spec.md
 │   ├── _template.md
-│   ├── reddit.md
-│   ├── x-twitter.md
 │   ├── xiaohongshu.md
+│   ├── bilibili.md
+│   ├── zhihu.md
+│   ├── tieba.md
 │   └── custom/       # 用户自建适配器
 ├── guides/           # 用户教程
-│   ├── cookie-export-reddit.md
-│   ├── cookie-export-x.md
 │   ├── cookie-export-xiaohongshu.md
-│   └── api-token-reddit.md
+│   ├── cookie-export-bilibili.md
+│   ├── cookie-export-zhihu.md
+│   └── cookie-export-tieba.md
 ├── tests/            # 测试文件
 │   ├── test-crypto.ts
 │   ├── test-cookie-parser.ts

@@ -16,9 +16,9 @@ capabilities:
   - like
 cookie_guide: "guides/cookie-export-xiaohongshu.md"
 session_check:
-  method: "browser"
-  endpoint: "https://www.xiaohongshu.com/user/profile/me"
-  success_indicator: "个人主页"
+  method: "api"
+  endpoint: "https://www.xiaohongshu.com/explore"
+  success_indicator: "userId"
 estimated_session_duration_days: 7
 auto_refresh_supported: true
 rate_limits:
@@ -68,7 +68,20 @@ rate_limits:
 
 ## 登录态验证
 
-### Browser 验证
+### API 验证（默认，适合 VPS 环境）
+
+通过 HTTP 请求验证：
+
+1. 发送 GET 请求到 `https://www.xiaohongshu.com/user/profile/me`，携带 Cookie
+2. 检查响应内容
+
+判定逻辑：
+- 响应包含 "个人主页" → `healthy`
+- 响应 401/403 → `expired`
+- 响应不包含预期标志 → `degraded`
+- 网络错误 → `unknown`
+
+### Browser 验证（备选，需 Agent 交互）
 
 使用 OpenClaw browser 工具：
 
