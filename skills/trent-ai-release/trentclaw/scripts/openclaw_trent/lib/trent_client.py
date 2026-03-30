@@ -54,11 +54,27 @@ def chat(
     message: str,
     context: str | None = None,
     thread_id: str | None = None,
+    output_file: str | None = None,
 ) -> dict:
     """Send a chat message to Trent API using streaming SSE.
 
-    Returns dict with keys: content, thread_id, error (optional bool).
+    Streams chunks to a temp file as they arrive so that partial results
+    survive if the process is killed by a sandbox timeout. The file path
+    is included in the response as ``output_file`` so the caller (or the
+    agent) can read it back.
+
+    Args:
+        message: The chat message to send.
+        context: Optional context string.
+        thread_id: Optional thread ID for conversation continuity.
+        output_file: Optional path to write streaming output to.
+            Defaults to a temp file in /tmp.
+
+    Returns:
+        dict with keys: content, thread_id, output_file, error (optional).
     """
+    import tempfile
+
     auth_header = _get_auth_header()
 
     payload = json.dumps(
@@ -87,11 +103,13 @@ def chat(
         method="POST",
     )
 
+    # Write chunks to a file as they arrive — survives sandbox SIGTERM
+    out_path = output_file or tempfile.mktemp(prefix="trent_chat_", suffix=".json")
     content_chunks: list[str] = []
     returned_thread_id: str | None = thread_id
 
     try:
-        with urllib.request.urlopen(req, timeout=300) as resp:
+        with urllib.request.urlopen(req, timeout=300) as resp, open(out_path, "w") as out:
             for raw_line in resp:
                 line = raw_line.decode("utf-8").rstrip("\r\n")
                 if not line:
@@ -103,14 +121,28 @@ def chat(
                     break
                 try:
                     data = json.loads(data_str)
+                    chunk = None
                     if "content" in data:
-                        content_chunks.append(data["content"])
+                        chunk = data["content"]
                     elif "delta" in data and "content" in data["delta"]:
-                        content_chunks.append(data["delta"]["content"])
+                        chunk = data["delta"]["content"]
+                    if chunk:
+                        content_chunks.append(chunk)
+                        out.write(chunk)
+                        out.flush()
                     if "thread_id" in data:
                         returned_thread_id = data["thread_id"]
                 except json.JSONDecodeError:
                     continue
+
+            # Write final result as structured JSON
+            result = {
+                "content": "".join(content_chunks),
+                "thread_id": returned_thread_id,
+            }
+            out.seek(0)
+            out.truncate()
+            out.write(json.dumps(result, indent=2))
 
     except urllib.error.HTTPError as e:
         body = ""
@@ -123,18 +155,24 @@ def chat(
                 "content": "API key rejected (expired or revoked). "
                 "Generate a new key at https://app.trent.ai.",
                 "error": True,
+                "output_file": out_path,
             }
-        return {"content": f"API error {e.code}: {body}", "error": True}
+        return {"content": f"API error {e.code}: {body}", "error": True, "output_file": out_path}
 
     except TimeoutError:
-        return {"content": "Request timed out. Please try again.", "error": True}
+        return {
+            "content": "Request timed out. Please try again.",
+            "error": True,
+            "output_file": out_path,
+        }
 
     except Exception as e:
-        return {"content": f"An error occurred: {e}", "error": True}
+        return {"content": f"An error occurred: {e}", "error": True, "output_file": out_path}
 
     return {
         "content": "".join(content_chunks),
         "thread_id": returned_thread_id,
+        "output_file": out_path,
     }
 
 

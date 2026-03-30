@@ -1,9 +1,16 @@
 ---
 name: trent-openclaw-security
-description: Audit your OpenClaw deployment for security risks using Trent AppSec Advisor
-version: 1.0.0
+description: Assess your Agent deployment against security risks using Trent.
+version: 1.1.1
 homepage: https://trent.ai
 user-invocable: true
+tags:
+  - trentai
+  - trent
+  - trentclaw
+  - security
+  - assessment
+  - threat-modeling
 metadata:
   openclaw:
     requires:
@@ -16,7 +23,7 @@ metadata:
     primaryEnv: TRENT_API_KEY
 ---
 
-# Trent OpenClaw Security Audit
+# Trent OpenClaw Security Assessment
 
 Audit your OpenClaw deployment for security risks. Identifies misconfigurations,
 chained attack paths, and provides severity-rated findings with fixes.
@@ -25,7 +32,7 @@ chained attack paths, and provides severity-rated findings with fixes.
 
 All tools are bundled — no external installer needed.
 
-Set the `TRENT_API_KEY` environment variable. Get a key at https://app.trent.ai
+Set the `TRENT_API_KEY` environment variable. Get a key at https://trent.ai/openclaw/
 
 ## Instructions
 

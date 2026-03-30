@@ -16,7 +16,7 @@ def build_audit_prompt(metadata: dict, system_info: dict | None = None) -> str:
 
     Args:
         metadata: OpenClaw configuration metadata from collector.
-        system_info: Optional system analysis data from system_analyzer.
+        system_info: Optional system analysis data (e.g. installed skill names).
     """
     lines = [
         "You are performing a security audit of an OpenClaw deployment.",

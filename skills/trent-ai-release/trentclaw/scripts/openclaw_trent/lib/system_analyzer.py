@@ -3,14 +3,13 @@
 
 """Collects OpenClaw deployment context for security audits.
 
-Gathers channel configuration and installed skill names.
+Gathers installed skill names from the filesystem.
 All output is redacted for secrets before emission.
+Channel configuration is read from openclaw.json by the collector module.
 """
 
 import json
 import logging
-import re
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -19,129 +18,7 @@ from openclaw_trent.openclaw_config.secret_redactor import SecretRedactor
 
 logger = logging.getLogger(__name__)
 
-SUBPROCESS_TIMEOUT = 10  # seconds
 DEFAULT_OPENCLAW_PATH = Path.home() / ".openclaw"
-
-
-# --- Channel parsing ---
-
-# Matches lines like: "- Telegram default: not configured, token=none, enabled"
-_CHANNEL_RE = re.compile(r"^-\s+(\S+)\s+(\S+):\s*(.+)$")
-# Matches lines like: "- anthropic:default (token)"
-_AUTH_RE = re.compile(r"^-\s+(\S+)\s+\((\w+)\)$")
-
-
-def detect_channels() -> dict[str, Any]:
-    """Run `openclaw channels list` and parse output.
-
-    Returns channel info, auth providers, and doctor warnings.
-    Handles missing binary, timeouts, and parse failures gracefully.
-    """
-    result: dict[str, Any] = {
-        "channels": [],
-        "auth_providers": [],
-        "doctor_warnings": [],
-        "channel_count": 0,
-        "command_error": None,
-        "parse_error": None,
-    }
-
-    try:
-        proc = subprocess.run(
-            ["openclaw", "channels", "list"],
-            capture_output=True,
-            text=True,
-            timeout=SUBPROCESS_TIMEOUT,
-        )
-        stdout = proc.stdout
-    except FileNotFoundError:
-        result["command_error"] = "openclaw binary not found"
-        return result
-    except subprocess.TimeoutExpired:
-        result["command_error"] = f"command timed out after {SUBPROCESS_TIMEOUT}s"
-        return result
-    except OSError as e:
-        result["command_error"] = str(e)
-        return result
-
-    try:
-        _parse_channel_output(stdout, result)
-    except Exception as e:
-        logger.warning("Failed to parse openclaw channels output: %s", e)
-        result["parse_error"] = str(e)
-
-    result["channel_count"] = len(result["channels"])
-    return result
-
-
-def _parse_channel_output(stdout: str, result: dict[str, Any]) -> None:
-    """Parse the structured output of `openclaw channels list`."""
-    section = None  # "doctor", "channels", "auth"
-
-    for line in stdout.splitlines():
-        stripped = line.strip()
-
-        # Detect doctor warnings section
-        if "Doctor warnings" in line:
-            section = "doctor"
-            continue
-
-        # Detect channel section header
-        if stripped.startswith("Chat channels:"):
-            section = "channels"
-            continue
-
-        # Detect auth section header
-        if stripped.startswith("Auth providers"):
-            section = "auth"
-            continue
-
-        # Skip box-drawing decoration lines
-        if stripped.startswith(("│", "├", "╮", "╯", "◇")) or stripped == "":
-            # But extract doctor warning text from inside the box
-            if section == "doctor" and stripped.startswith("│"):
-                warning_text = stripped.lstrip("│").strip()
-                if warning_text and not warning_text.startswith(("─", "╮", "╯", "├")):
-                    # Accumulate multi-line warnings
-                    if result["doctor_warnings"] and not warning_text.startswith("-"):
-                        result["doctor_warnings"][-1] += " " + warning_text
-                    elif warning_text.startswith("- "):
-                        result["doctor_warnings"].append(warning_text[2:])
-            continue
-
-        # Parse channel lines
-        if section == "channels":
-            m = _CHANNEL_RE.match(stripped)
-            if m:
-                name, profile, details = m.group(1), m.group(2), m.group(3)
-                enabled = "enabled" in details.lower()
-                # Extract status (everything before the first comma, minus known tokens)
-                status_parts = [
-                    p.strip()
-                    for p in details.split(",")
-                    if p.strip().lower() not in ("enabled", "disabled")
-                    and not p.strip().startswith("token=")
-                    and not p.strip().startswith("bot=")
-                    and not p.strip().startswith("app=")
-                ]
-                status = ", ".join(status_parts) if status_parts else "configured"
-
-                result["channels"].append(
-                    {
-                        "name": name,
-                        "profile": profile,
-                        "status": status,
-                        "enabled": enabled,
-                    }
-                )
-            continue
-
-        # Parse auth provider lines
-        if section == "auth":
-            m = _AUTH_RE.match(stripped)
-            if m:
-                result["auth_providers"].append({"name": m.group(1), "type": m.group(2)})
-            continue
 
 
 def detect_skills(openclaw_path: Path | None = None) -> dict[str, Any]:
@@ -164,7 +41,10 @@ def detect_skills(openclaw_path: Path | None = None) -> dict[str, Any]:
         try:
             for entry in sorted(skills_dir.iterdir()):
                 if entry.is_dir() and not entry.name.startswith("."):
-                    skills.append({"name": entry.name, "source": source})
+                    # Use "slug" (not "name") — entry.name is the filesystem directory name,
+                    # which is the slug. The human-readable name from SKILL.md frontmatter
+                    # is NOT available here because detect_skills() does not read file contents.
+                    skills.append({"slug": entry.name, "source": source})
         except OSError as e:
             errors.append(f"Cannot read {skills_dir}: {e}")
 
@@ -184,25 +64,19 @@ def detect_skills(openclaw_path: Path | None = None) -> dict[str, Any]:
 def collect_system_analysis(openclaw_path: Path | None = None) -> dict[str, Any]:
     """Collect OpenClaw deployment context with secret redaction.
 
-    Gathers channel configuration and installed skill names.
+    Gathers installed skill names. Channel configuration is available
+    in openclaw.json via the collector module.
     Applies SecretRedactor to the full result before returning.
     """
     errors: list[str] = []
 
-    channel_info = detect_channels()
     skills_info = detect_skills(openclaw_path=openclaw_path)
 
-    # Collect errors from sub-results
-    if channel_info.get("command_error"):
-        errors.append(f"channels: {channel_info['command_error']}")
-    if channel_info.get("parse_error"):
-        errors.append(f"channels parse: {channel_info['parse_error']}")
     if skills_info.get("errors"):
         errors.extend(skills_info.pop("errors"))
 
     result: dict[str, Any] = {
-        "schema_version": "2.0",
-        "channels": channel_info,
+        "schema_version": "3.0",
         "skills": skills_info,
         "errors": errors,
     }
