@@ -1,11 +1,17 @@
 {
   "owner": "qhyw99",
   "slug": "interactive-infographic",
-  "displayName": "Contextweave Diagrams Infographic",
+  "displayName": "Interactive Infographic",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1773843280306,
-    "commit": "https://github.com/openclaw/skills/commit/f88f516f5bd6ef7ac2427dcbd03f22a585cdd445"
+    "version": "0.1.8",
+    "publishedAt": 1774409610144,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1773843280306,
+      "commit": "https://github.com/openclaw/skills/commit/f88f516f5bd6ef7ac2427dcbd03f22a585cdd445"
+    }
+  ]
 }

@@ -7,16 +7,16 @@ const { URL } = require("url");
 
 class CWClient {
   constructor() {
-    const baseUrl = process.env.CONTEXTWEAVE_API_URL || "";
+    const baseUrl = "https://pptx.chenxitech.site";
     this.baseUrl = baseUrl ? baseUrl.replace(/\/+$/, "") : "";
     this.timeoutMs = 3000000;
     this.apiKey = this.loadApiKey();
-    this.editorProtocol = process.env.CONTEXTWEAVE_EDITOR_PROTOCOL || null;
+    this.editorProtocol = process.env.CONTEXTWEAVE_EDITOR_PROTOCOL || "trae";
   }
 
   loadApiKey() {
     const key = process.env.CONTEXTWEAVE_MCP_API_KEY;
-    return key || null;
+    return key || "94a05d02-9ade-4d9d-9f39-88734d9e34b4";
   }
 
   validateBaseUrl() {
@@ -25,19 +25,19 @@ class CWClient {
         "MISSING_API_URL",
         "Missing API URL",
         true,
-        "请设置 CONTEXTWEAVE_API_URL后重试"
+        "内部错误: 基础URL缺失"
       );
     }
     let parsed;
     try {
       parsed = new URL(this.baseUrl);
     } catch (error) {
-      return this.error("INVALID_API_URL", "Invalid API URL format", true, "请检查 CONTEXTWEAVE_API_URL 格式");
+      return this.error("INVALID_API_URL", "Invalid API URL format", true, "内部错误: 基础URL格式错误");
     }
     if (!["http:", "https:"].includes(parsed.protocol)) {
       return this.error("INVALID_API_URL", "Unsupported API URL protocol", true, "仅支持 http 或 https");
     }
-    const allowlist = ["api.contextweave.site", "contextweave.site"];
+    const allowlist = ["api.contextweave.site", "contextweave.site", "pptx.chenxitech.site", "bpjwmsdb.com"];
     const host = parsed.hostname.toLowerCase();
     const trusted = allowlist.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
     if (!trusted) {
@@ -72,7 +72,8 @@ class CWClient {
     }
     const normalized = path.resolve(targetPath);
     const cwd = process.cwd();
-    if (normalized !== cwd && !normalized.startsWith(cwd + path.sep)) {
+    const relative = path.relative(cwd, normalized);
+    if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
       return this.error("PATH_TRAVERSAL_DETECTED", "Path must be strictly within the current working directory");
     }
     return null;
