@@ -1,9 +1,6 @@
 ---
 name: minimax-usage-cn
-description: >
-  Monitor Minimax Coding Plan usage to stay within API limits. Fetches current usage stats
-  and provides status alerts. Use when checking API quota, monitoring usage, or before running
-  large AI tasks. Shows 5-hour sliding window status.
+description: Monitor Minimax Coding Plan usage to stay within API limits. Fetches current usage stats and provides status alerts. Use when checking API quota, monitoring usage, or before running large AI tasks. Shows 5-hour sliding window status.
 homepage: https://www.minimaxi.com
 metadata:
   openclaw:
@@ -12,19 +9,9 @@ metadata:
     requires:
       env:
         - MINIMAX_API_KEY
-      tools:
+      bins:
         - curl
     primaryEnv: MINIMAX_API_KEY
-    triggerKeywords:
-      - "minimax"
-      - "用量"
-      - "quota"
-      - "usage"
-      - "配额"
-    examples:
-      - "查看 minimax 用量"
-      - "check minimax usage"
-      - "还有多少配额"
 ---
 
 # Minimax Usage (国内版)
@@ -38,8 +25,6 @@ Monitor Minimax Coding Plan usage to stay within API limits.
 ```
 ~/.openclaw/workspace/skills/minimax-usage-cn/
 ├── SKILL.md
-├── docs/                    # (reserved)
-├── templates/              # (reserved)
 └── scripts/
     └── minimax-usage.sh   # Main script
 ```
@@ -130,6 +115,59 @@ Content-Type: application/json
 
 💚 GREEN: 6% used. Plenty of buffer.
 ```
+
+### JSON Output Mode
+
+For programmatic use, add `--json` or `-j` flag:
+
+```bash
+./minimax-usage.sh --json
+```
+
+Output:
+```json
+{
+  "status": "GREEN",
+  "used": 102,
+  "total": 1500,
+  "remaining": 1398,
+  "percent": 6,
+  "model": "MiniMax-M2.5",
+  "window_start": "20:00",
+  "window_end": "00:00",
+  "resets_in_seconds": 4380
+}
+```
+
+### Cron 定时检查
+
+添加到 crontab 每小时检查一次：
+
+```bash
+# 编辑 crontab
+crontab -e
+
+# 添加以下行（每小时检查并记录）
+0 * * * * cd /home/rocfly/.openclaw/workspace/skills/minimax-usage-cn/scripts && ./minimax-usage.sh >> /home/rocfly/.openclaw/workspace/logs/minimax-usage.log 2>&1
+
+# 或者带通知（需要配置邮件或 webhook）
+0 * * * * cd /home/rocfly/.openclaw/workspace/skills/minimax-usage-cn/scripts && ./minimax-usage.sh --json | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if data['percent'] > 75:
+    print(f'⚠️ ALERT: {data[\"percent\"]}% used!')
+    # 在此添加 webhook 通知
+"
+```
+
+### 常见使用场景
+
+| 场景 | 命令 |
+|------|------|
+| 手动检查用量 | `./minimax-usage.sh` |
+| 静默检查（无输出） | `./minimax-usage.sh -q` |
+| JSON 格式输出 | `./minimax-usage.sh --json` |
+| 配合 cron 记录 | `./minimax-usage.sh >> usage.log` |
 
 ---
 
