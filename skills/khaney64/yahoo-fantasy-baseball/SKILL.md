@@ -108,7 +108,7 @@ python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fanta
 # Players & Draft
 python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py players [--search NAME] [--position POS] [--status FA|A|T|W|ALL] [--sort OR|AR|PTS|NAME|HR|ERA|...] [--sort-type season|lastweek|lastmonth] [--stat-season YEAR] [--count N]
 python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py draft [--team ID]
-python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py transactions [--type add,drop,trade]
+python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py transactions [--type add,drop,trade] [--since 3d]
 python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py injuries
 ```
 
@@ -122,7 +122,18 @@ python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fanta
 python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py day --date 2026-03-25
 ```
 
-Groups your roster into ACTIVE (team playing), NOT PLAYING (team off), INJURED, and BENCH. Shows each player's eligible positions and flags probable starting pitchers. The `today` command is a shortcut for `day` with today's date.
+Groups your roster into ACTIVE (team playing), NOT PLAYING (team off), INJURED, and BENCH. Shows each player's eligible positions, game start times (local timezone), and flags probable starting pitchers. Displays "First pitch" time at the top so you know when to finalize your lineup. The `today` command is a shortcut for `day` with today's date.
+
+```bash
+# Standouts: yesterday's top performers across all league teams
+python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fantasy-baseball.py standouts [--date YYYY-MM-DD] [--min-points N] [--count N]
+```
+
+Fetches daily player stats for all rostered players across every team in the league and identifies standout performances. Output is split into two sections:
+1. **Top Performers** — players in active lineup slots who scored the most fantasy points
+2. **Left on the Bench** — benched players with notable performances (points that didn't count)
+
+Each player shows their fantasy points, key stat line, and achievement badges (e.g., "Multi-HR", "10+ K", "Gem", "CGSO"). Defaults to yesterday; use `--date` for a specific date.
 
 ```bash
 # Optimize: smart roster analysis with suggestions
@@ -175,6 +186,7 @@ python3 /home/claw/.openclaw/workspace/skills/yahoo-fantasy-baseball/yahoo-fanta
 | `--sort OR\|AR\|PTS\|NAME\|{stat}` | Sort order: OR = overall/preseason rank (default), AR = actual/current rank, PTS = points, NAME = alphabetical, or stat abbreviation. See stat sort reference below |
 | `--sort-type season\|lastweek\|lastmonth` | Sort period (used with --sort) |
 | `--stat-season YEAR` | Season year for stat columns (auto-detects: falls back to previous year if league hasn't started) |
+| `--since 3d\|1w\|24h\|2w` | Filter transactions by time window (h=hours, d=days, w=weeks, m=months) |
 | `--confirm` | Execute write operations (without this, preview only) |
 
 ### Sort Reference
@@ -247,19 +259,20 @@ Zack Wheeler              SP           IL    PHI    IL-60
 
 ```
 Today — Team Name
+  First pitch: 1:10 PM
 
   ACTIVE (team playing today) (8)
-    Aaron Judge            OF,Util        NYY  vs BOS
-    Gerrit Cole            SP             NYY  vs BOS  [PROBABLE STARTER]
+    Aaron Judge            OF,Util        NYY  vs BOS 7:05 PM
+    Gerrit Cole            SP             NYY  vs BOS 7:05 PM  [PROBABLE STARTER]
 
   NOT PLAYING (team off today) (3)
     Mookie Betts           SS,OF,Util     LAD
 
   BENCH (3)
-    Jake Burger            3B,1B,Util     MIA  at ATL
+    Jake Burger            3B,1B,Util     MIA  at ATL 1:10 PM
 
   INJURED LIST (1)
-    Zack Wheeler           SP             PHI          (IL-60)
+    Zack Wheeler           SP             PHI                   (IL-60)
 ```
 
 **optimize:**
@@ -281,6 +294,31 @@ Roster Optimization Suggestions
 Total: 3 suggestion(s)
 ```
 
+**scoreboard:**
+
+```
+League Scoreboard — Week 1
+------------------------------------------------------------
+  Clanker Killerz                  6  vs  4   1% AI 99% hot gas
+                                    In progress
+
+  Mossi Possi                      1  vs  7   Normal Men
+                                    In progress
+```
+
+**transactions:**
+
+```
+Recent Transactions
+------------------------------------------------------------
+add | 1% AI 99% hot gas | Mar 25, 07:38 PM
+  Add from Free Agent:Luis Castillo (SEA - SP)
+
+add/drop | 1% AI 99% hot gas | Mar 25, 04:14 AM
+  Add from Waivers:   Josh Smith (TEX - 1B,3B,SS,OF)
+  Drop:               Luis Robert Jr. (NYM - OF)
+```
+
 ### JSON
 
 All commands support `--format json` for structured output.
@@ -297,6 +335,8 @@ All commands support `--format discord` which wraps text output in code blocks.
 - **selected_position** — Current lineup slot
 - **team** — Real MLB team abbreviation
 - **status** — Injury designation (IL, IL-60, DTD, etc.)
+- **game_time** — Game start time in local timezone (today/day commands)
+- **first_pitch** — Earliest game start time across all games (today/day commands, JSON top-level)
 - **percent_owned** — Ownership percentage (free agents)
 - **player_position** — Display position (draft results)
 

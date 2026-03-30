@@ -28,8 +28,14 @@ def _team_name(team):
 
 
 def _team_id(team):
-    """Extract team ID."""
-    return _safe(team, "team_id", "?")
+    """Extract team ID from team_id or team_key."""
+    tid = _safe(team, "team_id", "")
+    if tid:
+        return tid
+    tk = _safe(team, "team_key", "")
+    if tk and ".t." in tk:
+        return tk.split(".t.")[-1]
+    return "?"
 
 
 def _team_key(team):
@@ -358,6 +364,7 @@ def format_scoreboard(scoreboard_data, week=None, fmt="text"):
 
     for m in matchups:
         teams = m.get("teams", [])
+        status = m.get("status", "")
         if len(teams) >= 2:
             t1 = teams[0]
             t2 = teams[1]
@@ -365,7 +372,12 @@ def format_scoreboard(scoreboard_data, week=None, fmt="text"):
             n2 = t2.get("name", "?")
             p1 = t1.get("points", "0")
             p2 = t2.get("points", "0")
-            lines.append(f"  {n1:<28} {p1:>6}  vs  {n2:<28} {p2:>6}")
+            status_label = "In progress" if status == "midevent" else (
+                "Final" if status == "postevent" else "")
+            lines.append(f"  {n1:<30} {p1:>3}  vs  {p2:<3} {n2}")
+            if status_label:
+                lines.append(f"  {'':>34}{status_label}")
+            lines.append("")
 
     if not matchups:
         lines.append("  No matchup data available.")
@@ -402,10 +414,17 @@ def _extract_matchups_from_raw(raw):
     if not scoreboard:
         return matchups
 
-    # Get matchups
-    raw_matchups = scoreboard
+    # Get matchups — Yahoo wraps them as scoreboard -> "0" -> matchups -> ...
+    raw_matchups = None
     if isinstance(scoreboard, dict):
-        raw_matchups = scoreboard.get("matchups", scoreboard)
+        raw_matchups = scoreboard.get("matchups")
+        if raw_matchups is None:
+            # Try numeric wrapper: scoreboard -> "0" -> matchups
+            wrapper = scoreboard.get("0")
+            if isinstance(wrapper, dict):
+                raw_matchups = wrapper.get("matchups", wrapper)
+        if raw_matchups is None:
+            raw_matchups = scoreboard
 
     if isinstance(raw_matchups, dict):
         count = int(raw_matchups.get("count", 0))
@@ -434,7 +453,15 @@ def _parse_single_matchup(matchup):
     result["week"] = matchup.get("week", "")
     result["status"] = matchup.get("status", "")
 
-    raw_teams = matchup.get("teams", matchup)
+    # Teams may be at matchup["teams"] or matchup["0"]["teams"]
+    raw_teams = matchup.get("teams")
+    if raw_teams is None:
+        wrapper = matchup.get("0")
+        if isinstance(wrapper, dict):
+            raw_teams = wrapper.get("teams", wrapper)
+    if raw_teams is None:
+        raw_teams = matchup
+
     if isinstance(raw_teams, dict):
         for key in ("0", "1"):
             team_wrapper = raw_teams.get(key, {})
@@ -455,8 +482,15 @@ def _parse_scoreboard_team(team_data):
     info = {"name": "?", "team_id": "?", "points": "0"}
 
     if isinstance(team_data, list):
-        # Yahoo sometimes nests team info in a list
+        # Yahoo nests team as [list-of-metadata-dicts, stats-dict]
+        # Flatten: expand any inner lists so we iterate all dicts
+        flat = []
         for item in team_data:
+            if isinstance(item, list):
+                flat.extend(item)
+            else:
+                flat.append(item)
+        for item in flat:
             if isinstance(item, dict):
                 if "name" in item:
                     info["name"] = item["name"]
@@ -654,57 +688,126 @@ def format_draft(picks, fmt="text"):
 # ---------------------------------------------------------------------------
 
 def format_transactions(transactions, fmt="text"):
+    parsed = _parse_all_transactions(transactions)
+
     if fmt == "json":
-        items = []
-        for txn in transactions:
-            items.append({
-                "type": _safe(txn, "type"),
-                "status": _safe(txn, "status"),
-                "timestamp": _safe(txn, "timestamp"),
-                "players": _safe(txn, "players", []),
-            })
-        return json.dumps({"transactions": items}, indent=2)
+        return json.dumps({"transactions": parsed}, indent=2)
 
     lines = ["Recent Transactions"]
-    lines.append(f"{'Type':<12} {'Status':<10} {'Details'}")
     lines.append("-" * 60)
-    for txn in transactions:
-        txn_type = str(_safe(txn, "type"))[:11]
-        status = str(_safe(txn, "status"))[:9]
-        details = _format_txn_details_text(txn)
-        lines.append(f"{txn_type:<12} {status:<10} {details}")
+    for txn in parsed:
+        ts = txn.get("date", "")
+        txn_type = txn.get("type", "")
+        team = txn.get("team", "")
+        header_parts = [p for p in [txn_type, team, ts] if p]
+        lines.append(" | ".join(header_parts))
+        for p in txn.get("players", []):
+            action = p.get("action", "")
+            name = p.get("name", "Unknown")
+            detail = p.get("detail", "")
+            prefix = f"  {action + ':':<20}" if action else "  "
+            suffix = f" ({detail})" if detail else ""
+            lines.append(f"{prefix}{name}{suffix}")
+        lines.append("")
 
     if fmt == "discord":
         return "```\n" + "\n".join(lines) + "\n```"
     return "\n".join(lines)
 
 
-def _format_txn_details_text(txn):
-    """Format transaction details for text output."""
-    players = _safe(txn, "players")
-    if not players:
-        return ""
-    parts = []
-    if isinstance(players, list):
-        for p in players:
-            player = p.get("player", p) if isinstance(p, dict) else p
-            name = _player_name(player) if isinstance(player, dict) else str(player)
-            txn_data = _safe(player, "transaction_data") if isinstance(player, dict) else None
-            action = ""
-            if isinstance(txn_data, dict):
-                action = txn_data.get("type", "")
-            if action:
-                parts.append(f"{action}: {name}")
+def _parse_all_transactions(transactions):
+    """Parse raw Yahoo transaction list into clean dicts."""
+    import datetime
+    results = []
+    for txn in transactions:
+        entry = {
+            "type": _safe(txn, "type"),
+            "status": _safe(txn, "status"),
+            "timestamp": _safe(txn, "timestamp"),
+            "team": "",
+            "date": "",
+            "players": [],
+        }
+        # Convert timestamp to readable date
+        ts = _safe(txn, "timestamp")
+        if ts:
+            try:
+                dt = datetime.datetime.fromtimestamp(int(ts))
+                entry["date"] = dt.strftime("%b %d, %I:%M %p").lstrip("0")
+            except (ValueError, OSError):
+                pass
+
+        raw_players = _safe(txn, "players", {})
+        if isinstance(raw_players, dict):
+            for key in sorted(raw_players.keys()):
+                if key == "count":
+                    continue
+                wrapper = raw_players[key]
+                if not isinstance(wrapper, dict):
+                    continue
+                player_data = wrapper.get("player", wrapper)
+                info = _parse_txn_player(player_data)
+                entry["players"].append(info)
+                # Use first team name found as the transaction team
+                if not entry["team"] and info.get("team_name"):
+                    entry["team"] = info["team_name"]
+
+        results.append(entry)
+    return results
+
+
+def _parse_txn_player(player_data):
+    """Parse a single player from transaction data."""
+    info = {"name": "Unknown", "action": "", "detail": "", "team_name": ""}
+
+    # player_data is [list-of-metadata-dicts, {transaction_data: [...]}]
+    flat = []
+    if isinstance(player_data, list):
+        for item in player_data:
+            if isinstance(item, list):
+                flat.extend(item)
             else:
-                parts.append(name)
-    elif isinstance(players, dict):
-        for key, val in players.items():
-            if isinstance(val, dict):
-                name = _player_name(val)
-                parts.append(name)
-            else:
-                parts.append(str(val))
-    return "; ".join(parts) if parts else ""
+                flat.append(item)
+    elif isinstance(player_data, dict):
+        flat = [player_data]
+
+    merged = {}
+    txn_data = {}
+    for item in flat:
+        if not isinstance(item, dict):
+            continue
+        if "transaction_data" in item:
+            td = item["transaction_data"]
+            if isinstance(td, list) and td:
+                txn_data = td[0] if isinstance(td[0], dict) else {}
+            elif isinstance(td, dict):
+                txn_data = td
+        else:
+            merged.update(item)
+
+    info["name"] = _player_name(merged)
+    team_abbr = merged.get("editorial_team_abbr", "")
+    pos = merged.get("display_position", "")
+    if team_abbr or pos:
+        info["detail"] = f"{team_abbr} - {pos}" if team_abbr and pos else (team_abbr or pos)
+
+    action_type = txn_data.get("type", "")
+    source = txn_data.get("source_type", "")
+    dest_team = txn_data.get("destination_team_name", "")
+    source_team = txn_data.get("source_team_name", "")
+
+    if action_type == "add":
+        source_label = "Free Agent" if source == "freeagents" else ("Waivers" if source == "waivers" else source)
+        info["action"] = f"Add from {source_label}"
+        info["team_name"] = dest_team
+    elif action_type == "drop":
+        info["action"] = "Drop"
+        info["team_name"] = source_team
+    else:
+        info["action"] = action_type
+        info["team_name"] = dest_team or source_team
+
+    return info
 
 
 # ---------------------------------------------------------------------------
@@ -751,7 +854,8 @@ def format_injuries(players, team_name="", fmt="text"):
 # ---------------------------------------------------------------------------
 
 def format_today(groups, probable_starters, team_name="", fmt="text",
-                  date_str=None, matchups=None):
+                  date_str=None, matchups=None, game_times=None,
+                  first_pitch=None):
     """Format the today/day command output.
 
     Args:
@@ -762,9 +866,13 @@ def format_today(groups, probable_starters, team_name="", fmt="text",
         fmt: Output format.
         date_str: Date string (YYYY-MM-DD). If today or None, header says "Today".
         matchups: dict mapping MLB team abbr -> matchup string (e.g. "at SF", "vs NYY").
+        game_times: dict mapping MLB team abbr -> formatted local time string.
+        first_pitch: formatted time of the earliest game, or None.
     """
     if matchups is None:
         matchups = {}
+    if game_times is None:
+        game_times = {}
     from datetime import date as _date
 
     # Determine header label
@@ -791,13 +899,15 @@ def format_today(groups, probable_starters, team_name="", fmt="text",
                 "selected_position": _player_selected_position(p),
                 "team": team_abbr,
                 "opponent": matchups.get(mlb_abbr, ""),
+                "game_time": game_times.get(mlb_abbr, ""),
                 "status": _player_status(p),
             }
             if is_probable:
                 entry["probable_starter"] = True
             return entry
 
-        result = {"team": team_name, "date": date_str or today_str, "groups": {}}
+        result = {"team": team_name, "date": date_str or today_str,
+                  "first_pitch": first_pitch or "", "groups": {}}
         for group_name in ("active", "not_playing", "bench", "injured"):
             result["groups"][group_name] = [
                 _player_entry(p, _player_name(p) in probable_starters)
@@ -808,6 +918,8 @@ def format_today(groups, probable_starters, team_name="", fmt="text",
     lines = []
     if team_name:
         lines.append(f"{date_label} — {team_name}")
+    if first_pitch:
+        lines.append(f"  First pitch: {first_pitch}")
     lines.append("")
 
     section_labels = [
@@ -828,13 +940,15 @@ def format_today(groups, probable_starters, team_name="", fmt="text",
                 team = _player_team(p)
                 mlb_abbr = mlb_client.normalize_team_abbr(team)
                 opp = matchups.get(mlb_abbr, "")
+                game_time = game_times.get(mlb_abbr, "")
+                opp_time = f"{opp} {game_time}".strip() if opp else ""
                 status = _player_status(p)
                 extra = ""
                 if name in probable_starters:
                     extra = " [PROBABLE STARTER]"
                 if status:
                     extra += f" ({status})"
-                lines.append(f"    {name:<22} {pos:<14} {team:<5}{opp:<8}{extra}")
+                lines.append(f"    {name:<22} {pos:<14} {team:<5}{opp_time:<18}{extra}")
         else:
             lines.append("    (none)")
         lines.append("")
@@ -896,6 +1010,131 @@ def format_optimize(suggestions, fmt="text"):
     lines.append("")
     total = len(swaps) + len(pitcher_alerts) + len(il_moves)
     lines.append(f"Total: {total} suggestion(s)")
+
+    if fmt == "discord":
+        return "```\n" + "\n".join(lines) + "\n```"
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Standouts (yesterday's top performers)
+# ---------------------------------------------------------------------------
+
+def format_standouts(top_performers, left_on_bench, date_str, categories=None,
+                     fmt="text"):
+    """Format the standouts command output.
+
+    Args:
+        top_performers: list of player dicts (active lineup), sorted by points desc.
+        left_on_bench: list of player dicts (benched), sorted by points desc.
+        date_str: Date string (YYYY-MM-DD).
+        categories: list of category dicts from _extract_categories_from_settings.
+        fmt: Output format.
+    """
+    if fmt == "json":
+        def _entry(p):
+            stats = _extract_player_stats(p)
+            # Remove internal keys from stats
+            stats.pop("total_points", None)
+            stats.pop("_fantasy_team", None)
+            stats.pop("_achievements", None)
+            stats.pop("_standout_score", None)
+            # Build key_stats — keep non-zero values, preserve strings like H/AB
+            key_stats = {}
+            for k, v in stats.items():
+                if k.startswith("_"):
+                    continue
+                if isinstance(v, str) and "/" in v:
+                    # Composite stat like H/AB — keep as string if non-zero
+                    if not v.startswith("0/"):
+                        key_stats[k] = v
+                    continue
+                try:
+                    fv = float(v)
+                except (ValueError, TypeError):
+                    continue
+                if fv != 0:
+                    key_stats[k] = fv if fv != int(fv) else int(fv)
+            return {
+                "name": _player_name(p),
+                "team": _safe(p, "_fantasy_team", ""),
+                "mlb_team": _player_team(p),
+                "position": _player_selected_position(p) or _player_position(p),
+                "score": _safe(p, "_standout_score", 0),
+                "achievements": _safe(p, "_achievements", []),
+                "key_stats": key_stats,
+            }
+
+        result = {
+            "date": date_str,
+            "top_performers": [_entry(p) for p in top_performers],
+            "left_on_bench": [_entry(p) for p in left_on_bench],
+        }
+        return json.dumps(result, indent=2)
+
+    # Text / discord format
+    from datetime import date as _date
+    try:
+        d = _date.fromisoformat(date_str)
+        try:
+            date_label = d.strftime("%a %b %-d")
+        except ValueError:
+            date_label = f"{d.strftime('%a %b')} {d.day}"
+    except Exception:
+        date_label = date_str
+
+    lines = [f"Standout Performers — {date_label}"]
+    lines.append("=" * 50)
+
+    def _format_player_line(p, idx):
+        name = _player_name(p)
+        pos = _player_selected_position(p) or _player_position(p)
+        mlb = _player_team(p)
+        team = _safe(p, "_fantasy_team", "")
+        score = _safe(p, "_standout_score", 0)
+        stats = _extract_player_stats(p)
+        achievements = _safe(p, "_achievements", [])
+
+        # Build stat line with non-zero stats
+        stat_parts = []
+        for k, v in stats.items():
+            if k.startswith("_") or k in ("total_points",):
+                continue
+            if isinstance(v, str) and "/" in v:
+                # Composite stat like H/AB
+                if not v.startswith("0/"):
+                    stat_parts.append(f"{v} {k}")
+                continue
+            try:
+                fv = float(v)
+            except (ValueError, TypeError):
+                continue
+            if fv != 0:
+                display = f"{int(fv)}" if fv == int(fv) else f"{fv:.3f}"
+                stat_parts.append(f"{display} {k}")
+        stat_line = ", ".join(stat_parts) if stat_parts else ""
+
+        ach_str = f"  [{', '.join(achievements)}]" if achievements else ""
+        lines.append(f"  {idx}. {name} ({pos}, {mlb}) — {team}")
+        lines.append(f"     {stat_line}{ach_str}")
+
+    if top_performers:
+        lines.append("")
+        lines.append(f"  TOP PERFORMERS ({len(top_performers)})")
+        for i, p in enumerate(top_performers, 1):
+            _format_player_line(p, i)
+    else:
+        lines.append("")
+        lines.append("  TOP PERFORMERS")
+        lines.append("    No standout performances.")
+
+    if left_on_bench:
+        lines.append("")
+        lines.append(f"  LEFT ON THE BENCH ({len(left_on_bench)})")
+        for i, p in enumerate(left_on_bench, 1):
+            _format_player_line(p, i)
+
+    lines.append("")
 
     if fmt == "discord":
         return "```\n" + "\n".join(lines) + "\n```"
