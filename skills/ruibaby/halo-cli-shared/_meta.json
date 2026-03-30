@@ -3,9 +3,15 @@
   "slug": "halo-cli-shared",
   "displayName": "Halo Cli Shared",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1774082485647,
-    "commit": "https://github.com/openclaw/skills/commit/b6e027ffec3050e3793053ad9425b14e789d22b1"
+    "version": "0.1.1",
+    "publishedAt": 1774448878460,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1774082485647,
+      "commit": "https://github.com/openclaw/skills/commit/b6e027ffec3050e3793053ad9425b14e789d22b1"
+    }
+  ]
 }
