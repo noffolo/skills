@@ -3,9 +3,15 @@
   "slug": "promarkia",
   "displayName": "Promarkia – AI Marketing Automation API",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773796604998,
-    "commit": "https://github.com/openclaw/skills/commit/098089121bc7bb9a4bc68b0457c1d17709020a86"
+    "version": "1.0.6",
+    "publishedAt": 1774659856988,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773796604998,
+      "commit": "https://github.com/openclaw/skills/commit/098089121bc7bb9a4bc68b0457c1d17709020a86"
+    }
+  ]
 }

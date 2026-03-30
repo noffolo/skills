@@ -107,7 +107,7 @@ Use OpenClaw's cron system to schedule automated runs:
 ## How It Works
 
 1. Your OpenClaw agent calls `scripts/promarkia_run.py` with a squad ID and prompt
-2. The script authenticates with your API key against `apis.promarkia.com`
+2. The script authenticates with your API key against `www.promarkia.com`
 3. Promarkia creates a session, connects to your linked accounts, and executes the squad
 4. Results are returned and credits are deducted from your Promarkia balance
 5. Run history is stored in your Promarkia account for later retrieval

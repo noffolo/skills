@@ -9,7 +9,7 @@ Usage:
 
 Environment:
     PROMARKIA_API_KEY   — Required. Your Promarkia API key (pmk_...).
-    PROMARKIA_API_BASE  — Optional. Default: https://apis.promarkia.com
+    PROMARKIA_API_BASE  — Optional. Default: https://www.promarkia.com
 """
 
 import argparse
@@ -17,8 +17,22 @@ import json
 import os
 import sys
 
+# Fix Unicode output on Windows
+if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 API_BASE = os.environ.get("PROMARKIA_API_BASE", "https://www.promarkia.com").rstrip("/")
 API_KEY = os.environ.get("PROMARKIA_API_KEY", "")
+
+# Security: only allow API calls to official Promarkia domains
+_ALLOWED_HOSTS = {"www.promarkia.com", "promarkia.com"}
+from urllib.parse import urlparse as _urlparse
+_parsed_host = _urlparse(API_BASE).hostname
+if _parsed_host not in _ALLOWED_HOSTS:
+    print(f"ERROR: PROMARKIA_API_BASE points to untrusted host '{_parsed_host}'.", file=sys.stderr)
+    print(f"Only {_ALLOWED_HOSTS} are allowed. This prevents your API key from being sent to arbitrary servers.", file=sys.stderr)
+    sys.exit(1)
 
 
 def _headers():
@@ -74,8 +88,58 @@ def list_squads():
     print(f"\n{len(squads)} squads available.\n")
 
 
-def submit_task(squad_id, prompt, timeout=1200):
-    """Submit a task and print the result."""
+def _display_result(result):
+    """Display agent output from a completed result."""
+    credit_cost = result.get("creditCost", 0)
+    total_tokens = result.get("totalTokens", 0)
+    print(f"Credits used: {credit_cost} ({total_tokens} tokens)")
+
+    # Display readable messages (agent outputs with content)
+    messages = result.get("messages", [])
+    if messages:
+        print(f"\n--- Agent Output ---")
+        for msg in messages:
+            source = msg.get("source", "unknown")
+            content = msg.get("content", "")
+            if content and not content.strip().startswith("{"):
+                # Skip raw JSON blobs, show human-readable content
+                # Strip termination markers
+                for marker in ("TERMINATE", "PLAN_READY_ON_SCREEN", "DOCS_DONE"):
+                    content = content.replace(marker, "").strip()
+                if content:
+                    print(f"\n[{source}]")
+                    print(content[:5000])
+        print()
+    else:
+        # Fallback: try to extract from task_result
+        task_result = result.get("result")
+        if task_result and isinstance(task_result, dict):
+            msgs = task_result.get("messages", [])
+            for msg in reversed(msgs):
+                if isinstance(msg, dict):
+                    content = msg.get("content", "")
+                    source = msg.get("source", "")
+                    if content and isinstance(content, str) and source != "user":
+                        for marker in ("TERMINATE", "PLAN_READY_ON_SCREEN", "DOCS_DONE"):
+                            content = content.replace(marker, "").strip()
+                        if content:
+                            print(f"\n--- Result ---")
+                            print(f"[{source}]")
+                            print(content[:5000])
+                            print()
+                            break
+            else:
+                print("\n--- Result (raw) ---")
+                print(json.dumps(task_result, indent=2, default=str)[:3000])
+                print()
+        else:
+            print("\nNo result content returned.\n")
+
+
+def submit_task(squad_id, prompt, timeout=1200, poll_interval=10):
+    """Submit a task (async) and poll for the result."""
+    import time
+
     print(f"Submitting task to squad {squad_id}...")
     print(f"Prompt: {prompt[:120]}{'...' if len(prompt) > 120 else ''}")
     print(f"Timeout: {timeout}s\n")
@@ -88,45 +152,70 @@ def submit_task(squad_id, prompt, timeout=1200):
 
     status = result.get("status", "unknown")
     run_id = result.get("runId", "N/A")
-    credit_cost = result.get("creditCost", 0)
-    total_tokens = result.get("totalTokens", 0)
-
-    print(f"Status: {status}")
-    print(f"Run ID: {run_id}")
-    print(f"Credits used: {credit_cost} ({total_tokens} tokens)")
 
     if status == "error":
+        print(f"Status: {status}")
         print(f"\nError: {result.get('error', 'Unknown error')}", file=sys.stderr)
         sys.exit(1)
 
-    task_result = result.get("result")
-    if task_result:
-        print(f"\n--- Result ---")
-        if isinstance(task_result, dict):
-            # Try to extract a readable summary
-            messages = task_result.get("messages", [])
-            if messages:
-                last_msg = messages[-1] if isinstance(messages[-1], dict) else {}
-                content = last_msg.get("content", "")
-                source = last_msg.get("source", "")
-                if content:
-                    print(f"[{source}] {content[:2000]}")
-                else:
-                    print(json.dumps(task_result, indent=2, default=str)[:3000])
-            else:
-                print(json.dumps(task_result, indent=2, default=str)[:3000])
-        else:
-            print(str(task_result)[:3000])
+    # If server returned completed immediately (backward compat)
+    if status == "completed":
+        print(f"Status: completed")
+        print(f"Run ID: {run_id}")
+        _display_result(result)
+        return
 
-    # Also output full JSON to stdout for programmatic use
-    print(f"\n--- Full JSON ---")
-    print(json.dumps(result, indent=2, default=str))
+    # Async mode: poll for result
+    print(f"Run ID: {run_id}")
+    print(f"Status: processing (async)...")
+
+    elapsed = 0
+    while elapsed < timeout:
+        time.sleep(poll_interval)
+        elapsed += poll_interval
+
+        try:
+            poll_result = _request("GET", f"/api/external/runs/{run_id}")
+        except SystemExit:
+            # _request calls sys.exit on HTTP errors — retry on transient errors
+            print(f"  [{elapsed}s] Poll error, retrying...")
+            continue
+
+        poll_status = poll_result.get("status", "processing")
+
+        if poll_status == "completed":
+            print(f"\nCompleted after ~{elapsed}s")
+            _display_result(poll_result)
+            return
+
+        elif poll_status == "error":
+            print(f"\nTask failed after ~{elapsed}s")
+            print(f"Error: {poll_result.get('error', 'Unknown error')}", file=sys.stderr)
+            sys.exit(1)
+
+        else:
+            # Still processing
+            print(f"  [{elapsed}s] Still processing...")
+
+    print(f"\nTimed out after {timeout}s. Run ID: {run_id}")
+    print(f"Check later with: python promarkia_run.py --get-run {run_id}")
+    sys.exit(1)
 
 
 def get_run(run_id):
     """Fetch and display a previous run result."""
     result = _request("GET", f"/api/external/runs/{run_id}")
-    print(json.dumps(result, indent=2, default=str))
+    status = result.get("status", "unknown")
+    print(f"Run ID: {result.get('runId', run_id)}")
+    print(f"Status: {status}")
+    if status == "completed":
+        _display_result(result)
+    elif status == "error":
+        print(f"Error: {result.get('error', 'Unknown error')}")
+    elif status == "processing":
+        print("Task is still running. Check again later.")
+    else:
+        print(json.dumps(result, indent=2, default=str))
 
 
 def main():

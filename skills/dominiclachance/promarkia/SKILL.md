@@ -1,6 +1,14 @@
 ---
 name: promarkia
 description: "Run Promarkia AI squads via the Promarkia API — social media posts, copywriting, SEO, ads, lead generation, image/video creation, campaign planning, and more. Use when asked to run a Promarkia task, submit a squad job, or schedule recurring marketing automation via the Promarkia platform."
+homepage: https://www.promarkia.com
+metadata:
+  clawdbot:
+    emoji: "🚀"
+    requires:
+      env: ["PROMARKIA_API_KEY"]
+      primaryEnv: "PROMARKIA_API_KEY"
+    files: ["scripts/*"]
 ---
 
 # Promarkia
@@ -73,7 +81,7 @@ Schedule recurring tasks using OpenClaw's built-in cron system:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `PROMARKIA_API_KEY` | Yes | Your Promarkia API key (starts with `pmk_`) |
-| `PROMARKIA_API_BASE` | No | API base URL (default: `https://www.promarkia.com`) |
+| `PROMARKIA_API_BASE` | No | API base URL (default: `https://www.promarkia.com`). Do not use `apis.promarkia.com`. |
 
 ## Notes
 
