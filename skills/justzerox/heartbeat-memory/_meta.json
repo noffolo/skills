@@ -3,11 +3,16 @@
   "slug": "heartbeat-memory",
   "displayName": "skill-heartbeat-memory",
   "latest": {
-    "version": "0.0.4",
-    "publishedAt": 1774203607842,
-    "commit": "https://github.com/openclaw/skills/commit/e2ffe7e8ed3764f4a4ecfaddb80d14d9a8c1a4e4"
+    "version": "0.0.6",
+    "publishedAt": 1774622744059,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.0.4",
+      "publishedAt": 1774203607842,
+      "commit": "https://github.com/openclaw/skills/commit/e2ffe7e8ed3764f4a4ecfaddb80d14d9a8c1a4e4"
+    },
     {
       "version": "0.0.2",
       "publishedAt": 1774103926227,

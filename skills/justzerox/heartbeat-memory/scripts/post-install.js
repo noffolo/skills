@@ -97,8 +97,16 @@ const configFile = path.join(workspace, 'heartbeat-memory-config.json');
 console.log(`\n🚀 下一步：`);
 console.log(`1. 检查配置文件：${configFile}`);
 console.log(`2. 确认 LLM API Key 已配置`);
-console.log(`3. 重启 Gateway: openclaw gateway restart`);
-console.log(`4. 下次 Heartbeat 自动开始工作`);
+console.log(`3. 启用 Heartbeat（重要！默认关闭）:`);
+console.log(`   - 编辑 ~/.openclaw/openclaw.json`);
+console.log(`   - 添加 "agents.defaults.heartbeat": {"every": "30m"}`);
+console.log(`4. 重启 Gateway: openclaw gateway restart`);
+console.log(`5. 等待 Heartbeat 自动触发（每 30 分钟）`);
+
+console.log(`\n⚠️  重要提示：`);
+console.log(`- OpenClaw 的 Heartbeat 机制默认是关闭的`);
+console.log(`- 必须在 openclaw.json 中配置 "agents.defaults.heartbeat"`);
+console.log(`- 或者手动触发：在聊天中发送 "执行 heartbeat-memory"`);
 
 console.log(`\n📚 文档：`);
 console.log(`- 完整说明：SKILL.md`);
