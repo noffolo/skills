@@ -3,9 +3,15 @@
   "slug": "panews",
   "displayName": "Panews",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1773895828047,
-    "commit": "https://github.com/openclaw/skills/commit/09d8f2cb9d5fbf88023ca28b1e38c1784c12d43e"
+    "version": "0.2.2",
+    "publishedAt": 1774443718864,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1773895828047,
+      "commit": "https://github.com/openclaw/skills/commit/09d8f2cb9d5fbf88023ca28b1e38c1784c12d43e"
+    }
+  ]
 }
