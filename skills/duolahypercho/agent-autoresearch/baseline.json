@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "primary_metric": null,
+  "baseline_value": null,
+  "measurements": 0,
+  "strategy": {},
+  "changelog": [],
+  "established_date": null,
+  "note": "First-time setup: python3 prepare.py --metric <name> --baseline <value> --measurements <count>"
+}
