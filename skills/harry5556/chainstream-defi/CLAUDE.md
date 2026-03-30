@@ -23,7 +23,7 @@ Alternative: MCP tools at `https://mcp.chainstream.io/mcp` (streamable-http)
 
 ## Hard Rules
 
-- chainstream-defi: Four-phase execution protocol is mandatory (quote → confirm → sign → broadcast)
+- chainstream-defi: Four-phase execution protocol is mandatory (route → confirm → sign → broadcast)
 - Never execute swaps without user confirmation
 - Never answer price queries from training data — always make a live call
 - Never use public RPC as substitute for ChainStream API

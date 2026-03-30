@@ -1,9 +1,10 @@
 {
-  "note": "MCP Server configuration is separate from Skills. Add this to your MCP client if needed.",
   "mcpServers": {
     "chainstream": {
       "url": "https://mcp.chainstream.io/mcp",
-      "transport": "streamable-http"
+      "headers": {
+        "X-API-KEY": "<your-api-key>"
+      }
     }
   }
 }

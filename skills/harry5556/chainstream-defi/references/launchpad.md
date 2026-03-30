@@ -9,7 +9,7 @@
 ## CLI Command
 
 ```bash
-npx @chainstream-io/cli dex create --chain sol --name "My Token" --symbol MT --uri "ipfs://..." [--platform pumpfun]
+npx @chainstream-io/cli dex create --chain sol --from <wallet> --name "My Token" --symbol MT --uri "ipfs://..." [--dex pumpfun] [--image <url>]
 ```
 
 ## Supported Platforms
@@ -27,7 +27,8 @@ npx @chainstream-io/cli dex create --chain sol --name "My Token" --symbol MT --u
 | `name` | Yes | Token name |
 | `symbol` | Yes | Token symbol (ticker) |
 | `uri` | Yes | Metadata URI (IPFS or HTTP) |
-| `platform` | No | Launchpad platform (default: chain-specific) |
+| `dex` | No | Launchpad platform: pumpfun, raydium (default: pumpfun) |
+| `image` | No | Token image URL |
 
 ## Metadata URI
 

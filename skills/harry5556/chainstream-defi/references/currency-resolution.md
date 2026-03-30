@@ -17,8 +17,8 @@ When users specify currency names (SOL, ETH, BNB, USDC) instead of addresses, th
 
 ```bash
 # These are equivalent:
-npx @chainstream-io/cli dex quote --chain sol --input-token SOL --output-token <addr> --amount 1000000
-npx @chainstream-io/cli dex quote --chain sol --input-token So11111111111111111111111111111111111111112 --output-token <addr> --amount 1000000
+npx @chainstream-io/cli dex route --chain sol --from <wallet> --input-token SOL --output-token <addr> --amount 1000000
+npx @chainstream-io/cli dex route --chain sol --from <wallet> --input-token So11111111111111111111111111111111111111112 --output-token <addr> --amount 1000000
 ```
 
 Currency resolution is case-insensitive (sol, Sol, SOL all work).
