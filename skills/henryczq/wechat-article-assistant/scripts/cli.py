@@ -25,7 +25,7 @@ from env_check import env_check
 from database import Database
 from login_service import login_clear, login_import, login_info, login_poll, login_start, login_wait
 from log_utils import configure_logging, get_logger
-from mp_client import WechatMPClient, WechatRequestError
+from mp_client import WechatLoginExpiredError, WechatMPClient, WechatRequestError
 from openclaw_messaging import OpenClawMessenger, resolve_message_target
 from session_store import get_login_session
 from sync_service import sync_account, sync_all, sync_due, sync_logs
@@ -33,6 +33,38 @@ from utils import json_dumps, parse_bool
 
 
 LOGGER = get_logger(__name__)
+
+
+def _parse_proxy_urls(values: Any) -> list[str]:
+    if values is None:
+        return []
+    if isinstance(values, str):
+        values = [values]
+    urls: list[str] = []
+    for value in values:
+        text = str(value or "").replace("\r", "\n").replace(",", "\n").replace(";", "\n")
+        for item in text.split("\n"):
+            item = item.strip()
+            if item:
+                urls.append(item)
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in urls:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
+def _serialize_proxy_urls(values: Any) -> str:
+    return "\n".join(_parse_proxy_urls(values))
+
+
+def _proxy_row_with_list(row: dict[str, Any]) -> dict[str, Any]:
+    data = dict(row or {})
+    data["proxy_urls"] = _parse_proxy_urls(data.get("proxy_url"))
+    data["proxy_count"] = len(data["proxy_urls"])
+    return data
 
 
 def _add_json_flag(parser: argparse.ArgumentParser) -> None:
@@ -152,6 +184,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser_proxy_set.add_argument("--enabled", type=parse_bool, default=True, help="是否启用代理")
     parser_proxy_set.add_argument("--apply-article-fetch", type=parse_bool, default=True, help="文章详情抓取是否走代理")
     parser_proxy_set.add_argument("--apply-sync", type=parse_bool, default=True, help="同步和远端文章清单是否走代理")
+    parser_proxy_set.add_argument("--urls", action="append", default=[], help="澶氫釜浠ｇ悊鍦板潃锛屽彲澶氭浼犲叆鎴栫敤鎹㈣/閫楀彿鍒嗛殧")
     _add_json_flag(parser_proxy_set)
 
     parser_proxy_show = subparsers.add_parser("proxy-show", help="查看代理配置")
@@ -309,6 +342,9 @@ def handle_command(args: argparse.Namespace) -> dict[str, Any]:
             return login_clear(db)
         if args.command == "proxy-set":
             now = int(__import__("time").time())
+            proxy_urls = _parse_proxy_urls(getattr(args, "urls", []) or [])
+            proxy_urls.extend(_parse_proxy_urls(getattr(args, "url", "")))
+            serialized_proxy_urls = _serialize_proxy_urls(proxy_urls)
             db.execute(
                 """
                 INSERT INTO proxy_config (name, enabled, proxy_url, apply_article_fetch, apply_sync, created_at, updated_at)
@@ -320,12 +356,19 @@ def handle_command(args: argparse.Namespace) -> dict[str, Any]:
                   apply_sync = excluded.apply_sync,
                   updated_at = excluded.updated_at
                 """,
-                (1 if args.enabled else 0, args.url, 1 if args.apply_article_fetch else 0, 1 if args.apply_sync else 0, now, now),
+                (
+                    1 if args.enabled else 0,
+                    serialized_proxy_urls,
+                    1 if args.apply_article_fetch else 0,
+                    1 if args.apply_sync else 0,
+                    now,
+                    now,
+                ),
             )
-            row = db.row("SELECT * FROM proxy_config WHERE name = 'default'") or {}
+            row = _proxy_row_with_list(db.row("SELECT * FROM proxy_config WHERE name = 'default'") or {})
             return {"success": True, "data": row, "formatted_text": "代理配置已更新"}
         if args.command == "proxy-show":
-            row = db.row("SELECT * FROM proxy_config WHERE name = 'default'") or {}
+            row = _proxy_row_with_list(db.row("SELECT * FROM proxy_config WHERE name = 'default'") or {})
             return {"success": True, "data": row, "formatted_text": "当前代理配置"}
         if args.command == "search-account":
             return search_account(db, keyword=args.keyword, limit=args.limit)
@@ -397,7 +440,7 @@ def handle_command(args: argparse.Namespace) -> dict[str, Any]:
             )
         if args.command == "doctor":
             session = get_login_session(db)
-            proxy = db.row("SELECT * FROM proxy_config WHERE name = 'default'")
+            proxy = _proxy_row_with_list(db.row("SELECT * FROM proxy_config WHERE name = 'default'") or {})
             client = WechatMPClient(db)
             env_result = env_check()
             session_summary: dict[str, Any] = {}
@@ -421,6 +464,8 @@ def handle_command(args: argparse.Namespace) -> dict[str, Any]:
                 "present": bool(session and session.get("token")),
                 "validated": False,
                 "message": "未找到登录会话",
+                "reason": "未找到登录会话",
+                "reason_type": "missing_session",
             }
             if session and session.get("token"):
                 try:
@@ -429,15 +474,27 @@ def handle_command(args: argparse.Namespace) -> dict[str, Any]:
                         "present": True,
                         "validated": True,
                         "message": "登录态校验通过",
+                        "reason": "登录态校验通过",
+                        "reason_type": "ok",
                         "nickname": validated.get("nickname", ""),
                         "head_img": validated.get("head_img", ""),
                         "token": validated.get("token", ""),
+                    }
+                except WechatLoginExpiredError as exc:
+                    login_health = {
+                        "present": True,
+                        "validated": False,
+                        "message": str(exc),
+                        "reason": str(exc),
+                        "reason_type": "login_expired",
                     }
                 except WechatRequestError as exc:
                     login_health = {
                         "present": True,
                         "validated": False,
                         "message": str(exc),
+                        "reason": str(exc),
+                        "reason_type": "request_error",
                     }
             return {
                 "success": True,

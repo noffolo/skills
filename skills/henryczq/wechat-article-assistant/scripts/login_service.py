@@ -47,6 +47,10 @@ def _generate_sid() -> str:
     return f"skill_{now_ts()}_{suffix}"
 
 
+def _login_resume_command(sid: str) -> str:
+    return f"python scripts/wechat_article_assistant.py login-wait --sid '{sid}' --json"
+
+
 def login_start(
     db: Database,
     messenger: OpenClawMessenger | None = None,
@@ -58,10 +62,11 @@ def login_start(
 ) -> dict[str, Any]:
     client = WechatMPClient(db)
     sid = sid or _generate_sid()
+    messenger_ready = bool(messenger and messenger.is_ready())
     LOGGER.info(
         "login_start sid=%s notify=%s wait=%s timeout=%s interval=%s",
         sid,
-        bool(messenger and messenger.is_ready()),
+        messenger_ready,
         wait,
         timeout,
         interval,
@@ -121,7 +126,20 @@ def login_start(
         "expires_at": now_ts() + 5 * 60,
         "notify": notify_result,
         "auto_wait": bool(wait),
+        "resume_command": _login_resume_command(sid),
     }
+
+    if wait and notify:
+        if not messenger_ready:
+            payload["wait_skipped"] = True
+            payload["wait_skip_reason"] = "message_target_not_ready"
+            LOGGER.warning("login_start sid=%s skip wait because messenger is not ready", sid)
+            return failure("二维码已生成，但自动发送器未就绪；请手动发送二维码后再执行 login-wait", payload)
+        if notify_result and not notify_result.get("success"):
+            payload["wait_skipped"] = True
+            payload["wait_skip_reason"] = "notify_failed"
+            LOGGER.warning("login_start sid=%s skip wait because notify failed error=%s", sid, notify_result.get("message"))
+            return failure("二维码已生成，但自动发送失败；请补发二维码后再执行 login-wait", payload)
 
     if wait:
         wait_result = login_wait(
@@ -322,19 +340,50 @@ def login_info(db: Database, validate: bool = False) -> dict[str, Any]:
             "未找到登录信息",
         )
 
+    validation: dict[str, Any] = {
+        "requested": bool(validate),
+        "validated": bool(session.get("valid")),
+        "reason": "",
+        "reason_type": "",
+    }
     if validate:
         client = WechatMPClient(db)
         try:
             result = client.validate_login()
             update_login_validation(db, True, nickname=result.get("nickname", ""), head_img=result.get("head_img", ""))
             session = get_login_session(db) or session
-        except (WechatLoginExpiredError, WechatRequestError):
+            validation = {
+                "requested": True,
+                "validated": True,
+                "reason": "登录态校验通过",
+                "reason_type": "ok",
+            }
+        except WechatLoginExpiredError as exc:
             update_login_validation(db, False)
             session = get_login_session(db) or session
+            validation = {
+                "requested": True,
+                "validated": False,
+                "reason": str(exc),
+                "reason_type": "login_expired",
+            }
+        except WechatRequestError as exc:
+            update_login_validation(db, False)
+            session = get_login_session(db) or session
+            validation = {
+                "requested": True,
+                "validated": False,
+                "reason": str(exc),
+                "reason_type": "request_error",
+            }
 
+    logged_in = bool(session.get("valid"))
+    formatted_text = f"当前登录账号: {session.get('nickname') or '未知'}"
+    if validate and not validation.get("validated"):
+        formatted_text = f"{formatted_text}，校验失败: {validation.get('reason') or '未知原因'}"
     return success(
         {
-            "logged_in": bool(session.get("valid")),
+            "logged_in": logged_in,
             "nickname": session.get("nickname", ""),
             "head_img": session.get("head_img", ""),
             "token": session.get("token", ""),
@@ -343,8 +392,9 @@ def login_info(db: Database, validate: bool = False) -> dict[str, Any]:
             "expires_at_formatted": format_timestamp(session.get("expires_at")),
             "last_validated_at": session.get("last_validated_at"),
             "last_validated_at_formatted": format_timestamp(session.get("last_validated_at")),
+            "validation": validation,
         },
-        f"当前登录账号: {session.get('nickname') or '未知'}",
+        formatted_text,
     )
 
 

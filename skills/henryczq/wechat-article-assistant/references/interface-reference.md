@@ -77,12 +77,12 @@ python scripts/wechat_article_assistant.py <command> ... --json
 
 - 当前实现同时兼容上述两套变量名。
 - 若两者同时存在，优先使用 `WECHAT_ARTICLE_ASSISTANT_HOME`。
-- 若两者都未设置，则默认使用 Skill 目录下的 `data/`。
+- 若两者都未设置，则默认使用 `~/.openclaw/media/wechat-article-assistant/`。
 
 默认目录（未显式设置环境变量时）：
 
 ```text
-<skill_dir>/data/
+~/.openclaw/media/wechat-article-assistant/
 ```
 
 ### 4.2 日志
@@ -104,7 +104,7 @@ python scripts/wechat_article_assistant.py <command> ... --json
 - `downloads/articles/`
 - `downloads/images/`
 - `qrcodes/`
-- `logs/wechat_article_openclaw.log`
+- `logs/wechat_article_assistant.log`
 
 ## 5. 返回格式
 

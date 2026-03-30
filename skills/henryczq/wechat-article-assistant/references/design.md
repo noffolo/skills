@@ -10,7 +10,6 @@ wechat-article-assistant/
 ├─ references/
 │  ├─ design.md
 │  ├─ sqlite-schema.md
-│  ├─ requirements-functional-spec.md
 │  └─ interface-reference.md
 └─ scripts/
    ├─ wechat_article_assistant.py

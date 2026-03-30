@@ -9,11 +9,19 @@ import time
 from article_service import upsert_articles
 from database import Database
 from log_utils import get_logger
-from mp_client import WechatRequestError
+from mp_client import WechatLoginExpiredError, WechatRequestError
+from session_store import update_login_validation
 from utils import failure, now_ts, success
 
 
 LOGGER = get_logger(__name__)
+
+
+def _format_sync_error(message: str) -> tuple[str, str | None]:
+    normalized = str(message or "").strip()
+    if normalized.lower() == "invalid session":
+        return "微信网络限制，请使用代理", normalized
+    return normalized, None
 
 
 def _account_name(db: Database, fakeid: str) -> str:
@@ -71,6 +79,13 @@ def sync_account(db: Database, fakeid: str, max_pages: int | None = None, page_s
     pages_fetched = 0
     existing_hit_page: int | None = None
     try:
+        validated = client.validate_login()
+        update_login_validation(
+            db,
+            True,
+            nickname=str(validated.get("nickname") or ""),
+            head_img=str(validated.get("head_img") or ""),
+        )
         page_index = 0
         while True:
             if max_pages and page_index >= max_pages:
@@ -142,12 +157,34 @@ def sync_account(db: Database, fakeid: str, max_pages: int | None = None, page_s
             },
             message,
         )
-    except WechatRequestError as exc:
-        message = str(exc)
-        LOGGER.warning("sync_account failed fakeid=%s error=%s", fakeid, message)
+    except WechatLoginExpiredError as exc:
+        message = "微信登录已过期，请重新扫码登录"
+        request_debug = client.get_last_request_debug()
+        LOGGER.warning("sync_account login expired fakeid=%s error=%s raw_error=%s", fakeid, message, str(exc))
+        update_login_validation(db, False)
         _update_sync_status(db, fakeid, "failed", message)
         _log_sync(db, fakeid, "failed", message, 0, started_at, now_ts())
-        return failure(message, {"fakeid": fakeid})
+        data = {
+            "fakeid": fakeid,
+            "original_error": str(exc),
+            "login_expired": True,
+        }
+        if request_debug:
+            data["request_debug"] = request_debug
+        return failure(message, data)
+    except WechatRequestError as exc:
+        raw_message = str(exc)
+        message, original_error = _format_sync_error(raw_message)
+        request_debug = client.get_last_request_debug()
+        LOGGER.warning("sync_account failed fakeid=%s error=%s raw_error=%s", fakeid, message, raw_message)
+        _update_sync_status(db, fakeid, "failed", message)
+        _log_sync(db, fakeid, "failed", message, 0, started_at, now_ts())
+        data = {"fakeid": fakeid}
+        if original_error:
+            data["original_error"] = original_error
+        if request_debug:
+            data["request_debug"] = request_debug
+        return failure(message, data)
 
 
 def sync_all(db: Database, interval_seconds: int = 0) -> dict:
