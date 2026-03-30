@@ -3,9 +3,15 @@
   "slug": "quant-finance",
   "displayName": "Quant Finance",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1773929979563,
-    "commit": "https://github.com/openclaw/skills/commit/3768ce1d20d4b152147dd70f778a24d2d8f2b3e5"
+    "version": "2.0.3",
+    "publishedAt": 1774313424843,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1773929979563,
+      "commit": "https://github.com/openclaw/skills/commit/3768ce1d20d4b152147dd70f778a24d2d8f2b3e5"
+    }
+  ]
 }
