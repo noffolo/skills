@@ -3,9 +3,15 @@
   "slug": "gate-exchange-unified",
   "displayName": "Gate Exchange Unified",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773490879817,
-    "commit": "https://github.com/openclaw/skills/commit/6c40c309554dde582cabf01140a53063654e846b"
+    "version": "1.0.1",
+    "publishedAt": 1774616927108,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773490879817,
+      "commit": "https://github.com/openclaw/skills/commit/6c40c309554dde582cabf01140a53063654e846b"
+    }
+  ]
 }

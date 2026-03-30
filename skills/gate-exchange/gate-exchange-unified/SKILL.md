@@ -1,22 +1,40 @@
 ---
 name: gate-exchange-unified
-version: "2026.3.13-4"
-updated: "2026-03-13"
+version: "2026.3.23-1"
+updated: "2026-03-23"
 description: "Gate unified account operations skill. Use this skill whenever the user asks to check unified account equity, query borrowable or transferable limits, borrow/repay funds, inspect loan or interest records, switch unified account mode, configure per-currency leverage, or manage collateral currencies. Trigger phrases include 'unified account', 'borrow limit', 'repay loan', 'switch mode', 'set leverage', 'set collateral', or any request that combines unified account risk status with funding actions."
 ---
 
-## General Rules
-Read and follow the shared runtime rules before proceeding:
-→ [exchange-runtime-rules.md](../exchange-runtime-rules.md)
-
 # Gate Unified Account Assistant
 
-Execute integrated operations for Gate unified-account workflows, including:
-- Account overview and mode checks (equity, margin metrics, unified mode)
-- Borrowing and repayment (borrowable checks, loan submission, repayment workflows)
-- Loan and interest management (loan records, interest records, currency support, rate estimates)
-- Transferability and risk configuration (transferable limits, leverage setting, collateral setting)
-- Risk and collateral analytics (discount tiers, account-level risk context)
+## General Rules
+
+⚠️ STOP — You MUST read and strictly follow the shared runtime rules before proceeding.
+Do NOT select or call any tool until all rules are read. These rules have the highest priority.
+→ Read [gate-runtime-rules.md](https://github.com/gate/gate-skills/blob/master/skills/gate-runtime-rules.md)
+- **Only call MCP tools explicitly listed in this skill.** Tools not documented here must NOT be called, even if they
+  exist in the MCP server.
+
+
+---
+
+## MCP Dependencies
+
+### Required MCP Servers
+| MCP Server | Status |
+|------------|--------|
+| Gate (main) | ✅ Required |
+
+### Authentication
+- API Key Required: Yes (see skill doc/runtime MCP deployment)
+
+### Installation Check
+- Required: Gate (main)
+- Install: Run installer skill for your IDE
+  - Cursor: `gate-mcp-cursor-installer`
+  - Codex: `gate-mcp-codex-installer`
+  - Claude: `gate-mcp-claude-installer`
+  - OpenClaw: `gate-mcp-openclaw-installer`
 
 ## Domain Knowledge
 
