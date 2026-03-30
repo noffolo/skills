@@ -3,9 +3,15 @@
   "slug": "hello-mx-competitive-analyst",
   "displayName": "mx-competitive-analyst",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773822619648,
-    "commit": "https://github.com/openclaw/skills/commit/87bc012fb510670a1160c17795f8ffe5aa1fde4c"
+    "version": "1.0.4",
+    "publishedAt": 1774431688940,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773822619648,
+      "commit": "https://github.com/openclaw/skills/commit/87bc012fb510670a1160c17795f8ffe5aa1fde4c"
+    }
+  ]
 }
