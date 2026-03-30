@@ -1,13 +1,18 @@
 {
   "owner": "a64307410",
   "slug": "muse-ai",
-  "displayName": "muse ai",
+  "displayName": "Release",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1773672223793,
-    "commit": "https://github.com/openclaw/skills/commit/37f20eac142b04325b838d03fae6d5eea8578bcd"
+    "version": "1.0.6",
+    "publishedAt": 1774502053338,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1773672223793,
+      "commit": "https://github.com/openclaw/skills/commit/37f20eac142b04325b838d03fae6d5eea8578bcd"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773421595645,
