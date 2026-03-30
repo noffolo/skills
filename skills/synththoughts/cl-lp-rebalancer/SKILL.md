@@ -1,10 +1,10 @@
 ---
 name: cl-lp-rebalancer
-description: "Uniswap V3 集中流动性 LP 自动调仓策略。基于波动率自适应范围宽度：低波动率收紧范围（高资本效率），高波动率放宽范围（减少调仓和 IL）。支持趋势不对称调整、多时间框架分析、自动 claim/remove/swap/deposit 全流程。适用于 EVM L2 链上 CL LP 管理、调仓、范围优化、手续费最大化场景。"
+description: "Uniswap V3 集中流动性 LP 自动调仓策略。基于波动率自适应范围宽度：低波动率收紧范围（高资本效率），高波动率放宽范围（减少调仓和 IL）。支持趋势不对称调整、多时间框架分析、自动 claim/remove/swap/deposit 全流程。适用于 EVM L2 链上 CL LP 管理、调仓、范围优化、手续费最大化场景。用户查询收益、PnL、仓位、头寸状态、LP 状况、年化、手续费、无常损失时，调用 status 子命令即可获取（每 5 分钟缓存一次，秒级响应）。"
 license: Apache-2.0
 metadata:
   author: SynthThoughts
-  version: "2.6.0"
+  version: "3.9.0"
   pattern: "pipeline, tool-wrapper"
   steps: "5"
 ---
@@ -14,19 +14,6 @@ metadata:
 Cron 驱动的 Uniswap V3 集中流动性自动调仓机器人，运行在 EVM L2 链上，通过 `onchainos` CLI 执行 DeFi 操作。核心思路：**波动率决定范围宽度** — 低波动率时收紧范围提高资本效率，高波动率时放宽范围减少调仓频率和无常损失。
 
 每个 tick：获取价格 → 波动率分析 → 范围计算 → 调仓决策 → 执行调仓 → 报告。
-
-## 与 Grid Trading 的区别
-
-| 维度 | Grid Trading | CL LP Rebalancer |
-|------|-------------|------------------|
-| 收益来源 | 网格价差（低买高卖） | LP 手续费（做市） |
-| 链上操作 | swap 买卖 | add/remove liquidity + claim fees |
-| 核心参数 | 网格间距、层数 | 范围宽度、tick 间距 |
-| 波动率响应 | 调整网格宽度 | 调整范围宽度 + 是否调仓 |
-| 持仓形式 | 两种代币余额 | NFT position (LP token) |
-| 风险特征 | 单边行情踏空 | 无常损失 (IL) |
-| 调仓频率 | 每 tick 可能交易 | 仅在触发条件时调仓 |
-| gas 敏感度 | 低（单次 swap） | 高（多步操作：claim+remove+swap+deposit） |
 
 ## Architecture
 
@@ -170,7 +157,6 @@ onchainos defi search --chain <chain> --token "<token0>,<token1>" --product-grou
   "gas_to_fee_ratio": 0.5,
   "max_il_tolerance_pct": 5.0,
   "edge_proximity_threshold": 0.15,
-  "emergency_range_mult": 2.0,
   "stop_loss_pct": 0.15,
   "trailing_stop_pct": 0.1,
   "slippage_pct": 1,
@@ -264,10 +250,8 @@ onchainos defi search --chain <chain> --token "<token0>,<token1>" --product-grou
 
 **Actions**:
 1. If no existing position → always deploy (first run)
-2. Check rebalance triggers (in priority order):
+2. Check rebalance triggers:
    - **Out of range**: price < lower or price > upper → MUST rebalance
-   - **Volatility shift**: ATR changed >30% from position creation → adaptive rebalance
-   - **Time decay**: position age > 24h → maintenance rebalance
 3. Anti-churn checks:
    - Position age >= `MIN_POSITION_AGE` (2h)
    - Rebalance count < `MAX_REBALANCES_24H` (6/day)
@@ -369,8 +353,6 @@ Rebalance failure fallback: if deposit fails after remove, emergency deploy at 3
 
 | Parameter | Default | Description |
 |---|---|---|
-| `VOL_SHIFT_THRESHOLD` | `0.30` | Trigger if ATR changed >30% from position creation |
-| `MAX_POSITION_AGE_H` | `24` | Force rebalance after 24 hours |
 | `MIN_RANGE_CHANGE_PCT` | `0.05` | Skip rebalance if new range <5% different |
 
 ### Anti-Churn Controls
@@ -429,13 +411,21 @@ Rebalance failure fallback: if deposit fails after remove, emergency deploy at 3
 
 | Command | Purpose | Trigger | Notification |
 |---|---|---|---|
-| `tick` | 主循环：采集→分析→决策→执行 | Cron 每 5min | 🔔 Trade Alert / ⚠️ Risk Alert / 📊 Hourly Pulse |
-| `status` | 当前头寸、范围、指标、趋势 | 用户主动 | 终端输出（不推送） |
+| `tick` | 主循环：采集→分析→决策→执行，结果缓存到 `_cached_snapshot` | Cron 每 5min | 🔔 Trade Alert / ⚠️ Risk Alert / 📊 Hourly Pulse |
+| `status` | **用户查询入口**：Portfolio 总览 + 头寸 + 收益 + 范围。优先读 5min 缓存（秒级响应），过期才实时查询 | 用户主动 | 终端输出（不推送） |
 | `report` | 每日绩效报告 | Cron 每日 00:00 UTC | 📈 Daily Report |
 | `history` | 调仓历史 | 用户主动 | 终端输出（不推送） |
 | `analyze` | 详细 JSON 分析（波动率、范围、效率） | AI agent | 终端输出（不推送） |
 | `reset` | 关闭头寸并重新部署 | 手动 | 🔔 Trade Alert |
 | `close` | 完全退出头寸 | 手动 | 🔔 Trade Alert |
+
+**`status` 触发词**（用户说以下任意内容时应调用 `status`）：
+- 查询收益、收益怎么样、赚了多少、PnL、盈亏
+- 查询仓位、头寸状态、LP 状况、仓位情况
+- 年化多少、APY、费用收入、手续费
+- 无常损失、IL
+- 总资产、Portfolio、余额
+- LP 里有多少 ETH / USDC
 
 ```python
 COMMANDS = {
@@ -459,7 +449,7 @@ if __name__ == "__main__":
 | **Hourly Pulse** | 距上次推送 ≥ `QUIET_INTERVAL` 且无交易 | 每小时推送 |
 | **Daily Report** | `report` 命令 (cron daily) | 每日推送 |
 
-`status`/`analyze` 命令为用户主动查询，直接输出到终端，不推送。
+`status`/`analyze` 命令为用户主动查询，直接输出到终端，不推送。`status` 优先从 `_cached_snapshot`（每 5min tick 时写入）读取已计算好的数据，无需任何 API 调用即可返回完整状态（Portfolio 跨平台总览 + 头寸 + PnL + IL + APY + LP 代币拆分）。缓存过期（>360s）时自动 fallback 到实时查询。
 
 脚本负责：消息标题、字段组织、范围位置可视化、颜色级别、footer 上下文。调度器只需透传 `notification` 块到通信平台。
 
@@ -545,8 +535,6 @@ Key fields:
    c. Convert to ticks, align to tick_spacing
 8. Check rebalance triggers:
    a. Out of range → must rebalance
-   b. ATR shift > 30% → adaptive
-   c. Position age > 24h → maintenance
 9. Anti-churn gates (position age, frequency, gas cost, range change)
 10. If rebalancing:
     a. Claim fees → remove liquidity → swap to ratio → deposit at new range
@@ -611,5 +599,5 @@ IF rebalance sub-step fails:
 | Ignore gas costs | L1 gas can exceed daily fee income |
 | Symmetric range in trends | Miss upside in bull, excess downside in bear |
 | No IL tracking | Cannot detect when IL exceeds fee income |
-| Rebalance on every vol change | Minor ATR fluctuations cause unnecessary churn |
+| Rebalance on vol change alone | Minor ATR fluctuations cause unnecessary churn — only rebalance when out of range |
 | No time-in-range tracking | Cannot measure strategy effectiveness |
