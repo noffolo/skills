@@ -5,13 +5,28 @@
   "firstChatDate": "",
   "timezone": "",
   "language": "",
-  "deliveryChannel": "",
-  "deliveryTo": "",
+  "delivery": {
+    "channel": "",
+    "to": "",
+    "accountId": "",
+    "autoDetected": false
+  },
+  "chainConfig": {
+    "enabledTypes": [],
+    "chains": {
+      "morning": { "baseTime": "08:00", "jitterMinutes": 15, "poolPointer": 0 },
+      "lunch": { "baseTime": "12:00", "jitterMinutes": 15, "poolPointer": 0 },
+      "dinner": { "baseTime": "18:30", "jitterMinutes": 15, "poolPointer": 0 },
+      "evening": { "baseTime": "22:00", "jitterMinutes": 15, "poolPointer": 0 },
+      "random": { "minGapHours": 3, "maxGapHours": 8, "maxPerDay": 2, "poolPointer": 0 }
+    }
+  },
+  "dailyMessageLog": { "date": "", "count": 0, "types": [] },
+  "watchdogJobId": "",
   "moodLog": [],
   "recentTopics": [],
   "sleepPattern": {},
   "mealPreferences": {},
-  "cronJobIds": [],
   "lastInteraction": "",
   "totalConversations": 0,
   "conflictCooldown": false
