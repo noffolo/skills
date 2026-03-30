@@ -3,11 +3,16 @@
   "slug": "goodwallet",
   "displayName": "GoodWallet",
   "latest": {
-    "version": "1.2.0",
-    "publishedAt": 1773853744736,
-    "commit": "https://github.com/openclaw/skills/commit/25d2fed85dddf2dc6dfab8c964f89621a08801c1"
+    "version": "1.3.0",
+    "publishedAt": 1774449974255,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.2.0",
+      "publishedAt": 1773853744736,
+      "commit": "https://github.com/openclaw/skills/commit/25d2fed85dddf2dc6dfab8c964f89621a08801c1"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773754623088,
