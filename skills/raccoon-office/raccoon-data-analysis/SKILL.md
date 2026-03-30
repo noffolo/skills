@@ -1,11 +1,6 @@
 ---
 name: raccoon-dataanalysis
-description: >
-  Raccoon (小浣熊) Data Analysis - Remote code interpreter and data visualization service
-  powered by SenseTime. Upload files (Excel, CSV, etc.) for AI-driven analysis, chart generation,
-  and automated insights. Supports data analysis sessions, file upload/download, visualization,
-  and multi-turn conversations. Keywords: raccoon, data analysis, code interpreter, visualization,
-  小浣熊, 数据分析, 代码解释器, 数据可视化.
+description: 当用户需要使用小浣熊(Raccoon)进行数据分析会话管理、文件上传下载、数据可视化、数据分析交互时使用此技能。触发词包括"小浣熊数据分析"、"Raccoon数据分析"、"数据分析会话"。
 homepage: https://xiaohuanxiong.com
 metadata: {"clawdbot":{"emoji":"🦝","requires":{"bins":["python3"],"env":["RACCOON_API_HOST","RACCOON_API_TOKEN"]},"primaryEnv":"RACCOON_API_TOKEN"}}
 ---
