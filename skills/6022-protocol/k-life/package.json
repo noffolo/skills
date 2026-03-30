@@ -1,0 +1,12 @@
+{
+  "name": "k-life-skill",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@tetherto/wdk-wallet-evm": "*",
+    "@aleph-sdk/client": "*",
+    "@aleph-sdk/ethereum": "*",
+    "shamirs-secret-sharing": "*",
+    "ethers": "^6.0.0"
+  }
+}
