@@ -2,16 +2,17 @@
 name: zmail
 description: >-
   Local-first email for agents: IMAP sync to maildir + SQLite (FTS5); CLI search, read, thread, who,
-  attachments. Requires Node 20+, global install via npm (`npm install -g @cirne/zmail`; postinstall
-  rebuilds native better-sqlite3), and IMAP credentials. OpenAI API key required for `zmail setup` /
-  wizard, `zmail ask`, and `zmail inbox`—those features can send email-derived text to OpenAI.
-  Optional `who --enrich` may call third-party search APIs. Source: github.com/cirne/zmail.
+  attachments. Requires Node 20+, npm install (`npm install -g @cirne/zmail` or `npx @cirne/zmail`),
+  native better-sqlite3 (rebuilt on first run if Node ABI mismatch), and IMAP credentials. OpenAI API
+  key required for `zmail setup` / wizard, `zmail ask`, and `zmail inbox`—those features can send
+  email-derived text to OpenAI. Optional `who --enrich` may call third-party search APIs. Source:
+  github.com/cirne/zmail.
 license: "Refer to https://github.com/cirne/zmail for project license and terms."
 compatibility: >-
   Node.js 20+; npm; `zmail` on PATH after global install. Network: IMAP, OpenAI (ask/inbox/setup),
-  optional enrich providers. Disk: ~/.zmail (SQLite + maildir). Native addon: better-sqlite3 (rebuilt on install).
+  optional enrich providers. Disk: ~/.zmail (SQLite + maildir). Native addon: better-sqlite3 (rebuilt on first run if needed).
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
   homepage: "https://github.com/cirne/zmail"
   repository: "https://github.com/cirne/zmail"
   openclaw:
@@ -39,11 +40,14 @@ Use this block to keep **ClawHub / OpenClaw registry fields** aligned with the s
 | Topic | What to declare |
 |--------|------------------|
 | **Provenance** | Source and issues: **[github.com/cirne/zmail](https://github.com/cirne/zmail)** |
-| **Install** | **`npm install -g @cirne/zmail`** (Node **20+**). Package runs **`postinstall`** → rebuilds **`better-sqlite3`** for the current Node/OS (native addon; supply-chain/install risk is the same as any npm global with native deps). If load fails: **`npm rebuild better-sqlite3`** with the same `node` that runs `zmail`. |
+| **Install** | **`npm install -g @cirne/zmail`** or **`npx @cirne/zmail`** (Node **20+**). Native **`better-sqlite3`**; on ABI mismatch, first **`zmail`** run rebuilds via **`ensure-better-sqlite-native`** (or run **`npm rebuild better-sqlite3`** yourself with the same `node` that runs `zmail`). |
 | **On PATH** | Global npm `bin` must be on **`PATH`**, or use **`npx @cirne/zmail`** for one-off invocations. |
 | **Required secrets (after setup)** | **`ZMAIL_EMAIL`**, **`ZMAIL_IMAP_PASSWORD`** (IMAP; e.g. Gmail app password). **`ZMAIL_OPENAI_API_KEY`** or **`OPENAI_API_KEY`** for setup wizard, **`zmail ask`**, **`zmail inbox`**, and optional **`zmail who --enrich`**. |
 | **Privacy / data leaving the device** | **`zmail ask`**, **`zmail inbox`**, and **`who --enrich`** can send **email-derived content** (subjects, snippets, bodies, addresses) to **OpenAI** or other APIs—only use if the **mailbox owner** accepts that. Primitives **`search` / `read` / `thread` / `attachment`** (without enrich) are local index + disk only once mail is synced. |
-| **Persistence & destructive actions** | Data lives under **`ZMAIL_HOME`** (default **`~/.zmail`**). **`zmail setup --clean --yes`** wipes config + data there—**irreversible** without a backup. |
+| **Credentials on disk** | Secrets live under **`ZMAIL_HOME/.env`** (and non-secret settings in **`config.json`**). They are used only to talk to **your** IMAP host and (when configured) **OpenAI**—not to third-party analytics or the zmail project. Treat **`.env`** like any password file (permissions, backups, don’t paste into chats). |
+| **IMAP / send posture** | **Read-only today:** zmail syncs and indexes mail; it does **not** implement **SMTP send** in this release. Normal sync is a **local cache** of what remains on the server—deleting local data (see below) does not remove server-side mail. |
+| **MCP (optional)** | **`zmail mcp`** uses **stdio** JSON-RPC only (stdin/stdout)—**no** in-process HTTP server or listening TCP port for MCP. |
+| **Persistence & local wipe** | Config and a **local** copy of mail (SQLite index + maildir cache under **`data/`**) live under **`ZMAIL_HOME`** (default **`~/.zmail`**). **`zmail setup --clean --yes`** removes that local tree and rewrites config—it does **not** delete mail on the **IMAP server**; after setup, run **`zmail sync`** to **rebuild** the local cache from IMAP. You still lose unsaved **local-only** state (e.g. extracted-attachment cache, any data not on the server). |
 | **Shell safety** | Invoke **`zmail`** with **argument arrays** (or careful quoting). **Never** paste untrusted mail text or chat content into a **`sh -c "zmail …"`** string—**command-injection** risk. |
 
 OpenClaw parses **`metadata.openclaw.requires`** per [Creating skills](https://docs.openclaw.ai/tools/creating-skills): **`bins`** = executables expected on **`PATH`** (**`zmail`** exists only **after** the global install step). **`config`** lists environment variables this workflow expects for a configured mailbox (mirror the same in ClawHub package metadata if the UI has separate fields).
@@ -70,9 +74,7 @@ node -v   # must be v20+
 npm install -g @cirne/zmail
 ```
 
-- **`postinstall`** rebuilds **`better-sqlite3`** for the current Node. If you see a native load error, run:  
-  `npm rebuild better-sqlite3`  
-  using the **same** `node` binary that runs `zmail`.
+- If **`better-sqlite3`** fails to load (wrong Node ABI), the CLI may rebuild automatically on first run; if not, run **`npm rebuild better-sqlite3`** using the **same** `node` binary that runs `zmail`.
 - **Global install note:** `npm` may install to a directory that is not on `PATH`; ensure that global `bin` is on `PATH`, or use `npx @cirne/zmail` for one-off commands.
 
 Config and data default to **`ZMAIL_HOME`** (default **`~/.zmail`**): `config.json`, `.env`, and `data/` (SQLite + maildir).
@@ -99,7 +101,7 @@ If app passwords are disabled (workspace policy, account type), the user must us
 
 - **When:** Real terminal with TTY; user is present to answer prompts.
 - **Run:** `zmail wizard`  
-  Optional: `--no-validate` (skip live IMAP/OpenAI checks), `--clean` (wipe existing config/data; may prompt unless `--yes`).
+  Optional: `--no-validate` (skip live IMAP/OpenAI checks), `--clean` (wipe local config + cached mail under `ZMAIL_HOME`; IMAP unchanged; may prompt unless `--yes`).
 - **If stdin is not a TTY** (agents, CI, pipes): wizard **exits** with a message to use **`zmail setup`** instead.
 - Wizard walks through email, IMAP app password, OpenAI key, default sync window, and can **start background sync** at the end.
 
@@ -139,7 +141,7 @@ zmail setup
 |------|--------|
 | `--no-validate` | Skip IMAP and OpenAI validation (faster/offline-ish write of config only). |
 | `--default-since <spec>` | Default sync window in config (e.g. `7d`, `1y`). Default if omitted: `1y`. |
-| `--clean --yes` | Delete existing `config.json`, `.env`, and `data/` under `ZMAIL_HOME`, then write new config (**destructive**). |
+| `--clean --yes` | Delete existing `config.json`, `.env`, and `data/` under `ZMAIL_HOME`, then write new config. **Local only**—IMAP mailbox unchanged; resync rebuilds the index/cache. |
 
 If any required value is missing, `zmail setup` prints what’s missing and exits—fix env/flags and retry.
 
