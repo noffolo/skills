@@ -1,12 +1,14 @@
 ---
 name: ocas-corvus
-description: Exploratory pattern analysis engine for the system knowledge graph and skill journals. Detects routines, emerging interests, anomalies, stalled threads, and cross-domain opportunities from accumulated activity signals. Use when analyzing patterns, detecting routines, running exploration cycles, or checking for anomalies. Do not use for web research (Sift), person investigations (Scout), or system architecture changes (Mentor).
+source: https://github.com/indigokarasu/corvus
+install: openclaw skill install https://github.com/indigokarasu/corvus
+description: Use when analyzing behavioral patterns, detecting routines, finding anomalies in the knowledge graph, or running exploration cycles across accumulated activity signals. Detects routines, emerging interests, stalled threads, and cross-domain opportunities. Trigger phrases: 'analyze patterns', 'detect routines', 'find anomalies', 'what patterns do you see', 'exploration cycle', 'run analysis', 'update corvus'. Do not use for web research (use Sift), person investigations (use Scout), or system architecture changes (use Mentor).
 metadata: {"openclaw":{"emoji":"🐦‍⬛"}}
 ---
 
 # Corvus
 
-Corvus is the system's exploratory intelligence engine. It analyzes the knowledge graph and activity signals to discover behavioral patterns, test hypotheses, and produce structured insight proposals supported by evidence.
+Corvus is the system's curiosity engine — it continuously scans the knowledge graph and skill journals to surface behavioral patterns, emerging interests, stalled threads, and cross-domain opportunities that no single skill would notice on its own. It works by forming hypotheses, testing them against accumulated signals, and emitting validated proposals downstream to Praxis and Vesper for action and briefing.
 
 ## When to use
 
@@ -42,6 +44,7 @@ Corvus emits BehavioralSignal files to Praxis and InsightProposal files to Vespe
 - `corvus.hypotheses.list` — list active hypotheses under investigation
 - `corvus.status` — return current analysis state: patterns detected, proposals pending, graph coverage
 - `corvus.journal` — write journal for the current run; called at end of every run
+- `corvus.update` — pull latest from GitHub source; preserves journals and data
 
 ## Operation modes
 
@@ -84,6 +87,16 @@ Proposal types: routine_prediction, thread_continuation, opportunity_discovery, 
 
 Read `references/schemas.md` for exact proposal schema.
 
+## Analysis cycle completion
+
+After every analysis cycle (light or deep):
+
+1. Persist hypotheses, patterns, and proposals to local JSONL files
+2. For each validated pattern with `proposal_type: behavioral_signal`: write a BehavioralSignal file to `~/openclaw/data/ocas-praxis/intake/{signal_id}.json`
+3. For each validated proposal reaching sufficient confidence (all types except `behavioral_signal`): write an InsightProposal file to `~/openclaw/data/ocas-vesper/intake/{proposal_id}.json`
+4. Check `~/openclaw/data/ocas-corvus/intake/` for Thread research signals; process and move to `intake/processed/`
+5. Write journal via `corvus.journal`
+
 ## Inter-skill interfaces
 
 Corvus writes BehavioralSignal files to: `~/openclaw/data/ocas-praxis/intake/{signal_id}.json`
@@ -116,13 +129,12 @@ See `spec-ocas-interfaces.md` for schemas and handoff contracts.
     {run_id}.json
 ```
 
-The OCAS_ROOT environment variable overrides `~/openclaw` if set.
 
 Default config.json:
 ```json
 {
   "skill_id": "ocas-corvus",
-  "skill_version": "2.0.0",
+  "skill_version": "2.3.0",
   "config_version": "1",
   "created_at": "",
   "updated_at": "",
@@ -182,14 +194,73 @@ skill_okrs:
 
 Observation Journal — all analysis cycles (light and deep).
 
+## Initialization
+
+On first invocation of any Corvus command, run `corvus.init`:
+
+1. Create `~/openclaw/data/ocas-corvus/` and subdirectories (`intake/`, `intake/processed/`, `reports/`)
+2. Write default `config.json` with ConfigBase fields if absent
+3. Create empty JSONL files: `hypotheses.jsonl`, `patterns.jsonl`, `proposals.jsonl`, `decisions.jsonl`
+4. Create `~/openclaw/journals/ocas-corvus/`
+5. Ensure `~/openclaw/data/ocas-praxis/intake/` exists (create if missing)
+6. Ensure `~/openclaw/data/ocas-vesper/intake/` exists (create if missing)
+7. Register cron job `corvus:deep` if not already present (check `openclaw cron list` first)
+8. Register heartbeat entry `corvus:light` in `HEARTBEAT.md` if not already present
+9. Register cron job `corvus:update` if not already present (check `openclaw cron list` first)
+10. Log initialization as a DecisionRecord in `decisions.jsonl`
+
+## Background tasks
+
+| Job name | Mechanism | Schedule | Command |
+|---|---|---|---|
+| `corvus:deep` | cron | `0 3 * * *` (daily 3am) | `corvus.analyze.deep` — full exploration cycle |
+| `corvus:light` | heartbeat | every heartbeat pass | `corvus.analyze.light` — routine detection, thread monitoring |
+| `corvus:update` | cron | `0 0 * * *` (midnight daily) | `corvus.update` |
+
+Cron options for `corvus:deep`: `sessionTarget: isolated`, `lightContext: true`, `wakeMode: next-heartbeat`.
+
+Registration during `corvus.init`:
+```
+openclaw cron list
+# If corvus:deep absent:
+openclaw cron add --name corvus:deep --schedule "0 3 * * *" --command "corvus.analyze.deep" --sessionTarget isolated --lightContext true --wakeMode next-heartbeat --timezone America/Los_Angeles
+# If corvus:update absent:
+openclaw cron add --name corvus:update --schedule "0 0 * * *" --command "corvus.update" --sessionTarget isolated --lightContext true --timezone America/Los_Angeles
+```
+
+Heartbeat registration: append `corvus:light` entry to `~/.openclaw/workspace/HEARTBEAT.md` if not already present.
+
+
+## Self-update
+
+`corvus.update` pulls the latest package from the `source:` URL in this file's frontmatter. Runs silently — no output unless the version changed or an error occurred.
+
+1. Read `source:` from frontmatter → extract `{owner}/{repo}` from URL
+2. Read local version from `skill.json`
+3. Fetch remote version: `gh api "repos/{owner}/{repo}/contents/skill.json" --jq '.content' | base64 -d | python3 -c "import sys,json;print(json.load(sys.stdin)['version'])"`
+4. If remote version equals local version → stop silently
+5. Download and install:
+   ```bash
+   TMPDIR=$(mktemp -d)
+   gh api "repos/{owner}/{repo}/tarball/main" > "$TMPDIR/archive.tar.gz"
+   mkdir "$TMPDIR/extracted"
+   tar xzf "$TMPDIR/archive.tar.gz" -C "$TMPDIR/extracted" --strip-components=1
+   cp -R "$TMPDIR/extracted/"* ./
+   rm -rf "$TMPDIR"
+   ```
+6. On failure → retry once. If second attempt fails, report the error and stop.
+7. Output exactly: `I updated Corvus from version {old} to {new}`
+
+
 ## Visibility
 
 public
 
 ## Support file map
 
-File | When to read
-`references/schemas.md` | Before creating hypotheses, patterns, or proposals
-`references/curiosity_engine.md` | Before drive scoring or hypothesis generation
-`references/pattern_engines.md` | Before pattern detection or validation
-`references/journal.md` | Before corvus.journal; at end of every run
+| File | When to read |
+|---|---|
+| `references/schemas.md` | Before creating hypotheses, patterns, or proposals |
+| `references/curiosity_engine.md` | Before drive scoring or hypothesis generation |
+| `references/pattern_engines.md` | Before pattern detection or validation |
+| `references/journal.md` | Before corvus.journal; at end of every run |
