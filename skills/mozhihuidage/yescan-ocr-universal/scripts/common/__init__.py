@@ -17,6 +17,8 @@ from .validators import URLValidator, FileValidator
 from .ocr_client import OCRResult, CredentialManager, QuarkOCRClient, validate_json_config
 from .file_saver import FileSaver, SaveResult, ResponseCode, FileExtension, SubDirectory
 from .scene_configs import SCENE_CONFIGS, get_scene_config, list_scenes
+from .runner import run_ocr
+from .result_handlers import save_image_from_result, save_document_from_result
 
 __all__ = [
     # 常量
@@ -46,4 +48,9 @@ __all__ = [
     "SCENE_CONFIGS",
     "get_scene_config",
     "list_scenes",
+    # 执行器
+    "run_ocr",
+    # 结果处理器
+    "save_image_from_result",
+    "save_document_from_result",
 ]

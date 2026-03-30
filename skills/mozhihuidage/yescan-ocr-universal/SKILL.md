@@ -61,22 +61,40 @@ export SCAN_WEBSERVICE_KEY="your_scan_webservice_key_here"
 - 按照下面列出的意图*从上到下顺序匹配。命中第一个即停止*
 - 命中后，*只确定当前意图对应的scene标识*
 
-第四步：**构建执行命令(固定格式，严禁修改)**：
+第四步：**执行 Python 脚本**（安全参数传递）：
 
-根据图片类型，严格使用下面对应格式：
-```bash
-# URL类型
-python3 scripts/scan.py --scene "${SCENE_VALUE}" --url "${IMAGE_URL}"
+使用 `subprocess` 模块执行脚本，**参数以列表形式传递**（避免 shell 注入风险）：
+
+```python
+import subprocess
+
+# URL 类型
+subprocess.run([
+    "python3", "scripts/scan.py",
+    "--scene", "SCENE_VALUE",
+    "--url", "IMAGE_URL"
+], capture_output=True, text=True)
 
 # 本地文件类型
-python3 scripts/scan.py --scene "${SCENE_VALUE}" --path "${IMAGE_FILE_PATH}"
+subprocess.run([
+    "python3", "scripts/scan.py",
+    "--scene", "SCENE_VALUE",
+    "--path", "IMAGE_FILE_PATH"
+], capture_output=True, text=True)
 
-# BASE64类型
-python3 scripts/scan.py --scene "${SCENE_VALUE}" --base64 "${IMAGE_BASE64}"
+# BASE64 类型
+subprocess.run([
+    "python3", "scripts/scan.py",
+    "--scene", "SCENE_VALUE",
+    "--base64", "IMAGE_BASE64"
+], capture_output=True, text=True)
 ```
-- 把`${IMAGE_URL}`/`${IMAGE_FILE_PATH}`/`${IMAGE_BASE64}`替换为真实值
-- 把`${SCENE_VALUE}`替换为当前意图对应的scene值
-- 直接执行命令，不增删任何参数，不修改JSON，不加引号，不换行
+
+**安全说明**：
+- ✅ 参数以列表形式传递，`subprocess` 会自动处理转义
+- ✅ Python 脚本内部使用 `argparse` 验证参数
+- ✅ 文件路径/URL 由脚本内部验证器校验
+- ❌ 不要使用 `shell=True` 或直接拼接 shell 字符串
 
 第五步：**结果透出**：
 - 执行完成后，*原样返回执行结果*，不修改，不翻译，不美化，不总结
