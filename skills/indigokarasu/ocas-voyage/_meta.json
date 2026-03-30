@@ -1,13 +1,18 @@
 {
   "owner": "indigokarasu",
   "slug": "ocas-voyage",
-  "displayName": "Ocas Voyage",
+  "displayName": "Voyage",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1773812079560,
-    "commit": "https://github.com/openclaw/skills/commit/03fc917c689f4daf4d19a0bc88db5e34f1dfd947"
+    "version": "2.3.0",
+    "publishedAt": 1774683393072,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1773812079560,
+      "commit": "https://github.com/openclaw/skills/commit/03fc917c689f4daf4d19a0bc88db5e34f1dfd947"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1773721082491,
