@@ -3,7 +3,7 @@ name: skill-git:revert
 description: Roll back one or more skills to a previous version. Use when the user wants to undo skill changes, discard uncommitted edits, restore an older version, or recover from a bad commit. Triggers on "revert my skill", "roll back skill", "restore skill to v1.0.0", "undo my skill changes", or similar.
 ---
 
-You are running `skill-git revert`. Follow these steps exactly.
+You are running `/skill-git:revert`. Follow these steps exactly.
 
 ## Step 1 — Init Check
 
@@ -11,7 +11,7 @@ Read `~/.skill-git/config.json`.
 
 If the file does not exist, or if it exists but has no `skills` field under the current agent, tell the user:
 
-> skill-git is not initialized. Please run `skill-git init` first.
+> skill-git is not initialized. Please run `/skill-git:init` first.
 
 Then stop.
 
@@ -237,5 +237,5 @@ Skip this update if the reset failed for that skill.
 ✅ <skill-name>    reverted to <target-version>
 ❌ <skill-name>    failed — <plain-language reason>
 
-[skill-git] Done. Run skill-git commit to record new changes going forward.
+[skill-git] Done. Run /skill-git:commit to record new changes going forward.
 ```

@@ -3,7 +3,7 @@ name: skill-git:commit
 description: Use when the user wants to snapshot, save, or version their skills. Triggers on "commit my skills", "save skill changes", "new version of my skill", or after editing any SKILL.md file.
 ---
 
-You are running `skill-git commit`. Follow these steps exactly.
+You are running `/skill-git:commit`. Follow these steps exactly.
 
 ## Step 1 — Init Check
 
@@ -11,7 +11,7 @@ Read `~/.skill-git/config.json`.
 
 If the file does not exist, or if it exists but has no `skills` field under the current agent, tell the user:
 
-> skill-git is not initialized. Please run `skill-git init` first.
+> skill-git is not initialized. Please run `/skill-git:init` first.
 
 Then stop.
 
@@ -42,7 +42,7 @@ Display (do not stop, do not prompt):
   - <skill-name>    (no git, never initialized)
 
 These skills will NOT be included in this commit.
-Run `skill-git init` to register them, then commit again.
+Run `/skill-git:init` to register them, then commit again.
 ```
 
 Then continue to Step 2b.
@@ -59,55 +59,72 @@ Instructions for each subagent:
    - `changed: true`
    - `files`: list of changed file paths (from status output)
    - `diff`: full output of `git diff HEAD`
-   - `untracked`: list of filenames with `??` prefix from status (these are new, untracked files)
-   - **Do NOT read the content of any untracked file.** Return filenames only.
+   - `untracked`: list of files with `??` prefix from status (these are new, untracked files — **return filenames only, do NOT read their content**)
 
 Wait for all subagents to complete.
 
-Collect all results where `missing: true`. If any, automatically remove each from config.json:
-
-```bash
-jq --arg agent "claude" --arg name "<skill_name>" \
-  'del(.agents[$agent].skills[$name])' \
-  ~/.skill-git/config.json > /tmp/sg-cfg.json \
-  && mv /tmp/sg-cfg.json ~/.skill-git/config.json
-```
-
-Then display (no prompt):
+Collect all results where `missing: true`. If any, display the list and prompt once:
 
 ```
-⚠️  The following skill directories no longer exist and have been removed from config.json:
+⚠️  The following skill directories no longer exist:
 
   🗑  <skill-name>    (<path>)
+  🗑  <skill-name>    (<path>)
+
+Remove these entries from config.json? [y/n]
 ```
+
+Wait for the user's response:
+- `y` → for each missing skill, run:
+  ```bash
+  jq --arg agent "claude" --arg name "<skill_name>" \
+    'del(.agents[$agent].skills[$name])' \
+    ~/.skill-git/config.json > /tmp/sg-cfg.json \
+    && mv /tmp/sg-cfg.json ~/.skill-git/config.json
+  ```
+  Then display: `Removed N entries from config.json.`
+- `n` → keep config.json unchanged; these skills are excluded from further steps.
 
 Then proceed to Step 2c with only non-missing skills.
 
-## Step 2c — Untracked File Review
+## Step 2c — Untracked File Content Confirmation
 
-Collect all untracked files across every skill result. If none, skip to Step 3.
+Collect all untracked files reported by subagents across all skills.
 
-If any skill has untracked files, apply the sensitive-filename blocklist:
-- Blocklisted patterns: `.env`, `*.key`, `*.pem`, `*.p12`, `*.pfx`, `*secret*`, `*credential*`, `*token*`, `*password*`, `*.cert`
-- Split the list into **blocked** (matches a pattern) and **reviewable** (does not match)
-
-Display and pause — **do not proceed until the user responds**:
+**Sensitive filename blocklist** — never read or include these regardless of user consent:
 
 ```
-📂 New untracked files detected — content not yet read:
-
-  <skill-name>:
-    ⛔ <filename>    (skipped — matches sensitive-file pattern)
-    📄 <filename>
-    📄 <filename>
-
-Reading file contents allows a more accurate commit summary.
-Would you like to include the content of the non-blocked files above? (y/n)
-Blocked files will never be read regardless of your choice.
+.env  .env.*  *.env
+*.pem  *.key  *.p12  *.pfx  *.crt  *.cer  *.keystore
+credentials  credentials.*  credential.*
+secrets  secrets.*  secret.*
+*_token  *_token.*  *.token
+*password*  *passwd*  *secret*  *apikey*  *api_key*
+.aws  .ssh  id_rsa  id_ed25519  id_ecdsa
+*.gpg  *.pgp
 ```
 
-- If **n**: proceed to Step 3 with untracked files listed by name only, content marked as `null`.
-- If **y**: read the content of each **reviewable** file (not blocked ones) and attach to the result. Then proceed to Step 3.
+Apply the blocklist (case-insensitive filename match). For any untracked file whose name or path component matches a blocked pattern:
+- Do **not** show it for content confirmation.
+- Include a note in the final summary: `(content skipped — sensitive filename)`.
+
+If any **non-blocked** untracked files remain, display:
+
+```
+📄 The following untracked file(s) were found. Read their content to include in the commit summary?
+
+  Skill: <skill-name>
+    - <filename>
+    - <filename>
+
+  [y] Yes, read content   [n] No, use filenames only
+```
+
+Wait for the user's response:
+- `y` → read the content of each listed file and attach it to the corresponding skill's result for use in Step 3.
+- `n` (or no untracked files after blocklist filtering) → proceed without reading content; use filename list only in Step 3 summary.
+
+If there are **no** untracked files at all, skip this step silently.
 
 ## Step 3 — Display Change Summary
 
@@ -215,5 +232,5 @@ When all done, show the final result:
 ✅ <skill-name>    → <version>  committed
 ⏭️  <skill-name>   skipped
 
-[skill-git] Done. Run skill-git revert to roll back any skill to a previous version.
+[skill-git] Done. Run /skill-git:revert to roll back any skill to a previous version.
 ```
