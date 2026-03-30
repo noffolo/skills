@@ -1,11 +1,17 @@
 {
   "owner": "sealawyer2026",
   "slug": "zhang-lawyer-suite",
-  "displayName": "张律师综合套装",
+  "displayName": "九章律师工作套件 V1.4.0",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773646190735,
-    "commit": "https://github.com/openclaw/skills/commit/6feb48b8906042996206e22568c1ccf469c538ef"
+    "version": "1.4.0",
+    "publishedAt": 1774502112848,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773646190735,
+      "commit": "https://github.com/openclaw/skills/commit/6feb48b8906042996206e22568c1ccf469c538ef"
+    }
+  ]
 }
