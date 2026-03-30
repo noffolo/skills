@@ -7,6 +7,7 @@
 
 import os
 import sys
+import time
 
 # 确保时区正确（launchd 环境下不会继承用户时区设置）
 try:
@@ -135,34 +136,31 @@ def load_config():
     if os.path.exists(local_path):
         config_path = local_path
     elif not os.path.exists(config_path):
-        # 生成默认配置
+        # 首次运行生成空白模板（不包含任何凭证，不会推送消息）
         default_config = """# 股票监控配置
-# 修改此文件以添加您的股票
-
+# 请编辑此文件添加您的股票和飞书凭证
 stocks: []
 
 push:
-  channel: "console"
+  channel: "console"      # 暂时禁用推送，待配置凭证后改为 feishu
   times:
     - "09:15"
-    - "10:30"
+    - "10:00"
     - "13:00"
     - "14:50"
 
   feishu:
+    app_id: ""
+    app_secret: ""
     chat_id: ""
-
-  telegram:
-    chat_id: ""
-    bot_token: ""
 
 advanced:
   history_days: 60
 """
         with open(config_path, 'w', encoding='utf-8') as f:
             f.write(default_config)
-        print(f"[INFO] 配置文件已创建: {config_path}", file=sys.stderr)
-        print("[INFO] 请编辑 config.yaml 添加您想监控的股票", file=sys.stderr)
+        print(f"[INFO] 首次运行，配置文件已创建: {config_path}", file=sys.stderr)
+        print("[INFO] 请编辑配置文件添加股票和飞书凭证后重新运行", file=sys.stderr)
 
     with open(config_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
@@ -182,8 +180,12 @@ def get_realtime_sina(codes_markets):
     symbols = ','.join([f'{m}{c}' for c, m in codes_markets])
     try:
         url = f'https://hq.sinajs.cn/list={symbols}'
-        r = requests.get(url, headers=SINA_HQ_HEADERS, timeout=5)
+        r = requests.get(url, headers=SINA_HQ_HEADERS, timeout=10)
         r.encoding = 'gbk'
+        # 检查是否返回403
+        if r.status_code != 200:
+            print(f"[WARN] Sina接口返回状态码 {r.status_code}", file=sys.stderr)
+            return {}
         lines = r.text.strip().split('\n')
         result = {}
         for line in lines:
@@ -224,7 +226,7 @@ def get_realtime_tencent(codes_markets):
     symbols = ','.join([f'{m}{c}' for c, m in codes_markets])
     try:
         url = f'https://qt.gtimg.cn/q={symbols}'
-        r = requests.get(url, timeout=5)
+        r = requests.get(url, timeout=10)
         r.encoding = 'gbk'
         text = r.text
         result = {}
@@ -269,11 +271,93 @@ def get_realtime_tencent(codes_markets):
         return {}
 
 
+def get_realtime_fund_tiantian(fund_code):
+    """天天基金网接口获取实时估算净值（基金监控）"""
+    try:
+        url = f'http://fundgz.1234567.com.cn/js/{fund_code}.js?rt={int(time.time())}'
+        r = requests.get(url, timeout=8)
+        text = r.text.strip()
+        if not text or text.startswith('jsonpgz({'):
+            # 解析 jsonpgz({...}) 格式
+            json_str = text.replace('jsonpgz(', '').rstrip(');')
+            data = json.loads(json_str)
+            return {
+                'fund_code': data.get('fundcode', ''),
+                'name': data.get('name', ''),
+                'nav_date': data.get('jzrq', ''),        # 净值日期
+                'nav': float(data.get('dwjz', 0)),       # 单位净值
+                'estimated_nav': float(data.get('gsz', 0)),  # 估算净值
+                'estimated_change': float(data.get('gszzl', 0)),  # 估算增长率%
+                'estimated_time': data.get('gztime', '')
+            }
+        return None
+    except Exception as e:
+        print(f"[WARN] get_realtime_fund_tiantian {fund_code} failed: {e}", file=sys.stderr)
+        return None
+
+
+def get_gold_spot_price():
+    """获取国际黄金现货价格（Yahoo Finance）"""
+    try:
+        url = 'https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF'
+        r = requests.get(url, timeout=6)
+        r.raise_for_status()
+        data = r.json()
+        result = data.get('chart', {}).get('result', [])
+        if not result:
+            return None
+        quotes = result[0].get('indicators', {}).get('quote', [{}])[0]
+        closes = quotes.get('close', [])
+        if len(closes) < 2:
+            return None
+        current = float(closes[-1])
+        prev = float(closes[-2])
+        pct = round((current - prev) / prev * 100, 2)
+        return {'price': current, 'pct': pct}
+    except Exception as e:
+        print(f"[WARN] get_gold_spot_price failed: {e}", file=sys.stderr)
+        return None
+
+
+def get_fund_hist_eastmoney(fund_code, days=60):
+    """东方财富获取基金历史净值"""
+    try:
+        url = f'https://api.fund.eastmoney.com/f10/lsjz'
+        params = {
+            'callback': 'jQuery',
+            'fundCode': fund_code,
+            'pageIndex': 1,
+            'pageSize': days,
+            'startDate': '',
+            'endDate': ''
+        }
+        r = requests.get(url, params=params, timeout=10)
+        r.raise_for_status()
+        text = r.text
+        # jQuery({...})
+        json_str = text[7:-1] if text.startswith('jQuery') else text
+        data = json.loads(json_str)
+        records = data.get('Data', {}).get('LSJZList', [])
+        if not records:
+            return None
+        result = []
+        for rec in reversed(records[-days:]):
+            result.append({
+                'date': rec.get('FSRQ', ''),
+                'nav': float(rec.get('DWJZ', 0)),
+                'accumulated_nav': float(rec.get('LJJZ', 0))
+            })
+        return result
+    except Exception as e:
+        print(f"[WARN] get_fund_hist_eastmoney {fund_code} failed: {e}", file=sys.stderr)
+        return None
+
+
 def get_market_index_sina():
     """获取大盘指数"""
     try:
         url = 'https://hq.sinajs.cn/list=sh000001,sz399001,sz399006,sh000688'
-        r = requests.get(url, headers=SINA_HQ_HEADERS, timeout=6)
+        r = requests.get(url, headers=SINA_HQ_HEADERS, timeout=10)
         r.encoding = 'gb18030'
         text = r.text
         result = {}
@@ -665,6 +749,63 @@ def analyze_stock(stock, realtime, hist):
     return '\n'.join(lines) + '\n'
 
 
+def analyze_fund(fund, fund_data, gold):
+    """生成基金分析（不同于股票，基金主要看净值和黄金走势）"""
+    code = fund['code']
+    name = fund.get('name', fund_data.get('name', code))
+    emoji = fund.get('emoji', '🥇')
+    position = fund.get('position')
+
+    lines = []
+    lines.append(f"{emoji} {name}（{code}）")
+
+    # 估算净值数据
+    estimated_nav = fund_data.get('estimated_nav', 0)
+    estimated_change = fund_data.get('estimated_change', 0)
+    nav_date = fund_data.get('nav_date', '')
+    est_time = fund_data.get('estimated_time', '')
+
+    if estimated_nav > 0:
+        change_str = f"+{estimated_change:.2f}%" if estimated_change >= 0 else f"{estimated_change:.2f}%"
+        lines.append(f"   估算净值: {estimated_nav:.4f}  今日: {change_str}")
+        if est_time:
+            lines.append(f"   更新时间: {est_time}")
+    else:
+        # 盘中未更新，显示昨日净值
+        nav = fund_data.get('nav', 0)
+        if nav > 0:
+            lines.append(f"   单位净值: {nav:.4f}（昨日）")
+
+    # 持仓盈亏（如有）
+    has_pos = position and estimated_nav > 0 and position.get('cost', 0) > 0
+    if has_pos:
+        cost = position['cost']
+        qty = position['quantity']
+        profit = (estimated_nav - cost) * qty
+        profit_pct = (estimated_nav - cost) / cost * 100
+        profit_str = f"+{profit:.0f}元" if profit >= 0 else f"{profit:.0f}元"
+        pct_str = f"+{profit_pct:.1f}%" if profit_pct >= 0 else f"{profit_pct:.1f}%"
+        lines.append(f"   💰 持仓: 成本{cost:.4f} | {profit_str}({pct_str})")
+
+    # 黄金走势参考（如有）
+    if gold:
+        gold_pct = gold.get('pct', 0)
+        fund_pct = estimated_change
+        diff = fund_pct - gold_pct
+        diff_str = f"+{diff:.2f}%" if diff >= 0 else f"{diff:.2f}%"
+        lines.append(f"   📊 黄金参考: {gold_pct:+.2f}% | 基金跑赢: {diff_str}")
+
+    # 简单建议
+    if estimated_change < -2:
+        lines.append(f"   → 黄金大跌，注意止损")
+    elif estimated_change > 2:
+        lines.append(f"   → 黄金大涨，持有的可适度减仓")
+    else:
+        lines.append(f"   → 变动正常，持有观望")
+
+    return '\n'.join(lines) + '\n'
+
+
 def generate_report(config, mode='auto'):
     """生成完整分析报告（并发优化版）"""
     today = now_sh().strftime("%Y-%m-%d")
@@ -680,11 +821,16 @@ def generate_report(config, mode='auto'):
     if not stocks_cfg:
         return "⚠️ 股票池为空，请先在 config.yaml 中添加股票。"
 
+    # 分离基金和股票
+    funds_cfg = [s for s in stocks_cfg if s.get('type') == 'fund']
+    stocks_only = [s for s in stocks_cfg if s.get('type') != 'fund']
+
     lines = []
-    lines.append(f"📊 股票参考 - {period} {today}")
+    lines.append(f"📊 参考 - {period} {today}")
     lines.append("━" * 20)
 
-    codes_markets = [(s['code'], s['market']) for s in stocks_cfg]
+    # 股票-only 的 codes_markets（排除基金）
+    codes_markets = [(s['code'], s['market']) for s in stocks_only]
     history_days = config.get('advanced', {}).get('history_days', 60)
 
     # ========== 第一波：并发获取所有共享数据 ==========
@@ -727,6 +873,24 @@ def generate_report(config, mode='auto'):
             print(f"[WARN] {warning_msg}", file=sys.stderr)
             return warning_msg
 
+    # 如果新浪接口返回异常数据（价格为0或负数），强制使用腾讯接口
+    problematic_codes = [k for k, v in rt_raw.items() if v.get('current', 0) <= 0]
+    if problematic_codes:
+        print(f"[WARN] Sina接口对 {len(problematic_codes)} 只股票返回异常数据，强制使用腾讯接口...", file=sys.stderr)
+        rt_tencent = get_realtime_tencent(codes_markets)
+        for key, val in rt_tencent.items():
+            code = key.replace('sz', '').replace('sh', '')
+            realtime[code] = val
+        print(f"[INFO] 腾讯接口数据已更新", file=sys.stderr)
+    # 如果新浪接口返回空或403，强制使用腾讯接口
+    elif not rt_raw or len(rt_raw) == 0:
+        print(f"[WARN] Sina接口返回空，强制使用腾讯接口...", file=sys.stderr)
+        rt_tencent = get_realtime_tencent(codes_markets)
+        for key, val in rt_tencent.items():
+            code = key.replace('sz', '').replace('sh', '')
+            realtime[code] = val
+        print(f"[INFO] 腾讯接口数据已更新", file=sys.stderr)
+
     # 输出大盘/美股/板块/北向
     if market:
         mkt_str = ' | '.join([f"{k} {v['price']:.0f}({v['pct']:+.1f}%)" for k, v in market.items()])
@@ -760,10 +924,33 @@ def generate_report(config, mode='auto'):
         hist = get_hist_from_sina(code, market_code, days=history_days)
         return analyze_stock(stock, rt, hist)
 
-    with ThreadPoolExecutor(max_workers=len(stocks_cfg)) as executor:
-        stock_results = list(executor.map(fetch_one_stock, stocks_cfg))
+    # 只有股票才获取历史K线，基金不需要
+    if stocks_only:
+        with ThreadPoolExecutor(max_workers=len(stocks_only)) as executor:
+            stock_results = list(executor.map(fetch_one_stock, stocks_only))
+        lines.extend(stock_results)
 
-    lines.extend(stock_results)
+    # ========== 第三波：基金数据（独立接口） ==========
+    if funds_cfg:
+        # 获取黄金价格（基金对标）
+        gold = get_gold_spot_price()
+        if gold:
+            gold_str = f"${gold['price']:.1f}({gold['pct']:+.1f}%)"
+            lines.append(f"🥇 国际黄金: {gold_str}")
+
+        # 并发获取所有基金实时数据
+        def fetch_one_fund(fund):
+            code = fund['code']
+            fund_data = get_realtime_fund_tiantian(code)
+            emoji = fund.get('emoji', '🥇')
+            name = fund.get('name', code)
+            if not fund_data:
+                return f"{emoji} {name}（{code}）- 数据获取失败\n"
+            return analyze_fund(fund, fund_data, gold)
+        with ThreadPoolExecutor(max_workers=len(funds_cfg)) as executor:
+            fund_results = list(executor.map(fetch_one_fund, funds_cfg))
+        lines.append("━" * 20)
+        lines.extend(fund_results)
 
     lines.append("━" * 20)
     lines.append("⚠️ 仅供参考，不构成投资建议")

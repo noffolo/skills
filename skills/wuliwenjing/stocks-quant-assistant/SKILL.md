@@ -1,111 +1,106 @@
----
-name: stock-monitor
-version: 3.0.5
-description: A股股票量化监控与每日推送系统。用户配置股票池后自动分析 MA/MACD/RSI/布林带，生成信号评分和操作建议，每日4次定时推送。支持持仓跟踪、板块轮动、美股隔夜。下载后只需填写配置文件，即可每日自动推送到飞书/Telegram。
----
+# 📈 stocks-quant-assistant
 
-# 📈 stock-monitor
+**⚠️ 安全说明**
 
-**A 股量化监控 + 定时推送系统**
+本技能本地配置文件（`config.local.yaml`）**不会**随技能发布，包含您的私人凭证和持仓数据，请放心使用。  
+定时任务健康检查**不会**自动重建含私密凭证的配置，仅生成空白模板引导用户填写。
 
 首次运行自动安装依赖 + 注册定时任务，每日 4 次自动推送。
 
 ---
 
-## ⚠️ 安装后必读：3 步完成配置
+## 功能特性
 
-### 第一步：获取飞书凭证
+✅ **自动分析**
+- 股票：MA/MACD/RSI/布林带技术指标分析
+- 基金：估算净值实时跟踪（以博时黄金ETF为例）
+- 信号评分和操作建议
 
-**如果你已经有飞书应用（app_id + app_secret），跳过此步。**
+✅ **定时推送**
+- 每日 4 次自动推送（09:15/10:00/13:00/14:50）
+- 支持飞书/Telegram 推送
 
-1. 打开 [飞书开放平台](https://open.feishu.cn/app) → 创建应用
-2. 在「凭证与基础信息」复制 `App ID` 和 `App Secret`
-3. 在「权限管理」中申请：`im:message:send_as_bot`
-4. 在「应用发布」→「版本管理与发布」中发布应用
-5. 在群里添加「自定义机器人」，复制 `chat_id`（格式：`oc_xxxx`）
-
-### 第二步：编辑配置文件
-
-打开 `config.yaml`（或 `config.local.yaml`），填写你的股票和凭证：
-
-```yaml
-stocks:
-  - code: "000001"          # 股票代码（6位数字）
-    name: "平安银行"         # 显示名称
-    market: "sz"             # sz=深交所，sh=上交所
-    emoji: "🏦"              # 自定义图标
-    position:                # 持仓（可选）
-      cost: 12.50            # 成本价
-      quantity: 1000         # 股数
-
-push:
-  channel: "feishu"          # 推送渠道：feishu / telegram / console
-  feishu:
-    app_id: "cli_xxxxxxxx"   # ← 填入你的 app_id
-    app_secret: "xxxxxxxx"   # ← 填入你的 app_secret
-    chat_id: "oc_xxxxxxx"    # ← 填入你的 chat_id
-  times:
-    - "09:15"               # 开盘前
-    - "10:30"               # 早盘
-    - "13:00"               # 午后
-    - "14:50"               # 尾盘
-```
-
-**配置文件优先级：`config.local.yaml` > `config.yaml`**
-（私人配置写 `config.local.yaml`，不会被 skill 发布覆盖）
-
-### 第三步：测试推送
-
-```bash
-python3 ~/.openclaw/workspace/skills/stocks-quant-assistant/stock_monitor.py morning
-```
-
-看到股票分析输出 + 飞书收到消息 = 配置成功 ✅
+✅ **持仓跟踪**
+- 持仓盈亏计算
+- 止盈止损建议
 
 ---
 
-## 常见问题排查
+## 快速开始
+
+### 安装
+
+```bash
+cd ~/.openclaw/workspace/skills/stocks-quant-assistant
+pip install -r requirements.txt
+```
+
+### 配置
+
+编辑 `config.yaml`，填写股票和凭证：
+
+```yaml
+stocks:
+  - code: "000001"          # 股票代码
+    name: "平安银行"         # 显示名称
+    market: "sz"             # sz=深交所，sh=上交所
+    emoji: "🏦"              # 自定义图标
+
+  - code: "002611"          # 基金代码
+    name: "博时黄金ETF联接C"
+    type: "fund"             # 类型：fund = 基金，默认或 type: stock = 股票
+    emoji: "🥇"
+    position:               # 可选：持仓信息
+      cost: 3.05
+      quantity: 4100
+
+push:
+  channel: "feishu"          # 推送渠道
+  feishu:
+    app_id: "cli_xxxxxxxx"   # 飞书 App ID
+    app_secret: "xxxxxxxx"   # 飞书 App Secret
+    chat_id: "oc_xxxxxxx"    # 飞群 chat_id
+```
+
+### 使用
+
+```bash
+# 手动触发推送
+python3 stock_monitor.py morning    # 开盘前
+python3 stock_monitor.py noon        # 早盘
+python3 stock_monitor.py afternoon   # 午后
+python3 stock_monitor.py evening    # 尾盘
+```
+
+---
+
+## 常见问题
 
 ### ❌ 报错 "Feishu push failed" / 飞书没收到
 
-**原因：凭证填写不完整**
+**原因：** 凭证填写不完整
 
-请确认 `config.yaml` 中 `feishu` 区块三个字段都有值：
-- `app_id`（格式：`cli_xxxxxxxx`）
-- `app_secret`
-- `chat_id`（格式：`oc_xxxxxxxx`）
-
-**检查方法：**
-```bash
-grep -A5 "feishu:" ~/.openclaw/workspace/skills/stocks-quant-assistant/config.yaml
-```
+**解决：**
+1. 确认 `config.yaml` 中 `feishu` 区块三个字段都有值
+2. 检查 `app_id`（格式：`cli_xxxxxxxx`）
+3. 检查 `chat_id`（格式：`oc_xxxxxxxx`）
 
 ### ❌ 报错 "launchd 注册失败" / 定时推送没收到
 
-**原因：macOS 权限限制，launchd 需要手动授权**
+**原因：** macOS 权限限制
 
-手动运行以下命令：
+**解决：**
 ```bash
 launchctl load ~/Library/LaunchAgents/com.openclaw.stock-monitor.plist
-```
-
-如果提示「需要管理员权限」，加上 `sudo`：
-```bash
+# 如需管理员权限，加上 sudo
 sudo launchctl load ~/Library/LaunchAgents/com.openclaw.stock-monitor.plist
-```
-
-**检查定时任务是否运行：**
-```bash
-launchctl list | grep stock
 ```
 
 ### ❌ 提示「实时数据获取失败」
 
-网络波动导致。新浪财经接口偶尔超时，不影响后续推送。下次定时任务会自动恢复。
+**原因：** 网络波动，新浪财经接口超时
 
-### ❌ 报告里没有大盘指数/技术指标
-
-可能是新浪接口响应慢，数据获取超时。系统会自动降级为简化模式（只显示实时价格）。
+**解决：** 系统会自动降级为简化模式，下次定时任务会自动恢复
 
 ---
 
@@ -116,26 +111,8 @@ launchctl list | grep stock
 launchctl list | grep stock
 
 # 查看最近一次推送日志
-cat ~/.openclaw/workspace/skills/stocks-quant-assistant/logs/launchd.log
-cat ~/.openclaw/workspace/skills/stocks-quant-assistant/logs/launchd.err
-```
-
----
-
-## 手动触发推送
-
-```bash
-# 开盘前（09:15）
-python3 stock_monitor.py morning
-
-# 早盘（10:30）
-python3 stock_monitor.py noon
-
-# 午后（13:00）
-python3 stock_monitor.py afternoon
-
-# 尾盘（14:50）
-python3 stock_monitor.py evening
+cat logs/launchd.log
+cat logs/launchd.err
 ```
 
 ---
@@ -152,7 +129,7 @@ python3 stock_monitor.py evening
 
 ---
 
-## 技术指标通俗解释
+## 技术指标
 
 | 指标 | 是什么 | 怎么看 |
 |------|--------|--------|
@@ -171,10 +148,44 @@ python3 stock_monitor.py evening
 | 深交所 | `sz` | 000001（平安）、002131（利欧） |
 | 北交所 | `bj` | 8开头股票 |
 
+## 基金监控
+
+基金（如黄金ETF联接基金）与股票使用不同的数据接口：
+
+- 基金使用**天天基金网**实时估算净值接口
+- 基金**不需要**技术指标（MA/MACD/RSI），主要看净值走势
+- 基金支持**黄金价格参考**（与黄金现货价格联动）
+
+```yaml
+- code: "002611"      # 基金代码（天天基金网代码）
+  name: "博时黄金ETF联接C"
+  type: "fund"         # 关键：声明为 fund 类型
+  emoji: "🥇"
+  position:
+    cost: 3.0592       # 单位净值成本
+    quantity: 4118.69  # 持有份额
+```
+
 ---
 
-## ⚠️ 注意事项
+## 文件结构
 
-1. 本系统仅作为投资参考，不构成投资建议
-2. 历史数据不代表未来走势
-3. 依赖网络获取实时数据，网络波动时可能降级为简化模式
+```
+stocks-quant-assistant/
+├── SKILL.md              # 本文件
+├── stock_monitor.py      # 主脚本
+├── config.yaml           # 配置文件
+├── config.local.yaml     # 私人配置（不会被覆盖）
+├── requirements.txt      # Python依赖
+├── health_check.py       # 健康检查脚本
+├── logs/                 # 日志目录
+│   ├── launchd.log
+│   └── launchd.err
+└── LaunchAgents/         # macOS 定时任务
+    └── com.openclaw.stock-monitor.plist
+```
+
+---
+
+*版本：3.1.0*  
+*最后更新：2026-03-26*

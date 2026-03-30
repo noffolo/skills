@@ -3,11 +3,16 @@
   "slug": "stocks-quant-assistant",
   "displayName": "Stocks Quant Assistant",
   "latest": {
-    "version": "3.0.6",
-    "publishedAt": 1774333082828,
-    "commit": "https://github.com/openclaw/skills/commit/e8b4b5acf7287e4407e9ef2100ff14f62cb752d1"
+    "version": "3.1.0",
+    "publishedAt": 1774497063684,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.6",
+      "publishedAt": 1774333082828,
+      "commit": "https://github.com/openclaw/skills/commit/e8b4b5acf7287e4407e9ef2100ff14f62cb752d1"
+    },
     {
       "version": "3.0.5",
       "publishedAt": 1774317120311,
