@@ -3,9 +3,15 @@
   "slug": "jaguar",
   "displayName": "jaguar",
   "latest": {
-    "version": "0.2.0",
-    "publishedAt": 1774488250841,
-    "commit": "https://github.com/openclaw/skills/commit/a6887b43624c97cfae99460fdb5a4be92d1db4ea"
+    "version": "0.1.0",
+    "publishedAt": 1774605569455,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.2.0",
+      "publishedAt": 1774488250841,
+      "commit": "https://github.com/openclaw/skills/commit/a6887b43624c97cfae99460fdb5a4be92d1db4ea"
+    }
+  ]
 }
