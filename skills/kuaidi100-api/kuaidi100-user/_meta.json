@@ -3,9 +3,15 @@
   "slug": "kuaidi100-user",
   "displayName": "kuaidi100-user",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774494256381,
-    "commit": "https://github.com/openclaw/skills/commit/a33963fa365b4ae6ac188f65664a24fad058fdec"
+    "version": "1.0.2",
+    "publishedAt": 1774848931120,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774494256381,
+      "commit": "https://github.com/openclaw/skills/commit/a33963fa365b4ae6ac188f65664a24fad058fdec"
+    }
+  ]
 }
