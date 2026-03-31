@@ -3,11 +3,16 @@
   "slug": "ai-video-free",
   "displayName": "Ai Video Free",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1774599220081,
-    "commit": "https://github.com/openclaw/skills/commit/322b51546010c5754f94d2554a060c38baf77ca4"
+    "version": "1.0.5",
+    "publishedAt": 1774854572241,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1774599220081,
+      "commit": "https://github.com/openclaw/skills/commit/322b51546010c5754f94d2554a060c38baf77ca4"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774500865673,
