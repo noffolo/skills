@@ -1,0 +1,11 @@
+{
+  "owner": "goog",
+  "slug": "fang",
+  "displayName": "Fang: protect your env variables from being stealed.",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774445968634,
+    "commit": null
+  },
+  "history": []
+}
