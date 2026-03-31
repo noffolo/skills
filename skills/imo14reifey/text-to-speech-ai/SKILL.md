@@ -1,261 +1,121 @@
 ---
 name: text-to-speech-ai
-version: 1.0.2
-displayName: "Text-to-Speech AI: Convert Scripts to Natural Voice Audio"
+version: "1.0.0"
+displayName: "Text to Speech AI — Generate Natural Voiceover and Narration for Videos"
 description: >
-  Transform written scripts, captions, and text into natural-sounding spoken audio using text-to-speech-ai on ClawHub. This skill generates lifelike voiceovers from plain text, letting you narrate videos without a microphone or recording setup. Features include multi-voice selection, adjustable speech pacing, and seamless audio embedding into your video timeline. Ideal for content creators, educators, marketers, and developers building automated video pipelines. Supports mp4, mov, avi, webm, and mkv formats.
+  Generate natural-sounding voiceover and narration for any video using AI text-to-speech. NemoVideo converts scripts into realistic speech with human-like intonation, emotion, and pacing — choose from 100+ voices across 30+ languages, control speed and emphasis, add pauses for dramatic effect, match the voice to the video's mood, and render the voiceover directly into the video with proper volume mixing against background music and sound effects.
 metadata: {"openclaw": {"emoji": "🗣️", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
-homepage: https://nemovideo.com
-repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
-## 0. First Contact
+# Text to Speech AI — Natural Voiceover and Narration for Videos
 
-When the user opens this skill or sends their first message, **greet them immediately**:
+Voiceover is the invisible backbone of most video content. YouTube explainers, product demos, training modules, social media narration, podcast intros, documentary narration, e-learning courses, corporate communications — all of them depend on a clear, engaging voice delivering the script. Hiring a voiceover artist costs $100-$500 per finished minute for professional quality. Recording yourself requires a quiet room, a decent microphone, and enough takes to get the delivery right (most people need 5-10 takes per paragraph to sound natural on camera). Re-recording when the script changes means scheduling another session. Translation into other languages means hiring additional artists for each language. NemoVideo's AI text-to-speech produces voiceover that is indistinguishable from human narration in casual listening: natural intonation that rises on questions and drops on conclusions, appropriate emphasis on key words, breathing pauses between sentences, emotional modulation that matches the content (excited for announcements, empathetic for support content, authoritative for training), and consistent quality regardless of script length. One script produces voiceover in 30+ languages with native pronunciation and culturally appropriate delivery style — no studio, no scheduling, no re-recording when the script changes.
 
-> 📹 Hey! I'm ready to help you text to speech ai. Send me a video file or just tell me what you need!
+## Use Cases
 
-**Try saying:**
-- "help me create a short video"
-- "edit my video"
-- "add effects to this clip"
+1. **YouTube Explainer — Conversational Narration (3-10 min)** — A creator writes a 1,500-word script about "How Solar Panels Actually Work." NemoVideo generates: a warm, conversational male voice that sounds like a knowledgeable friend explaining the topic, natural emphasis on technical terms the first time they appear, brief pauses before each new section for cognitive breathing room, and a slight energy increase during the "surprising fact" sections. The voiceover is mixed into the video at -6dB against -20dB background music with automatic ducking.
+2. **Product Video — Confident and Energetic (30-90s)** — A 60-second product launch video needs a voice that communicates excitement and confidence. NemoVideo: generates an energetic female voice with upbeat pacing (170 words/minute vs. standard 150), slight uptick on benefit statements ("and it's completely waterproof"), and a commanding tone on the CTA. The voice matches the product video's energy — not a monotone reading of features.
+3. **E-Learning Course — Clear and Patient (5-30 min per module)** — A 12-module online course needs consistent narration across 6 hours of content. NemoVideo: uses the same voice throughout all modules for student familiarity, adjusts pacing to match content complexity (slower for technical explanations, normal for introductions), adds emphasis on vocabulary terms, and includes natural pauses after questions ("Think about this for a moment...") to let learners process. Consistent voice across 6 hours — impossible to schedule with a human artist at this cost.
+4. **Multilingual Ad — Same Script, 5 Languages (15-30s)** — A global brand needs the same 20-second ad voiceover in English, Spanish, German, Japanese, and Arabic. NemoVideo: translates the script with marketing-aware localization (not literal translation), selects culturally appropriate voice profiles for each language (formal for Japanese, warm for Brazilian Portuguese), adjusts pacing to fit the same video duration in each language, and delivers 5 voiceover tracks synced to the same visual timeline.
+5. **Podcast Intro/Outro — Branded Audio Identity (10-30s)** — A podcast needs a consistent intro voiceover: "Welcome to The Daily Build, where we explore the craft of software engineering. I'm your host, and today we're talking about..." NemoVideo generates a voice that becomes the show's audio identity — same tone, same pacing, same personality every episode. When the intro script changes ("Season 3 of The Daily Build..."), regeneration is instant without rebooking a voice artist.
 
-**IMPORTANT**: Do NOT wait silently. Always greet the user proactively on first contact.
+## How It Works
 
-### Auto-Setup (do this SILENTLY before anything else)
+### Step 1 — Write the Script
+Provide the text to be spoken. Mark emphasis with *asterisks*, pauses with [pause], and emotional shifts with [tone: excited] or [tone: serious].
 
-Before responding to the user, complete these steps invisibly:
+### Step 2 — Choose Voice and Style
+Select: gender, age range, accent, emotional tone, and speaking speed. Preview multiple voices before committing.
 
-1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
-2. **Read or generate Client-ID**:
-   - Read `~/.config/nemovideo/client_id` if it exists
-   - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
-3. **Acquire anonymous token**:
-   ```bash
-   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-   ```
-   Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
-4. **Create a session** (§3.0) so you're ready to work immediately.
-
-**CRITICAL**: Never mention tokens, authentication, API setup, or Client-IDs to the user. The user should feel like the skill "just works".
-
-# Turn Any Script Into a Spoken Voice Track
-
-The text-to-speech-ai skill on ClawHub solves a real bottleneck in video production: getting clean, professional narration without booking studio time or hiring voice talent. You provide the text — a subtitle file, a written script, or even a rough outline — and the skill synthesizes spoken audio that matches the tone and pacing you specify through conversation.
-
-What makes this different from a standalone TTS tool is the conversational editing layer. The OpenClaw agent acts as your session coordinator, interpreting natural language instructions like 'slow down the second paragraph' or 'use a warmer voice for the intro' and translating those into precise synthesis parameters. You're not adjusting sliders manually — you're describing the result you want, and the agent handles the configuration.
-
-Under the hood, the AI backend processes your text in structured segments, aligns generated speech to your video's existing timeline, and mixes the audio at an appropriate level relative to any background sound already present. The result is a finished video file with embedded narration, ready for export. Whether you're producing explainer content, e-learning modules, or social clips at scale, this skill fits into both one-off projects and automated batch workflows.
-
-### Environment Variables
-
-| Variable | Required | Default |
-|----------|----------|--------|
-| `NEMO_TOKEN` | No | Auto-generated (100 free credits, expires in 7 days, revocable via Settings → API Tokens) |
-| `NEMO_API_URL` | No | `https://mega-api-prod.nemovideo.ai` |
-| `NEMO_WEB_URL` | No | `https://nemovideo.com` |
-| `NEMO_CLIENT_ID` | No | Auto-generated UUID, persisted to `~/.config/nemovideo/client_id` (UUID only, no secrets) |
-| `SKILL_SOURCE` | No | Auto-detected from install path, fallback `unknown` |
-
-If `NEMO_TOKEN` is not set, get one (requires `X-Client-Id` header):
+### Step 3 — Generate
 ```bash
-# Generate or read persisted Client-Id
-CLIENT_ID="${NEMO_CLIENT_ID:-$(cat ~/.config/nemovideo/client_id 2>/dev/null)}"
-if [ -z "$CLIENT_ID" ]; then
-  CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
-  mkdir -p ~/.config/nemovideo & echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
-fi
-curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-# → {"code":0,"data":{"token":"nmv_usr_xxx","credits":100,...}}
-```
-Save `token` as `NEMO_TOKEN`, `CLIENT_ID` as `NEMO_CLIENT_ID`. Anonymous: 1 token per client per 7 days; token expires in 7 days and can be revoked at any time via **Settings → API Tokens** on nemovideo.com. If your token expires, request a new one with the same `X-Client-Id`.
-
-**Local persistence:** This skill writes `~/.config/nemovideo/client_id` to persist the Client-Id across sessions. This avoids generating a new ID on every request, which would hit the per-IP rate limit quickly (default 10 tokens per 7 days per IP). The file contains only a UUID — no credentials are stored locally.
-
-## 2. Routing Incoming Requests to the Correct Endpoint
-
-Use the table below to determine which endpoint should handle each type of incoming request.
-
-| User says... | Action | Skip SSE |
-|-------------|--------|----------|
-| "export" / "导出" / "download" / "send me the video" | → §3.5 Export | ✅ |
-| "credits" / "积分" / "balance" / "余额" | → §3.3 Credits | ✅ |
-| "status" / "状态" / "show tracks" | → §3.4 State | ✅ |
-| "upload" / "上传" / user sends file | → §3.2 Upload | ✅ |
-| Everything else (generate, edit, add BGM…) | → §3.1 SSE | ❌ |
-
-## 3. Primary Operation Workflows
-
-$API = `${NEMO_API_URL:-https://mega-api-prod.nemovideo.ai}`, $TOKEN = `${NEMO_TOKEN}`, $WEB = `${NEMO_WEB_URL:-https://nemovideo.com}`.
-
-Skill attribution variables — do NOT hardcode:
-- `$SKILL_NAME` = this file's YAML frontmatter `name`
-- `$SKILL_VERSION` = this file's YAML frontmatter `version`
-- `$SKILL_SOURCE` = detect at runtime using the first match:
-  1. Env `SKILL_SOURCE` if set
-  2. If this file's path contains a known platform directory (e.g. `~/.clawhub/` → `clawhub`, `~/.cursor/skills/` → `cursor`)
-  3. Fallback: `unknown`
-
-**CRITICAL**: ALL API requests (including render/export/upload/state/credits) MUST include these headers. Missing them will cause export to fail with 402.
-```
-X-Skill-Source: $SKILL_NAME
-X-Skill-Version: $SKILL_VERSION
-X-Skill-Platform: $SKILL_SOURCE
+curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
+  -H "Authorization: Bearer $NEMO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill": "text-to-speech-ai",
+    "prompt": "Generate voiceover for a 3-minute YouTube explainer about how neural networks learn. Voice: warm male, mid-30s, American English, conversational and knowledgeable (like a smart friend explaining something). Speed: 150 wpm. Emphasis on technical terms when first introduced. Natural pauses between paragraphs (0.8 sec). Slight energy increase during the surprising-fact section. Mix into existing video at -6dB voice, -20dB background music with ducking.",
+    "script": "Have you ever wondered how a computer learns to recognize a cat in a photo? [pause] It turns out the answer is surprisingly similar to how *your* brain does it...",
+    "voice": "warm-male-american-30s",
+    "speed_wpm": 150,
+    "tone": "conversational-knowledgeable",
+    "pause_between_paragraphs": 0.8,
+    "mix_into_video": true,
+    "voice_volume": "-6dB",
+    "music_volume": "-20dB",
+    "ducking": true,
+    "format": "16:9"
+  }'
 ```
 
-### 3.0 Establishing a Session
-```bash
-curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"task_name":"project","language":"<lang>"}'
-# → {"code":0,"data":{"task_id":"...","session_id":"..."}}
-```
-Before any other operations can proceed, a session must be initialized. This session identifier is required for all subsequent requests within the same interaction.
+### Step 4 — Preview Voice and Mix
+Preview the voiceover alone and mixed into the video. Adjust: speed, emphasis, tone, or volume balance. Re-generate specific sections without redoing the entire script.
 
-**Open in browser**: After creating a session, give the user a link to view/edit the task in NemoVideo:
-`$WEB/workspace/claim?task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
+## Parameters
 
-### 3.1 Delivering Messages Over SSE
-```bash
-curl -s -X POST "$API/run_sse" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" --max-time 900 \
-  -d '{"app_name":"nemo_agent","user_id":"me","session_id":"<sid>","new_message":{"parts":[{"text":"<msg>"}]}}'
-```
-All conversational messages are transmitted to the backend through a persistent Server-Sent Events connection.
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Script and voice requirements |
+| `script` | string | | Full script text with markup ([pause], *emphasis*, [tone: x]) |
+| `voice` | string | | Voice profile: gender, age, accent, personality |
+| `speed_wpm` | integer | | Words per minute (default: 150) |
+| `tone` | string | | "conversational", "authoritative", "energetic", "calm", "empathetic" |
+| `language` | string | | "en", "es", "de", "fr", "ja", "zh", "ko", "ar", "pt" |
+| `pause_between_paragraphs` | float | | Seconds of pause (default: 0.5) |
+| `mix_into_video` | boolean | | Render voiceover into existing video (default: false) |
+| `voice_volume` | string | | "-3dB" to "-12dB" (default: "-6dB") |
+| `music_volume` | string | | "-16dB" to "-24dB" (default: "-20dB") |
+| `ducking` | boolean | | Duck music under speech (default: true) |
+| `output_format` | string | | "mp4" (mixed), "wav", "mp3" (audio only) |
 
-#### SSE Handling
+## Output Example
 
-| Event | Action |
-|-------|--------|
-| Text response | Apply GUI translation (§4), present to user |
-| Tool call/result | Wait silently, don't forward |
-| `heartbeat` / empty `data:` | Keep waiting. Every 2 min: "⏳ Still working..." |
-| Stream closes | Process final response |
-
-Typical durations: text 5-15s, video generation 100-300s, editing 10-30s.
-
-**Timeout**: 10 min heartbeats-only → assume timeout. **Never re-send** during generation (duplicates + double-charge).
-
-Ignore trailing "I encountered a temporary issue" if prior responses were normal.
-
-#### Silent Response Fallback (CRITICAL)
-
-Approximately 30% of edit operations return no text content in the response. When this occurs: first confirm the HTTP status code is 200; then poll the task state endpoint to verify completion; finally retrieve the output asset directly. Never interpret an empty text payload as a failure.
-
-**Two-stage generation**: After the raw video asset is produced, the backend automatically triggers a second processing stage that layers in background music and generates a title. Treat this as a two-phase pipeline — the initial video output is intermediate, and the fully composed result is only available once both stages have completed.
-
-### 3.2 Handling File Uploads
-
-**File upload**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
-
-**URL upload**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -d '{"urls":["<url>"],"source_type":"url"}'`
-
-Use **me** in the path; backend resolves user from token.
-
-Supported: mp4, mov, avi, webm, mkv, jpg, png, gif, webp, mp3, wav, m4a, aac.
-
-Reference materials and media assets can be attached to a session through the designated upload endpoint.
-
-### 3.3 Checking Available Credits
-```bash
-curl -s "$API/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-# → {"code":0,"data":{"available":XXX,"frozen":XX,"total":XXX}}
-```
-Query the credits endpoint before initiating any generation task to confirm the account has sufficient balance.
-
-### 3.4 Polling Task and Session State
-```bash
-curl -s "$API/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
-Use **me** for user in path; backend resolves from token.
-Key fields: `data.state.draft`, `data.state.video_infos`, `data.state.canvas_config`, `data.state.generated_media`.
-
-**Draft field mapping**: `t`=tracks, `tt`=track type (0=video, 1=audio, 7=text), `sg`=segments, `d`=duration(ms), `m`=metadata.
-
-**Draft ready for export** when `draft.t` exists with at least one track with non-empty `sg`.
-
-**Track summary format**:
-```
-Timeline (3 tracks): 1. Video: city timelapse (0-10s) 2. BGM: Lo-fi (0-10s, 35%) 3. Title: "Urban Dreams" (0-3s)
+```json
+{
+  "job_id": "tts-20260328-001",
+  "status": "completed",
+  "script_words": 438,
+  "duration_seconds": 175,
+  "voice": "warm-male-american-30s",
+  "speed_wpm": 150,
+  "language": "en",
+  "outputs": {
+    "voiceover_audio": {
+      "file": "voiceover.wav",
+      "duration": "2:55",
+      "format": "WAV 48kHz 24bit"
+    },
+    "mixed_video": {
+      "file": "explainer-with-voiceover.mp4",
+      "duration": "2:55",
+      "resolution": "1920x1080",
+      "voice_volume": "-6dB",
+      "music_volume": "-20dB",
+      "ducking_events": 22
+    }
+  }
+}
 ```
 
-### 3.5 Exporting and Delivering the Final Asset
+## Tips
 
-**Export does NOT cost credits.** Only generation/editing consumes credits.
+1. **150 words per minute is the natural conversational pace** — 130 wpm feels slow and condescending. 170 wpm feels rushed and hard to follow. 150 is the sweet spot for most content. Increase to 160-170 for energetic ads, decrease to 130-140 for technical training.
+2. **Mark emphasis sparingly** — Emphasizing every other word sounds robotic. Mark only the words that change the sentence's meaning when stressed: "It's *completely* waterproof" not "*It's* *completely* *waterproof*."
+3. **Pauses are more important than speed** — A 0.5-1.0 second pause before a key point creates anticipation. A pause after a question gives the viewer time to think. Pauses make voiceover feel human; constant speech feels mechanical.
+4. **Same voice across a series builds familiarity** — Viewers develop a relationship with consistent narration. Changing voices between episodes feels disorienting. Lock in a voice profile for the entire series.
+5. **Ducking makes voiceover audible without muting music** — Music dropping 6-8dB during speech means the viewer hears the voice clearly without the music disappearing entirely. The music fills pauses and maintains energy; the voice dominates during speech.
 
-Exporting the finished output does not deduct any credits from the account. The delivery sequence is as follows: (a) confirm both processing stages are complete; (b) request the export via the designated endpoint; (c) await the export job completion signal; (d) retrieve the signed download URL from the response; (e) stream or forward the asset to the end user.
+## Output Formats
 
-**b)** Submit: `curl -s -X POST "$API/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -d '{"id":"render_<ts>","sessionId":"<sid>","draft":<json>,"output":{"format":"mp4","quality":"high"}}'`
+| Format | Quality | Use Case |
+|--------|---------|----------|
+| WAV 48kHz | Lossless | Professional editing pipeline |
+| MP3 320kbps | High | Web / podcast / lightweight |
+| MP4 (mixed) | Source video | Ready-to-publish with voiceover |
+| SRT | — | Matching caption file |
 
-Note: `sessionId` is **camelCase** (exception). On failure → new `id`, retry once.
+## Related Skills
 
-**c)** Poll (every 30s, max 10 polls): `curl -s "$API/api/render/proxy/lambda/<id>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"`
-
-Status at top-level `status`: pending → processing → completed / failed. Download URL at `output.url`.
-
-**d)** Download from `output.url` → send to user. Fallback: `$API/api/render/proxy/<id>/download`.
-
-**e)** When delivering the video, **always also give the task detail link**: `$WEB/workspace/claim?task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
-
-Progress messages: start "⏳ Rendering ~30s" → "⏳ 50%" → "✅ Video ready!" + file + **task detail link**.
-
-### 3.6 Recovering from an SSE Disconnection
-
-If the SSE stream drops unexpectedly, follow these five steps to recover: (1) detect the disconnection event in your stream listener; (2) wait a brief interval before attempting to reconnect to avoid flooding the server; (3) re-establish the SSE connection using the original session identifier; (4) poll the task state endpoint to determine how much progress was made before the drop; (5) resume or re-submit only the portions of the operation that did not complete successfully.
-
-## 4. Translating Backend Responses for the User Interface
-
-The backend operates under the assumption that a graphical interface is present, so GUI-specific instructions embedded in responses must never be passed through directly to the end user.
-
-| Backend says | You do |
-|-------------|--------|
-| "click [button]" / "点击" | Execute via API |
-| "open [panel]" / "打开" | Show state via §3.4 |
-| "drag/drop" / "拖拽" | Send edit via SSE |
-| "preview in timeline" | Show track summary |
-| "Export button" / "导出" | Execute §3.5 |
-| "check account/billing" | Check §3.3 |
-
-**Keep** content descriptions. **Strip** GUI actions.
-
-## 5. Recommended Interaction Patterns
-
-• Always confirm session creation before issuing any generation or upload request.
-• Proactively check credit balance prior to starting tasks that consume generation quota.
-• When a response arrives with no text body, fall back to state polling rather than surfacing an error to the user.
-• Translate any interface-oriented language from backend responses into plain conversational feedback.
-• Monitor SSE stream health continuously and trigger the disconnection recovery flow immediately upon detecting a drop.
-
-## 6. Known Constraints and Limitations
-
-• Generation tasks are asynchronous; completion times vary and cannot be guaranteed.
-• A valid active session is a hard prerequisite — no operations function without one.
-• Credit balance is consumed at the point of generation initiation and is non-refundable if the task fails after processing begins.
-• File uploads are subject to size and format restrictions enforced by the upload endpoint.
-• SSE connections may be terminated by intermediate network infrastructure; implement reconnection logic accordingly.
-• The two-stage post-processing pipeline cannot be bypassed or reordered.
-
-## 7. Error Identification and Handling
-
-The table below maps common error codes to their probable causes and the corrective action that should be taken.
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | Success | Continue |
-| 1001 | Bad/expired token | Re-auth via anonymous-token (tokens expire after 7 days) |
-| 1002 | Session not found | New session §3.0 |
-| 2001 | No credits | Anonymous: show registration URL with `?bind=<id>` (get `<id>` from create-session or state response when needed). Registered: "Top up at nemovideo.ai" |
-| 4001 | Unsupported file | Show supported formats |
-| 4002 | File too large | Suggest compress/trim |
-| 400 | Missing X-Client-Id | Generate Client-Id and retry (see §1) |
-| 402 | Free plan export blocked | Subscription tier issue, NOT credits. "Register at nemovideo.ai to unlock export." |
-| 429 | Rate limit (1 token/client/7 days) | Retry in 30s once |
-
-**Common**: no video → generate first; render fail → retry new `id`; SSE timeout → §3.6; silent edit → §3.1 fallback.
-
-## 8. API Version and Required Token Scopes
-
-Before integrating, verify that your client is targeting the correct API version as specified in the endpoint documentation. Ensure the access token presented with each request carries all required scopes; missing scopes will result in authorization rejections even when credentials are otherwise valid. Scope requirements are listed per endpoint and must be satisfied in full.
+- [instagram-video-caption](/skills/instagram-video-caption) — Instagram captions
+- [subtitle-video-generator](/skills/subtitle-video-generator) — Auto subtitles
+- [ai-video-generator-free](/skills/ai-video-generator-free) — Text to video
