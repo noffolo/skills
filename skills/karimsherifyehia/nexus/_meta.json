@@ -3,9 +3,15 @@
   "slug": "nexus",
   "displayName": "Nexus — Ops OS for AI Agents",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774465655292,
-    "commit": "https://github.com/openclaw/skills/commit/54f212e96a814b633750efda3c1a6a9b7210486c"
+    "version": "1.0.4",
+    "publishedAt": 1774806141729,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774465655292,
+      "commit": "https://github.com/openclaw/skills/commit/54f212e96a814b633750efda3c1a6a9b7210486c"
+    }
+  ]
 }
