@@ -1,17 +1,17 @@
 ---
 name: taka
 description: Taka creative tools CLI — generate AI images, videos, emails, and flyers for small businesses from the command line
-homepage: https://mondaygpt.com
+homepage: https://taka.ai
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":[],"env":["TAKA_SERVER_URL"]}}}
 ---
 
 ## Install Taka CLI
 
 ```bash
-npm install -g @mondaygpt/taka-cli
+npm install -g taka-cli
 ```
 
-npm release: https://www.npmjs.com/package/@mondaygpt/taka-cli
+npm release: https://www.npmjs.com/package/taka-cli
 
 ---
 
@@ -72,7 +72,7 @@ taka logout
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `TAKA_SERVER_URL` | No | `https://api.mondaygpt.com/v1` | Custom API endpoint (for staging/dev) |
+| `TAKA_SERVER_URL` | No | `https://api.taka.ai/v1` | Custom API endpoint (for staging/dev) |
 
 Credentials are saved to `~/.config/taka/config.json` with restricted permissions (owner-only read/write).
 

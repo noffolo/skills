@@ -3,7 +3,7 @@
 ## Option 1: Install from npm (Recommended)
 
 ```bash
-npm install -g @mondaygpt/taka-cli
+npm install -g taka-cli
 ```
 
 After installation, the `taka` command is available globally.
@@ -11,9 +11,9 @@ After installation, the `taka` command is available globally.
 ## Option 2: npx (No Install)
 
 ```bash
-npx @mondaygpt/taka-cli --help
-npx @mondaygpt/taka-cli login
-npx @mondaygpt/taka-cli generate-image --prompt "sunset"
+npx taka-cli --help
+npx taka-cli login
+npx taka-cli generate-image --prompt "sunset"
 ```
 
 ## Setup
@@ -47,13 +47,13 @@ taka list-creatives
 
 ## Custom Server URL
 
-By default, Taka CLI connects to `https://api.mondaygpt.com/v1`.
+By default, Taka CLI connects to `https://api.taka.ai/v1`.
 
 To use a different server (staging, development, self-hosted):
 
 ```bash
 # Set for current session
-export TAKA_SERVER_URL=https://staging-api.mondaygpt.com/v1
+export TAKA_SERVER_URL=https://staging.api.taka.ai/v1
 
 # Then login (URL is saved with credentials)
 taka login
@@ -114,5 +114,5 @@ Your account doesn't have a business yet. Create one through the Taka web app, t
 which taka
 
 # If not found, reinstall
-npm install -g @mondaygpt/taka-cli
+npm install -g taka-cli
 ```

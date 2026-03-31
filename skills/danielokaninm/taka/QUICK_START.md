@@ -3,7 +3,7 @@
 ## Install
 
 ```bash
-npm install -g @mondaygpt/taka-cli
+npm install -g taka-cli
 ```
 
 ## Authenticate

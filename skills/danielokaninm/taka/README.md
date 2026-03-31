@@ -9,7 +9,7 @@ Taka CLI provides a command-line interface to the Taka creative platform, enabli
 ## Installation
 
 ```bash
-npm install -g @mondaygpt/taka-cli
+npm install -g taka-cli
 ```
 
 ---
@@ -27,7 +27,7 @@ This uses email + OTP verification (no passwords). Credentials are saved locally
 **Optional:** Custom API endpoint for staging/dev:
 
 ```bash
-export TAKA_SERVER_URL=https://staging-api.mondaygpt.com/v1
+export TAKA_SERVER_URL=https://staging.api.taka.ai/v1
 ```
 
 ---
@@ -78,7 +78,7 @@ export TAKA_SERVER_URL=https://staging-api.mondaygpt.com/v1
 
 ```bash
 # 1. Install
-npm install -g @mondaygpt/taka-cli
+npm install -g taka-cli
 
 # 2. Authenticate
 taka login
@@ -110,7 +110,7 @@ taka list-creatives
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `TAKA_SERVER_URL` | No | `https://api.mondaygpt.com/v1` | Custom API endpoint |
+| `TAKA_SERVER_URL` | No | `https://api.taka.ai/v1` | Custom API endpoint |
 
 ---
 
@@ -124,4 +124,4 @@ taka list-creatives
 
 ## Links
 
-- **Website:** [mondaygpt.com](https://mondaygpt.com)
+- **Website:** [taka.ai](https://taka.ai)
