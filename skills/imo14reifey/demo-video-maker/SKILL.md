@@ -1,158 +1,122 @@
 ---
-license: MIT-0
 name: demo-video-maker
-version: "1.0.1"
-displayName: "Demo Video Maker — Create Product Demo and Walkthrough Videos with AI"
+version: "1.0.0"
+displayName: "Demo Video Maker — Create Product Demo Videos with AI for SaaS Apps and Products"
 description: >
-  Demo Video Maker — Create Product Demo and Walkthrough Videos with AI.
-  Tell the AI what you want—it executes software demos automatically. Upload screen recordings or product footage
-  and the AI enhances it with zoom-ins on key features, cursor highlighting, step-by-step
-  text annotations, and professional transitions between sections. Edit by chatting:
-  "zoom into the settings panel" or "add a callout box around the button" or "highlight
-  the cursor path." Handles SaaS product demos, app walkthrough videos, feature
-  announcement clips, before-and-after comparisons, and interactive tutorial-style
-  demos. Built for product managers, sales teams, and developer advocates creating
-  demo content. Create horizontal for presentations or vertical for social sharing.
-  Export as MP4. Supports mp4, mov, avi, webm, mkv, jpg, png, gif, webp.
-
-homepage: https://nemovideo.com
-repository: https://github.com/nemovideo/nemovideo_skills
-metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+  Create product demo videos with AI — generate professional product walkthroughs, feature showcases, onboarding tutorials, and sales demo recordings with animated UI mockups, zoom-and-click highlights, voiceover narration, captions, and music. NemoVideo produces the demo videos that SaaS companies embed on landing pages, product teams share with prospects, customer success teams use for onboarding, and sales teams send after calls — all from a product description or screen recording without a video production team.
+metadata: {"openclaw": {"emoji": "🖥️", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
 
-# Demo Video Maker - Show How It Works
+# Demo Video Maker — Product Demos That Sell Without a Sales Call
 
-## 1. Role & Environment
+A product demo video is the most efficient sales tool in SaaS: it works 24/7, never has an off day, delivers the same perfect pitch every time, and scales to every prospect simultaneously. Landing pages with demo videos convert 72% better than those without. Sales emails with embedded demo videos get 3x more replies. Onboarding flows with demo videos reduce time-to-value by 40% and support tickets by 35%. Every SaaS company knows they need demo videos. Few make enough of them. The bottleneck: recording a quality demo requires a clean environment, a rehearsed script, a screen recording tool, a good microphone, multiple takes (most people need 5-10 takes per section), editing to remove mistakes, adding callouts and highlights, voiceover recording, and final polish. A 3-minute product demo takes a full production day. When the product updates (every sprint), the demo is outdated. NemoVideo produces demo videos from product descriptions, screen recordings, or UI screenshots — and regenerates them when the product changes. Describe what the product does, provide screen recordings or mockups, and the AI creates: a narrative product walkthrough with animated cursor movements, zoom-and-highlight on key features, clean voiceover explaining each step, text callouts for feature names and benefits, background music that maintains professional energy, and multi-format export for landing pages, sales outreach, onboarding, and social media.
 
-You produce software demonstration videos from screen recordings and script narration through automated editing. The backend handles video generation/editing but assumes a GUI exists. Your job:
+## Use Cases
 
-1. **Relay** user requests to the backend via SSE
-2. **Intercept** backend responses — replace GUI references with API actions
-3. **Supplement** — handle export/render, credits, file delivery directly
-4. **Translate** — present results in user's language with clear status
+1. **Landing Page — Hero Demo (60-120s)** — A SaaS startup needs the landing page demo that converts visitors into signups. NemoVideo produces: hook that names the pain point ("Tired of managing projects across 5 different tools?"), product reveal (dashboard animation with clean UI mockup), 3 key feature demos (each 15-20 seconds with zoom-to-feature, animated cursor click, and result animation), social proof overlay ("Trusted by 3,000+ teams"), and CTA end frame ("Start free — no credit card required"). Voiceover: confident, friendly, 160 wpm. Music: upbeat-corporate at -18dB. A demo that tells the product story in 90 seconds.
+2. **Sales Follow-Up — Personalized Demo (2-5 min)** — After a discovery call, a sales rep needs to send a personalized product walkthrough addressing the prospect's specific use case. NemoVideo generates: personalized opening ("Hi [Company], here's how [Product] solves the workflow challenge you described"), feature walkthrough focused on the relevant capabilities (not the whole product — just what this prospect needs), specific workflow animation showing their use case, comparison moment ("Currently you're doing X manually — here's what it looks like automated"), and a next-step CTA ("Let's schedule a deep dive — calendar link below"). The personalized demo that closes deals.
+3. **Onboarding — First 5 Minutes (3-5 min)** — A new user just signed up and needs to reach their first success moment. NemoVideo creates: welcome screen ("Welcome to [Product] — let's get you set up in 5 minutes"), step-by-step walkthrough with animated cursor (Step 1: Create your workspace, Step 2: Invite your team, Step 3: Import your first project), each step shown as screen recording with zoom highlights on clickable elements, progress indicator ("Step 2 of 5"), and completion celebration ("You're all set! Here's what to explore next"). The onboarding video that reduces churn by getting users to value faster.
+4. **Feature Launch — What's New (60-90s)** — A product team ships a new feature and needs an announcement video. NemoVideo produces: hook ("The feature you've been asking for is here"), before/after comparison (old workflow vs. new feature), animated walkthrough of the new capability with zoom-and-click, 2-3 benefit callouts as text overlays, and CTA ("Try it now in your dashboard"). Published on the changelog, emailed to users, and posted on social media. Feature adoption driven by clear visual communication.
+5. **Investor Pitch — Product in Action (90s-3 min)** — A startup's pitch deck needs a product demo section that shows the product actually working. NemoVideo generates: market context animation (the problem being solved, animated data), product reveal (full UI shown in context), key workflow demonstration (the 2-3 actions that demonstrate core value), outcome visualization (metrics improvement, time saved, error reduction), and scale indication ("This is one user — now imagine 10,000"). The demo that makes investors say "I get it" in under 3 minutes.
 
-### Environment Variables
+## How It Works
 
-| Variable | Required | Default |
-|----------|----------|---------|
-| `NEMO_TOKEN` | No | Auto-generated on first use |
-| `NEMO_API_URL` | No | `https://mega-api-prod.nemovideo.ai` |
-| `NEMO_WEB_URL` | No | `https://nemovideo.com` |
-| `NEMO_CLIENT_ID` | No | Auto-generated UUID, persisted to `~/.config/nemovideo/client_id` |
-| `SKILL_SOURCE` | No | Auto-detected from install path |
+### Step 1 — Provide Product Information
+Upload: screen recordings, UI screenshots, product descriptions, or feature documentation. NemoVideo works with any combination of these inputs.
 
-If `NEMO_TOKEN` is not set:
+### Step 2 — Define Demo Structure
+Choose: hook style, features to highlight, narration tone, target audience, and demo length.
+
+### Step 3 — Generate
 ```bash
-CLIENT_ID="${NEMO_CLIENT_ID:-$(cat ~/.config/nemovideo/client_id 2>/dev/null)}"
-if [ -z "$CLIENT_ID" ]; then
-  CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
-  mkdir -p ~/.config/nemovideo && echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
-fi
-curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-```
-Save `token` as `NEMO_TOKEN`. Expires after 7 days; re-request with same `X-Client-Id`.
-
-## 2. Request Router
-
-| User says... | Action | Skip SSE? |
-|-------------|--------|-----------|
-| "export" / "download" / "send me the video" | Export | Yes |
-| "credits" / "balance" | Credits | Yes |
-| "status" / "show tracks" | State | Yes |
-| "upload" / user sends file | Upload | Yes |
-| Everything else | SSE | No |
-
-## 3. Core Flows
-
-`$API` = `${NEMO_API_URL:-https://mega-api-prod.nemovideo.ai}`, `$TOKEN` = `${NEMO_TOKEN}`, `$WEB` = `${NEMO_WEB_URL:-https://nemovideo.com}`.
-
-All API requests MUST include:
-```
-X-Skill-Source: $SKILL_NAME
-X-Skill-Version: $SKILL_VERSION
-X-Skill-Platform: $SKILL_SOURCE
+curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
+  -H "Authorization: Bearer $NEMO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill": "demo-video-maker",
+    "prompt": "Create a 90-second landing page demo video for a SaaS project management tool. Structure: Hook (managing projects across scattered tools is chaos) → Product Reveal (clean dashboard overview) → Feature 1: Drag-and-drop task boards (15 sec, zoom to board, animated cursor drag) → Feature 2: Real-time team collaboration (15 sec, animated cursors from multiple users) → Feature 3: Automated weekly reports (15 sec, report generating animation) → Social proof (3000 teams trust us) → CTA (Start free, no credit card). Voice: confident friendly female, 160 wpm. Music: upbeat-corporate at -18dB. Brand colors: blue #2563EB, white.",
+    "demo_type": "landing-page",
+    "voice": "confident-friendly-female",
+    "voice_speed": "160 wpm",
+    "music": "upbeat-corporate",
+    "music_volume": "-18dB",
+    "brand": {"primary": "#2563EB", "secondary": "#FFFFFF"},
+    "cursor_animation": true,
+    "zoom_highlights": true,
+    "captions": {"style": "sentence", "text": "#FFFFFF", "bg": "brand-semitransparent"},
+    "duration": "90 sec",
+    "format": "16:9"
+  }'
 ```
 
-### 3.0 Create Session
-```bash
-curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"task_name":"project","language":"<lang>"}'
+### Step 4 — Review and Deploy
+Preview the demo. Verify: feature accuracy, cursor timing, voiceover clarity. Deploy to landing page, embed in sales emails, or add to onboarding flow.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Product info and demo requirements |
+| `demo_type` | string | | "landing-page", "sales-followup", "onboarding", "feature-launch", "pitch" |
+| `voice` | string | | "confident-female", "friendly-male", "authoritative", "energetic" |
+| `voice_speed` | string | | "140 wpm" (thorough), "160 wpm" (efficient), "170 wpm" (snappy) |
+| `music` | string | | "upbeat-corporate", "minimal-tech", "cinematic", "none" |
+| `music_volume` | string | | "-14dB" to "-22dB" |
+| `brand` | object | | {primary, secondary, logo} |
+| `cursor_animation` | boolean | | Animated cursor clicks and movements (default: true) |
+| `zoom_highlights` | boolean | | Zoom to features during demo (default: true) |
+| `captions` | object | | {style, text, bg} |
+| `duration` | string | | "60 sec", "90 sec", "3 min", "5 min" |
+| `format` | string | | "16:9", "9:16", "1:1" |
+| `personalization` | object | | {company_name, use_case} for sales demos |
+
+## Output Example
+
+```json
+{
+  "job_id": "dvm-20260328-001",
+  "status": "completed",
+  "duration_seconds": 92,
+  "format": "mp4",
+  "resolution": "1920x1080",
+  "output_url": "https://mega-api-prod.nemovideo.ai/output/dvm-20260328-001.mp4",
+  "demo_structure": {
+    "hook": "0:00-0:08 (pain point + curiosity)",
+    "product_reveal": "0:08-0:18 (dashboard overview)",
+    "feature_1": "0:18-0:35 (task boards with cursor animation)",
+    "feature_2": "0:35-0:52 (real-time collaboration)",
+    "feature_3": "0:52-1:08 (automated reports)",
+    "social_proof": "1:08-1:18 (3000 teams)",
+    "cta": "1:18-1:32 (start free)"
+  },
+  "production": {
+    "voice": "confident-friendly-female at 160 wpm",
+    "music": "upbeat-corporate at -18dB",
+    "cursor_animations": 12,
+    "zoom_highlights": 8
+  }
+}
 ```
-Save `session_id`, `task_id`.
 
-### 3.1 Send Message via SSE
-```bash
-curl -s -X POST "$API/run_sse" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" --max-time 900 \
-  -d '{"app_name":"nemo_agent","user_id":"me","session_id":"<sid>","new_message":{"parts":[{"text":"<msg>"}]}}'
-```
+## Tips
 
-### 3.2 Upload
-**File**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
+1. **90 seconds is the landing page demo sweet spot** — Under 60 seconds cannot demonstrate enough value. Over 2 minutes loses website visitors who are still evaluating. 75-90 seconds delivers: pain → product → proof → action.
+2. **Zoom-to-feature is the most important visual technique** — When explaining a feature, zoom the screen to show only that feature at 200% size. The viewer sees exactly what you're describing without scanning a full UI for the relevant element.
+3. **Animated cursor creates the "someone is showing me" feeling** — A static screen recording feels like documentation. An animated cursor clicking, dragging, and typing feels like a personal demo from a real person. The cursor transforms a screenshot into a guided experience.
+4. **Feature launch videos should show before/after** — "We added X" is informative. "Before, you had to do Y manually. Now, one click does it" is persuasive. The contrast between old workflow and new capability is what drives feature adoption.
+5. **Personalized sales demos close 2x more deals** — A generic product demo says "our product does X." A personalized demo says "for [Company], this means Y." The same product, but the prospect sees themselves using it. Personalization is the highest-leverage demo investment.
 
-**URL**: same endpoint, `-d '{"urls":["<url>"],"source_type":"url"}'`
+## Output Formats
 
-Supported: mp4, mov, avi, webm, mkv, jpg, png, gif, webp, mp3, wav, m4a, aac.
+| Format | Resolution | Use Case |
+|--------|-----------|----------|
+| MP4 16:9 | 1080p / 4K | Landing page / sales email |
+| MP4 9:16 | 1080x1920 | Social media / product hunt |
+| MP4 1:1 | 1080x1080 | LinkedIn / tweet embed |
+| GIF | 720p | Feature highlight loop |
+| WebM | 1080p | Web embed (smaller) |
 
-### 3.3 Credits
-```bash
-curl -s "$API/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
+## Related Skills
 
-### 3.4 Query State
-```bash
-curl -s "$API/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
-
-### 3.5 Export
-```bash
-curl -s -X POST "$API/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"id":"render_<ts>","sessionId":"<sid>","draft":<json>,"output":{"format":"mp4","quality":"high"}}'
-```
-Poll `GET $API/api/render/proxy/lambda/<id>` every 30s.
-
-### 3.6 Disconnect Recovery
-Wait 30s, query state. After 5 unchanged polls, report failure.
-
-## 4. GUI Translation
-
-| Backend says | You do |
-|-------------|--------|
-| "click Export" | Render + deliver |
-| "open timeline" | Show state |
-| "drag/drop" | Send edit via SSE |
-| "check account" | Show credits |
-
-## 6. Error Handling
-
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | Success | Continue |
-| 1001 | Token expired | Re-auth |
-| 1002 | Session gone | New session |
-| 2001 | No credits | Show registration URL |
-| 4001 | Unsupported file | Show formats |
-| 402 | Export restricted | "Register at nemovideo.ai" |
-| 429 | Rate limited | Wait 30s, retry |
-
-## 7. Limitations
-
-- Aspect ratio change after generation requires regeneration
-- YouTube/Spotify music URLs not supported; built-in library available
-- Photo editing not supported; slideshow creation available
-- Local files must be sent in chat or provided as URL
-
-
-## 5. Demo Tips
-
-**Zoom**: "Zoom into the dashboard at 0:10" draws attention to specific UI areas.
-
-**Callouts**: "Add an arrow pointing to the save button" creates visual annotations.
-
-**Before/after**: "Show before and after side by side" creates comparison frames.
+- [podcast-video-maker](/skills/podcast-video-maker) — Podcast video creation
+- [make-video-ai](/skills/make-video-ai) — AI video creation
