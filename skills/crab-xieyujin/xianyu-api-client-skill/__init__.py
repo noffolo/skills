@@ -66,21 +66,58 @@ class XianYuAPIClient:
         headers = {"Content-Type": "application/json"}
         
         try:
-            # 发送HTTPS请求
-            conn = http.client.HTTPSConnection(self.api_host)
+            # 发送HTTPS请求 - 使用 open.goofish.pro 作为主机
+            conn = http.client.HTTPSConnection("open.goofish.pro")
             conn.request("POST", url, body, headers)
             response = conn.getresponse()
             response_data = response.read().decode('utf-8')
             conn.close()
             
             # 解析JSON响应
-            return json.loads(response_data)
+            result = json.loads(response_data)
+            
+            # 验证响应格式和成功状态
+            # 注意：闲鱼管家API的成功码是 code=0，不是200！
+            if 'code' not in result:
+                raise Exception(f"Invalid API response format: {response_data}")
+                
+            return result
             
         except Exception as e:
             raise Exception(f"API request failed: {str(e)}")
     
     def create_product(self, product_data: Dict[str, Any]) -> Dict[str, Any]:
-        """创建商品的便捷方法"""
+        """创建商品的便捷方法 - 包含完整参数验证"""
+        # 验证必需字段
+        if 'publish_shop' not in product_data or not product_data['publish_shop']:
+            raise ValueError("Missing required field: publish_shop")
+            
+        for shop in product_data['publish_shop']:
+            required_fields = ['user_name', 'images', 'title', 'content']
+            for field in required_fields:
+                if field not in shop:
+                    raise ValueError(f"Missing required field in publish_shop: {field}")
+                    
+            # 验证images是列表
+            if not isinstance(shop['images'], list) or len(shop['images']) == 0:
+                raise ValueError("images must be a non-empty list of image URLs")
+                
+            # 验证标题长度（不超过60字符）
+            if len(shop['title']) > 60:
+                raise ValueError("title must not exceed 60 characters")
+                
+            # 验证标题不包含表情符号（可能导致API错误）
+            import re
+            emoji_pattern = re.compile(
+                "["
+                "\U0001F600-\U0001F64F"  # emoticons
+                "\U0001F300-\U0001F5FF"  # symbols & pictographs
+                "\U0001F680-\U0001F6FF"  # transport & map symbols
+                "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                "]+", flags=re.UNICODE)
+            if emoji_pattern.search(shop['title']):
+                raise ValueError("title must not contain emoji characters")
+        
         return self.request("/api/open/product/create", product_data)
     
     def get_product_detail(self, product_id: str) -> Dict[str, Any]:
