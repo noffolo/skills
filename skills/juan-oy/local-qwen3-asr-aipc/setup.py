@@ -398,6 +398,27 @@ class OVQwen3ASRModel:
 else:
     print(f"\n  asr_engine.py already at {ENGINE_VERSION} ✅")
 
+# ── Deploy transcribe.py ──────────────────────────────────
+import re as _re, shutil as _shutil
+TRANSCRIBE_VERSION = "v1.1.0"
+transcribe_dst = asr_dir / "transcribe.py"
+transcribe_src = Path(__file__).parent / "transcribe.py"
+
+_needs_deploy = True
+if transcribe_dst.exists():
+    _m = _re.search(
+        r'SKILL_VERSION\s*=\s*["\'](.+?)["\']',
+        transcribe_dst.read_text(encoding="utf-8", errors="ignore"),
+    )
+    if _m and _m.group(1) == TRANSCRIBE_VERSION:
+        _needs_deploy = False
+
+if _needs_deploy:
+    _shutil.copy2(str(transcribe_src), str(transcribe_dst))
+    print(f"\n  transcribe.py {TRANSCRIBE_VERSION} deployed ✅")
+else:
+    print(f"\n  transcribe.py already at {TRANSCRIBE_VERSION} ✅")
+
 # ── Verify ─────────────────────────────────────────────────
 print("\n[Verify] Checking installation...")
 
