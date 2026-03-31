@@ -1,13 +1,18 @@
 {
   "owner": "sipingme",
   "slug": "markdown-ai-rewriter",
-  "displayName": "Markdown Ai Rewriter Skill",
+  "displayName": "Markdown Ai Rewriter",
   "latest": {
-    "version": "0.3.3",
-    "publishedAt": 1774780675435,
-    "commit": "https://github.com/openclaw/skills/commit/3d4924d2d8c4819550bbc14d2c5089d64e50e10d"
+    "version": "0.3.6",
+    "publishedAt": 1774956220488,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.3.3",
+      "publishedAt": 1774780675435,
+      "commit": "https://github.com/openclaw/skills/commit/3d4924d2d8c4819550bbc14d2c5089d64e50e10d"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1774598083480,

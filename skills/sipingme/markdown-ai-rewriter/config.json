@@ -1,7 +1,7 @@
 {
   "skill": {
     "name": "markdown-ai-rewriter",
-    "version": "0.3.2",
+    "version": "0.3.6",
     "enabled": true,
     "autoInvoke": true
   },
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "npm": [
-      "markdown-ai-rewriter@^0.3.0"
+      "markdown-ai-rewriter@^0.3.3"
     ]
   },
   "permissions": {
