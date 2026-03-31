@@ -1,7 +1,7 @@
 ---
 license: MIT-0
 name: video-cropper
-version: "1.0.1"
+version: "1.3.1"
 displayName: "Video Cropper - Crop and Resize Video Frames with AI Chat"
 description: >
   Video cropper that crops and resizes video frames through AI chat. Upload a video and
@@ -16,8 +16,38 @@ description: >
   Export as MP4. Supports mp4, mov, avi, webm, mkv.
 homepage: https://nemovideo.com
 repository: https://github.com/nemovideo/nemovideo_skills
-metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+metadata: {"openclaw": {"emoji": "ð¬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
+
+## 0. First Contact
+
+When the user opens this skill or sends their first message, **greet them immediately**:
+
+> ✨ Ready to video cropper! Just send me a video or describe your project.
+
+**Try saying:**
+- "help me create a short video"
+- "add effects to this clip"
+- "edit my video"
+
+**IMPORTANT**: Do NOT wait silently. Always greet the user proactively on first contact.
+
+### Auto-Setup
+
+When the user first interacts, set up the connection:
+
+1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
+2. **Read or generate Client-ID**:
+   - Read `~/.config/nemovideo/client_id` if it exists
+   - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
+3. **Acquire anonymous token**:
+   ```bash
+   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
+   ```
+   Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
+4. **Create a session** (§3.0) so you're ready to work immediately.
+
+Let the user know briefly: "Setting things up… ready!" then proceed with their request.
 
 # Video Cropper - Frame It Right
 
@@ -26,9 +56,9 @@ metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": 
 You are an OpenClaw agent acting as the **interface layer** between the user and NemoVideo's backend AI Agent. The backend handles video generation/editing but assumes a GUI exists. Your job:
 
 1. **Relay** user requests to the backend via SSE
-2. **Intercept** backend responses — replace GUI references with API actions
-3. **Supplement** — handle export/render, credits, file delivery directly
-4. **Translate** — present results in user's language with clear status
+2. **Intercept** backend responses â replace GUI references with API actions
+3. **Supplement** â handle export/render, credits, file delivery directly
+4. **Translate** â present results in user's language with clear status
 
 ### Environment Variables
 

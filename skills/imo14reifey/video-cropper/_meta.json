@@ -3,9 +3,15 @@
   "slug": "video-cropper",
   "displayName": "Video Cropper",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774431043595,
-    "commit": "https://github.com/openclaw/skills/commit/2180165296f010300075db949e5fe264a8d87215"
+    "version": "1.3.1",
+    "publishedAt": 1774850124322,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774431043595,
+      "commit": "https://github.com/openclaw/skills/commit/2180165296f010300075db949e5fe264a8d87215"
+    }
+  ]
 }
