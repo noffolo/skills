@@ -1,6 +1,6 @@
 ---
 name: travel-search
-description: "Find the best travel deals by searching and comparing flights, hotels, car rentals, and ferries across multiple providers simultaneously. Smart value scoring picks the optimal price-quality-convenience balance automatically. Plan complete trip itineraries with real prices and direct booking links. Use when: user asks about flights, travel, hotels, accommodation, car rentals, ferry routes, trip planning, vacation planning, itinerary generation, finding cheap flights, best deals, comparing travel options, flexible dates, cheapest time to fly, price calendars, planning multi-city routes, or budget travel. Covers Kiwi.com (flights), Skiplagged (flights + hotels + cars), Trivago (hotels), Ferryhopper (ferries), and Google Flights via fli. All primary providers are free with no API key required."
+description: "Find the best travel deals by searching and comparing flights, hotels, Airbnb stays, car rentals, and ferries across multiple providers simultaneously. Smart value scoring picks the optimal price-quality-convenience balance automatically. Plan complete trip itineraries with real prices and direct booking links. Use when: user asks about flights, travel, hotels, accommodation, Airbnb, apartments, villas, car rentals, ferry routes, trip planning, vacation planning, itinerary generation, finding cheap flights, best deals, comparing travel options, flexible dates, cheapest time to fly, price calendars, planning multi-city routes, or budget travel. Covers Kiwi.com (flights), Skiplagged (flights + hotels + cars), Trivago (hotels), Ferryhopper (ferries), optional Airbnb via local MCP, and Google Flights via fli. All primary providers are free with no API key required."
 metadata: { "openclaw": { "emoji": "✈️", "requires": { "bins": ["curl"] } } }
 ---
 
@@ -19,6 +19,9 @@ Search flights, hotels, car rentals, and ferries across multiple free providers 
 | Flights (Google Flights) | fli | [google-flights.md](references/google-flights.md) |
 | Full trip itinerary | Multi-provider | [trip-planner.md](references/trip-planner.md) |
 | Best deal / price compare | Multi-provider | [price-tools.md](references/price-tools.md) |
+| Airbnb / apartment stays | Airbnb MCP | [airbnb.md](references/airbnb.md) |
+| Multi-city route optimizer | Multi-provider | [multi-city.md](references/multi-city.md) |
+| Destination intel (weather, visa, transport) | General knowledge + wttr.in | [travel-intel.md](references/travel-intel.md) |
 
 ## How It Works
 
@@ -53,6 +56,9 @@ Read [price-tools.md](references/price-tools.md) for the **decision tree and com
 - Flexible dates, anywhere destinations, round-trip optimization
 
 For full trip itineraries, also read [trip-planner.md](references/trip-planner.md). It includes a **guided intake questionnaire** (7 quick questions in one message) for when users want help figuring out what they want.
+
+### User wants to visit multiple cities
+Read [multi-city.md](references/multi-city.md) for route optimization. It finds the cheapest city order, allocates days, and handles open-jaw flights.
 
 ### Core principle
 **Always search multiple providers, score results, and present ONE best recommendation** with alternatives. The user should never have to compare — that's the agent's job. See [price-tools.md](references/price-tools.md) for the value scoring system.

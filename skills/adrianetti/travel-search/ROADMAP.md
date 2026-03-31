@@ -30,24 +30,34 @@
 - [x] Hidden cost flagging (baggage, breakfast, insurance)
 - [x] Add `references/price-tools.md`
 
-## v1.3.0 — Airbnb Integration
-- [ ] Integrate borski/mcp-server-airbnb
-- [ ] Short-stay vs hotel automatic comparison
-- [ ] "What's cheaper, Airbnb or hotel in Barcelona for 5 nights?"
-- [ ] Add `references/airbnb.md`
+## v1.3.0 ✅ — Airbnb Integration
+- [x] Integrate Airbnb MCP docs (`@openbnb/mcp-server-airbnb` via local `npx`)
+- [x] Short-stay vs hotel automatic comparison workflow
+- [x] Defaults for when Airbnb wins vs hotels by trip type
+- [x] Airbnb value scoring (space, amenities, privacy, policies)
+- [x] "What's cheaper, Airbnb or hotel in Barcelona for 5 nights?"
+- [x] Add `references/airbnb.md`
 
-## v1.4.0 — Multi-city Optimizer
-- [ ] Route optimization: "Visit Rome, Paris, Amsterdam in 10 days"
-- [ ] Cheapest city order based on inter-city flight prices
-- [ ] Smart routing with budget constraints
-- [ ] Add `references/multi-city.md`
+## v1.4.0 ✅ — Multi-city Optimizer
+- [x] Route optimization: "Visit Rome, Paris, Amsterdam in 10 days"
+- [x] Price matrix builder for inter-city flights
+- [x] Geographic flow optimization (minimize backtracking)
+- [x] Smart day allocation by city size
+- [x] Open-jaw flight detection (fly into A, out of C)
+- [x] Hub city awareness for cheaper first/last legs
+- [x] Train/bus suggestion for short hops (<500km)
+- [x] Cluster-based optimization for 5+ cities
+- [x] Add `references/multi-city.md`
 
-## v1.5.0 — Travel Intel
-- [ ] Destination weather forecast integration
-- [ ] Visa requirements (basic)
-- [ ] Currency and exchange rates
-- [ ] Local transport tips
-- [ ] Add `references/travel-intel.md`
+## v1.5.0 ✅ — Travel Intel
+- [x] Weather forecasts via wttr.in + best travel season patterns by region
+- [x] Visa quick reference with passport-power tiers
+- [x] Currency, cards, ATMs, and tipping culture by region
+- [x] Local transport guides: airport transfers + city transit for major cities
+- [x] Safety notes (scams, neighborhoods, health) when relevant
+- [x] Power plugs and connectivity (SIM/eSIM, WiFi)
+- [x] Concise presentation format (8-12 lines, first-time visitor essentials)
+- [x] Add `references/travel-intel.md`
 
 ## Future Ideas
 - [ ] Property/rental search (Idealista, Fotocasa — when APIs become available)

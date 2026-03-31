@@ -4,13 +4,13 @@
 
 ## Installation
 
+The `fli` package must be installed separately by the user before use:
+
 ```bash
-pipx install flights
-# or
 pip install flights
 ```
 
-Binaries: `fli` (CLI) and `fli-mcp` (MCP server)
+Binaries after installation: `fli` (CLI) and `fli-mcp` (MCP server)
 
 ## As MCP Server
 
@@ -94,7 +94,7 @@ fli dates JFK LHR --from 2026-04-01 --to 2026-05-01 --monday --friday
 - **Skiplagged**: Best for hidden city fares, flexible "anywhere" searches
 
 ## Tips
-- Requires `pipx install flights` on the host machine
+- Requires the user to install `flights` package separately before use
 - Uses IATA codes only (not city names) — resolve first
 - Google Flights has the widest coverage of any flight search
 - `search_dates` is incredibly useful for flexible travelers

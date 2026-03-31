@@ -172,16 +172,18 @@ For each unique flight, compute a mental value rank:
 
 Winner = highest combined score → label as 🏆 **Best Value**
 
-### Hotel Comparison Workflow
+### Accommodation Comparison Workflow
 
 ```
-1. Search Skiplagged (sk_hotels_search)
+1. Search Skiplagged hotels
    ↓
-2. Search Trivago (trivago-accommodation-search)
+2. Search Trivago hotels
    ↓
-3. Score: rating × (1/price) × location convenience
+3. If apartments/homes/longer stay/group travel matter, also search Airbnb (see airbnb.md)
    ↓
-4. Present: 🏆 Best Value + 💰 Budget + 💎 Premium
+4. Score by value, not price alone
+   ↓
+5. Present ONE best-value stay overall + hotel/Airbnb alternatives
 ```
 
 #### Hotel Scoring
@@ -192,6 +194,18 @@ Winner = highest combined score → label as 🏆 **Best Value**
 **Amenities weight: 10%** — WiFi, breakfast, pool, gym (bonus points)
 
 Reject any hotel below 7.0 rating unless budget tier with nothing better.
+
+#### Airbnb Scoring
+
+Read `references/airbnb.md` for tool details. Use Airbnb especially when the user wants more space, a kitchen, group travel, longer stays, or neighborhood feel.
+
+**Space/privacy weight: 30%** — entire place, bedrooms, common area
+**Price weight: 25%** — nightly + total stay value
+**Location weight: 20%** — neighborhood fit and convenience
+**Amenities weight: 15%** — kitchen, washer, WiFi, workspace, AC, self check-in
+**Policy/convenience weight: 10%** — cancellation, check-in ease, house rules
+
+For solo short stays, hotels usually get a convenience bonus. For groups or 4+ nights, Airbnb often gets a value bonus.
 
 ### Car Rental Comparison
 
@@ -249,10 +263,11 @@ User wants flights
 ├── Flexible destination → sk_destinations_anywhere
 └── Round trip optimization → sk_flex_return_calendar
 
-User wants hotels
+User wants hotels / stays
 ├── Specific city + dates → Skiplagged + Trivago parallel search
+├── Apartments / homes / long stay / group trip → also use Airbnb (see airbnb.md)
 ├── "Near [landmark]" → Trivago radius search
-└── Budget comparison → search both, score, recommend
+└── Budget comparison → search all relevant providers, score, recommend
 
 User wants cars
 └── Skiplagged sk_cars_search → sort by price, group by type

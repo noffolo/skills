@@ -123,12 +123,13 @@ Each with deep link.
 
 ## Step 3: Search Accommodation
 
-Read `references/skiplagged.md` and/or `references/hotels.md`.
+Read `references/skiplagged.md` and/or `references/hotels.md`. If apartments, homes, longer stays, workcations, or group travel are relevant, also read `references/airbnb.md`.
 
 Match to profile:
 - **Budget:** Cheapest with decent rating (≥7.0). Mention hostels for backpackers.
 - **Mid-range:** Best rating-to-price ratio. 3-4★, rating ≥8.0.
 - **Premium:** Highest rated. 4-5★, unique features (pool, view, spa, design).
+- **Apartment/home fit:** Prefer Airbnb when kitchen, laundry, workspace, privacy, or extra space matter.
 
 Location priority by focus:
 - Nightlife → near bar district
@@ -138,7 +139,7 @@ Location priority by focus:
 - Work → near coworking / business district with good WiFi
 - Family → safe area, near parks / attractions
 
-Present 2-3 options even if user specified a tier (gives choice).
+Present 2-3 options even if user specified a tier (gives choice). When Airbnb is relevant, compare **hotel vs Airbnb** directly and recommend the overall best-value stay.
 
 ## Step 4: Budget Breakdown
 

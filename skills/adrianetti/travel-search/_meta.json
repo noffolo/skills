@@ -3,9 +3,15 @@
   "slug": "travel-search",
   "displayName": "Travel Search",
   "latest": {
-    "version": "1.2.1",
-    "publishedAt": 1774582385892,
-    "commit": "https://github.com/openclaw/skills/commit/ac15cae049431888bb20933f80dcfd4ee04277c6"
+    "version": "1.5.0",
+    "publishedAt": 1774637474540,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.2.1",
+      "publishedAt": 1774582385892,
+      "commit": "https://github.com/openclaw/skills/commit/ac15cae049431888bb20933f80dcfd4ee04277c6"
+    }
+  ]
 }
