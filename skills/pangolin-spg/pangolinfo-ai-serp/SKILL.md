@@ -1,15 +1,15 @@
 ---
 name: pangolinfo-ai-serp
 description: >
-  Search Google and get AI Overviews using Pangolin APIs. Use this skill when
-  the user wants to: search Google with AI answers, get search engine results,
-  perform multi-turn AI search conversations, or capture search screenshots.
-  Requires PANGOLIN_EMAIL + PANGOLIN_PASSWORD env vars (or PANGOLIN_API_KEY).
+  Google AI Mode search (multi-turn) with structured JSON outputs and citations.
+  Use this skill when the user wants AI answers with references, follow-up
+  questions, or a reproducible AI search workflow. (SERP mode is available but
+  not the focus.) Requires PANGOLIN_API_KEY (or PANGOLIN_EMAIL + PANGOLIN_PASSWORD).
 ---
 
 # Pangolinfo AI SERP Skill
 
-Search Google and retrieve AI Overviews, organic search results, and screenshots via Pangolin APIs.
+Run Google AI Mode searches and return structured JSON + citations via Pangolin APIs.
 
 ## When to Use This Skill
 

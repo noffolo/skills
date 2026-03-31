@@ -1,11 +1,17 @@
 {
   "owner": "pangolin-spg",
   "slug": "pangolinfo-ai-serp",
-  "displayName": "Pangolinfo AI SERP: SERP + AI Overviews",
+  "displayName": "Pangolinfo AI SERP: AI Mode Output + AI Overviews",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774497016665,
-    "commit": "https://github.com/openclaw/skills/commit/9ec1e049c5d4dcdf6028dc5d382567b62f624786"
+    "version": "1.0.4",
+    "publishedAt": 1774525957989,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774497016665,
+      "commit": "https://github.com/openclaw/skills/commit/9ec1e049c5d4dcdf6028dc5d382567b62f624786"
+    }
+  ]
 }
