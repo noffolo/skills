@@ -26,6 +26,7 @@ agent-factory: 一键批量创建 OpenClaw agent + 飞书 channel 配置
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -34,6 +35,30 @@ from pathlib import Path
 
 OPENCLAW_DIR = Path.home() / ".openclaw"
 CONFIG_PATH = OPENCLAW_DIR / "openclaw.json"
+
+# agent id 白名单：小写字母、数字、连字符，首字符必须为字母或数字，最长 32
+_ID_PATTERN = re.compile(r'^[a-z0-9][a-z0-9\-]{0,31}$')
+
+
+def validate_agent_id(agent_id: str) -> str:
+    """校验 agent id，防止路径穿越攻击"""
+    aid = agent_id.strip().lower()
+    if not _ID_PATTERN.match(aid):
+        raise ValueError(
+            f"非法 agent id '{agent_id}'：只允许小写字母、数字、连字符，"
+            f"首字符须为字母或数字，最长 32 位"
+        )
+    # 额外防止路径穿越（双重保险）
+    if ".." in aid or "/" in aid or "\\" in aid:
+        raise ValueError(f"非法 agent id '{agent_id}'：包含路径穿越字符")
+    return aid
+
+
+def mask_secret(secret: str) -> str:
+    """只显示前 4 位，其余替换为 ****"""
+    if not secret:
+        return "(未提供)"
+    return secret[:4] + "****"
 
 
 # ─── 工具函数 ─────────────────────────────────────────────────────────────────
@@ -119,7 +144,10 @@ def create_agent(cfg: dict, agent_cfg: dict, dry_run: bool = False) -> dict:
     """
     返回 {'status': 'created'|'skipped', 'id': ..., 'notes': [...]}
     """
-    aid        = agent_cfg["id"].strip().lower()
+    try:
+        aid = validate_agent_id(agent_cfg["id"])
+    except ValueError as e:
+        return {"id": agent_cfg["id"], "status": "skipped", "notes": [str(e)]}
     name       = agent_cfg["name"]
     emoji      = agent_cfg.get("emoji", "🤖")
     desc       = agent_cfg.get("description", "")
@@ -213,7 +241,7 @@ def create_agent(cfg: dict, agent_cfg: dict, dry_run: bool = False) -> dict:
                 "domain":         domain,
                 "enabled":        True
             }
-            result["notes"].append(f"飞书 account '{aid}' 已添加 (AppId: {app_id})")
+            result["notes"].append(f"飞书 account '{aid}' 已添加 (AppId: {app_id}, Secret: {mask_secret(app_secret)})")
         else:
             result["notes"].append(f"飞书 account '{aid}' 已存在，跳过")
     else:
