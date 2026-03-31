@@ -47,7 +47,9 @@ Usage:
   node shopify-connector.mjs test
   node shopify-connector.mjs shop-info
   node shopify-connector.mjs list-products [--limit 10]
+  node shopify-connector.mjs find-products --query <TEXT> [--limit 10]
   node shopify-connector.mjs get-product --id <PRODUCT_GID>
+  node shopify-connector.mjs get-product --title <TEXT>
   node shopify-connector.mjs update-product --id <PRODUCT_GID> [--title <TITLE>] [--descriptionHtml <HTML>] [--tags <A,B>] [--status ACTIVE|DRAFT|ARCHIVED]
   node shopify-connector.mjs list-blogs
   node shopify-connector.mjs list-articles --blogId <BLOG_GID>
@@ -257,9 +259,26 @@ async function listProducts(config, limit = 10) {
   console.log(JSON.stringify(data, null, 2));
 }
 
-async function getProduct(config, id) {
-  if (!id) throw new Error('Missing --id');
-  const data = await graphql(config, `query($id:ID!){ product(id:$id){ id title handle status tags descriptionHtml onlineStoreUrl } }`, { id });
+async function findProducts(config, query, limit = 10) {
+  if (!query) throw new Error('Missing --query');
+  const data = await graphql(config, `query($first:Int!, $query:String!){ products(first:$first, query:$query){ edges{ node{ id title handle status tags onlineStoreUrl } } } }`, {
+    first: Number(limit),
+    query: `title:*${query}*`
+  });
+  console.log(JSON.stringify(data, null, 2));
+}
+
+async function getProduct(config, id, title) {
+  if (!id && !title) throw new Error('Missing --id or --title');
+  if (id) {
+    const data = await graphql(config, `query($id:ID!){ product(id:$id){ id title handle status tags descriptionHtml onlineStoreUrl } }`, { id });
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+  const data = await graphql(config, `query($first:Int!, $query:String!){ products(first:$first, query:$query){ edges{ node{ id title handle status tags descriptionHtml onlineStoreUrl } } } }`, {
+    first: 1,
+    query: `title:*${title}*`
+  });
   console.log(JSON.stringify(data, null, 2));
 }
 
@@ -438,8 +457,11 @@ async function main() {
     case 'list-products':
       await listProducts(loadConfig(), args.limit || 10);
       break;
+    case 'find-products':
+      await findProducts(loadConfig(), args.query, args.limit || 10);
+      break;
     case 'get-product':
-      await getProduct(loadConfig(), args.id);
+      await getProduct(loadConfig(), args.id, args.title);
       break;
     case 'update-product':
       await updateProduct(loadConfig(), args);

@@ -32,6 +32,8 @@ In this model:
 
 ### 2. Good fallback: OpenClaw in Docker, Shopify connector in a separate sidecar container
 
+A productized starter compose file is available under `examples/docker-compose.sidecar.yml` in the source repo, with usage notes in `examples/docker-compose.sidecar.md`.
+
 Use this when:
 
 - the user wants everything containerized
