@@ -62,6 +62,12 @@ class TestRunRenderStub(unittest.TestCase):
         self.assertAlmostEqual(times[0][1], 1.05, places=2)
         self.assertLess(times[1][0], times[1][1])
 
+    def test_normalize_chan_skills_repo_root_accepts_skills_subdir(self):
+        repo = rr.repo_root_from_script()
+        sub = repo / "skills"
+        self.assertEqual(rr.normalize_chan_skills_repo_root(repo), repo)
+        self.assertEqual(rr.normalize_chan_skills_repo_root(sub), repo)
+
     def test_default_ref_shape(self):
         r = rr.default_ref()
         self.assertEqual(r["width"], 1080)

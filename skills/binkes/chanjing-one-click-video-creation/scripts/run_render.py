@@ -21,9 +21,48 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+_DEFAULT_OPENAPI_BASE = "https://open-api.chanjing.cc"
+
+
+def openapi_base_url() -> str:
+    return (
+        os.environ.get("CHANJING_OPENAPI_BASE_URL")
+        or os.environ.get("CHANJING_API_BASE")
+        or _DEFAULT_OPENAPI_BASE
+    ).rstrip("/")
+
+
+def one_click_skills_repository_root() -> str:
+    for key in (
+        "SKILLS_DIR",
+        "CHANJING_ONE_CLICK_VIDEO_SKILLS_ROOT",
+        "CHAN_SKILLS_DIR",
+    ):
+        v = os.environ.get(key, "").strip()
+        if v:
+            return v
+    return ""
+
+
+def one_click_ref_prompt_max_chars() -> int:
+    raw = os.environ.get("CHANJING_ONE_CLICK_VIDEO_REF_PROMPT_MAX_CHARS") or os.environ.get(
+        "AI_VIDEO_PROMPT_MAX_CHARS", "8000"
+    )
+    return int(raw)
+
+
+def one_click_ai_creation_model_code() -> Optional[str]:
+    v = (
+        os.environ.get("CHANJING_ONE_CLICK_VIDEO_CREATION_MODEL_CODE")
+        or os.environ.get("AI_VIDEO_MODEL")
+        or ""
+    ).strip()
+    return v or None
+
+
 # 分镜连续合并为 TTS 批时的字符上限（低于接口 ~4000 字）；见 render_rules.md §3·C.4；编排见 SKILL.md §5、§9
 TTS_BATCH_MAX = 3900
-API_BASE = os.environ.get("CHANJING_API_BASE", "https://open-api.chanjing.cc")
+API_BASE = openapi_base_url()
 DOWNLOAD_SEM = threading.BoundedSemaphore(2)
 
 
@@ -93,7 +132,7 @@ def build_ai_segment_prompt(base: str, seg_index: int, seg_total: int) -> str:
     追加层与 **`storyboard_prompt.md`·D.1b** 抵触时以 D.1b 与 base 为准。
     """
     base = (base or "").strip()
-    max_total = int(os.environ.get("AI_VIDEO_PROMPT_MAX_CHARS", "8000"))
+    max_total = one_click_ref_prompt_max_chars()
     extra = _ai_segment_direction(seg_index, seg_total)
     if not extra:
         return base[:max_total]
@@ -109,14 +148,28 @@ def build_ai_segment_prompt(base: str, seg_index: int, seg_total: int) -> str:
 
 def repo_root_from_script() -> Path:
     # 仅当布局为 …/<repo>/skills/chanjing-one-click-video-creation/scripts/run_render.py 时，
-    # 向上四级为 <repo>（CHAN_SKILLS_DIR 期望的根）。单独拷贝本 skill 时须设环境变量。
+    # 向上四级为 <repo>（与 SKILLS_DIR / CHANJING_ONE_CLICK_VIDEO_SKILLS_ROOT / CHAN_SKILLS_DIR 指向的根一致）。
     return Path(__file__).resolve().parent.parent.parent.parent
 
 
+def normalize_chan_skills_repo_root(p: Path) -> Path:
+    """
+    环境变量语义易混：SKILLS_DIR 既可能被设为「仓库根」（…/chan-skills），也可能被设为
+    「skills 子目录」（…/chan-skills/skills）。script_path() 需要前者。若检测到后者则上溯一级。
+    """
+    p = p.expanduser().resolve()
+    marker = p / "skills" / "chanjing-tts" / "scripts"
+    if marker.is_dir() or (p / "skills" / "chanjing-tts").is_dir():
+        return p
+    if p.name == "skills" and (p / "chanjing-tts" / "scripts").is_dir():
+        return p.parent
+    return p
+
+
 def resolve_chan_skills_dir() -> Path:
-    env = os.environ.get("CHAN_SKILLS_DIR", "").strip()
+    env = one_click_skills_repository_root()
     if env:
-        return Path(env).resolve()
+        return normalize_chan_skills_repo_root(Path(env))
     return repo_root_from_script()
 
 
@@ -810,7 +863,7 @@ def main() -> None:
         ai_seg = 10
     model_code = (
         data.get("model_code")
-        or os.environ.get("AI_VIDEO_MODEL")
+        or one_click_ai_creation_model_code()
         or "Doubao-Seedance-1.0-pro"
     )
 
