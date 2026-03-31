@@ -68,6 +68,26 @@ pdfmetrics.registerFontFamily('CNFont', normal='CNFontLight', bold='CNFont')
 - Always use TrueType fonts registered via `TTFont` for proper mixed CJK/Latin rendering.
 - On non-macOS systems, find an available CJK TTF font: `fc-list :lang=zh file` or look for Noto Sans CJK / WenQuanYi.
 
+### 4. Matplotlib Font for Charts (macOS)
+
+**CRITICAL**: STHeiti alone does NOT cover Korean glyphs — keywords or country names in Korean will show as hollow rectangles (□). Use **Arial Unicode MS** instead, which covers CJK + Korean + most other scripts:
+
+```python
+import matplotlib.font_manager as fm
+
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['axes.unicode_minus'] = False
+
+_unicode_font_path = '/Library/Fonts/Arial Unicode.ttf'
+if not os.path.exists(_unicode_font_path):
+    _unicode_font_path = '/System/Library/Fonts/STHeiti Medium.ttc'  # fallback
+fm.fontManager.addfont(_unicode_font_path)
+_ufname = fm.FontProperties(fname=_unicode_font_path).get_name()
+matplotlib.rcParams['font.sans-serif'] = [_ufname, 'DejaVu Sans']
+```
+
+**Do NOT** try to combine STHeiti + AppleSDGothicNeo via `font.sans-serif` list — matplotlib uses a single font per render pass and does not do per-glyph fallback, so the list only helps if glyphs exist in the first font.
+
 ## Step-by-Step Instructions
 
 ### Step 1: Gather Input from User
@@ -228,8 +248,11 @@ if len(clicks) >= 7:
 - 1-row, N-column pie charts (one per site)
 - Show percentage labels
 
-#### Chart 4: Country Distribution (horizontal bar, for sites with significant traffic)
-- Top 10 countries by clicks
+#### Chart 4: Country Distribution (pie chart per site)
+- Use `figsize=(10, 7)` and `radius=0.9` — smaller sizes make labels illegible
+- Place on its **own full-width row** in the PDF (do NOT put side-by-side with keyword chart)
+- In PDF, render at `width=16*cm`
+- Top 8 countries by clicks
 - Map country codes to readable names using this mapping:
 
 ```python
@@ -291,6 +314,8 @@ Section 7: Recommendations & Action Plan
 
 #### PDF Style Configuration
 
+Use **1.2cm margins** (not the default 2cm) to maximize content area. Usable width = 21cm - 2×1.2cm = **18.6cm**. Set all chart/table widths to 18.6cm accordingly.
+
 ```python
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm, cm
@@ -301,8 +326,8 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table,
 from reportlab.lib import colors as rl_colors
 
 doc = SimpleDocTemplate(pdf_path, pagesize=A4,
-                        leftMargin=2*cm, rightMargin=2*cm,
-                        topMargin=2*cm, bottomMargin=2*cm)
+                        leftMargin=1.2*cm, rightMargin=1.2*cm,
+                        topMargin=1.2*cm, bottomMargin=1.2*cm)
 
 # Define styles — use 'CNFont' (the registered STHeiti font)
 styles = getSampleStyleSheet()
@@ -410,10 +435,44 @@ After generating the PDF:
 **User**: "Compare search traffic between my 3 sites"
 → Run for all 3 sites, emphasize the comparison aspects in the summary table and trends chart.
 
+## Layout Rules (Lessons Learned)
+
+### Top Pages Table — Use Paragraph for Word Wrap
+**CRITICAL**: The Page column contains long URLs that WILL overflow into adjacent columns if you use plain strings. Always wrap ALL table cells in `Paragraph()` objects:
+
+```python
+style_cell = ParagraphStyle('Cell', fontName='CNFontLight', fontSize=9, leading=13, wordWrap='CJK')
+style_cell_hd = ParagraphStyle('CellHd', fontName='CNFont', fontSize=9, leading=13, textColor=colors.white)
+
+page_rows = [[Paragraph("Page", style_cell_hd), Paragraph("Clicks", style_cell_hd), ...]]
+for r in rows:
+    page_rows.append([Paragraph(url, style_cell), Paragraph(f"{clicks:,}", style_cell), ...])
+```
+
+### Country Chart — Keep on Its Own Row
+Do NOT put the country pie chart side-by-side with the keyword chart. The pie becomes too small to read. Always put it on a separate row at `width=16*cm`.
+
+### File Naming — Always Include Date
+Output filename must include today's date to avoid overwriting previous reports:
+```python
+OUTPUT = f"search_console_report_{datetime.date.today()}.pdf"
+```
+
+### Per-Site Layout Order (One Page Per Site)
+1. KPI metrics row (Clicks / Impressions / CTR / Avg. Position)
+2. Top Keywords chart (full width, 18.6cm)
+3. Country pie chart (own row, 16cm)
+4. Top Pages table (with Paragraph cells)
+5. PageBreak()
+
+## Reference Script
+
+See `gen_report.py` in this skill directory for the complete, production-ready implementation with all fixes applied.
+
 ## Output Files
 
 | File | Description |
 |------|-------------|
 | `sc_detailed_data.json` | Raw API data for all sites (reproducible) |
-| `report_charts/*.png` | Generated chart images |
-| `search_console_report.pdf` | Final PDF report |
+| `report_charts/*.png` | Generated chart images (temp, /tmp/) |
+| `search_console_report_YYYY-MM-DD.pdf` | Final PDF report (date-stamped, never overwritten) |
