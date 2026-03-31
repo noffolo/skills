@@ -1,0 +1,11 @@
+{
+  "owner": "corbin-breton",
+  "slug": "keats-web-monitor",
+  "displayName": "Web Monitor",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1774470371075,
+    "commit": null
+  },
+  "history": []
+}
