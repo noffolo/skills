@@ -1,10 +1,12 @@
 ---
 name: ai-video-generator-free
-version: "1.1.0"
+version: 3.0.1
 displayName: "AI Video Generator Free — Create Professional Videos from Text and Prompts for Free"
 description: >
   Create professional videos from text and prompts for free with AI — generate complete video content from descriptions, scripts, ideas, and briefs without expensive software or production teams. NemoVideo turns your words into finished video: describe a product demo and get a polished promotional clip, paste a blog post and get a narrated video summary, write a social media brief and get platform-ready content, outline a training module and get an educational video. AI video generation makes professional video accessible to everyone: small businesses, solo creators, educators, nonprofits, and anyone who needs video but lacks the budget or skills for traditional production. Free AI video generator, create video free, AI video maker free, text to video free, free video creator online, generate video AI free, no-cost video maker, free video production AI, automatic video generator free.
 metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+homepage: https://nemovideo.com
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
 # AI Video Generator Free — Professional Video for Everyone. No Budget Required.

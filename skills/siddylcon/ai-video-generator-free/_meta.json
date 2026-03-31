@@ -3,11 +3,16 @@
   "slug": "ai-video-generator-free",
   "displayName": "Ai Video Generator Free",
   "latest": {
-    "version": "3.0.0",
-    "publishedAt": 1774712946864,
-    "commit": "https://github.com/openclaw/skills/commit/3674e283585736f1ec869ea7bb872e33d3efc0b5"
+    "version": "1.0.4",
+    "publishedAt": 1774747522932,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.0",
+      "publishedAt": 1774712946864,
+      "commit": "https://github.com/openclaw/skills/commit/3674e283585736f1ec869ea7bb872e33d3efc0b5"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1774533713405,
