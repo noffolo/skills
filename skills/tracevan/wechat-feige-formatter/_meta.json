@@ -3,9 +3,15 @@
   "slug": "wechat-feige-formatter",
   "displayName": "Wechat Feige Formatter",
   "latest": {
-    "version": "2.3.3",
-    "publishedAt": 1774356396754,
-    "commit": "https://github.com/openclaw/skills/commit/e100773f97f34698fcdcea04f4b2e31a857fc572"
+    "version": "2.3.5",
+    "publishedAt": 1774513638058,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.3.3",
+      "publishedAt": 1774356396754,
+      "commit": "https://github.com/openclaw/skills/commit/e100773f97f34698fcdcea04f4b2e31a857fc572"
+    }
+  ]
 }

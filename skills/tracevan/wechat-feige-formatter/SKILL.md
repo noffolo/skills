@@ -62,14 +62,16 @@ description: >
 ## 主标题 | 副标题           # 支持副标题
 ```
 
-**BREAKING 开篇**：formatter 自动从 `#` 标题和首段生成，无需手动写。如需定制，使用：
+**BREAKING 开篇**：formatter 自动从 `#` 标题生成（不填副标题，避免与正文重复）。如需定制副标题或特殊样式，使用手动写法：
 ```markdown
 ## BREAKING
-- strikethrough: 旧方式的问题
-- bold: 新方式的标题
-- highlight: 核心亮点句
-- subtitle: 补充说明
+- bold: 新方式的标题（大号黑字）
+- subtitle: 一句概括全文的说明（与正文不重复）
+- strikethrough: 旧方式（删除线，可选）
+- highlight: 核心亮点句（主色字体，可选）
 - date: 2026.03
+
+⚠️ 重要：每个字段必须以 `- ` 开头（列表格式），直接写 `key: value` 会当成正文输出！
 ```
 
 生成优化后的标准 Markdown，保存为临时文件，供下一步使用。
@@ -86,9 +88,16 @@ python3 {skill_dir}/scripts/formatter.py {input_md} --output {output_html}
 
 可选参数：
 ```bash
-# 自定义品牌色
-python3 {skill_dir}/scripts/formatter.py {input_md} --output {output_html} --brand-color "#0066CC"
+# 自定义品牌色（默认桃色 #DE7356）
+python3 {skill_dir}/scripts/formatter.py {input_md} --output {output_html} --brand-color "#660874"
+
+# 关闭图片内嵌（默认开启，本地图片自动转 base64，方便复制到公众号）
+python3 {skill_dir}/scripts/formatter.py {input_md} --output {output_html} --no-embed-images
 ```
+
+**默认行为**：
+- 本地图片自动转 base64 内嵌（无需额外参数，直接复制粘贴即可带图）
+- HTML 页面内置「主题色」切换器，可在预览时实时切换 6 套配色，再点「一键复制」
 
 **Python 版本要求**：Python 3.6+，仅用标准库，无第三方依赖。
 
