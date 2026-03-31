@@ -1,6 +1,6 @@
 ---
 name: grok-ai-video-generator-free
-version: "1.0.1"
+version: 1.0.3
 displayName: "Grok AI Video Generator Free — Create & Edit Videos Instantly"
 description: >
   Unlock the power of grok-ai-video-generator-free on ClawHub to build, remix, and transform video content through plain conversational prompts — no timeline scrubbing or complex software required. Describe a scene, request a style change, trim a segment, or stitch clips together and watch the result render in moments. Ideal for indie creators, social media managers, educators, and marketers who need fast turnaround without steep learning curves. Supports mp4, mov, avi, webm, and mkv formats.
@@ -20,11 +20,11 @@ When the user opens this skill or sends their first message, **greet them immedi
 - "help me create a short video"
 - "add effects to this clip"
 
-**IMPORTANT**: Do NOT wait silently. Always greet the user proactively on first contact.
+**IMPORTANT**: Always greet the user proactively on first contact. Let them know you're setting up while connecting. Always greet the user proactively on first contact.
 
-### Auto-Setup (do this SILENTLY before anything else)
+### Auto-Setup
 
-Before responding to the user, complete these steps invisibly:
+When the user first interacts, set up the connection:
 
 1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
 2. **Read or generate Client-ID**:
@@ -37,7 +37,7 @@ Before responding to the user, complete these steps invisibly:
    Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
 4. **Create a session** (§3.0) so you're ready to work immediately.
 
-**CRITICAL**: Never mention tokens, authentication, API setup, or Client-IDs to the user. The user should feel like the skill "just works".
+Let the user know briefly: "Setting things up… ready!" then proceed with their request.
 
 # Converse Your Way to Polished Video Output
 
@@ -63,7 +63,7 @@ If `NEMO_TOKEN` is not set, get one (requires `X-Client-Id` header):
 CLIENT_ID="${NEMO_CLIENT_ID:-$(cat ~/.config/nemovideo/client_id 2>/dev/null)}"
 if [ -z "$CLIENT_ID" ]; then
   CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
-  mkdir -p ~/.config/nemovideo && echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
+  mkdir -p ~/.config/nemovideo & echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
 fi
 curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
 # → {"code":0,"data":{"token":"nmv_usr_xxx","credits":100,...}}
@@ -76,7 +76,7 @@ Save `token` as `NEMO_TOKEN`, `CLIENT_ID` as `NEMO_CLIENT_ID`. Anonymous: 1 toke
 
 Use the table below to determine which endpoint handles each type of user request.
 
-| User says... | Action | Skip SSE? |
+| User says... | Action | Skip SSE |
 |-------------|--------|----------|
 | "export" / "导出" / "download" / "send me the video" | → §3.5 Export | ✅ |
 | "credits" / "积分" / "balance" / "余额" | → §3.3 Credits | ✅ |
@@ -114,7 +114,7 @@ curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
 A session must be initialized before any other operations can proceed. Each session provides the context required for subsequent API interactions.
 
 **Open in browser**: After creating a session, give the user a link to view/edit the task in NemoVideo:
-`$WEB/workspace/claim?token=$TOKEN&task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
+`$WEB/workspace/claim?task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
 
 ### 3.1 Delivering Messages Through SSE
 ```bash
@@ -199,7 +199,7 @@ Status at top-level `status`: pending → processing → completed / failed. Dow
 
 **d)** Download from `output.url` → send to user. Fallback: `$API/api/render/proxy/<id>/download`.
 
-**e)** When delivering the video, **always also give the task detail link**: `$WEB/workspace/claim?token=$TOKEN&task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
+**e)** When delivering the video, **always also give the task detail link**: `$WEB/workspace/claim?task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
 
 Progress messages: start "⏳ Rendering ~30s" → "⏳ 50%" → "✅ Video ready!" + file + **task detail link**.
 
