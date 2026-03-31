@@ -1,7 +1,7 @@
 ---
 name: investoday-stock-research-interpretation
 title: "个股研报解读"
-version: 1.1.0
+version: 1.3.0
 description: 面向A股个股研报解读，聚焦机构观点、评级变化、核心逻辑、机会风险与一致性判断。基于今日投资金融数据接口，自动识别股票代码并输出结构化个股研报解读报告。触发词：机构怎么看、研报解读、评级变化、卖方观点、目标价、一致预期。
 tags:
   - stock-research-interpretation
@@ -17,9 +17,7 @@ metadata:
     emoji: "📑"
     category: "finance"
     requires:
-      env: ["INVESTODAY_API_KEY"]
       skills: ["investoday-finance-data"]
-    primaryEnv: "INVESTODAY_API_KEY"
 ---
 
 # 📑 个股研报解读
@@ -50,17 +48,17 @@ metadata:
 中际旭创最近研报是偏多还是分歧比较大？
 ```
 
-> 💡 本 Skill 偏单只股票的机构观点与评级解读。若用户想看行业或板块层面的卖方共识，请优先使用 `板块研报解读`；若重点是新闻、公告或单条消息解读，则分别转到 `股票新闻事件分析` 或 `个股消息解读`。
+> 💡 本 Skill 偏单只股票的机构观点与评级解读。若用户想看行业或板块层面的卖方共识，请优先使用 `板块研报解读`；若重点是新闻、公告或单条消息解读，优先转到 `股票消息解读`。
 
 ## 前置依赖
 
-本 Skill 依赖 `investoday-finance-data`（今日投资金融数据）Skill 获取实时金融数据，调用方式以该 Skill 为准。
+本 Skill 依赖 `investoday-finance-data`（今日投资金融数据）Skill 获取实时金融数据。
 
-确保 `INVESTODAY_API_KEY` 已配置为环境变量。
+基础 API 调用与底层执行方式统一以该 Skill 为准，业务 Skill 不重复展开底层接入细节。
 
 ## 工具说明
 
-以下为本 Skill 使用的数据接口。在 System Prompt 中以 `工具ID` 标识调用。
+以下为本 Skill 通过 `investoday-finance-data` 使用的数据接口。在 System Prompt 中以 `工具ID` 标识调用。
 
 ### 基础工具
 
@@ -228,7 +226,3 @@ Agent 获取数据后，按以下 5 步框架进行结构化分析：
 - 仅通过今日投资 API 查询公开市场数据
 - 不记录、不存储用户的查询记录
 - 分析结论仅供参考，不构成投资建议
-
-## Keywords
-
-个股研报解读, 机构观点, 评级变化, 卖方观点, 一致预期, 目标价, 研报分析, stock research interpretation, sell-side analysis

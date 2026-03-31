@@ -3,9 +3,15 @@
   "slug": "investoday-stock-research-interpretation",
   "displayName": "investoday-stock-research-interpretation",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1774530846662,
-    "commit": "https://github.com/openclaw/skills/commit/18a93546ba383b71efe28d3dca95a809ba388cb8"
+    "version": "1.3.0",
+    "publishedAt": 1774681436868,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1774530846662,
+      "commit": "https://github.com/openclaw/skills/commit/18a93546ba383b71efe28d3dca95a809ba388cb8"
+    }
+  ]
 }
