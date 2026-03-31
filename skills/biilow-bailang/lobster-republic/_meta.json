@@ -3,9 +3,15 @@
   "slug": "lobster-republic",
   "displayName": "The Lobster Republic",
   "latest": {
-    "version": "0.5.6",
-    "publishedAt": 1774525922089,
-    "commit": "https://github.com/openclaw/skills/commit/74041134d0b50c47fbb4769eca154dbc35d61064"
+    "version": "0.9.1",
+    "publishedAt": 1774844198395,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.5.6",
+      "publishedAt": 1774525922089,
+      "commit": "https://github.com/openclaw/skills/commit/74041134d0b50c47fbb4769eca154dbc35d61064"
+    }
+  ]
 }
