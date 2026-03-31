@@ -1,7 +1,8 @@
 ---
 name: qwen-omni-multimodal
+version: 0.2.0
 description: |
-  基于阿里云百炼 Qwen3-Omni-Flash 的全模态 skill。支持文本、图片、音频、视频理解，以及文本/语音输出。
+  基于阿里云百炼 Qwen3.5-Omni 的全模态 skill。支持文本、图片、音频、视频理解，以及文本/语音输出。
   当用户需要分析图片、转写或理解音频、理解视频、进行跨模态问答，或直接生成语音回复时，使用此 skill。
 homepage: https://help.aliyun.com/zh/model-studio/qwen-omni
 metadata:
@@ -16,7 +17,7 @@ metadata:
 
 # Qwen Omni Multimodal
 
-通过阿里云百炼 OpenAI 兼容接口调用 Qwen Omni 模型，默认使用 `qwen3-omni-flash`，也支持显式切换到 `qwen-omni-turbo` 家族；支持文本、图片、音频、视频输入，并可返回文本或音频。
+通过阿里云百炼 OpenAI 兼容接口调用 Qwen Omni 模型，默认使用 `qwen3.5-omni-flash`，自动选型时会在 `qwen3.5-omni-flash` 和 `qwen3.5-omni-plus` 之间切换；同时保留对 `qwen3-omni-flash` 与 `qwen-omni-turbo` 的显式兼容。支持文本、图片、音频、视频输入，并可返回文本或音频。
 
 详细参数与约束见 `references/api.md`。
 
@@ -39,16 +40,17 @@ export DASHSCOPE_API_KEY="sk-xxx"
   "apiKey": "sk-xxx",
   "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
   "selectionPolicy": "auto",
-  "defaultModel": "qwen3-omni-flash",
+  "defaultModel": "qwen3.5-omni-flash",
   "modelCandidates": [
-    "qwen3-omni-flash",
-    "qwen-omni-turbo"
+    "qwen3.5-omni-flash",
+    "qwen3.5-omni-plus"
   ],
   "voiceByModelFamily": {
+    "qwen3.5-omni": "Tina",
     "qwen3-omni-flash": "Cherry",
     "qwen-omni-turbo": "Serena"
   },
-  "voice": "Cherry"
+  "voice": "Tina"
 }
 ```
 
@@ -75,7 +77,7 @@ export DASHSCOPE_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v
 - API Key：`DASHSCOPE_API_KEY > config.apiKey`
 - `selectionPolicy=fixed|auto`
   - `fixed`：按默认模型走，不自动切换
-  - `auto`：音频输入或音频输出优先 `qwen3-omni-flash`，纯文本/图片/视频理解优先 `qwen-omni-turbo`
+  - `auto`：音频/视频理解优先 `qwen3.5-omni-plus`，文本/图片理解与语音输出优先 `qwen3.5-omni-flash`
 - `config.modelCandidates` 用于维护候选模型列表；`selectionPolicy=auto` 时会优先在候选列表里选模型
 - `config.voiceByModelFamily` 用于给不同模型家族配置不同默认音色，避免切模型后沿用不兼容音色
 
@@ -85,26 +87,36 @@ export DASHSCOPE_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v
 - 用户要识别、转写、总结音频
 - 用户要理解视频内容，或同时利用视频中的视觉和音频信息
 - 用户要求模型直接输出语音
-- 用户明确提到 Qwen-Omni / Qwen3-Omni-Flash / 百炼全模态
+- 用户明确提到 Qwen-Omni / Qwen3.5-Omni / Qwen3-Omni-Flash / 百炼全模态
 
 ## 关键限制
 
 - Qwen-Omni 只支持流式调用，脚本默认强制 `stream=true`
 - 一条 `user` 消息只允许包含文本和一种模态数据
 - 输出音频时需要显式设置 `modalities=["text","audio"]`
+- `qwen3.5-omni-plus` 和 `qwen3.5-omni-flash` 为非思考模型，不支持 `--enable-thinking=true`
 - `qwen3-omni-flash` 开启思考模式时，不支持音频输出
-- 图片列表形式的视频输入对 `qwen3-omni-flash` 要求 2 到 128 张图片
+- 图片列表形式的视频输入：
+  - `Qwen3.5-Omni`：4 到 512 张图片
+  - `qwen3-omni-flash`：2 到 128 张图片
 - 多轮模式下，脚本只保留当前活动话题；切到 `fresh` 时不会把旧话题继续注入给模型
 
 ## 支持模型与选择建议
 
-- 默认模型：`qwen3-omni-flash`
-- 也支持显式选择：`qwen-omni-turbo`
+- 默认模型：`qwen3.5-omni-flash`
+- 自动选型默认优先：
+  - 音频/视频理解：`qwen3.5-omni-plus`
+  - 文本/图片理解、语音输出：`qwen3.5-omni-flash`
+- 也支持显式选择旧模型：`qwen3-omni-flash`、`qwen-omni-turbo`
 - 推荐在 `config.json` 中使用：
   - `selectionPolicy`：设置 `fixed` 或 `auto`
   - `defaultModel`：设置默认模型
   - `modelCandidates`：维护允许 Agent 自动优先考虑的模型列表
 - 当前脚本已内置价格提醒的模型家族：
+  - `qwen3.5-omni-plus`
+  - `qwen3.5-omni-plus-2026-03-15`
+  - `qwen3.5-omni-flash`
+  - `qwen3.5-omni-flash-2026-03-15`
   - `qwen3-omni-flash`
   - `qwen3-omni-flash-2025-12-01`
   - `qwen3-omni-flash-2025-09-15`
@@ -113,17 +125,23 @@ export DASHSCOPE_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v
   - `qwen-omni-turbo-2025-03-26`
   - `qwen-omni-turbo-2025-01-19`
 - 价格取舍基于你提供的中国内地价格表：
-  - `qwen3-omni-flash`：音频输入更便宜，适合音频理解和语音相关任务
-  - `qwen-omni-turbo`：文本、图片/视频输入和文本输出明显更便宜，适合以文本与视觉理解为主的任务
-- 当前 skill 默认仍使用 `qwen3-omni-flash`
-  - 原因是现有约束、示例和守卫规则主要按 `qwen3-omni-flash` 文档整理
-  - 当 `selectionPolicy=auto` 时，会按任务类型在 `qwen3-omni-flash` 和 `qwen-omni-turbo` 之间自动二选一
+  - `qwen3.5-omni-flash`：成本更低，适合默认文本/图片理解与语音输出
+  - `qwen3.5-omni-plus`：长音频、长视频与复杂跨模态理解更稳
+  - `qwen-omni-turbo`：保留显式兼容，不再作为默认自动选型目标
+- 当前 skill 默认切到 `qwen3.5-omni-flash`
+  - 原因是新版能力更完整，同时更接近当前 skill 的默认成本档位
+  - 当 `selectionPolicy=auto` 时，会按任务类型在 `qwen3.5-omni-flash` 和 `qwen3.5-omni-plus` 之间自动二选一
 
 ## 音色选择建议
 
 - 当前脚本已内置模型家族音色表，并会在 `--with-audio` 时校验音色是否合法
 - 可用 `--list-voices --model <model>` 查看当前模型家族支持的音色
 - 推荐把默认音色维护在 `config.voiceByModelFamily` 中，而不是只写一个全局 `voice`
+- `qwen3.5-omni` 当前默认音色：`Tina(甜甜 Tina)`
+- `qwen3.5-omni` 当前内置音色示例：
+  - `Tina(甜甜 Tina)`、`Serena(苏瑶 Serena)`、`Ethan(晨煦 Ethan)`、`Katerina(卡捷琳娜 Katerina)`、`Jennifer(詹妮弗 Jennifer)`
+  - `Ryan(甜茶 Ryan)`、`Sunny(四川-晴儿 Sunny)`、`Dylan(北京-晓东 Dylan)`、`Rocky(粤语-阿强 Rocky)`、`Chloe(思怡 Chloe)`
+  - 以及其余官方文档列出的全部 55 个音色，可通过 `--list-voices` 查看
 - `qwen-omni-turbo` 当前内置音色：
   - `Cherry(辛悦)`
   - `Serena(苏瑶)`
@@ -134,7 +152,7 @@ export DASHSCOPE_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v
   - `Katerina(卡捷琳娜)`、`Elias(墨讲师)`、`Jada(上海-阿珍)`、`Dylan(北京-晓东)`、`Sunny(四川-晴儿)`
   - `Li(南京-老李)`、`Marcus(陕西-秦川)`、`Roy(闽南-阿杰)`、`Peter(天津-李彼得)`、`Rocky(粤语-阿强)`、`Kiki(粤语-阿清)`、`Eric(四川-程川)`
 - 经验建议：
-  - 通用中文讲解默认优先 `Cherry`
+  - 通用中文讲解默认优先 `Tina`
   - 温柔女声可优先 `Serena`
   - 标准男声可优先 `Ethan`
   - 方言或角色化表达再按模型支持表显式选
@@ -182,7 +200,7 @@ node scripts/qwen-omni-chat.js \
 ```bash
 node scripts/qwen-omni-chat.js \
   --prompt="描述这个动作序列发生了什么" \
-  --video-frames="/abs/1.jpg,/abs/2.jpg,/abs/3.jpg"
+  --video-frames="/abs/1.jpg,/abs/2.jpg,/abs/3.jpg,/abs/4.jpg"
 ```
 
 ### 文本加语音输出
@@ -191,14 +209,14 @@ node scripts/qwen-omni-chat.js \
 node scripts/qwen-omni-chat.js \
   --prompt="请用中文做一个 20 秒以内的语音自我介绍" \
   --with-audio \
-  --voice="Cherry" \
+  --voice="Tina" \
   --audio-out="/tmp/qwen-omni.wav"
 ```
 
 ### 查看某个模型支持的音色
 
 ```bash
-node scripts/qwen-omni-chat.js --list-voices --model="qwen-omni-turbo"
+node scripts/qwen-omni-chat.js --list-voices --model="qwen3.5-omni-flash"
 ```
 
 ### 仅做预检，不实际调用
@@ -247,9 +265,10 @@ node scripts/qwen-omni-chat.js --clear-session --session="demo-chat"
 
 1. 先判断输入属于图片、音频、视频中的哪一种。
 2. 如果用户一次给了多种非文本模态，先拆成多次调用，或让用户明确优先级。
-3. 默认模型为 `qwen3-omni-flash`。只有在用户明确要求或你确认更合适时再切换模型。
-   - 纯文本/图片/视频理解且成本敏感时，可优先尝试 `qwen-omni-turbo`
-   - 音频理解或语音相关任务，默认仍优先 `qwen3-omni-flash`
+3. 默认模型为 `qwen3.5-omni-flash`。只有在用户明确要求或你确认更合适时再切换模型。
+   - 音频或视频理解任务，优先尝试 `qwen3.5-omni-plus`
+   - 文本/图片理解或语音输出，默认优先 `qwen3.5-omni-flash`
+   - 只有在兼容旧调用或用户指定时，再显式切回 `qwen3-omni-flash` / `qwen-omni-turbo`
 4. 需要语音回复时，关闭思考模式并保存脚本生成的 WAV 文件路径。
 5. 需要延续当前话题时使用同一个 `--session`；需要切换新内容时使用 `--mode=fresh` 或直接新建 session。
 6. 脚本会在调用前输出中国内地单价提醒；如果响应 `usage` 足够完整，还会输出本次费用估算。
@@ -295,7 +314,7 @@ node scripts/qwen-omni-chat.js --clear-session --session="demo-chat"
 - `--video`：视频路径、HTTP(S) URL 或 Data URL
 - `--video-frames`：逗号分隔的图片列表，按视频帧顺序传入
 - `--with-audio`：启用音频输出
-- `--voice`：输出音色，默认 `Cherry`
+- `--voice`：输出音色，默认 `Tina`
 - `--list-voices`：查看当前模型家族支持的音色列表
 - `--audio-out`：输出 WAV 文件路径，默认 `/tmp/qwen-omni-<timestamp>.wav`
 - `--enable-thinking=true|false`：是否开启思考模式，默认 `false`
@@ -315,13 +334,18 @@ node scripts/qwen-omni-chat.js --clear-session --session="demo-chat"
 ## 成本提醒
 
 - 脚本会先输出中国内地价格表对应的单价提醒
-- 当前内置单价：
-  - 输入文本：`1.8 元/百万Token`
-  - 输入音频：`15.8 元/百万Token`
-  - 输入图片/视频：`3.3 元/百万Token`
-  - 输出文本（纯文本输入）：`6.9 元/百万Token`
-  - 输出文本（多模态输入）：`12.7 元/百万Token`
-  - 输出文本+音频：按音频 `62.6 元/百万Token` 计
+- `Qwen3.5-Omni` 当前内置价格按中国内地官方阶梯价提醒：
+  - `qwen3.5-omni-flash`
+    - 输入文本/图片/视频：`0.2 ~ 0.8 元/百万Token`
+    - 输入音频：`1.24 元/百万Token`
+    - 输出文本：`4.0 ~ 16.0 元/百万Token`
+    - 输出音频：`25.551 元/百万Token`
+  - `qwen3.5-omni-plus`
+    - 输入文本/图片/视频：`0.8 ~ 2.0 元/百万Token`
+    - 输入音频：`4.96 元/百万Token`
+    - 输出文本：`9.6 ~ 24.0 元/百万Token`
+    - 输出音频：`61.322 元/百万Token`
+- 文本相关单价会按单次请求输入 Token 阶梯自动判断
 - 如果响应里的 `usage` 带了足够的 token 明细，脚本会进一步输出本次费用估算
 - 这不是实时价格查询；如果官方价格变化，需要同步更新脚本
 
@@ -331,7 +355,8 @@ node scripts/qwen-omni-chat.js --clear-session --session="demo-chat"
 - `config.json` 是否是合法 JSON
 - Node 版本是否低于 18
 - 是否同时传入了多种非文本模态
-- 是否在 `--with-audio` 时又开启了思考模式
+- 是否给 `Qwen3.5-Omni` 传了 `--enable-thinking=true`
+- 是否在 `qwen3-omni-flash` 上同时传了 `--with-audio` 和 `--enable-thinking=true`
 - 多轮时是否忘记传 `--session`
 - 是否错误地把新话题用了 `--mode=continue`
 - 本地文件路径是否存在

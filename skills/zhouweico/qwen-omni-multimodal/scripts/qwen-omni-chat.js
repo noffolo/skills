@@ -5,14 +5,71 @@ const path = require('path');
 
 const DEFAULT_BASE_URL =
   process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
-const DEFAULT_MODEL = 'qwen3-omni-flash';
-const DEFAULT_VOICE = 'Cherry';
+const DEFAULT_MODEL = 'qwen3.5-omni-flash';
+const DEFAULT_VOICE = 'Tina';
 const DEFAULT_OUTPUT_SAMPLE_RATE = 24000;
 const DEFAULT_HISTORY_WINDOW = 6;
 const SESSION_VERSION = 1;
 const SESSIONS_DIR = path.join(__dirname, '..', 'sessions');
 const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
 const OMNI_VOICE_PROFILES = {
+  'qwen3.5-omni': [
+    { id: 'Tina', alias: '甜甜 Tina', description: '默认音色，甜暖自然' },
+    { id: 'Cindy', alias: '林欣宜 Cindy', description: '台湾说话嗲嗲的小姐姐' },
+    { id: 'Liora Mira', alias: '清欢 Liora Mira', description: '用声音织就烟火人间的温柔' },
+    { id: 'Sunnybobi', alias: '知芝 Sunnybobi', description: '大大咧咧的社恐邻家姑娘' },
+    { id: 'Raymond', alias: '林川野 Raymond', description: '声音清亮，爱吃外卖的宅男' },
+    { id: 'Ethan', alias: '晨煦 Ethan', description: '标准普通话，带部分北方口音，阳光温暖' },
+    { id: 'Theo Calm', alias: '予安 Theo Calm', description: '在静默处传递理解，在言语间疗愈人心' },
+    { id: 'Serena', alias: '苏瑶 Serena', description: '温柔小姐姐' },
+    { id: 'Harvey', alias: '厚 Harvey', description: '低沉温和，像咖啡与旧书' },
+    { id: 'Maia', alias: '四月 Maia', description: '知性与温柔的碰撞' },
+    { id: 'Evan', alias: '江晨 Evan', description: '男大学生，年下奶狗' },
+    { id: 'Qiao', alias: '小乔妹 Qiao', description: '表面甜妹，个性十足' },
+    { id: 'Momo', alias: '茉兔 Momo', description: '撒娇搞怪，逗你开心' },
+    { id: 'Wil', alias: '伟伦 Wil', description: '在深圳长大的港台腔小哥哥' },
+    { id: 'Angel', alias: '台普 - 安琪 Angel', description: '略带台式口音，甜美轻快' },
+    { id: 'Li Cassian', alias: '东厂 - 李公公 Li Cassian', description: '话中三分留白、七分察言观色' },
+    { id: 'Mia', alias: '温柔生活博主 - 舒然 Mia', description: '细腻治愈的慢生活声线' },
+    { id: 'Joyner', alias: '喜剧担当 - 阿逗 Joyner', description: '搞笑、夸张、接地气' },
+    { id: 'Gold', alias: '金爷 Gold', description: '西海岸黑人 Rapper' },
+    { id: 'Katerina', alias: '卡捷琳娜 Katerina', description: '御姐音色，韵律回味十足' },
+    { id: 'Ryan', alias: '甜茶 Ryan', description: '节奏拉满，戏感炸裂' },
+    { id: 'Jennifer', alias: '詹妮弗 Jennifer', description: '品牌级、电影质感般美语女声' },
+    { id: 'Aiden', alias: '艾登 Aiden', description: '精通厨艺的美语大男孩' },
+    { id: 'Mione', alias: '敏儿 Mione', description: '成熟知性的英国邻家妹妹' },
+    { id: 'Sunny', alias: '四川 - 晴儿 Sunny', description: '甜到你心里的川妹子' },
+    { id: 'Dylan', alias: '北京 - 晓东 Dylan', description: '北京胡同里长大的少年' },
+    { id: 'Eric', alias: '四川 - 程川 Eric', description: '跳脱市井的四川成都男子' },
+    { id: 'Peter', alias: '天津 - 李彼得 Peter', description: '天津相声，专业捧哏' },
+    { id: 'Joseph Chen', alias: '阿樸伯 Joseph Chen', description: '南洋老华侨' },
+    { id: 'Marcus', alias: '陕西 - 秦川 Marcus', description: '面宽话短，心实声沉' },
+    { id: 'Li', alias: '南京 - 老李 Li', description: '骂骂咧咧的伯伯' },
+    { id: 'Rocky', alias: '粤语 - 阿强 Rocky', description: '幽默风趣的阿强，在线陪聊' },
+    { id: 'Sohee', alias: '素熙 Sohee', description: '温柔开朗，情绪丰富的韩国欧尼' },
+    { id: 'Lenn', alias: '莱恩 Lenn', description: '理性克制，带一点叛逆' },
+    { id: 'Ono Anna', alias: '小野杏 Ono Anna', description: '鬼灵精怪的青梅竹马' },
+    { id: 'Sonrisa', alias: '索尼莎 Sonrisa', description: '热情开朗的拉美大姐' },
+    { id: 'Bodega', alias: '博德加 Bodega', description: '热情的西班牙大叔' },
+    { id: 'Emilien', alias: '埃米尔安 Emilien', description: '浪漫的法国大哥哥' },
+    { id: 'Andre', alias: '安德雷 Andre', description: '自然舒服、沉稳磁性男声' },
+    { id: 'Radio Gol', alias: '拉迪奥·戈尔 Radio Gol', description: '足球诗人式解说' },
+    { id: 'Alek', alias: '阿列克 Alek', description: '冷暖并存的俄语男声气质' },
+    { id: 'Rizky', alias: '阿力 Rizky', description: '印尼青年小伙，声线有个性' },
+    { id: 'Roya', alias: '萝雅 Roya', description: '热爱运动的自由女孩' },
+    { id: 'Arda', alias: '阿尔达 Arda', description: '干净利落，带温润气质' },
+    { id: 'Hana', alias: '阿幸 Hana', description: '爱狗狗的越南成熟姐姐' },
+    { id: 'Dolce', alias: '多尔切 Dolce', description: '慵懒的意大利大叔' },
+    { id: 'Jakub', alias: '雅克 Jakub', description: '波兰小镇文艺青年' },
+    { id: 'Griet', alias: '海娜 Griet', description: '荷兰成熟又文艺的女性' },
+    { id: 'Eliška', alias: '艾莉卡 Eliška', description: '传递中欧匠心与温度' },
+    { id: 'Marina', alias: '玛丽娜 Marina', description: '在多元文化城市中长大的女孩' },
+    { id: 'Siiri', alias: '西芮 Siiri', description: '内敛温柔，语速舒缓' },
+    { id: 'Ingrid', alias: '林恩 Ingrid', description: '挪威乡村姑娘' },
+    { id: 'Sigga', alias: '海娜 Sigga', description: '冰岛小镇的知性女青年' },
+    { id: 'Bea', alias: '雅娜 Bea', description: '爱喝咖啡的菲律宾甜甜小姐姐' },
+    { id: 'Chloe', alias: '思怡 Chloe', description: '马来西亚白领女生' }
+  ],
   'qwen-omni-turbo': [
     { id: 'Cherry', alias: '辛悦', description: '阳光积极，亲切自然小姐姐' },
     { id: 'Serena', alias: '苏瑶', description: '温柔小姐姐' },
@@ -40,7 +97,76 @@ const OMNI_VOICE_PROFILES = {
   ]
 };
 const OMNI_PRICING_CNY_PER_MILLION = {
+  'qwen3.5-omni-plus': {
+    kind: 'tiered',
+    input: {
+      text_image_video: [
+        { maxInputTokens: 128000, unitPrice: 0.8 },
+        { maxInputTokens: 256000, unitPrice: 2.0 }
+      ],
+      audio: 4.96
+    },
+    output: {
+      text: [
+        { maxInputTokens: 128000, unitPrice: 9.6 },
+        { maxInputTokens: 256000, unitPrice: 24.0 }
+      ],
+      audio_only_when_text_plus_audio: 61.322
+    }
+  },
+  'qwen3.5-omni-plus-2026-03-15': {
+    kind: 'tiered',
+    input: {
+      text_image_video: [
+        { maxInputTokens: 128000, unitPrice: 0.8 },
+        { maxInputTokens: 256000, unitPrice: 2.0 }
+      ],
+      audio: 4.96
+    },
+    output: {
+      text: [
+        { maxInputTokens: 128000, unitPrice: 9.6 },
+        { maxInputTokens: 256000, unitPrice: 24.0 }
+      ],
+      audio_only_when_text_plus_audio: 61.322
+    }
+  },
+  'qwen3.5-omni-flash': {
+    kind: 'tiered',
+    input: {
+      text_image_video: [
+        { maxInputTokens: 128000, unitPrice: 0.2 },
+        { maxInputTokens: 256000, unitPrice: 0.8 }
+      ],
+      audio: 1.24
+    },
+    output: {
+      text: [
+        { maxInputTokens: 128000, unitPrice: 4.0 },
+        { maxInputTokens: 256000, unitPrice: 16.0 }
+      ],
+      audio_only_when_text_plus_audio: 25.551
+    }
+  },
+  'qwen3.5-omni-flash-2026-03-15': {
+    kind: 'tiered',
+    input: {
+      text_image_video: [
+        { maxInputTokens: 128000, unitPrice: 0.2 },
+        { maxInputTokens: 256000, unitPrice: 0.8 }
+      ],
+      audio: 1.24
+    },
+    output: {
+      text: [
+        { maxInputTokens: 128000, unitPrice: 4.0 },
+        { maxInputTokens: 256000, unitPrice: 16.0 }
+      ],
+      audio_only_when_text_plus_audio: 25.551
+    }
+  },
   'qwen3-omni-flash': {
+    kind: 'flat',
     input: {
       text: 1.8,
       audio: 15.8,
@@ -53,6 +179,7 @@ const OMNI_PRICING_CNY_PER_MILLION = {
     }
   },
   'qwen3-omni-flash-2025-12-01': {
+    kind: 'flat',
     input: {
       text: 1.8,
       audio: 15.8,
@@ -65,6 +192,7 @@ const OMNI_PRICING_CNY_PER_MILLION = {
     }
   },
   'qwen3-omni-flash-2025-09-15': {
+    kind: 'flat',
     input: {
       text: 1.8,
       audio: 15.8,
@@ -77,6 +205,7 @@ const OMNI_PRICING_CNY_PER_MILLION = {
     }
   },
   'qwen-omni-turbo': {
+    kind: 'flat',
     input: {
       text: 0.4,
       audio: 25.0,
@@ -89,6 +218,7 @@ const OMNI_PRICING_CNY_PER_MILLION = {
     }
   },
   'qwen-omni-turbo-latest': {
+    kind: 'flat',
     input: {
       text: 0.4,
       audio: 25.0,
@@ -101,6 +231,7 @@ const OMNI_PRICING_CNY_PER_MILLION = {
     }
   },
   'qwen-omni-turbo-2025-03-26': {
+    kind: 'flat',
     input: {
       text: 0.4,
       audio: 25.0,
@@ -113,6 +244,7 @@ const OMNI_PRICING_CNY_PER_MILLION = {
     }
   },
   'qwen-omni-turbo-2025-01-19': {
+    kind: 'flat',
     input: {
       text: 0.4,
       audio: 25.0,
@@ -171,14 +303,14 @@ function printUsage() {
 Usage:
   node scripts/qwen-omni-chat.js --prompt="..." [options]
   node scripts/qwen-omni-chat.js --list-sessions
-  node scripts/qwen-omni-chat.js --list-voices [--model qwen3-omni-flash]
+  node scripts/qwen-omni-chat.js --list-voices [--model qwen3.5-omni-flash]
   node scripts/qwen-omni-chat.js --show-session --session demo
   node scripts/qwen-omni-chat.js --clear-session --session demo
 
 Core options:
   --prompt              Required for chat. User prompt text.
   --system              Optional system prompt.
-  --model               Model name. Default: qwen3-omni-flash
+  --model               Model name. Default: qwen3.5-omni-flash
   --selection-policy    fixed|auto. Default: fixed
   --image               Image path, URL, or data URL. Repeatable.
   --audio               Audio path, URL, or data URL.
@@ -186,7 +318,7 @@ Core options:
   --video-frames        Comma-separated image list for video-style input.
   --video-fps           FPS for video_url input. Default: 2.0
   --with-audio          Enable text+audio output.
-  --voice               Output voice. Default: Cherry
+  --voice               Output voice. Default: Tina
   --audio-out           WAV output path. Default: /tmp/qwen-omni-<timestamp>.wav
   --enable-thinking     true|false. Default: false
   --temperature         Optional number.
@@ -290,6 +422,9 @@ function resolveConfiguredModelCandidates(config) {
 }
 
 function getOmniModelFamily(model) {
+  if (String(model).startsWith('qwen3.5-omni-plus') || String(model).startsWith('qwen3.5-omni-flash')) {
+    return 'qwen3.5-omni';
+  }
   if (String(model).startsWith('qwen3-omni-flash')) {
     return 'qwen3-omni-flash';
   }
@@ -335,13 +470,19 @@ function resolveModelSelection(args, config, context = {}) {
   const configuredDefaultModel = firstNonEmpty(config.defaultModel, config.model);
   if (selectionPolicy === 'auto') {
     const preferredFamily =
-      context.withAudio || context.inputMediaType === 'audio'
-        ? 'qwen3-omni-flash'
-        : 'qwen-omni-turbo';
+      context.inputMediaType === 'audio' || context.inputMediaType === 'video'
+        ? 'qwen3.5-omni'
+        : 'qwen3.5-omni';
+    const preferredDefaultModel =
+      context.inputMediaType === 'audio' || context.inputMediaType === 'video'
+        ? 'qwen3.5-omni-plus'
+        : 'qwen3.5-omni-flash';
     const autoModel =
       pickCandidateByFamily(candidates, preferredFamily, configuredDefaultModel) ||
+      pickCandidateByFamily(candidates, preferredFamily, preferredDefaultModel) ||
       configuredDefaultModel ||
       candidates[0] ||
+      preferredDefaultModel ||
       DEFAULT_MODEL;
     return {
       model: autoModel,
@@ -416,15 +557,23 @@ function resolveVoiceSelection(args, config, model) {
       ? 'env.DASHSCOPE_VOICE'
       : configuredVoiceByModelFamily
         ? `config.voiceByModelFamily.${getOmniModelFamily(model)}`
-        : config.voice
+      : config.voice
           ? 'config.voice'
           : 'built-in-default';
-  const matchedProfile = findVoiceProfile(model, requestedVoice);
+  const supportedVoices = getSupportedVoices(model);
+  let matchedProfile = findVoiceProfile(model, requestedVoice);
+  let effectiveSource = source;
+
+  if (!matchedProfile && supportedVoices.length > 0 && !args.voice && !process.env.DASHSCOPE_VOICE && !configuredVoiceByModelFamily && config.voice) {
+    matchedProfile = findVoiceProfile(model, DEFAULT_VOICE) || supportedVoices[0];
+    effectiveSource = `${source}->fallback.${matchedProfile.id}`;
+  }
+
   return {
     voice: matchedProfile ? matchedProfile.id : String(requestedVoice),
-    source,
+    source: effectiveSource,
     profile: matchedProfile,
-    supportedVoices: getSupportedVoices(model)
+    supportedVoices
   };
 }
 
@@ -459,9 +608,26 @@ function formatRate(value) {
   return `${value.toFixed(1)} 元/百万Token`;
 }
 
+function formatRateRange(tiers) {
+  const prices = Array.from(new Set((tiers || []).map((tier) => tier.unitPrice)));
+  if (!prices.length) {
+    return 'unavailable';
+  }
+  if (prices.length === 1) {
+    return formatRate(prices[0]);
+  }
+  return `${Math.min(...prices).toFixed(1)}~${Math.max(...prices).toFixed(1)} 元/百万Token`;
+}
+
 function getOmniPricing(model) {
   if (OMNI_PRICING_CNY_PER_MILLION[model]) {
     return OMNI_PRICING_CNY_PER_MILLION[model];
+  }
+  if (String(model).startsWith('qwen3.5-omni-plus')) {
+    return OMNI_PRICING_CNY_PER_MILLION['qwen3.5-omni-plus'];
+  }
+  if (String(model).startsWith('qwen3.5-omni-flash')) {
+    return OMNI_PRICING_CNY_PER_MILLION['qwen3.5-omni-flash'];
   }
   if (String(model).startsWith('qwen3-omni-flash')) {
     return OMNI_PRICING_CNY_PER_MILLION['qwen3-omni-flash'];
@@ -470,6 +636,44 @@ function getOmniPricing(model) {
     return OMNI_PRICING_CNY_PER_MILLION['qwen-omni-turbo'];
   }
   return null;
+}
+
+function getTierUnitPrice(tiers, totalInputTokens) {
+  if (!Array.isArray(tiers) || !tiers.length) {
+    return undefined;
+  }
+  const normalizedTotal = Number.isFinite(totalInputTokens) ? totalInputTokens : undefined;
+  if (normalizedTotal === undefined) {
+    return undefined;
+  }
+  for (const tier of tiers) {
+    if (normalizedTotal <= tier.maxInputTokens) {
+      return tier.unitPrice;
+    }
+  }
+  return tiers[tiers.length - 1].unitPrice;
+}
+
+function supportsThinkingMode(model) {
+  return getOmniModelFamily(model) === 'qwen3-omni-flash';
+}
+
+function validateVideoFrames(model, videoFrames) {
+  if (!videoFrames.length) {
+    return;
+  }
+
+  const family = getOmniModelFamily(model);
+  if (family === 'qwen3.5-omni') {
+    if (videoFrames.length < 4 || videoFrames.length > 512) {
+      throw new Error('Qwen3.5-Omni 的图片列表视频输入要求 4 到 512 张图片');
+    }
+    return;
+  }
+
+  if (family === 'qwen3-omni-flash' && (videoFrames.length < 2 || videoFrames.length > 128)) {
+    throw new Error('qwen3-omni-flash 的图片列表视频输入要求 2 到 128 张图片');
+  }
 }
 
 function extractNumber(...values) {
@@ -497,6 +701,23 @@ function printPricingReminder({ model, inputMediaType, withAudio }) {
   const pricing = getOmniPricing(model);
   if (!pricing) {
     console.error('pricing region=中国内地 unavailable=未内置该模型价格');
+    return;
+  }
+
+  if (pricing.kind === 'tiered') {
+    const inputParts = [];
+    if (inputMediaType === 'audio') {
+      inputParts.push(`text/image/video:${formatRateRange(pricing.input.text_image_video)}`);
+      inputParts.push(`audio:${formatRate(pricing.input.audio)}`);
+    } else {
+      inputParts.push(`text/image/video:${formatRateRange(pricing.input.text_image_video)}`);
+    }
+    const outputRate = withAudio
+      ? formatRate(pricing.output.audio_only_when_text_plus_audio)
+      : formatRateRange(pricing.output.text);
+    console.error(
+      `pricing region=中国内地 input=${inputParts.join('+')} output=${withAudio ? 'audio' : 'text'}:${outputRate} note=Qwen3.5-Omni 文本类计费按单次请求输入Token阶梯计费`
+    );
     return;
   }
 
@@ -544,8 +765,63 @@ function estimateOmniCost(usage, { model, inputMediaType, withAudio }) {
   const outputAudioTokens = extractNumber(
     getTokenCount(completionDetails, ['audio_tokens', 'audio'])
   );
+  const totalInputTokens = extractNumber(usage.prompt_tokens, usage.input_tokens);
 
   const components = [];
+
+  if (pricing.kind === 'tiered') {
+    const textLikeUnitPrice = getTierUnitPrice(pricing.input.text_image_video, totalInputTokens);
+    const outputTextUnitPrice = getTierUnitPrice(pricing.output.text, totalInputTokens);
+
+    if (inputTextTokens !== undefined && textLikeUnitPrice !== undefined) {
+      components.push({
+        label: 'input_text',
+        tokens: inputTextTokens,
+        unitPrice: textLikeUnitPrice
+      });
+    }
+    if (inputAudioTokens !== undefined) {
+      components.push({
+        label: 'input_audio',
+        tokens: inputAudioTokens,
+        unitPrice: pricing.input.audio
+      });
+    }
+    if (inputImageVideoTokens !== undefined && textLikeUnitPrice !== undefined) {
+      components.push({
+        label: 'input_image_video',
+        tokens: inputImageVideoTokens,
+        unitPrice: textLikeUnitPrice
+      });
+    }
+    if (!withAudio && outputTextTokens !== undefined && outputTextUnitPrice !== undefined) {
+      components.push({
+        label: 'output_text',
+        tokens: outputTextTokens,
+        unitPrice: outputTextUnitPrice
+      });
+    }
+    if (withAudio && outputAudioTokens !== undefined) {
+      components.push({
+        label: 'output_audio',
+        tokens: outputAudioTokens,
+        unitPrice: pricing.output.audio_only_when_text_plus_audio
+      });
+    }
+
+    if (!components.length) {
+      return null;
+    }
+
+    const normalized = components.map((component) => ({
+      ...component,
+      cost: component.tokens / 1000000 * component.unitPrice
+    }));
+    return {
+      components: normalized,
+      totalCost: normalized.reduce((sum, component) => sum + component.cost, 0)
+    };
+  }
 
   if (inputTextTokens !== undefined) {
     components.push({
@@ -1411,8 +1687,10 @@ async function main() {
 
   ensureSingleModality({ images, audio, video, videoFrames });
 
-  if (videoFrames.length > 0 && (videoFrames.length < 2 || videoFrames.length > 128)) {
-    throw new Error('qwen3-omni-flash 的图片列表视频输入要求 2 到 128 张图片');
+  validateVideoFrames(model, videoFrames);
+
+  if (enableThinking && !supportsThinkingMode(model)) {
+    throw new Error(`${model} 不支持思考模式，请关闭 --enable-thinking，或改用 qwen3-omni-flash`);
   }
 
   if (withAudio && enableThinking) {
@@ -1515,9 +1793,12 @@ async function main() {
     stream: true,
     stream_options: {
       include_usage: true
-    },
-    enable_thinking: enableThinking
+    }
   };
+
+  if (supportsThinkingMode(model)) {
+    payload.enable_thinking = enableThinking;
+  }
 
   if (args.system) {
     payload.messages.push({

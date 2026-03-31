@@ -23,15 +23,19 @@
 - API Key：`DASHSCOPE_API_KEY > config.apiKey`
 - `selectionPolicy=fixed|auto`
   - `fixed`：按默认模型走，不自动切换
-  - `auto`：音频输入或音频输出优先 `qwen3-omni-flash`，纯文本/图片/视频理解优先 `qwen-omni-turbo`
+  - `auto`：音频/视频理解优先 `qwen3.5-omni-plus`，文本/图片理解与语音输出优先 `qwen3.5-omni-flash`
 - `config.modelCandidates` 用于维护候选模型列表；`selectionPolicy=auto` 时会优先在候选列表里选模型
 - `config.voiceByModelFamily` 用于给不同模型家族配置不同默认音色
 - `--dry-run` 不要求 API Key，但仍会校验本地文件、打印价格提醒和脱敏后的请求体预览
 
 ## 当前支持的模型选择
 
-- 默认模型：`qwen3-omni-flash`
+- 默认模型：`qwen3.5-omni-flash`
 - 可显式切换到：
+  - `qwen3.5-omni-plus`
+  - `qwen3.5-omni-plus-2026-03-15`
+  - `qwen3.5-omni-flash`
+  - `qwen3.5-omni-flash-2026-03-15`
   - `qwen3-omni-flash`
   - `qwen3-omni-flash-2025-12-01`
   - `qwen3-omni-flash-2025-09-15`
@@ -42,14 +46,17 @@
 - 当前 skill 支持受约束的自动选型；是否自动切换模型由 `selectionPolicy` 决定
 - 推荐在 `config.json` 中使用 `selectionPolicy` 管理自动选型开关，用 `defaultModel` 管理兜底默认模型，用 `modelCandidates` 管理候选列表
 - 价格取舍基于你提供的中国内地价格表：
-  - `qwen3-omni-flash`：音频输入更便宜
-  - `qwen-omni-turbo`：文本、图片/视频输入和文本输出更便宜
-- 当前脚本的模态组织、会话与守卫规则主要按 `qwen3-omni-flash` 文档整理；`qwen-omni-turbo` 作为同接口模型的显式可选项接入
+  - `qwen3.5-omni-flash`：成本更低，适合默认文本/图片理解与语音输出
+  - `qwen3.5-omni-plus`：长音频、长视频与复杂跨模态理解更稳
+  - `qwen-omni-turbo`：保留显式兼容，不再作为默认自动选型目标
+- 当前脚本的自动选型默认在 `qwen3.5-omni-flash` 和 `qwen3.5-omni-plus` 间切换；旧模型作为显式兼容项保留
 
 ## 当前支持的音色选择
 
 - `--with-audio` 时，脚本会按模型家族校验 `voice`
 - 可用 `--list-voices --model <model>` 查看当前模型家族支持的音色
+- `qwen3.5-omni` 当前内置全部 55 个官方音色，默认音色为 `Tina(甜甜 Tina)`
+- 常用示例：`Tina`、`Serena`、`Ethan`、`Katerina`、`Jennifer`、`Ryan`、`Sunny`、`Dylan`、`Rocky`、`Chloe`
 - `qwen-omni-turbo` 当前内置音色：
   - `Cherry(辛悦)`、`Serena(苏瑶)`、`Ethan(晨煦)`、`Chelsie(千雪)`
 - `qwen3-omni-flash` 当前内置音色：
@@ -72,8 +79,10 @@
 
 - Qwen-Omni 只支持流式调用
 - 一条 `user` 消息只允许文本加一种模态
+- `Qwen3.5-Omni` 的图片列表视频要求 4 到 512 帧
 - `qwen3-omni-flash` 的图片列表视频要求 2 到 128 帧
 - 文本加音频输出时，要传 `modalities: ["text", "audio"]`
+- `qwen3.5-omni-plus` 和 `qwen3.5-omni-flash` 不支持思考模式
 - `qwen3-omni-flash` 开启思考模式时，不支持音频输出
 
 ## 当前脚本的多轮策略
@@ -106,7 +115,7 @@
 ## 当前脚本的价格提醒
 
 - 基于你提供的中国内地价格表内置单价提醒
-- 调用前显示当前输入/输出模式对应的单价
+- 调用前显示当前输入/输出模式对应的单价；`Qwen3.5-Omni` 会按单次请求输入 Token 阶梯显示区间价
 - 若 `usage` 中包含足够的 token 明细，调用后追加 best-effort 费用估算
 - 费用估算依赖服务端返回的统计字段，字段不完整时只显示单价提醒
 
@@ -114,7 +123,7 @@
 
 ```json
 {
-  "model": "qwen3-omni-flash",
+  "model": "qwen3.5-omni-flash",
   "messages": [
     {
       "role": "user",

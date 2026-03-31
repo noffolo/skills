@@ -1,8 +1,8 @@
 {
   "name": "qwen-omni-multimodal",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Qwen3-Omni-Flash multimodal skill for qclaw",
+  "description": "Qwen3.5-Omni multimodal skill for qclaw",
   "engines": {
     "node": ">=18"
   },
