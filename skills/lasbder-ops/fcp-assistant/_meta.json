@@ -1,0 +1,11 @@
+{
+  "owner": "lasbder-ops",
+  "slug": "fcp-assistant",
+  "displayName": "FCP Assistant",
+  "latest": {
+    "version": "2.2.0",
+    "publishedAt": 1774435259786,
+    "commit": null
+  },
+  "history": []
+}
