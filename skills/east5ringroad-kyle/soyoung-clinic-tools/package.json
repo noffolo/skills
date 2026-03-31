@@ -1,9 +1,10 @@
 {
   "name": "soyoung-clinic-tools",
-  "version": "2.1.0",
-  "description": "新氧诊所工具集 — 主人私聊配置 API Key、群聊预约审批、项目查询",
-  "author": "锦鲤（彭胜锴）",
+  "version": "2.1.4",
+  "description": "新氧青春诊所工具集，包含预约和项目查询百科、门店搜索等能力",
+  "summary": "新氧青春诊所工具集，包含预约和项目查询百科、门店搜索等能力",
   "license": "MIT",
+  "keywords": ["soyoung", "clinic", "新氧", "诊所", "医美", "sy"],
   "scripts": {
     "sync": "bash scripts/sync-version.sh",
     "build": "bash scripts/build-zip.sh",

@@ -1,7 +1,6 @@
 {
   "name": "apikey",
-  "version": "2.1.0",
-  "description": "新氧诊所 API Key 与主人绑定管理技能",
-  "author": "锦鲤（彭胜锴）",
+  "version": "2.1.4",
+  "description": "新氧青春诊所 API Key 与主人绑定管理技能",
   "license": "MIT"
 }

@@ -1,6 +1,6 @@
 ---
 name: soyoung-clinic-tools
-description: "在 agent 启动时注入新氧诊所工具的触发规则，确保门店查询/预约/项目查询自动走正确的技能，不被 Tavily 等通用搜索工具截胡"
+description: "在 agent 启动时注入新氧青春诊所工具的触发规则，确保门店查询/预约/项目查询自动走正确的技能，不被 Tavily 等通用搜索工具截胡"
 metadata: {"openclaw":{"emoji":"🏥","events":["agent:bootstrap"]}}
 ---
 

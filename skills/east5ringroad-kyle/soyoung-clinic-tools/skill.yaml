@@ -1,7 +1,7 @@
 ---
 name: soyoung-clinic-tools
 description: >
-  新氧诊所工具集，包含两个功能技能和一个共享配置工具：
+  新氧青春诊所工具集，包含两个功能技能和一个共享配置工具：
   - skills/appointment：门店查询与预约管理
   - skills/project：医美项目知识库与商品查询
   两个技能共用同一个 workspace 作用域下的 API Key，首次使用需通过 setup/apikey 完成主人绑定。
@@ -26,9 +26,9 @@ metadata:
   }
 ---
 
-# Soyoung Clinic Tools 🏥
+# 新氧青春诊所工具集 Soyoung Clinic Tools 🏥
 
-新氧诊所工具集。API Key 仅允许主人在私聊中配置，高风险预约操作支持群聊审批。
+新氧青春诊所工具集。API Key 仅允许主人在私聊中配置，高风险预约操作支持群聊审批。
 
 ## 功能技能
 

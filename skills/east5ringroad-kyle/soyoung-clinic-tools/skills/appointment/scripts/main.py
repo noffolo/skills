@@ -213,7 +213,7 @@ def make_request(endpoint, body=None, api_key=None):
         data=data,
         headers={
             "Content-Type": "application/json",
-            "User-Agent": "Soyoung-Clinic-Tools-Appointment/2.1.0",
+            "User-Agent": "Soyoung-Clinic-Tools-Appointment/2.1.4",
             "X-Request-Id": req_id,
         },
         method="POST",

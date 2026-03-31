@@ -1,13 +1,21 @@
-# Soyoung Clinic Tools — 技能集规格
+---
+name: soyoung-clinic-tools
+slug: soyoung-clinic-tools
+version: 2.1.4
+description: 新氧青春诊所工具集，包含预约和项目查询百科、门店搜索等能力 | Soyoung clinic tools
+tags: [Soyoung, soyoung, clinic, appointment, medical, beauty, healthcare, 新氧，诊所，预约，医美，整形，hospital]
+license: MIT
+---
+
+# 新氧青春诊所工具集 Soyoung Clinic Tools — 技能集规格
 
 **Name**: soyoung-clinic-tools  
-**Version**: 2.1.0  
-**Author**: 锦鲤（彭胜锴）  
+**Version**: 2.1.4  
 **License**: MIT
 
 ## Description
 
-新氧诊所工具集，包含预约和项目查询百科、门店搜索等能力。
+新氧青春诊所工具集，包含预约和项目查询百科、门店搜索等能力 | Soyoung clinic tools
 
 ## Skills（功能技能）
 

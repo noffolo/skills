@@ -1,7 +1,7 @@
 {
-  "name": "project",
-  "version": "2.1.0",
-  "description": "新氧诊所项目与商品查询技能",
-  "author": "锦鲤（彭胜锴）",
+  "name": "soyoung-clinic-project",
+  "version": "2.1.4",
+  "description": "新氧青春诊所项目与商品查询技能 | Soyoung Clinic project & product search",
+  "keywords": ["soyoung", "clinic", "project", "product", "新氧", "诊所", "医美", "sy"],
   "license": "MIT"
 }

@@ -54,7 +54,7 @@ def verify_api_key(api_key: str | None) -> bool:
 
 
 def get_first_time_guide() -> str:
-    return f"""🔐 **新氧诊所 API Key 配置**
+    return f"""🔐 **新氧青春诊所 API Key 配置**
 
 📋 获取步骤：
 1. 打开浏览器访问：{API_KEY_WEBSITE}
@@ -129,7 +129,7 @@ def main():
             api_key = load_api_key(paths)
             current_url = read_api_base_url(paths)
             debug_on = read_debug_mode(paths)
-            lines = ["📋 **新氧诊所工具 — 当前配置状态**", ""]
+            lines = ["📋 **新氧青春诊所工具集 — 当前配置状态**", ""]
             if binding and api_key:
                 lines += [
                     "• API Key：✅ 已配置",

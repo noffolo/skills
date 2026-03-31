@@ -1,7 +1,7 @@
 ---
 name: apikey
 description: >
-  新氧诊所 API Key 管理（非用户技能而是基础配置）。负责配置、查看、替换、删除当前 workspace 的新氧 API Key，
+  新氧青春诊所 API Key 管理（非用户技能而是基础配置）。负责配置、查看、替换、删除当前 workspace 的新氧 API Key，
   同时绑定 API Key 主人，并保存/查看主人位置。状态目录为
   ~/.openclaw/state/soyoung-clinic-tools/workspaces/<workspace_key>/。
 
@@ -33,6 +33,7 @@ triggers:
   - "我保存的位置是什么"
   - "soyoung-clinic-api-key"
   - "新氧诊所 API Key"
+  - "新氧青春诊所 API Key"
   - "新氧青春 clinic 开启调试模式"
   - "新氧青春 clinic 关闭调试模式"
   - "新氧青春 clinic 开启调式模式"

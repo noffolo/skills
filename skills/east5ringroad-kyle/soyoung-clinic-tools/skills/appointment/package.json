@@ -1,7 +1,7 @@
 {
-  "name": "appointment",
-  "version": "2.1.0",
-  "description": "新氧诊所门店查询、预约审批与预约管理技能",
-  "author": "锦鲤（彭胜锴）",
+  "name": "soyoung-clinic-appointment",
+  "version": "2.1.4",
+  "description": "新氧青春诊所门店查询、预约审批与预约管理技能 | Soyoung Clinic appointment & store management",
+  "keywords": ["soyoung", "clinic", "appointment", "store", "新氧", "诊所", "预约", "门店", "sy"],
   "license": "MIT"
 }

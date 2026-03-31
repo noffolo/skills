@@ -9,7 +9,7 @@ const TRIGGER_RULES = `# ⛔ 最高优先级拦截规则（不可绕过）
 
 ---
 
-## 🏥 新氧诊所工具（soyoung-clinic-tools）
+## 🏥 新氧青春诊所工具集（soyoung-clinic-tools）
 
 ### 路由
 
