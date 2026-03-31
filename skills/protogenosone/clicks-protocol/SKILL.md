@@ -3,7 +3,7 @@ name: clicks-protocol
 description: "Query and interact with Clicks Protocol: autonomous DeFi yield for AI agents on Base. Check current APY (Aave V3 + Morpho), query agent status, simulate payment splits, view referral earnings. Zero dependencies (curl only). Use when an agent holds idle USDC, needs treasury yield data, or wants to check Clicks Protocol status."
 tags: [yield, defi, usdc, base, agent, treasury, x402, autonomous, aave, morpho, mcp, crypto]
 author: clicks-protocol
-version: 1.0.0
+version: 1.0.1
 license: MIT
 homepage: https://clicksprotocol.xyz
 metadata:
@@ -94,7 +94,7 @@ For MCP-compatible clients (Claude, Cursor, LangChain):
 npx @clicks-protocol/mcp-server
 
 # Remote (HTTP, read-only, no setup)
-# POST https://clicks-mcp.rechnung-613.workers.dev/mcp
+# POST https://mcp.clicksprotocol.xyz/mcp
 ```
 
 9 tools: clicks_quick_start, clicks_receive_payment, clicks_withdraw_yield, clicks_register_agent, clicks_set_yield_pct, clicks_get_agent_info, clicks_simulate_split, clicks_get_yield_info, clicks_get_referral_stats
