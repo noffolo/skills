@@ -19,14 +19,14 @@
             background: rgba(255, 255, 255, 0.97);
             border-radius: 24px;
             padding: 48px;
-            max-width: 480px;
+            max-width: 560px;
             width: 100%;
             box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
             text-align: center;
         }
         .icon { font-size: 64px; margin-bottom: 20px; }
-        h1 { font-size: 26px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
-        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 28px; }
+        h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 32px; }
         .install-btn {
             display: inline-block;
             padding: 18px 48px;
@@ -41,6 +41,19 @@
             transition: transform 0.2s, filter 0.2s;
         }
         .install-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .terminal {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        .terminal code {
+            color: #10b981;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
         .steps {
             background: #f8fafc;
             border-radius: 16px;
@@ -59,6 +72,8 @@
         .note { font-size: 12px; color: #94a3b8; }
         .note a { color: #6366f1; text-decoration: none; }
         .note a:hover { text-decoration: underline; }
+        .links { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+        .links a { color: #64748b; font-size: 13px; margin: 0 12px; }
     </style>
 </head>
 <body>
@@ -72,15 +87,17 @@
             <a href="https://www.tampermonkey.net/" target="_blank" style="color: #6366f1;">Install Tampermonkey</a> first, then return here.
         </div>
         
-        <!-- Direct link to raw script - Tampermonkey should detect and offer install -->
-        <a href="https://raw.githubusercontent.com/yjin94606-art/webchat-enhancer/main/scripts/enhancer.user.js" class="install-btn">▶ Install Now</a>
+        <div class="terminal">
+            <code>curl -sL https://bit.ly/wce-install | bash</code>
+        </div>
+        
+        <a href="https://greasyfork.org/zh-CN/scripts/571337-webchat-enhancer" class="install-btn">▶ Install Now</a>
         
         <div class="steps">
-            <h2>How it works</h2>
-            <div class="step"><span class="step-num">1</span> Click <strong>Install</strong> above</div>
-            <div class="step"><span class="step-num">2</span> <strong>Confirm</strong> in Tampermonkey popup</div>
-            <div class="step"><span class="step-num">3</span> Open <strong>127.0.0.1:18789</strong></div>
-            <div class="step"><span class="step-num">✓</span> Done! Panel appears automatically</div>
+            <h2>One-Command Install</h2>
+            <div class="step"><span class="step-num">1</span> Copy the command above</div>
+            <div class="step"><span class="step-num">2</span> Paste in terminal and press Enter</div>
+            <div class="step"><span class="step-num">3</span> Done! Open http://127.0.0.1:18789</div>
         </div>
         
         <div class="features">
@@ -94,6 +111,12 @@
             <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" target="_blank">Firefox</a> ·
             <a href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey" target="_blank">Edge</a>
         </p>
+        
+        <div class="links">
+            <a href="https://clawhub.com/skills/webchat-enhancer">ClawHub</a>
+            <a href="https://greasyfork.org/zh-CN/scripts/571337-webchat-enhancer">GreasyFork</a>
+            <a href="https://github.com/yjin94606-art/webchat-enhancer">GitHub</a>
+        </div>
     </div>
 </body>
 </html>

@@ -1,11 +1,17 @@
 {
   "owner": "yjin94606-art",
   "slug": "webchat-enhancer",
-  "displayName": "WebChat Enhancer",
+  "displayName": "Webchat Enhancer",
   "latest": {
-    "version": "4.2.1",
-    "publishedAt": 1774579048477,
-    "commit": "https://github.com/openclaw/skills/commit/6bfecbed18dbde644a701516819481b4ab0936ed"
+    "version": "4.5.2",
+    "publishedAt": 1774668072544,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "4.2.1",
+      "publishedAt": 1774579048477,
+      "commit": "https://github.com/openclaw/skills/commit/6bfecbed18dbde644a701516819481b4ab0936ed"
+    }
+  ]
 }

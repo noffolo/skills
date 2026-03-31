@@ -1,107 +1,114 @@
 # WebChat Enhancer
 
-🌟 Add clickable navigation to OpenClaw WebChat | 4 Languages | 3 Themes
+A lightweight Tampermonkey script that adds a sleek, hover-expandable navigation panel to your OpenClaw WebChat interface.
 
----
-
-## ⚡ One-Command Install
-
-Copy and paste this command:
-
-```bash
-curl -sL https://raw.githubusercontent.com/yjin94606-art/webchat-enhancer/main/skills/webchat-enhancer/install.sh | bash
-```
-
-This will automatically:
-1. Install the skill via clawhub
-2. Open GreasyFork for one-click script install
-
----
-
-## Manual Install
-
-**Step 1:** Install Tampermonkey
-👉 https://www.tampermonkey.net/
-
-**Step 2:** Open GreasyFork
-```bash
-open "https://greasyfork.org/zh-CN/scripts/571337-webchat-enhancer"
-```
-
-**Step 3:** Click the green **"Install"** button
-
-**Step 4:** Open WebChat: http://127.0.0.1:18789
-
-Done! ✅
+![Version](https://img.shields.io/badge/version-4.5.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| 📑 **Clickable Navigation** | Jump to any conversation segment |
-| 🌐 **4 Languages** | EN · ZH · JA · KO |
-| 🎨 **3 Themes** | Dark · Light · Gradient |
-| ⚡ **Auto-scan** | Automatically generates navigation |
-| 💾 **Persistent** | Settings saved locally |
+🖱️ **Hover to Expand** — A slim tab stays hidden on the right edge of the screen. Slide your mouse near it and the panel smoothly slides out. Move your mouse away and it hides again. No clicks needed.
+
+🎨 **Auto Theme Sync** — Automatically detects whether your WebChat is in Dark or Light mode and instantly switches the navigator to matching Lobster-inspired colors. No manual switching, no settings panel — it just works.
+
+📜 **Chat Navigator** — Scans your entire conversation and generates a list of clickable message cards. Click any card to smoothly scroll and jump to that exact message.
+
+🔄 **Auto-Updating** — Detects new messages automatically as they appear. The message list stays fresh without any action from you.
+
+⚡ **Lightweight** — Pure vanilla JavaScript. No external dependencies. No settings or configuration needed.
+
+---
+
+## Screenshots
+
+**Dark Mode**
+![Dark Mode](screenshot-dark.png)
+
+**Light Mode**
+![Light Mode](screenshot-light.png)
+
+---
+
+## What Changed in 4.5.0
+
+- ❌ Removed language switching — English only, keeping it simple
+- ❌ Removed theme selector — theme is now fully automatic
+- ❌ Removed settings panel — works out of the box
+- 🆕 Hover-expandable navigation — panel hides when not in use
+- 🆕 Auto theme detection — syncs with WebChat Dark/Light mode instantly
+
+---
+
+## Requirements
+
+- **OpenClaw WebChat** running at `http://127.0.0.1:18789` (or `http://localhost:18789`)
+- **Tampermonkey** browser extension ([Chrome](https://chrome.google.com/webstore/detail/tampermonkey) · [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/) · [Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey))
+
+---
+
+## Installation
+
+### Option 1: GreasyFork (Recommended)
+
+[![Install on GreasyFork](https://img.shields.io/badge/Install-GreasyFork-orange)](https://greasyfork.org/scripts/571337-webchat-enhancer)
+
+1. Click the green **Install** button on GreasyFork
+2. Open WebChat at `http://127.0.0.1:18789`
+3. The navigator appears automatically ✨
+
+### Option 2: Manual
+
+1. Install [Tampermonkey](https://www.tampermonkey.net/) for your browser
+2. Open Tampermonkey Dashboard → **Create new script**
+3. Paste the contents of `enhancer.user.js` and save
+4. Open WebChat at `http://127.0.0.1:18789`
 
 ---
 
 ## Usage
 
-| Action | Effect |
+| Action | Result |
 |--------|--------|
-| Click title | Collapse/expand |
-| Drag title | Move panel |
-| Click card | Jump to message |
-| 🔄 Refresh | Rescan |
-| ⚙️ Settings | Language/Theme |
+| Mouse enters right edge tab | Navigator slides out |
+| Mouse leaves navigator area | Navigator slides back in |
+| Click any message card | Smooth scroll to that message |
+| Click **Refresh** | Rescan conversation |
+| Switch WebChat theme | Navigator auto-adapts colors |
 
 ---
 
-## Settings
+## Technical Details
 
-**Language:** English · 中文 · 日本語 · 한국어
-
-**Theme:** Dark · Light · Gradient
-
----
-
-## Browser Support
-
-Chrome · Firefox · Edge · Safari
-
-Requires Tampermonkey extension.
-
----
-
-## FAQ
-
-**Q: Is it safe?**
-> Yes. Script only runs on localhost. No data is sent anywhere.
-
-**Q: Not working?**
-> 1. Refresh page (F5)
-> 2. Make sure Tampermonkey icon is colored (not gray)
-> 3. Wait 3 seconds for panel to appear
-
----
-
-## Version
-
-4.1.5
+- **Version:** 4.5.0
+- **Author:** Boss
+- **License:** MIT
+- **Namespace:** `https://clawhub.ai/skills/webchat-enhancer`
+- **Match URLs:** `http://127.0.0.1:18789/*`, `http://localhost:18789/*`
+- **No external dependencies** — runs 100% client-side
 
 ---
 
 ## Links
 
-- **GreasyFork:** https://greasyfork.org/zh-CN/scripts/571337-webchat-enhancer
-- **GitHub:** https://github.com/yjin94606-art/webchat-enhancer
-- **ClawHub:** https://clawhub.com/skills/webchat-enhancer
+- 🌐 [ClawHub](https://clawhub.com/skills/webchat-enhancer)
+- 📦 [GreasyFork](https://greasyfork.org/scripts/571337-webchat-enhancer)
+- 💻 [GitHub](https://github.com/yjin94606-art/webchat-enhancer)
 
 ---
 
-<p align="center">
-  Made with ❤️ for better OpenClaw experience
-</p>
+## Changelog
+
+### 4.5.0
+- 🆕 Hover-expandable navigation — panel hides until mouse approaches
+- 🎨 Auto theme sync — detects WebChat Dark/Light mode automatically
+- 🦐 Lobster-inspired colors (crimson red accent)
+- ⚡ Faster theme detection (300ms polling + MutationObserver)
+- 🔧 Removed settings/language/theme panels — fully automatic
+- 🐛 Fixed hover flicker at panel edges
+
+### 4.x (Previous)
+- Click-to-expand/fold navigation
+- Manual language and theme selection
+- Fixed chat bubble detection
