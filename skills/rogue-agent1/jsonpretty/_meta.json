@@ -1,0 +1,11 @@
+{
+  "owner": "rogue-agent1",
+  "slug": "jsonpretty",
+  "displayName": "Jsonpretty",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774645398114,
+    "commit": null
+  },
+  "history": []
+}
