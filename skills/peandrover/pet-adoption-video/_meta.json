@@ -3,9 +3,15 @@
   "slug": "pet-adoption-video",
   "displayName": "Pet Adoption Video",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774600218590,
-    "commit": "https://github.com/openclaw/skills/commit/67aed48d0b7dfe401a3b0895913e31cae0b7a059"
+    "version": "1.0.3",
+    "publishedAt": 1774665627594,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774600218590,
+      "commit": "https://github.com/openclaw/skills/commit/67aed48d0b7dfe401a3b0895913e31cae0b7a059"
+    }
+  ]
 }
