@@ -1,34 +1,31 @@
 ---
 name: build-working-memory
-description: "Use this skill to set up or manage a working memory system for an AI agent project. Triggers include: any mention of 'agent memory', 'working memory', 'session memory', 'persistent memory', 'memory system', or requests to help an agent remember context across sessions. Also use when the user wants to add continuity, recall, or long-term memory to an agent, LLM app, or chatbot — even if they describe it as 'context management', 'state persistence', 'conversation history', or 'knowledge base for my agent'. If the user asks how to make an agent 'remember things', 'pick up where it left off', 'maintain context', or 'not forget between sessions', use this skill. Covers both initial setup (scaffolding the memory files and scripts) and ongoing operations (loading, writing, curating, and retrieving memory). Do NOT use for vector databases, RAG pipelines, or embedding-based retrieval — this skill is file-based and markdown-native."
+description: "Set up, migrate, or manage a file-based working memory system for an AI agent project. Use for agent memory, working memory, session continuity, persistent context, long-term memory, legacy migration, or requests to help an agent remember across sessions. Covers scaffolding fresh projects, migrating legacy workspaces (AGENT.md + MEMORY.md + memory/YYYY-MM-DD.md), auto-patching AGENT.md with memory-management instructions, layered retrieval, structured event indexing, and deterministic temporal support. Triggers on any mention of 'agent memory', 'migrate memory', 'AGENT.md', 'working memory', 'session memory', or 'make my agent remember'. Preserve compatibility with OpenClaw by keeping daily logs flat under memory/YYYY-MM-DD.md. Do not use for vector databases or embedding-based retrieval."
 ---
 
 # Working Memory System for AI Agents
 
 A file-based memory architecture that gives AI agents continuous identity across sessions. Instead of flat context dumps, the system uses layered retrieval — the agent loads only what it needs, when it needs it, within a token budget.
 
-## When to use this skill
-
-- **Scaffolding**: The user wants to add a memory system to a new or existing agent project.
-- **Customizing**: The user has a memory system and wants to modify the schema, retrieval logic, or curation workflow.
-- **Debugging**: Memory loading is too slow, too expensive, or missing context.
-- **Operating**: The user wants help writing session summaries, curating long-term memory, or managing threads.
-
 ## Architecture overview
 
-```
+```text
 project-root/
 ├── MEMORY.md                  # Curated long-term memory (active / fading / archived tiers)
 ├── memory/
+│   ├── YYYY-MM-DD.md          # Raw session logs (episodic, journal-style) — canonical location
 │   ├── resumption.md          # First-person handoff note for next session
 │   ├── threads.md             # Ongoing topics with state and momentum
 │   ├── state.json             # Machine-readable ephemeral state (fast orientation)
 │   ├── index.md               # Daily log index for retrieval at scale
 │   ├── archive.md             # Demoted long-term memories
-│   └── YYYY-MM-DD.md          # Raw session logs (episodic, journal-style)
+│   ├── events.json            # Structured date-aware event ledger
+│   └── daily/                 # Compatibility mirror only — never the source of truth
 ├── loader.py                  # Four-phase retrieval (orient → anchor → context → deep recall)
 └── writer.py                  # End-of-session persistence
 ```
+
+**Compatibility rule**: daily logs are always canonical at `memory/YYYY-MM-DD.md`. The `memory/daily/` directory exists only as a mirror for tools that expect it. Never write new canonical logs there.
 
 Each file has a distinct role. Never collapse them — the separation is the system's core strength.
 
@@ -38,53 +35,85 @@ Each file has a distinct role. Never collapse them — the separation is the sys
 | `resumption.md` | First-person handoff note — subjective continuity bridge | Always second, every session |
 | `MEMORY.md` | Curated long-term facts, patterns, preferences | Phase 3, when time gap ≥ 2h |
 | `threads.md` | Active topics with position, decisions, open questions | Phase 3, matched to user's message |
+| `events.json` | Structured events with dates for temporal recall | Phase 3/4, when question is event- or date-sensitive |
 | `YYYY-MM-DD.md` | Raw session logs — episodic, append-only | Phase 4, on-demand retrieval |
 | `index.md` | Lookup table mapping dates to topics/threads | Phase 4, when daily logs exceed ~30 |
 | `archive.md` | Demoted memories — searchable, recoverable | Phase 4, when archived topics resurface |
 
-## Step 1: Scaffold the memory files
+## Migrating from a legacy workspace
 
-Run the scaffolding script. It creates the full directory structure with starter templates:
+If the workspace already has `AGENT.md`, `MEMORY.md`, and daily logs under `memory/`, this is a legacy system. Run the migration script instead of scaffolding from scratch:
+
+```bash
+# Preview what will change (no files written)
+python <skill-path>/scripts/migrate.py <project-root> --dry-run
+
+# Run the migration
+python <skill-path>/scripts/migrate.py <project-root>
+```
+
+The scaffold script auto-detects legacy workspaces and suggests migration. To force a fresh scaffold anyway, use `--force-scaffold`.
+
+### What migration does
+
+**Detects** the existing system: `AGENT.md`, `MEMORY.md`, daily logs under `memory/`, and which layered files are missing.
+
+**Creates** only the missing files: `resumption.md`, `threads.md`, `state.json`, `index.md`, `archive.md`, `events.json`. Never overwrites existing files.
+
+**Bootstraps** `state.json` from existing daily logs — session count, last session timestamp, and flags are inferred from what's already on disk. `resumption.md` is seeded from the most recent daily log's summary.
+
+**Restructures** `MEMORY.md` if it lacks `## Active` / `## Fading` tiers — wraps existing content under `## Active` and adds the missing sections. A `.bak` backup is created first.
+
+**Patches** `AGENT.md` by appending a memory-management instructions section that teaches the agent the layered retrieval and persistence workflow. The existing content is fully preserved, and a `.bak` backup is created. The patch is idempotent — running migrate twice won't double-inject. Use `--skip-agent-patch` to skip this step.
+
+**Rebuilds** the daily log index from all existing logs.
+
+### After migration
+
+1. Review `MEMORY.md` — curate the entries that were wrapped under `## Active`
+2. Review `AGENT.md` — verify the appended memory-management section fits your agent's style
+3. Create threads in `memory/threads.md` for any ongoing topics visible in recent daily logs
+4. Test with the loader: `python <skill-path>/scripts/loader.py <project-root> "test message"`
+
+Read `references/MIGRATION.md` for detailed documentation of every migration step, the AGENT.md patch content, and edge cases.
+
+## Step 1: Scaffold the memory files (fresh projects)
+
+Run the scaffolding script to create the full directory structure with starter templates:
 
 ```bash
 python <skill-path>/scripts/scaffold.py <project-root>
 ```
 
-This creates all seven files with sensible defaults. The user can then customize the templates for their specific agent.
-
-If the user already has a project and wants to add memory to it, the scaffold script is safe to run — it will not overwrite existing files.
+Options: `--agent-name "MyBot"` and `--user-name "Alice"` customize the MEMORY.md templates. Safe to run on existing projects — never overwrites existing files.
 
 ## Step 2: Understand the retrieval workflow
 
 The loader uses four phases with increasing cost. The goal is to stay in Phases 1–3 for 80% of sessions.
 
 ```
-Phase 1: Orient       →  state.json                ~200 tokens, always
-Phase 2: Anchor       →  resumption.md             ~300 tokens, always
-Phase 3: Context      →  MEMORY.md + threads.md    ~1500 tokens, conditional
-Phase 4: Deep Recall  →  daily logs + archive       variable, on-demand
+Phase 1: Orient       →  state.json                       ~200 tokens, always
+Phase 2: Anchor       →  resumption.md                    ~300 tokens, always
+Phase 3: Context      →  MEMORY.md + threads.md + events  ~1500-2200 tokens, conditional
+Phase 4: Deep Recall  →  daily logs + archive + events     variable, on-demand
 ```
 
-**Phase 1** reads `state.json` and decides how much to load based on the time gap:
-- < 2h → light (skip Phase 3, jump to conversation)
-- 2–24h → standard (Phases 1–3)
-- 1–7 days → full reload (add recent daily logs)
-- 7+ days → deep reload (all phases, treat resumption as potentially stale)
+**Phase 1** reads `state.json` and picks a loading strategy based on the time gap since last session (light / standard / full_reload / deep_reload).
 
-**Phase 2** reads `resumption.md` as a first-person narrative. This is the continuity bridge — it's not parsed for data, it's absorbed as a mental starting state.
+**Phase 2** reads `resumption.md` as a first-person narrative — a continuity bridge, not a data source.
 
 **Phase 3** branches based on the user's opening message:
-- **Known thread** → load that thread + relevant MEMORY.md section (lean)
-- **New/ambiguous topic** → load full MEMORY.md + all thread headers (broader)
+- **Known thread** → load that thread + relevant MEMORY.md section
+- **New/ambiguous topic** → load full MEMORY.md + all thread headers
 - **Maintenance due** → load MEMORY.md + recent daily summaries for curation
 
-**Phase 4** triggers mid-session when the user references something not in loaded context. Four strategies: targeted log lookup (by cross-reference), index search (by topic), archive recovery, or broad scan (last resort).
+If the user's message is event- or date-sensitive, events.json is also loaded and ranked during Phase 3.
 
-Read `references/RETRIEVAL.md` for the full specification including token budgets, mid-session triggers, and the loading decision flowchart.
+**Phase 4** triggers mid-session for targeted lookups, index searches, archive recovery, or structured event retrieval.
+
+Read `references/RETRIEVAL.md` for the full specification including token budgets, mid-session triggers, temporal support, and the loading decision flowchart.
 
 ## Step 3: Integrate into the agent loop
-
-The two Python modules — `loader.py` and `writer.py` — handle the full lifecycle.
 
 ### Session start
 
@@ -104,10 +133,7 @@ system_prompt = f"""
 """
 ```
 
-The loader returns a `SessionContext` with:
-- `.text` — the assembled memory block ready for prompt injection
-- `.total_tokens` — approximate token cost
-- `.metadata` — loading decisions for debugging (which phases ran, which branches taken)
+The loader returns a `SessionContext` with `.text` (the assembled memory block), `.total_tokens` (approximate cost), and `.metadata` (loading decisions for debugging).
 
 ### During session
 
@@ -121,6 +147,15 @@ writer.note_decision("Chose X over Y", "reasoning here")
 writer.note_open_question("Should we revisit Z?")
 writer.note_pattern("User tends to ask for examples after abstract explanations")
 writer.note_thread_touched("thread-project-alpha")
+
+# Capture structured events for temporal recall
+writer.note_event(
+    event_type="purchase",
+    text="I bought white Adidas sneakers on 3/15.",
+    action="purchase",
+    object_hint="white adidas sneakers",
+    normalized_date="2023-03-15",
+)
 ```
 
 ### Session end
@@ -140,74 +175,39 @@ writer.end_session(
 )
 ```
 
-This persists to all five outputs: daily log, threads, state.json, resumption.md, and maintenance flags.
+This persists to all outputs: daily log, threads, state.json, resumption.md, events.json, and maintenance flags.
+
+### Mid-session event retrieval
+
+```python
+# For date-sensitive questions during a session
+event_results = loader.phase_4_event_lookup("white adidas sneakers")
+if event_results:
+    # Inject event_results.text as additional context
+    pass
+```
 
 ## Step 4: Customize the schemas
 
-The templates from scaffolding are starting points. Here's what to customize per agent:
+Read `references/SCHEMAS.md` for full specifications of every file with annotated examples.
 
-### MEMORY.md — long-term memory
+### Key customization points
 
-The three tiers (Active / Fading / Archived) use decay logic:
-- **Active**: reinforced through recall in the last ~7 sessions. Entries carry a session count and confidence level.
-- **Fading**: not referenced in 7+ sessions. Will be archived if not recalled.
-- **Archived**: moved to `archive.md` after 20+ sessions of neglect. Still searchable.
+**MEMORY.md** — rename the section headings under Active for your domain. Default: "About [User]", "About This Project", "Working Style". A code agent might use "Architecture Decisions", "Tech Debt", "Team Conventions".
 
-Customize the section headings under Active for your domain. The default has "About [User]", "About This Project", and "Working Style". Rename these to match what your agent needs to remember. Read `references/SCHEMAS.md` for the full schema with examples.
+**threads.md** — each thread must carry enough state in "Current Position" to resume without re-reading daily logs. If it doesn't, add more.
 
-### threads.md — ongoing topics
+**resumption.md** — written in first person, addressed to the agent's next session self. Includes predictions and tonal guidance, not just a recap.
 
-Each thread is self-contained:
-```
-## Thread: [Title]
-- **ID**: thread-[slug]
-- **Status**: active | paused | closed
-- **Started**: YYYY-MM-DD
-- **Last touched**: YYYY-MM-DD
-Key Decisions Made, Open Questions, Next Likely Steps, Related links
-```
-
-The critical design choice: threads carry enough state to resume without re-reading daily logs. If a thread's "Current Position" section isn't sufficient to jump back in cold, it needs more detail.
-
-### resumption.md — the continuity bridge
-
-This is the most unusual file. It's written in first person, addressed to the agent's next session self. It should include:
-- Where we left off (not a summary — a position)
-- What's likely to happen next (predictions)
-- What to watch for (patterns, potential pivots)
-- Tone calibration (match the user's current energy)
-
-It is *not* a session summary. It's a handoff note. The difference matters — summaries are retrospective; resumption notes are prospective.
-
-### state.json — machine-readable state
-
-Keep this strictly ephemeral and machine-parseable. If a value requires interpretation, it belongs in a markdown file instead. The default schema covers:
-
-- `last_session` (timestamp, duration, daily log path)
-- `session_counter` (total, this week, since last memory review)
-- `active_threads` (id, title, status, last_touched, priority)
-- `pending_questions` (list of strings)
-- `flags` (memory_review_due, threads_need_update, archive_candidates_exist)
-- `context_hints` (mood hypothesis, conversation style, last topic position)
-
-Read `references/SCHEMAS.md` for the full JSON schema.
+**events.json** — capture user-stated dated events, purchases, issues, meetings, milestones. Skip assistant filler and vague sentiment. See `references/TEMPORAL.md` for the full event schema, normalization rules, and temporal query patterns.
 
 ## Memory curation workflow
 
-Every ~5 sessions (or when the `memory_review_due` flag is set), the agent should curate MEMORY.md:
-
-1. Load MEMORY.md + recent daily log summaries
-2. **Promote**: patterns confirmed across multiple sessions → raise confidence, merge duplicates
-3. **Demote**: entries not referenced in 7+ sessions → move to Fading
-4. **Archive**: Fading entries not recalled in 20+ sessions → move to `archive.md`
-5. **Merge**: consolidate entries that say the same thing differently
-6. Update the Maintenance Log at the bottom of MEMORY.md
-
-The curation is what prevents unbounded growth and keeps long-term memory useful. Without it, MEMORY.md becomes noise within weeks.
+Every ~5 sessions (or when `memory_review_due` is flagged), curate MEMORY.md: promote confirmed patterns, demote stale entries to Fading, archive neglected entries, merge duplicates. Update the Maintenance Log.
 
 ## Cross-referencing
 
-Bidirectional links connect the system's files. Use lightweight refs:
+Use lightweight bidirectional refs between files:
 
 ```
 [ref: memory/2026-03-20.md#decisions]
@@ -215,18 +215,21 @@ Bidirectional links connect the system's files. Use lightweight refs:
 [ref: MEMORY.md > About This Project]
 ```
 
-Daily logs reference which threads they advanced. Threads reference which daily logs contain their key decisions. MEMORY.md entries reference where they were first established.
-
-Without cross-references, retrieval degrades to full-text scanning, which is expensive and unreliable.
-
 ## Troubleshooting
 
-**Memory loading uses too many tokens**: Check `context.metadata` from the loader — it shows which phases ran and how many tokens each consumed. Common fixes: tighten the Phase 3 branch (load thread-specific sections instead of full MEMORY.md), reduce daily log summaries to headers-only, lower the budget caps in `BudgetConfig`.
+**Memory loading uses too many tokens**: Check `context.metadata` — tighten Phase 3 branch, reduce daily log summaries, lower `BudgetConfig` caps.
 
-**Agent re-litigates settled decisions**: The decisions table in daily logs and the "Key Decisions Made" section in threads aren't being loaded. Ensure cross-references point to the right daily log sections, and that threads carry decision summaries.
+**Agent re-litigates settled decisions**: Ensure threads carry decision summaries with cross-references to daily logs.
 
-**Resumption feels generic**: The resumption note is being written as a summary instead of a handoff. It should contain predictions, tonal guidance, and a specific "pick up from here" anchor — not a recap.
+**Resumption feels generic**: Write a handoff, not a summary — include predictions, tonal guidance, and a "pick up from here" anchor.
 
-**Threads get stale**: Thread positions aren't being updated at session end. Make sure `writer.end_session()` is called with `thread_updates` that advance the "Current Position" field.
+**Event queries return too many results**: Tighten `object_hint` values when recording events. Use specific entity names, not generic descriptions.
 
-**Daily logs are too large to scan**: Enable the index file. Once you have 30+ daily logs, the loader's Phase 4 needs `index.md` to avoid broad scans. The index is rebuilt automatically when `daily_log_count % 5 == 0`.
+**Temporal questions answered incorrectly**: Check whether events have `normalized_date` set. Relative-only dates degrade ordering accuracy. See `references/TEMPORAL.md` for normalization rules.
+
+## Notes
+
+- Preserve compatibility with OpenClaw by keeping daily logs flat under `memory/`.
+- Do not reintroduce `memory/daily/` as canonical storage unless the user explicitly requests it.
+- `resumption.md`, `threads.md`, `state.json`, and `events.json` are additions, not replacements for the flat daily-log pattern.
+- Prefer soft structured evidence and model judgment over brittle hard-coded answer substitution for temporal queries.

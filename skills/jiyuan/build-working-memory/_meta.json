@@ -3,9 +3,15 @@
   "slug": "build-working-memory",
   "displayName": "Working Memory Skill",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774250677609,
-    "commit": "https://github.com/openclaw/skills/commit/382556c1f2a3b4f7eeacb884fa6d3496974f373e"
+    "version": "1.1.1",
+    "publishedAt": 1774532993373,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774250677609,
+      "commit": "https://github.com/openclaw/skills/commit/382556c1f2a3b4f7eeacb884fa6d3496974f373e"
+    }
+  ]
 }
