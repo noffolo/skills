@@ -1,11 +1,17 @@
 {
   "owner": "nemovideonemo",
   "slug": "mp4-video-editor",
-  "displayName": "MP4 Video Editor — Trim, Cut, Merge and Export MP4 Videos with AI Chat",
+  "displayName": "Mp4 Video Editor",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774247575027,
-    "commit": "https://github.com/openclaw/skills/commit/ad47870b98c124812f54cfb0c52b1626ee336dad"
+    "version": "1.0.5",
+    "publishedAt": 1774852480094,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774247575027,
+      "commit": "https://github.com/openclaw/skills/commit/ad47870b98c124812f54cfb0c52b1626ee336dad"
+    }
+  ]
 }
