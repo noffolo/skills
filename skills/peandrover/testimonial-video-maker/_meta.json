@@ -3,9 +3,15 @@
   "slug": "testimonial-video-maker",
   "displayName": "Testimonial Video Maker",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774513856903,
-    "commit": "https://github.com/openclaw/skills/commit/b63d7aeb0be56ae2adf2e0ed52d7fd9c91a99e00"
+    "version": "1.1.0",
+    "publishedAt": 1774706523556,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774513856903,
+      "commit": "https://github.com/openclaw/skills/commit/b63d7aeb0be56ae2adf2e0ed52d7fd9c91a99e00"
+    }
+  ]
 }

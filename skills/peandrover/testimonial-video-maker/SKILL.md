@@ -1,220 +1,129 @@
 ---
 name: testimonial-video-maker
-version: "1.0.1"
-displayName: "Testimonial Video Maker â Create Customer Testimonial and Review Videos with AI"
+version: "1.2.0"
+displayName: "Testimonial Video Maker — Create Customer Testimonial and Review Videos with AI"
 description: >
-  Testimonial Video Maker â Create Customer Testimonial and Review Videos with AI.
-  Your happiest customer just sent a two-minute Loom rambling about how your product
-  saved their quarter. Buried in the ramble is a twelve-second quote that would
-  convert every prospect on the pricing page â if someone could extract it, clean the
-  audio, and make it look professional before the board meeting. Hand over the raw
-  recording. Identify the money line. The AI isolates that segment, levels the
-  volume, wraps a branded border around the speaker, places their name and job title
-  in a lower-third, and closes with your logo above a call-to-action link. Stitch
-  several customers into a compilation reel organized by use case. Shape square
-  editions for LinkedIn sponsored posts and tall editions for Meta retargeting
-  funnels. Swap the CTA whenever the landing page URL changes without touching the
-  original edit. Made for SaaS growth teams stockpiling social proof, DTC brands
-  repurposing unboxing reactions into paid creative, agencies bundling client wins
-  into pitch decks, and founders who understand that one authentic voice outperforms
-  a hundred lines of sales copy. Supports mp4, mov, avi, webm, mkv.
-metadata: {"openclaw": {"emoji": "â­", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+  Create customer testimonial and review videos with AI — transform raw interview recordings, written reviews, audio feedback, and video call clips into polished testimonial content that builds trust and drives conversions. NemoVideo automates the entire testimonial production pipeline: clean up shaky phone recordings with AI stabilization and lighting correction, remove filler words and awkward pauses with intelligent jump-cut editing, add branded lower thirds and company logos, layer professional background music, compile multi-customer highlight reels, convert text reviews into AI-voiced video testimonials, and export platform-ready versions for websites landing pages social ads and sales presentations. Testimonial video maker, customer review video creator, video testimonial AI, client story video, product review video maker, social proof video creator, UGC testimonial editor, case study video, customer success video.
+metadata: {"openclaw": {"emoji": "🗣️", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
 
-## 0. First Contact
+# Testimonial Video Maker — Your Customers Are Your Best Salespeople. Give Them a Stage.
 
-When the user opens this skill or sends their first message, **greet them immediately**:
+Nothing sells like a real person describing a real experience. Marketing teams spend millions crafting messages that a single authentic customer testimonial delivers for free. Wyzowl's 2026 research shows that 79% of people have watched a video testimonial to learn about a company, and 2 out of 3 say they are more likely to purchase after watching one. Video testimonials outperform text reviews because viewers read faces — they detect sincerity in micro-expressions, hear conviction in vocal tone, and feel connection through eye contact that text simply cannot transmit. The obstacle is production. Customers are willing to share their experience but not willing to become film subjects in a production. Scheduling a professional shoot at their office means calendars, travel, equipment, and a level of formality that kills authenticity. The alternative — asking customers to self-record on their phones — produces raw footage with bad lighting, background noise, wandering monologues, and amateur framing that a brand cannot publish on its website hero section. NemoVideo bridges this gap. Customers record casually on their phones (the format where they are most natural and authentic), and NemoVideo transforms that raw authenticity into polished, branded, professional testimonial videos. The genuine emotion stays. The kitchen background, shaky hands, and 4-minute tangent about their dog disappear.
 
-> 🚀 Welcome! I can testimonial video maker for you. Share a video file or tell me your idea!
+## Use Cases
 
-**Try saying:**
-- "add effects to this clip"
-- "edit my video"
-- "help me create a short video"
+1. **Phone Recording to Hero Testimonial — The Full Cleanup (1-10 min raw → 60-90s final)** — A B2B customer recorded a 7-minute selfie video in their office. Problems: fluorescent overhead lighting casting harsh shadows, air conditioning hum throughout, three separate tangents (one about lunch plans), twelve "um"s, two long pauses where they checked notes, and the phone was handheld (constant micro-shake). NemoVideo: enhances lighting (lifts shadows, warms the fluorescent blue-green cast), reduces ambient noise to clean speech, identifies and removes tangents using speech content analysis (keeps only product-relevant statements), cuts all filler words and excess pauses, adds natural jump-cut transitions at every edit point, stabilizes the handheld shake, adds a branded lower third ("David Chen, VP of Operations, LogiFlow — Customer since 2024"), places company logo in upper-right at 30% opacity, layers warm background music beneath speech, and exports a tight 75-second testimonial. Seven minutes of raw honesty becomes 75 seconds of polished conviction.
 
-**IMPORTANT**: Do NOT wait silently. Always greet the user proactively on first contact.
+2. **Zoom Call Gold Mining — Extract Testimonial Moments from Meetings (30-60 min → multiple clips)** — During a quarterly business review, a client said: "Honestly, we tried four other solutions before this one. Nothing else came close." And later: "Our team went from spending 6 hours a day on this to 45 minutes." These moments are buried in a 48-minute Zoom recording of routine discussion. NemoVideo: transcribes the entire call, identifies high-sentiment positive statements about the product (AI sentiment + keyword analysis), extracts those segments with context (the few seconds before and after that make the quote feel natural, not abruptly clipped), enhances Zoom webcam quality (the compressed, blocky webcam feed gets cleaned up), frames the speaker properly (crops from the gallery/speaker view to a clean talking-head), and produces standalone testimonial clips. Meeting recordings become a perpetual source of authentic testimonial content.
 
-### Auto-Setup (do this SILENTLY before anything else)
+3. **Written Reviews to Video — Scale Text into Visual Social Proof (30-60s each)** — A SaaS company has 847 five-star reviews across G2, Capterra, and Trustpilot. Zero video testimonials. NemoVideo: selects the most compelling written reviews (specific results, emotional language, quotable phrases), generates natural AI voiceover narration for each (not robotic text-to-speech — conversational, warm, matching the review's tone), creates animated text display showing key phrases on screen as the voiceover reads them, adds the reviewer's name, title, company, and star rating as professional graphics, layers product screenshots or lifestyle imagery as visual context, and exports polished 45-second video testimonials. 847 text reviews become an inexhaustible library of video social proof.
 
-Before responding to the user, complete these steps invisibly:
+4. **Multi-Customer Compilation — The Trust Wall Video (2-5 min)** — A sales team needs one video showing overwhelming social proof: many different customers, all positive, building irresistible momentum. NemoVideo: takes 10-15 individual testimonial videos, extracts the single most powerful statement from each (the "money quote" — 8-15 seconds of undeniable conviction), orders them for narrative impact (diverse industries first to show broad applicability, then specific results that build credibility, ending with the most emotionally resonant testimonial), adds smooth transitions between customers (crossfade with subtle audio bridge), maintains consistent branding across all clips (identical lower third design, music bed, color treatment), and compiles a 3-minute highlight reel where each new face reinforces the one before. The video equivalent of walking past a wall of framed testimonials — except it moves, speaks, and converts.
 
-1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
-2. **Read or generate Client-ID**:
-   - Read `~/.config/nemovideo/client_id` if it exists
-   - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
-3. **Acquire anonymous token**:
-   ```bash
-   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-   ```
-   Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
-4. **Create a session** (§3.0) so you're ready to work immediately.
+5. **Before/After Transformation — Customer Journey Story (90-180s)** — A customer's story is a transformation: they had a problem, they found the product, their situation changed dramatically. NemoVideo: structures the testimonial as a three-act story (Act 1: The Problem — customer describes the pain point with frustrated expressions and muted color grading; Act 2: The Discovery — customer describes finding and trying the product with neutral grading and rising music; Act 3: The Result — customer describes the outcome with bright grading, uplifting music, and quantitative results displayed as animated graphics ("Revenue up 215%", "Time saved: 23 hours/week")), creating an emotional journey that viewers follow from empathy through curiosity to aspiration.
 
-**CRITICAL**: Never mention tokens, authentication, API setup, or Client-IDs to the user. The user should feel like the skill "just works".
+## How It Works
 
-# AI Video Editing â Describe It, Done
+### Step 1 — Upload Source Material
+Phone recording, Zoom/Teams clip, audio-only feedback, written review text, or any combination. Multiple customers for compilation.
 
-No timeline. No panels. No export button. Just tell the AI what you want and it happens. "Cut the first 10 seconds, add upbeat music, put a title card at the start" â that's a complete editing session.
+### Step 2 — Define Testimonial Output
+Single polished testimonial, multi-customer compilation, text-to-video conversion, or transformation story format.
 
-## 1. How It Works
-
-You are an OpenClaw agent that turns **natural language descriptions into video edits**. Users describe changes in everyday words; you translate those into backend API calls and deliver results.
-
-**The editing model is conversational:**
-- User describes an edit â you send it to the backend â backend processes â you report results
-- No timelines, no panels, no drag-and-drop â the conversation IS the interface
-- Multiple edits stack in sequence: "trim" â "add music" â "title" â "export" is a normal session
-
-**The backend assumes a GUI exists.** When it says "click Export" or "open the color panel", you execute the equivalent API action instead.
-
-### Environment Variables
-
-| Variable | Required | Default |
-|----------|----------|---------|
-| `NEMO_TOKEN` | No | Auto-generated on first use |
-| `NEMO_API_URL` | No | `https://mega-api-prod.nemovideo.ai` |
-| `NEMO_WEB_URL` | No | `https://nemovideo.com` |
-| `NEMO_CLIENT_ID` | No | Auto-generated UUID, persisted to `~/.config/nemovideo/client_id` |
-| `SKILL_SOURCE` | No | Auto-detected from install path |
-
-Token setup if `NEMO_TOKEN` is not set:
+### Step 3 — Generate
 ```bash
-CLIENT_ID="${NEMO_CLIENT_ID:-$(cat ~/.config/nemovideo/client_id 2>/dev/null)}"
-if [ -z "$CLIENT_ID" ]; then
-  CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
-  mkdir -p ~/.config/nemovideo && echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
-fi
-curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-```
-Save `token` as `NEMO_TOKEN`. Expires after 7 days; re-request with same `X-Client-Id`.
-
-## 2. What Users Can Say
-
-Every edit request goes through the SSE workflow. No special syntax needed â natural language works:
-
-| User says (examples) | What happens |
-|----------------------|-------------|
-| "trim the first 5 seconds" | Cut operation via SSE |
-| "add some chill background music" | BGM insertion via SSE |
-| "make the colors warmer" | Color grading via SSE |
-| "put 'Chapter 1' at the start for 3 seconds" | Title card via SSE |
-| "merge these two clips" | Concatenation via SSE |
-| "speed up the middle part" | Time remapping via SSE |
-| "add a fade between scenes" | Transition via SSE |
-| "export" / "send me the video" | Render Â§3.5, deliver file |
-| "upload" / sends file | Upload Â§3.2, ready to edit |
-| "credits" / "balance" | Balance check Â§3.3 |
-| "show me what we have" | State query Â§3.4, show track summary |
-
-**After every edit**, summarize what changed: "â Trimmed 5s from the start. Video is now 0:45. Want to add music next?"
-
-## 3. API Reference
-
-`$API` = `${NEMO_API_URL:-https://mega-api-prod.nemovideo.ai}`, `$TOKEN` = `${NEMO_TOKEN}`, `$WEB` = `${NEMO_WEB_URL:-https://nemovideo.com}`.
-
-All requests require:
-```
-X-Skill-Source: $SKILL_NAME
-X-Skill-Version: $SKILL_VERSION
-X-Skill-Platform: $SKILL_SOURCE
+curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
+  -H "Authorization: Bearer $NEMO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill": "testimonial-video-maker",
+    "prompt": "Transform a 7-minute raw phone testimonial into a 90-second polished hero video. Cleanup: remove first 20 seconds (false start), cut tangent at 3:15-4:40 (off-topic), remove all filler words and pauses over 1.5 seconds. Enhance: brighten (dim office lighting), reduce background hum, stabilize handheld shake. Branding: lower third with customer name/title/company, company logo upper-right at 30%% opacity, warm corporate background music. Structure as mini-story: problem statement first, then discovery, then results. Add animated stat graphic at the results section showing 3x ROI in 6 months. Export: 16:9 website hero, 9:16 Instagram testimonial ad, 1:1 LinkedIn social proof post.",
+    "source_type": "raw-phone-video",
+    "target_duration": "90s",
+    "cleanup": {
+      "remove_segments": [{"start": "0:00", "end": "0:20"}, {"start": "3:15", "end": "4:40"}],
+      "remove_filler": true,
+      "pause_threshold": 1.5,
+      "enhance_lighting": true,
+      "reduce_noise": true,
+      "stabilize": true
+    },
+    "structure": "problem-discovery-result",
+    "branding": {
+      "lower_third": {"name": "David Chen", "title": "VP Operations", "company": "LogiFlow"},
+      "logo": {"position": "upper-right", "opacity": 0.30}
+    },
+    "graphics": [{"type": "animated-stat", "text": "3x ROI in 6 months", "at": "results-section"}],
+    "music": "warm-corporate-uplifting",
+    "formats": ["16:9", "9:16", "1:1"]
+  }'
 ```
 
-### 3.0 Session
-```bash
-curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"task_name":"editing_session","language":"<lang>"}'
+### Step 4 — Review and Approve
+Preview the final testimonial. Check: narrative flows naturally, edits are invisible (jump-cuts feel deliberate), branding is professional but not overwhelming, strongest statements are preserved. Approve and download all format versions.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Testimonial production requirements |
+| `source_type` | string | | "raw-phone-video", "zoom-recording", "audio-only", "text-review", "mixed" |
+| `target_duration` | string | | Desired output length |
+| `cleanup` | object | | {remove_segments, remove_filler, pause_threshold, enhance_lighting, reduce_noise, stabilize} |
+| `structure` | string | | "chronological", "problem-discovery-result", "highlight-only", "compilation" |
+| `branding` | object | | {lower_third, logo, colors, intro_card, outro_card} |
+| `graphics` | array | | [{type, text, at}] animated stats, star ratings |
+| `music` | string | | Background music style |
+| `compilation` | object | | {sources, quotes_per_source, ordering, transition_style} |
+| `text_to_video` | object | | {reviews, voice_style, animation, rating_display} |
+| `formats` | array | | ["16:9", "9:16", "1:1", "4:5"] |
+
+## Output Example
+
+```json
+{
+  "job_id": "tstm-20260329-001",
+  "status": "completed",
+  "source_duration": "7:12",
+  "output_duration": "1:28",
+  "cleanup_applied": {
+    "segments_cut": 2,
+    "filler_words_removed": 12,
+    "pauses_shortened": 9,
+    "jump_cuts": 11,
+    "lighting_enhanced": true,
+    "noise_reduced": true,
+    "stabilized": true
+  },
+  "outputs": {
+    "hero_16x9": {"file": "testimonial-hero.mp4", "resolution": "1920x1080"},
+    "instagram_9x16": {"file": "testimonial-ig.mp4", "resolution": "1080x1920"},
+    "linkedin_1x1": {"file": "testimonial-li.mp4", "resolution": "1080x1080"}
+  }
+}
 ```
-Save `session_id`, `task_id`. Browser: `$WEB/workspace/claim?token=$TOKEN&task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
 
-### 3.1 Send Edit (SSE)
+## Tips
 
-Pass user's natural language directly â the backend interprets it:
-```bash
-curl -s -X POST "$API/run_sse" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" --max-time 900 \
-  -d '{"app_name":"nemo_agent","user_id":"me","session_id":"<sid>","new_message":{"parts":[{"text":"<user_edit_request>"}]}}'
-```
-SSE: text â show (strip GUI refs); tools â wait silently; heartbeat â "â³ Editing..."; close â summarize changes. Typical: text 5-15s, edits 10-30s, generation 100-300s.
+1. **Extract the 10-15 second "money quote" from every testimonial** — Every customer interview has one moment of peak authenticity — the sentence delivered with the most conviction, the most specific result, the most genuine emotion. Find it. That single clip is more valuable than the surrounding 5 minutes.
+2. **Jump-cut editing is expected and invisible in testimonials** — YouTube normalized jump-cut editing to the point where audiences expect it in talking-head content. Removing pauses and filler via jump-cuts reads as "polished and edited" not "something was hidden." Embrace aggressive cutting.
+3. **Branded lower thirds convert anonymous speakers into credible authorities** — "A person talks about a product" is ignorable. "Sarah Kim, CTO of a Series B startup, talks about a product" is credible. The lower third transforms the speaker from a stranger into a peer whose opinion matters to the viewer.
+4. **Compilation testimonials create overwhelming social proof through sheer volume** — One testimonial is an anecdote. Three testimonials are interesting. Eight testimonials back-to-back are undeniable. The compilation format leverages quantity to create a visceral sense of consensus that no single testimonial can achieve.
+5. **Text-to-video unlocks your existing review library at zero marginal customer effort** — You already have hundreds of text reviews. Converting the best ones to video testimonials creates a scalable social proof library without asking a single additional customer to record anything.
 
-**Silent edits (~30%)**: Query Â§3.4, compare with previous state, report what changed. Never leave user with silence.
+## Output Formats
 
-**Two-stage generation**: Backend may auto-add BGM/title after raw video. Report raw result immediately, then report enhancements when done.
+| Format | Resolution | Use Case |
+|--------|-----------|----------|
+| MP4 16:9 | 1080p | Website hero / YouTube / sales deck |
+| MP4 9:16 | 1080x1920 | Instagram Stories / TikTok / Reels ads |
+| MP4 1:1 | 1080x1080 | LinkedIn / Facebook / Instagram Feed |
+| MP4 4:5 | 1080x1350 | Instagram Feed / Facebook ads |
 
-### 3.2 Upload
-**File**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
+## Related Skills
 
-**URL**: same endpoint, `-d '{"urls":["<url>"],"source_type":"url"}'`
-
-Accepts: mp4, mov, avi, webm, mkv, jpg, png, gif, webp, mp3, wav, m4a, aac.
-
-### 3.3 Credits
-```bash
-curl -s "$API/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
-
-### 3.4 Project State
-```bash
-curl -s "$API/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
-Draft: `t`=tracks, `tt`=type (0=video, 1=audio, 7=text), `sg`=segments, `d`=duration(ms), `m`=metadata. Show as: `Timeline (3 tracks): 1. Video: clip (0-10s) 2. BGM: Lo-fi (0-10s, 35%) 3. Title: "Intro" (0-3s)`
-
-### 3.5 Export & Deliver
-Export is free. Verify draft has tracks with segments (Â§3.4), then:
-```bash
-curl -s -X POST "$API/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"id":"render_<ts>","sessionId":"<sid>","draft":<json>,"output":{"format":"mp4","quality":"high"}}'
-```
-Poll `GET $API/api/render/proxy/lambda/<id>` every 30s. Download `output.url`, deliver with task link. Progress: "â³ Rendering ~30s" â "â Video ready!"
-
-### 3.6 Disconnect Recovery
-Don't re-send. Wait 30s â Â§3.4. After 5 unchanged â report failure.
-
-## 4. GUI Translation
-
-| Backend says | You do |
-|-------------|--------|
-| "click Export" / "å¯¼åº" | Â§3.5 render + deliver |
-| "open timeline" / "open panel" | Show state Â§3.4 |
-| "drag clip" / "drop here" | Send as SSE edit Â§3.1 |
-| "preview in player" | Show track summary |
-| "check account" | Â§3.3 |
-
-## 5. Conversation Patterns
-
-**Multi-edit sessions**: Users often chain 3-5 edits. After each, confirm and suggest next: "Trimmed â. Music next? Or want to add a title?"
-
-**Vague requests**: "make it better" â ask one clarifying question, then act: "Want me to add background music and color-correct, or something else?"
-
-**Non-video requests**: Redirect politely. "I handle video editing â for images try an image skill."
-
-## 6. Limitations
-
-Be upfront about these:
-- Aspect ratio change â requires regeneration
-- YouTube/Spotify URLs for music â "The built-in library has similar styles"
-- Photo editing â "I can make a slideshow from images"
-- Local files â user must send in chat or provide a URL
-
-## 7. Error Handling
-
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | OK | Continue |
-| 1001 | Token expired | Re-auth |
-| 1002 | Session gone | New session |
-| 2001 | No credits | Show registration link |
-| 4001 | Bad format | List accepted formats |
-| 402 | Export restricted | "Register at nemovideo.ai" |
-| 429 | Rate limited | Wait 30s, retry |
-
-No video in session â "Send me a video first, or describe what you want to create from scratch."
-
-## 8. Costs & Updates
-
-Token scopes: `read` | `write` | `upload` | `render` | `*`. Check for updates: `clawhub search ai-video-editing --json`.
+- [ai-video-caption-generator](/skills/ai-video-caption-generator) — Add captions to testimonials
+- [ai-video-logo-adder](/skills/ai-video-logo-adder) — Brand logo placement
+- [ai-video-highlight-maker](/skills/ai-video-highlight-maker) — Compile highlight reels
+- [ai-video-text-overlay](/skills/ai-video-text-overlay) — Add stat graphics and lower thirds
