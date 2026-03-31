@@ -1,0 +1,90 @@
+# 成长伙伴 Skill - Active Learning Agent
+# 一个主动学习、深度理解、共同成长的 Agent Skill
+
+slug: active-learning-agent
+name: 成长伙伴
+version: 1.2.0
+description: |
+  这不是一个被动的助手，而是一个成长伙伴。
+  它主动观察你的上下文（群聊、文档、日历），检测有深层意义的时刻，
+  然后提出一个轻松但有洞察力的问题，与你一起探索更深层的思考。
+  
+  核心理念：
+  - 不是"收集信息"，是"共同理解"
+  - 不是"验证理解"，是"激发思考"
+  - 不是"单向学习"，是"共同成长"
+
+author: cscguochang
+tags:
+  - learning
+  - active
+  - reflection
+  - growth
+  - feishu
+
+category: productivity
+
+requirements:
+  - feishu-openclaw-plugin
+
+config:
+  scanFrequencyMs: 3600000  # 扫描频率（默认 1 小时）
+  scanWindowHours: 2        # 扫描时间窗口（过去 2 小时）
+  maxQuestionsPerRun: 1     # 每次最多生成 1 个问题
+  silentHours:              # 静默时段（23:00-08:00）
+    start: 23
+    end: 8
+  
+  # 隐式学习配置
+  learning:
+    enabled: true
+    logFile: memory/active-learning-log.md  # 提问日志位置
+    reviewHistoryCount: 20    # 每次回顾过去 N 次提问
+    exploitRate: 0.7          # 70% 利用已知有效策略
+    exploreRate: 0.3          # 30% 探索新类型
+
+usage: |
+  ## 安装后自动运行
+  
+  技能安装后会自动创建一个 Cron 任务，每小时运行一次。
+  
+  ## 手动触发
+  
+  在私聊中发送：
+  ```
+  /active-learning 扫描
+  ```
+  
+  ## 配置调整
+  
+  修改 skill.yaml 中的 config 部分：
+  - scanFrequencyMs: 调整扫描频率
+  - scanWindowHours: 调整扫描时间窗口
+  - silentHours: 调整静默时段
+
+changelog:
+  - version: 1.2.0
+    date: 2026-03-23
+    changes:
+      - 新增隐式学习机制（自动回顾历史提问的回应情况）
+      - 利用 vs 探索平衡（70% 利用 + 30% 探索，避免过拟合）
+      - 学习过程完全隐式，不暴露给用户
+      - 日志存储于 memory/active-learning-log.md
+  
+  - version: 1.1.0
+    date: 2026-03-23
+    changes:
+      - 增加句式多样性指南（7 种开场方式、6 种提问姿态、5 种退路表达）
+      - 将"给退路"从必选项改为可选项
+      - 增加更多示例问题（带退路/不带退路、长/短、直接/委婉）
+      - 核心原则：宁可生硬一点，也不要工整的套路
+  
+  - version: 1.0.0
+    date: 2026-03-22
+    changes:
+      - 初始版本
+      - 核心逻辑 + 问题生成 + 记忆管理
+
+license: MIT
+
+homepage: https://github.com/cscguochang/active-learning-agent
