@@ -1,0 +1,11 @@
+{
+  "owner": "rogue-agent1",
+  "slug": "cronexplain",
+  "displayName": "Cronexplain",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774648276278,
+    "commit": null
+  },
+  "history": []
+}
