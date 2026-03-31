@@ -1,7 +1,7 @@
 ---
 name: investoday-fund-comprehensive-diagnosis
 title: "基金综合诊断"
-version: 1.1.0
+version: 1.3.0
 description: 面向公募基金综合诊断，聚焦收益表现、风险收益匹配、持仓结构、基金经理与费用分红特征。基于今日投资金融数据接口，自动识别基金代码并输出结构化基金综合诊断报告。触发词：基金诊断、基金分析、收益风险、持仓怎么看、长期持有、基金体检。
 tags:
   - fund-diagnosis
@@ -17,9 +17,7 @@ metadata:
     emoji: "🩺"
     category: "finance"
     requires:
-      env: ["INVESTODAY_API_KEY"]
       skills: ["investoday-finance-data"]
-    primaryEnv: "INVESTODAY_API_KEY"
 ---
 
 # 🩺 基金综合诊断
@@ -54,13 +52,13 @@ metadata:
 
 ## 前置依赖
 
-本 Skill 依赖 `investoday-finance-data`（今日投资金融数据）Skill 获取实时金融数据，调用方式以该 Skill 为准。
+本 Skill 依赖 `investoday-finance-data`（今日投资金融数据）Skill 获取实时金融数据。
 
-确保 `INVESTODAY_API_KEY` 已配置为环境变量。
+基础 API 调用与底层执行方式统一以该 Skill 为准，业务 Skill 不重复展开底层接入细节。
 
 ## 工具说明
 
-以下为本 Skill 使用的数据接口。在 System Prompt 中以 `工具ID` 标识调用。
+以下为本 Skill 通过 `investoday-finance-data` 使用的数据接口。在 System Prompt 中以 `工具ID` 标识调用。
 
 ### 标的识别工具
 
@@ -251,17 +249,6 @@ Agent 获取数据后，按以下 6 步框架进行结构化分析：
 - 给出后续需要跟踪的关键变量
 ```
 
-## 证据约束（必须遵守）
-
-1. 每个结论至少给出 2 个数值证据；没有数据则写“该维度数据不足，暂无法判断”
-2. 不允许只写“好/差”，必须明确对应收益、回撤、波动、同类比较或持仓证据
-3. 时间对比必须标注具体期限，如“近1年”“近3年”或“任期内”
-4. 百分比统一保留 2 位小数
-5. 不给申购建议、赎回建议、定投建议、仓位建议或交易时点
-6. 若基金识别不唯一，必须先要求补充更完整名称或 6 位基金代码
-7. 若收益、风险与持仓三者出现背离，必须明确指出，不得给出模糊单边结论
-8. 同类比较、排名、回撤与波动等判断默认应建立在同类型基金或相近策略产品之间；若产品类型差异明显，必须先说明不可直接横向比较
-
 ## 执行示例
 
 用户说：“帮我分析一下华夏成长混合适不适合继续长期拿着。”
@@ -277,7 +264,3 @@ Agent 获取数据后，按以下 6 步框架进行结构化分析：
 - 仅通过今日投资 API 查询公开市场数据
 - 不记录、不存储用户的查询记录
 - 分析结论仅供参考，不构成投资建议
-
-## Keywords
-
-基金综合诊断, 基金分析, 收益风险, 持仓结构, 基金经理, 费用分红, 长期持有, fund diagnosis, fund comprehensive analysis
