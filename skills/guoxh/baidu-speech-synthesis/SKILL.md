@@ -151,6 +151,7 @@ baidu-speech-synthesis/
 - **Error Handling**: Detailed guidance provided for authentication failures; refer to `references/api_setup.md` for help.
 
 ## Changelog
+- **2026‑03‑31 (v1.2.3)**: Fixed bare `except:` statements in `audio_merger.py`; replaced with proper exception handling to improve debugging and error visibility.
 - **2026‑03‑26 (v1.2.2)**: Added MIT LICENSE file; updated metadata to declare ffmpeg dependency; addressing ClawHub security warnings.
 - **2026‑03‑26 (v1.2.1)**: Complete English translation of skill documentation; improved bilingual triggers for both English and Chinese users.
 - **2026‑03‑26 (v1.2)**: Switched to ffmpeg instead of pydub, solving Python 3.13 compatibility issues; corrected Baidu API limitation description (only supports single-voice SSML); optimized documentation and default voice mapping.

@@ -48,8 +48,8 @@ class AudioMerger:
                         h, m, s = match.groups()
                         total_seconds = int(h) * 3600 + int(m) * 60 + float(s)
                         return total_seconds
-        except:
-            pass
+        except Exception as e:
+            print(f"Warning: Failed to get audio duration: {e}", file=sys.stderr)
         # 如果无法获取，返回0
         return 0.0
     
@@ -163,8 +163,8 @@ class AudioMerger:
             import shutil
             try:
                 shutil.rmtree(temp_dir)
-            except:
-                pass
+            except Exception as e:
+                print(f"Warning: Failed to cleanup temp directory: {e}", file=sys.stderr)
     
     def _merge_with_filter_complex(self, file_paths, output_path, pause_ms, output_format, bitrate):
         """使用filter_complex合并音频（更可靠的方法）"""
@@ -317,10 +317,10 @@ def check_dependencies() -> bool:
             print(f"ffmpeg版本: {version_line}")
             return True
         else:
-            print("警告: ffmpeg版本检查失败")
+            print("Warning: ffmpeg version check failed", file=sys.stderr)
             return True  # 假设可用
-    except:
-        print("警告: 无法检查ffmpeg版本，假设可用")
+    except Exception as e:
+        print(f"Warning: Cannot check ffmpeg version, assuming available: {e}", file=sys.stderr)
         return True
 
 def main():
