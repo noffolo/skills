@@ -1,5 +1,29 @@
 # Changelog
 
+## v3.0.3 (2026-03-27)
+
+### Fixed
+- **Filename restriction**: Added `--restrict-filenames` parameter to all yt-dlp commands
+- **Twitter/X compatibility**: Prevents download failures due to excessively long filenames
+- **System error prevention**: Avoids `[Errno 36] File name too long` errors on certain platforms
+
+### Affected Files
+- `scripts/video-to-s3-universal.js`: Lines 318, 322
+- `scripts/youtube-to-s3.js`: Lines 263, 267
+
+### Technical Details
+- Added `--restrict-filenames` flag to all yt-dlp download commands
+- Ensures compatibility with platforms that generate long filenames (Twitter/X, YouTube with Chinese titles)
+- Maintains existing filename cleaning logic (removes whitespace, special characters)
+- Backward compatible: ✅ No breaking changes
+
+## v3.0.2 (2026-03-26)
+
+### Fixed
+- **Filename whitespace**: Changed from merging multiple spaces to removing all whitespace characters
+- **Consistency**: Ensures no spaces in generated filenames
+- **Affected files**: `video-to-s3-universal.js`, `youtube-to-s3.js`
+
 ## v3.0.1 (2026-03-26)
 
 ### Fixed
@@ -46,16 +70,4 @@
 - Basic YouTube video download and S3 upload
 - Simple PUT upload for small files
 - Foundation for future improvements
-
-## 3.0.2 (2026-03-26)
-
-### 🐛 Bug 修复
-- **文件名处理**: 修复文件名中的空白字符问题
-  - 之前：合并多个空格为单个空格
-  - 现在：移除所有空白字符（包括空格）
-  - 影响文件：`video-to-s3-universal.js`, `youtube-to-s3.js`
-  
-### 🔧 技术改进
-- 保持硬编码路径配置，不依赖系统环境变量
-- 确保文件名生成的一致性
 

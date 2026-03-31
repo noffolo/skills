@@ -260,11 +260,11 @@ async function downloadBestQualityVideo(url) {
     let downloadCmd;
     if (needsMerge) {
       // 需要合并：添加ffmpeg路径参数
-      downloadCmd = `${YT_DLP_PATH} -f "${bestFormat}" --merge-output-format mp4 --ffmpeg-location "${ffmpegPath}" --no-warnings -o "${outputTemplate}" "${url}"`;
+      downloadCmd = `${YT_DLP_PATH} -f "${bestFormat}" --merge-output-format mp4 --ffmpeg-location "${ffmpegPath}" --no-warnings --restrict-filenames -o "${outputTemplate}" "${url}"`;
       console.log('下载命令（需要合并）:', downloadCmd);
     } else {
       // 不需要合并：直接下载
-      downloadCmd = `${YT_DLP_PATH} -f "${bestFormat}" --no-warnings -o "${outputTemplate}" "${url}"`;
+      downloadCmd = `${YT_DLP_PATH} -f "${bestFormat}" --no-warnings --restrict-filenames -o "${outputTemplate}" "${url}"`;
       console.log('下载命令（直接下载）:', downloadCmd);
     }
     

@@ -1,6 +1,6 @@
 {
   "name": "youtube-s3-uploader",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Download videos from YouTube, Twitter/X, TikTok, Douyin, Bilibili and upload to S3-compatible storage. Universal video downloader with smart quality selection and audio merging.",
   "main": "index.js",
   "bin": {
