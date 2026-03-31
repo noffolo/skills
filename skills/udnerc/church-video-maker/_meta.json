@@ -3,9 +3,15 @@
   "slug": "church-video-maker",
   "displayName": "Church Video Maker",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774581369581,
-    "commit": "https://github.com/openclaw/skills/commit/f27fa378ed21b97a5edd6966aacde03b1a154940"
+    "version": "1.0.3",
+    "publishedAt": 1774744240753,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774581369581,
+      "commit": "https://github.com/openclaw/skills/commit/f27fa378ed21b97a5edd6966aacde03b1a154940"
+    }
+  ]
 }
