@@ -3,9 +3,15 @@
   "slug": "workout-video-creator",
   "displayName": "Workout Video Creator",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774586424383,
-    "commit": "https://github.com/openclaw/skills/commit/b34a2d47d19ff2e4856bb9948ba90d061c335d05"
+    "version": "1.0.0",
+    "publishedAt": 1774743089346,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774586424383,
+      "commit": "https://github.com/openclaw/skills/commit/b34a2d47d19ff2e4856bb9948ba90d061c335d05"
+    }
+  ]
 }
