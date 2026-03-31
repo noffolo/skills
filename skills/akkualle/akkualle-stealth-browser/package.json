@@ -1,0 +1,123 @@
+{
+  "name": "stealth-browser",
+  "version": "2.0.0",
+  "description": "Professionelle Browser-Automation mit Human Behavior Simulation, Advanced Anti-Detection, 2Captcha Integration und Stealth-Check System",
+  "author": "MK Media",
+  "license": "commercial",
+  "price": "79€",
+  "keywords": [
+    "browser",
+    "automation",
+    "stealth",
+    "google",
+    "login",
+    "anti-detection",
+    "selenium",
+    "captcha",
+    "human-behavior",
+    "fingerprint-spoofing"
+  ],
+  "categories": [
+    "automation",
+    "web",
+    "seo",
+    "social-media"
+  ],
+  "repository": "https://github.com/mk-media/stealth-browser",
+  "homepage": "https://docs.openclaw.ai/skills/stealth-browser",
+  "bugs": {
+    "email": "support@mk-media.eu"
+  },
+  "engines": {
+    "openclaw": ">=2.0.0",
+    "python": ">=3.8.0"
+  },
+  "dependencies": {
+    "python": [
+      "selenium>=4.0.0",
+      "requests>=2.25.0"
+    ],
+    "system": [
+      "chromium-browser"
+    ]
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "stealth-browser",
+    "stealth-browser-v2",
+    "install.sh",
+    "docs/",
+    "examples/"
+  ],
+  "install": {
+    "script": "install.sh",
+    "commands": [
+      "chmod +x stealth-browser",
+      "chmod +x stealth-browser-v2"
+    ]
+  },
+  "config": {
+    "default_browser": "chromium",
+    "headless": true,
+    "stealth_mode": true,
+    "session_timeout_hours": 6
+  },
+  "pricing": {
+    "basic": {
+      "price": "29€",
+      "features": [
+        "Google Login",
+        "3 Sessions",
+        "Email-Support"
+      ]
+    },
+    "pro": {
+      "price": "79€",
+      "features": [
+        "Alle Google-Dienste",
+        "Social Media",
+        "Cookie-Export",
+        "Stealth-Modus",
+        "Human Behavior Engine",
+        "2Captcha Integration",
+        "Priority-Support",
+        "Lifetime-Updates"
+      ]
+    },
+    "enterprise": {
+      "price": "199€",
+      "features": [
+        "Alles aus Pro",
+        "Multi-Account",
+        "Proxy-Support",
+        "API-Zugang",
+        "Custom-Development"
+      ]
+    }
+  },
+  "changelog": {
+    "2.0.0": {
+      "date": "2026-03-19",
+      "changes": [
+        "Human Behavior Engine mit Bezier-Kurven",
+        "Advanced Anti-Detection (Canvas, WebGL, Navigator)",
+        "Auto-Form Fill für phpBB, WoltLab, XenForo",
+        "2Captcha Integration (reCAPTCHA v2/v3, hCaptcha)",
+        "Stealth-Check System",
+        "Cookie-Session Persistenz",
+        "100/100 Stealth-Score"
+      ]
+    },
+    "1.0.0": {
+      "date": "2026-03-18",
+      "changes": [
+        "Erstes Release",
+        "Google-Login Unterstützung",
+        "Stealth-Modus",
+        "Cookie-Management",
+        "Multi-Session Support"
+      ]
+    }
+  }
+}
