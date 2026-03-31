@@ -5,11 +5,18 @@ All notable changes to CAS Chat Archive will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-03-28
+
+### Fixed
+- handler.ts: 修复硬编码脚本路径，改为基于 import.meta.url 动态解析，支持跨机器/跨用户安装
+- SKILL.md: 补充 requires.python >=3.10 声明
+
 ## [1.1.0-rc1] - 2026-03-27
 
 ### Changed
 - Release scope frozen to `life/ops/company` for this cycle (`code` deferred by product decision).
 - Added release-closure SOP with go/no-go gates, rollback playbook, and 3-day observation criteria.
+- Internal distribution executed via xgjk-skill toolchain and registered as internal skill (`code=cas-chat-archive`).
 
 ## [1.1.0-test.1] - 2026-03-27
 

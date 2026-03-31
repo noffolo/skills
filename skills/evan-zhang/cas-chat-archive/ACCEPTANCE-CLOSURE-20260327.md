@@ -30,8 +30,9 @@
 ## 4) 收口结论
 - **本轮代码收口完成**：P0问题已关闭，RC打包通过。
 - **项目级收口（本期范围）已完成**：life/ops/company 已满足发布门槛。
+- **双通道发布已完成**：ClawHub + Internal Market 均发布成功。
 
 ## 5) 下一步（最小动作）
-1. 进入 `v1.1.0-rc1` 双通道发布流程（ClawHub + internal）。
-2. 执行发布后观察（建议 3 天），期间维持 `CAS_SCOPE_MODE=gateway`。
+1. 执行发布后观察（建议 3 天），期间维持 `CAS_SCOPE_MODE=gateway`。
+2. 每日输出 report 并沉淀复盘建议（手动触发模式）。
 3. 满足稳定门槛后评估切换 `CAS_SCOPE_MODE=agent`。

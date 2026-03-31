@@ -101,6 +101,26 @@ def write_markdown(path: Path, text: str) -> None:
 
 
 def cmd_daily(args: argparse.Namespace) -> None:
+    # 读取当日归档日志摘要
+    def read_daily_log_summary(archive_root: str, gateway: str, day: str, max_entries: int = 10) -> list[str]:
+        """读取当日归档日志，返回前N条摘要行"""
+        import os
+        root = Path(archive_root).expanduser()
+        # 尝试多种可能的日志路径
+        candidates = [
+            root / gateway / "logs" / f"{day}.md",
+            root / "logs" / f"{day}.md",
+            root / gateway / f"{day}.md",
+        ]
+        for log_path in candidates:
+            if log_path.exists():
+                lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+                # 提取有内容的行（跳过空行和纯分隔线）
+                content_lines = [l for l in lines if l.strip() and not l.strip().startswith("---") and not l.strip() == "#"]
+                if content_lines:
+                    return content_lines[:max_entries]
+        return []
+
     day = args.day or today()
     script_dir = Path(__file__).parent
     report = cas_inspect_json(script_dir, args.archive_root, day, args.scope_mode, args.gateway, args.agent)
@@ -115,7 +135,7 @@ def cmd_daily(args: argparse.Namespace) -> None:
         f"- gateway: {args.gateway}",
         f"- agent: {args.agent}",
         "",
-        "## 1) 备份概览",
+        "## 1) 今日协作概览",
         f"- sessions: {report['summary']['sessions']}",
         f"- inbound: {report['summary']['inbound']}",
         f"- outbound: {report['summary']['outbound']}",
@@ -123,23 +143,49 @@ def cmd_daily(args: argparse.Namespace) -> None:
         f"- logBytes: {report['summary']['logBytes']}",
         f"- assetBytes: {report['summary']['assetBytes']}",
         "",
-        "## 2) 今日关键学习（最重要）",
-        "- 问题修复沉淀（Problem -> Rule）：",
-        "- 预期偏差校正（Mismatch -> Preference）：",
-        "- 用户模式更新（Pattern -> Twin）：",
+        "## 2) 今日经验沉淀",
+        "- ✅ 做对了什么（可复用的成功模式）：",
+        "- ❌ 做错了什么（需要修正的行为）：",
+        "- 📌 新增规则（Problem → Rule）：",
         "",
-        "## 3) AI能力改进建议（至少3条）",
+        "## 3) 今日主人洞察",
+        "- 决策风格（今天观察到的新线索）：",
+        "- 偏好/习惯更新：",
+        "- 知识背景/价值观补充：",
+        "",
+        "## 4) 数字分身逼近度",
+        "- 今日亮点（最像主人的一个时刻）：",
+        "- 今日差距（最不像主人的一个时刻）：",
+        "- 下一步改进方向：",
+        "",
+        "## 5) 明日待跟进",
+        "- （待填写）",
+        "",
+        "## 6) AI能力改进建议（至少3条）",
     ]
     for t in tips:
         lines.append(f"- {t}")
 
     lines.extend([
         "",
-        "## 4) 经验分享状态",
+        "## 7) 经验分享状态",
         "- 是否已分享：待检查 SHARE-LOG.jsonl",
         "- 默认策略：未分享优先；已分享则跳过，除非强制分享",
         "",
     ])
+
+    # 附录：今日归档日志摘要
+    log_summary = read_daily_log_summary(args.archive_root, args.gateway, day)
+    lines.extend([
+        "",
+        "## 8) 附录：今日归档日志摘要",
+        "",
+    ])
+    if log_summary:
+        lines.extend([f"    {l}" for l in log_summary])
+        lines.extend(["", f"（以上为当日归档日志前 {len(log_summary)} 行，完整日志见归档目录）", ""])
+    else:
+        lines.extend(["（今日暂无归档日志，或日志路径未匹配）", ""])
 
     write_markdown(out_path, "\n".join(lines))
     print(f"daily review written: {out_path}")

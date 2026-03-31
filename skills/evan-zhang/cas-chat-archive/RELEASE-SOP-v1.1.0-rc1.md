@@ -37,6 +37,10 @@ python3 scripts/publish.py --channel internal --version 1.1.0-rc1 --changelog "R
 - 更新 `P20260326-002-IDX-*`
 - 更新 `03_governance/factory-registry.md`
 
+### Step D：发布后页面核验（Internal）
+- 引导 Evan 打开企业 Skill 市场主页：`https://skills.mediportal.com.cn/`
+- 在页面上检查 `cas-chat-archive` 是否可见且信息一致（name/code/version/内部标记）。
+
 ---
 
 ## 3) 回滚策略（必须可执行）

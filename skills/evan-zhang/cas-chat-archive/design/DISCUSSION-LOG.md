@@ -62,3 +62,42 @@
   4) 更新 IDX 与 registry 到 READY_FOR_RELEASE 口径。
 - 当前状态：
   - S8 发布演进（待执行双通道正式发布）。
+
+## 2026-03-27 13:45 (Asia/Shanghai)
+- 用户指令："现在请使用刚才的新装技能完成公司内部发布，成功后纳入业务工厂全流程。"
+- 执行路径：使用 `create-xgjk-skill/scripts/skill-management/publish_skill.py` 进行一站式内部发布。
+- 发布结果：
+  - Internal 注册成功：`id=2037406010213437442`
+  - `code=cas-chat-archive`
+  - `downloadUrl=https://filegpt-hn.file.mediportal.com.cn/skills/cas-chat-archive/1774590418-cas-chat-archive.zip`
+- 流程集成：
+  - 新增 `RELEASE-RECORD-20260327.md` 作为发布证据；
+  - 更新 SOP v4.5，将 xgjk-skill 工具链固化为 S6 企业发布标准动作；
+  - 更新 IDX/Registry 到 RELEASED 口径。
+
+## 2026-03-27 13:48 (Asia/Shanghai)
+- 用户新增要求：必须记住企业内部 Skill 市场主页 `https://skills.mediportal.com.cn/`；内部发布成功后必须主动引导用户前往该主页核验。
+- 落地动作：
+  1) SOP 升级到 v4.6，企业发布环节新增“发布后引导核验”强制动作；
+  2) Release SOP 新增 Step D：发布后页面核验；
+  3) 决策索引新增 DEC-021 固化该偏好。
+## 2026-03-28 09:00~12:00 (Asia/Shanghai)
+- 触发背景：用户反馈 hook 在 life/ops/company 三个 gateway 均未挂载，是最大单点风险。
+- 用户诉求：一次性解决 CAS hook 挂载问题。
+- 关键讨论：
+  - 梳理了 gateway 配置结构，确认 hook 挂载字段为 `hooks.internal.entries.cas-chat-archive-auto`
+  - 确认 extraDirs 需指向 hook 源文件目录
+- 关键决策：
+  - 在 life/ops/company 三个 gateway 的 openclaw.json 中启用 cas-chat-archive-auto hook
+  - code gateway 豁免（服务停用）
+- 执行状态：已触发配置写入（本次会话初期），但用户中止了执行流程
+- 后续待办：重新安排 hook 挂载（走 SOP-02 Lite 流程）
+
+## 2026-03-28 09:35 (Asia/Shanghai)
+- 触发背景：用户明确反馈"你还是自己在执行，违背了你存在的价值"。
+- 关键决策（本日最重要决策）：
+  - 升级协作规则：默认只讨论，不执行；未收到"确认执行"不得动手
+  - 执行前必须给执行前清单（GRV-Lite V3 格式）
+  - >2 分钟任务默认走子 Agent，主会话不被阻塞
+  - 没有记录=没有发生（铁律）
+  - 高风险动作（外发/改配置/重启）必须显式二次确认

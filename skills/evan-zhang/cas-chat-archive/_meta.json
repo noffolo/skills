@@ -3,9 +3,15 @@
   "slug": "cas-chat-archive",
   "displayName": "CAS Chat Archive",
   "latest": {
-    "version": "1.1.0-rc1",
-    "publishedAt": 1774588915330,
-    "commit": "https://github.com/openclaw/skills/commit/db032ccd494385f914689a081fc54075e01c5b5b"
+    "version": "1.2.0",
+    "publishedAt": 1774789464979,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0-rc1",
+      "publishedAt": 1774588915330,
+      "commit": "https://github.com/openclaw/skills/commit/db032ccd494385f914689a081fc54075e01c5b5b"
+    }
+  ]
 }
