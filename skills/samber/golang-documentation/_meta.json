@@ -3,9 +3,15 @@
   "slug": "golang-documentation",
   "displayName": "Golang Documentation",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1774234800992,
-    "commit": "https://github.com/openclaw/skills/commit/ac61d07b86399aa18f7bafb10952bd5b51dc4c6c"
+    "version": "1.1.1",
+    "publishedAt": 1774564724636,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1774234800992,
+      "commit": "https://github.com/openclaw/skills/commit/ac61d07b86399aa18f7bafb10952bd5b51dc4c6c"
+    }
+  ]
 }
