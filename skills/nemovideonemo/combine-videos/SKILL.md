@@ -1,44 +1,15 @@
 ---
 name: combine-videos
-version: 1.0.5
+version: 1.0.6
 displayName: "Combine Videos - Combine, Merge and Join Multiple Video Clips into One with AI"
-description: >
+description: "Combine multiple video clips into one seamless video — just upload your files and describe how to merge them. Handles format matching, resolution alignment, and audio normalization automatically. Works with mp4, mov, avi, webm, mkv."
   Combine Videos - Combine, Merge and Join Multiple Video Clips into One with AI.
-  Merge, join, and combine multiple video clips into one seamless video through AI chat. Upload several clips and describe how you want them combined: "merge all clips in order with smooth transitions" or "combine the intro, main content, and outro" or "join these 5 clips and add background music across the whole video." The AI handles format matching, resolution alignment, and audio normalization automatically. Handles merging multiple video files into one output, joining clips with customizable transitions between them, combining videos of different resolutions and formats, adding consistent background music across merged clips, inserting title cards between combined segments, and batch processing of large clip collections. No manual timeline arrangement needed. Built for YouTubers combining multi-camera footage, event videographers merging ceremony and reception clips, social media managers assembling content compilations, and educators combining lecture segments. Export as MP4. Supports supplementary media: jpg, png, gif, webp, mp4, mov — powered by AI
-metadata: {"openclaw": {"emoji": "🔗", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+  Merge, join, and combine multiple video clips into one seamless video through AI chat. Upload several clips and describe how you want them combined: "merge all clips in order with smooth transitions" or "combine the intro, main content, and outro" or "join these 5 clips and add background music across the whole video." The AI handles format matching, resolution alignment, and audio normalization automatically. Handles merging multiple video files into one output, joining clips with customizable transitions between them, combining videos of different resolutions and formats, adding consistent background music across merged clips, inserting title cards between combined segments, and batch processing of large clip collections. No manual timeline arrangement needed. Built for YouTubers combining multi-camera footage, event videographers merging ceremony and reception clips, social media managers assembling content compilations, and educators combining lecture segments. Export as MP4. Supports supplementary media: jpg, png, gif, webp, mp4, mov.
+metadata: {"openclaw": {"emoji": "🔗", "requires": {"env": ["NEMO_TOKEN"], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 homepage: https://nemovideo.com
+apiDomain: https://mega-api-prod.nemovideo.ai
 repository: https://github.com/nemovideo/nemovideo_skills
 ---
-
-## 0. First Contact
-
-When the user opens this skill or sends their first message, **greet them immediately**:
-
-> 📸 Hey! I'm ready to help you combine videos. Send me a video file or just tell me what you need!
-
-**Try saying:**
-- "help me create a short video"
-- "add effects to this clip"
-- "edit my video"
-
-**IMPORTANT**: Always greet the user proactively on first contact. Let them know you're setting up while connecting. Always greet the user proactively on first contact.
-
-### Auto-Setup
-
-When the user first interacts, set up the connection:
-
-1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
-2. **Read or generate Client-ID**:
-   - Read `~/.config/nemovideo/client_id` if it exists
-   - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
-3. **Acquire anonymous token**:
-   ```bash
-   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-   ```
-   Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
-4. **Create a session** (§3.0) so you're ready to work immediately.
-
-Let the user know briefly: "Setting things up… ready!" then proceed with their request.
 
 # Video Merger - Combine Multiple Clips into One
 ## 1. Role & Environment
@@ -67,7 +38,7 @@ if [ -z "$CLIENT_ID" ]; then
   CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
   mkdir -p ~/.config/nemovideo && echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
 fi
-curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
+curl -s -X POST "https://mega-api-prod.nemovideo.ai/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
 ```
 Save `token` as `NEMO_TOKEN`. Expires after 7 days; re-request with same `X-Client-Id`.
 
@@ -94,7 +65,7 @@ X-Skill-Platform: $SKILL_SOURCE
 
 ### 3.0 Create Session
 ```bash
-curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
+curl -s -X POST "https://mega-api-prod.nemovideo.ai/api/tasks/me/with-session/nemo_agent" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
   -d '{"task_name":"project","language":"<lang>"}'
@@ -103,14 +74,14 @@ Save `session_id`, `task_id`.
 
 ### 3.1 Send Message via SSE
 ```bash
-curl -s -X POST "$API/run_sse" \
+curl -s -X POST "https://mega-api-prod.nemovideo.ai/run_sse" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -H "Accept: text/event-stream" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" --max-time 900 \
   -d '{"app_name":"nemo_agent","user_id":"me","session_id":"<sid>","new_message":{"parts":[{"text":"<msg>"}]}}'
 ```
 
 ### 3.2 Upload
-**File**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
+**File**: `curl -s -X POST "https://mega-api-prod.nemovideo.ai/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
 
 **URL**: same endpoint, `-d '{"urls":["<url>"],"source_type":"url"}'`
 
@@ -118,23 +89,23 @@ Supported: mp4, mov, avi, webm, mkv, jpg, png, gif, webp, mp3, wav, m4a, aac.
 
 ### 3.3 Credits
 ```bash
-curl -s "$API/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
+curl -s "https://mega-api-prod.nemovideo.ai/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
   -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
 ```
 
 ### 3.4 Query State
 ```bash
-curl -s "$API/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
+curl -s "https://mega-api-prod.nemovideo.ai/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
   -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
 ```
 
 ### 3.5 Export
 ```bash
-curl -s -X POST "$API/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+curl -s -X POST "https://mega-api-prod.nemovideo.ai/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
   -d '{"id":"render_<ts>","sessionId":"<sid>","draft":<json>,"output":{"format":"mp4","quality":"high"}}'
 ```
-Poll `GET $API/api/render/proxy/lambda/<id>` every 30s.
+Poll `GET https://mega-api-prod.nemovideo.ai/api/render/proxy/lambda/<id>` every 30s.
 
 ### 3.6 Disconnect Recovery
 Wait 30s, query state. After 5 unchanged polls, report failure.

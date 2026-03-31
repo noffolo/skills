@@ -3,11 +3,16 @@
   "slug": "combine-videos",
   "displayName": "Combine Videos",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1774617077939,
-    "commit": "https://github.com/openclaw/skills/commit/11781b70ddd77939f3051aef57fe0027ec1abb8f"
+    "version": "1.0.6",
+    "publishedAt": 1774727603816,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1774617077939,
+      "commit": "https://github.com/openclaw/skills/commit/11781b70ddd77939f3051aef57fe0027ec1abb8f"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1774510812997,
