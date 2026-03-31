@@ -1,6 +1,6 @@
 ---
 name: distributed-inference
-description: Run distributed LLM inference across heterogeneous hardware without the complexity. Scatter requests across Apple Silicon Macs, Linux boxes, and any machine running Ollama. Automatic node discovery, thermal-aware scheduling, adaptive capacity learning, and context-aware model placement. No orchestration layer, no container runtime, no shared filesystem — just HTTP and mDNS.
+description: Distributed inference for Llama, Qwen, DeepSeek across heterogeneous hardware. Self-hosted local AI — scatter requests across Mac Studio, Mac Mini, MacBook Pro, Linux boxes, and any machine running Ollama. Thermal-aware scheduling, 7-signal scoring, adaptive capacity learning, context-aware model placement. No orchestration layer, no container runtime — just HTTP and mDNS.
 version: 1.0.2
 homepage: https://github.com/geeks-accelerator/ollama-herd
 metadata: {"openclaw":{"emoji":"globe","requires":{"anyBins":["curl","sqlite3"],"optionalBins":["python3","pip"]},"configPaths":["~/.fleet-manager/latency.db","~/.fleet-manager/logs/herd.jsonl"],"os":["darwin","linux"]}}
@@ -158,7 +158,7 @@ curl -s -X POST http://localhost:11435/dashboard/api/settings \
 |-----------|----------|
 | Auto-retry | If a node fails before the first chunk, re-score and retry on next-best node (up to N retries, configurable) |
 | Holding queue | When all nodes are saturated, requests queue for up to 30 seconds before timing out |
-| Zombie reaper | Background task reclaims in-flight slots stuck longer than 15 minutes |
+| Zombie reaper | Background task reclaims in-flight slots stuck longer than 10 minutes |
 | VRAM fallback | Routes to a loaded model in the same category rather than cold-loading the requested model |
 | Auto-pull | Pulls missing models onto the node with the most available memory |
 | Graceful drain | SIGTERM triggers drain: in-flight requests finish, pending requests redistribute |
