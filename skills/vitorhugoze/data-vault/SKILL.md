@@ -1,6 +1,6 @@
 ---
 name: data-vault
-version: 1.0.14
+version: 1.0.18
 description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to persistant storage', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'persist data'."
 author: Vitor Hugo Zeferino
 metadata:
@@ -8,12 +8,30 @@ metadata:
         requires:
             bins:
                 - python3
+                # declare uv and pip as required binaries
+                - uv
+                - pip
         install:
-            - kind: uv
-              package: pylance
+            # Bootstrap pip if missing
+            - kind: "shell"
+              cmd: "python3 -m ensurepip --upgrade || true"
+              label: "Ensure pip is installed"
+
+            # Bootstrap uv if missing
+            - kind: "shell"
+              cmd: "pip install --upgrade uv || true"
+              label: "Install uv if missing"
+
+            # Install pylance
+            - kind: "uv"
+              type: "pip"
+              package: "pylance"
               label: "Install pylance (Lance columnar format) via uv"
-            - kind: uv
-              package: pandas
+
+            # Install pandas
+            - kind: "uv"
+              type: "pip"
+              package: "pandas"
               label: "Install pandas via uv"
 ---
 
@@ -22,7 +40,7 @@ metadata:
 ## Installation
 
 ```bash
-python3 -m pip install -r requirements.txt
+uv pip install pylance pandas
 ```
 
 A persistent data store using the Lance columnar format for fast ML data access.
