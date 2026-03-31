@@ -29,7 +29,7 @@ metadata:
 4. 该页面对应控制台菜单 `空间管理 -> 接口回调`，包含两个页签：
    - `回调设置`：配置通话结束后的回调端点、Header、启用/禁用状态与连通性测试
    - `App Key 管理`：创建、复制、启用、禁用、删除 App Key
-5. 在 `App Key 管理` 中创建并复制 App Key，再填写 `config.json` 中的 `appKey` 和 `baseUrl`。
+5. 在 `App Key 管理` 中创建并复制 App Key，再填写 `config.json` 中的 `appKey`；`baseUrl` 通常保持官方默认值 `https://dashboard.avavox.com`。
 6. 创建任务前，先查询当前空间是否存在可用的已发布机器人，再查询线路。
 
 脚本使用 Python 3 标准库实现，不依赖第三方包。对外发布时，优先使用 `python3`；在 Windows 上可用 `py -3`。
@@ -40,7 +40,7 @@ metadata:
 
 - `skills.entries."avavox-call".apiKey` 对应注入环境变量 `AVAVOX_APP_KEY`
 - `skills.entries."avavox-call".env` 可选注入：
-  - `AVAVOX_BASE_URL`
+  - `AVAVOX_BASE_URL`（仅兼容 `https://dashboard.avavox.com`，对外发布时不要改成其他域名）
   - `AVAVOX_DEFAULT_TASK_ID`
   - `AVAVOX_DEFAULT_ROBOT_ID`
   - `AVAVOX_DEFAULT_LINE_ID`
@@ -146,9 +146,9 @@ python3 {baseDir}/scripts/avavox_call.py tasks update \
 - “把客户名单导入这个任务”: 用 `customers import`
 - “暂停 / 恢复 / 查看任务详情”: 用 `tasks pause`、`tasks resume`、`tasks get`
 - “看看这个任务有哪些机器人变量，ext 该怎么传”: 用 `tasks variables`
-- “文档里有接口，但脚本还没单独封装”: 用 `request`
+- “文档里有接口，但脚本还没单独封装”: 用受限的 `request`，且 `--path` 只能是 `/open/api/...` 相对路径
 
-## 通用请求入口
+## 受限请求入口
 
 ```bash
 python3 {baseDir}/scripts/avavox_call.py request \
@@ -157,6 +157,12 @@ python3 {baseDir}/scripts/avavox_call.py request \
   --path /open/api/task/task_xxx \
   --body-json '{"concurrency":3}'
 ```
+
+安全边界：
+
+- `--path` 只能是当前 avavox 开放接口下的相对路径，例如 `/open/api/task/task_xxx`
+- 不支持绝对 URL、协议相对 URL、外部域名，也不支持把 query string 直接拼进 `--path`
+- 如果需要 query 参数，使用 `--query-json`
 
 ## 约束
 
@@ -169,6 +175,7 @@ python3 {baseDir}/scripts/avavox_call.py request \
 - 如果机器人配置了变量，先查 `tasks variables`，再构造 `ext`。
 - “通话记录”文档当前定义的是回调数据结构，不是查询接口。
 - 如果要接收通话结束回调，不要只创建 App Key，还应在 `接口回调 -> 回调设置` 中配置回调 URL 与 Header。
+- `request` 只是开放接口的受限回退入口，目标必须保持在 `https://dashboard.avavox.com/open/api/...`。
 - 不要在对用户可见的输出里回显完整 `appKey`。
 
 ## 参考文件

@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import posixpath
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -12,6 +13,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 DEFAULT_CONFIG = str(SKILL_DIR / "config.json")
 DEFAULT_BASE_URL = "https://dashboard.avavox.com"
+ALLOWED_BASE_HOSTS = {"dashboard.avavox.com"}
+ALLOWED_API_PREFIX = "/open/api"
 ENV_APP_KEY = "AVAVOX_APP_KEY"
 ENV_BASE_URL = "AVAVOX_BASE_URL"
 SKILL_VERSION = "0.6.0"
@@ -123,10 +126,115 @@ def parse_optional_integer(name: str, value: Optional[str]) -> Optional[int]:
         fail(f"{name} must be an integer", {"value": value})
 
 
+def default_port(scheme: str) -> Optional[int]:
+    if scheme == "https":
+        return 443
+    if scheme == "http":
+        return 80
+    return None
+
+
+def is_allowed_api_path(path: str) -> bool:
+    return path == ALLOWED_API_PREFIX or path.startswith(f"{ALLOWED_API_PREFIX}/")
+
+
 def normalize_base_url(base_url: Optional[str]) -> str:
     if not is_non_empty(base_url):
         fail("config.baseUrl is required")
-    return str(base_url).rstrip("/")
+
+    parsed = parse.urlsplit(str(base_url).strip())
+    scheme = parsed.scheme.lower()
+    host = (parsed.hostname or "").lower()
+
+    if scheme != "https" or not host:
+        fail("config.baseUrl must be an https URL")
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        fail("config.baseUrl must not contain auth, query, or fragment")
+    if parsed.path not in ("", "/"):
+        fail("config.baseUrl must not contain a path")
+    if parsed.port not in (None, default_port(scheme)):
+        fail("config.baseUrl must use the default https port")
+    if host not in ALLOWED_BASE_HOSTS:
+        fail(
+            "config.baseUrl host is not allowed",
+            {"allowedHosts": sorted(ALLOWED_BASE_HOSTS)},
+        )
+
+    return f"{scheme}://{host}"
+
+
+def normalize_api_path(api_path: str) -> str:
+    raw_path = str(api_path).strip()
+    if not raw_path:
+        fail("API path is required")
+    if raw_path.startswith(("//", "\\\\")) or "\\" in raw_path:
+        fail(
+            "API path must be a relative /open/api path",
+            {"path": api_path},
+        )
+
+    parsed = parse.urlsplit(raw_path)
+    if parsed.scheme or parsed.netloc:
+        fail(
+            "API path must not be an absolute URL",
+            {"path": api_path},
+        )
+    if parsed.query or parsed.fragment:
+        fail(
+            "API path must not include query string or fragment; use --query-json instead",
+            {"path": api_path},
+        )
+
+    normalized_path = posixpath.normpath(parsed.path or "")
+    if not normalized_path.startswith("/"):
+        normalized_path = f"/{normalized_path}"
+
+    if raw_path.endswith("/") and normalized_path != "/" and not normalized_path.endswith("/"):
+        normalized_path = f"{normalized_path}/"
+
+    if not is_allowed_api_path(normalized_path):
+        fail(
+            "API path must stay under /open/api",
+            {"path": api_path},
+        )
+
+    return normalized_path
+
+
+def ensure_allowed_request_url(base_url: str, url: str) -> None:
+    base_parts = parse.urlsplit(base_url)
+    target_parts = parse.urlsplit(url)
+
+    base_origin = (
+        base_parts.scheme.lower(),
+        (base_parts.hostname or "").lower(),
+        base_parts.port or default_port(base_parts.scheme.lower()),
+    )
+    target_origin = (
+        target_parts.scheme.lower(),
+        (target_parts.hostname or "").lower(),
+        target_parts.port or default_port(target_parts.scheme.lower()),
+    )
+
+    if target_origin != base_origin:
+        fail(
+            "Request target must stay on the configured avavox origin",
+            {"url": url},
+        )
+    if not is_allowed_api_path(target_parts.path):
+        fail(
+            "Request target must stay under /open/api",
+            {"url": url},
+        )
+
+
+class RestrictedRedirectHandler(request.HTTPRedirectHandler):
+    def __init__(self, base_url: str) -> None:
+        self.base_url = base_url
+
+    def redirect_request(self, req: request.Request, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> request.Request:
+        ensure_allowed_request_url(self.base_url, newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def load_config(config_path: Optional[str]) -> Dict[str, Any]:
@@ -178,7 +286,10 @@ def build_headers(
 
 
 def build_url(base_url: str, api_path: str, query: Optional[Dict[str, Any]] = None) -> str:
-    url = parse.urljoin(f"{base_url}/", api_path.lstrip("/"))
+    parsed_base = parse.urlsplit(base_url)
+    normalized_path = normalize_api_path(api_path)
+    url = parse.urlunsplit((parsed_base.scheme, parsed_base.netloc, normalized_path, "", ""))
+    ensure_allowed_request_url(base_url, url)
     if not query:
         return url
 
@@ -211,6 +322,7 @@ def api_request(
     headers: Optional[Dict[str, str]] = None,
 ) -> Any:
     url = build_url(config["baseUrl"], api_path, query)
+    ensure_allowed_request_url(config["baseUrl"], url)
     request_body = None if body is None else json.dumps(body, ensure_ascii=False).encode("utf-8")
     req = request.Request(
         url=url,
@@ -218,9 +330,10 @@ def api_request(
         headers=build_headers(config, headers),
         method=method.upper(),
     )
+    opener = request.build_opener(RestrictedRedirectHandler(config["baseUrl"]))
 
     try:
-        with request.urlopen(req) as response:
+        with opener.open(req) as response:
             status = response.status
             text = response.read().decode("utf-8")
     except error.HTTPError as exc:
@@ -468,7 +581,8 @@ def handle_request(args: argparse.Namespace) -> None:
     if not is_non_empty(args.path):
         fail("request requires --path")
 
-    query = load_json_input("query", args.query_json, args.query_file, None)
+    raw_query = load_json_input("query", args.query_json, args.query_file, None)
+    query = None if raw_query is None else ensure_plain_object("query", raw_query)
     body = load_json_input("body", args.body_json, args.body_file, None)
 
     response = api_request(

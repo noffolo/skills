@@ -3,9 +3,15 @@
   "slug": "avavox-call",
   "displayName": "avavox  智能外呼",
   "latest": {
-    "version": "0.6.0",
-    "publishedAt": 1774536256752,
-    "commit": "https://github.com/openclaw/skills/commit/34e05aa3ad4aabfaa97031e02b9338d9e4235363"
+    "version": "0.6.1",
+    "publishedAt": 1774871033632,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.6.0",
+      "publishedAt": 1774536256752,
+      "commit": "https://github.com/openclaw/skills/commit/34e05aa3ad4aabfaa97031e02b9338d9e4235363"
+    }
+  ]
 }

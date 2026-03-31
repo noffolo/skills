@@ -96,4 +96,4 @@
 
 - `request --method ... --path /open/api/...`
 
-这个命令仍然走同一套 `App Key` 鉴权。
+这个命令仍然走同一套 `App Key` 鉴权，但只接受当前 avavox 开放接口域名下的 `/open/api/...` 相对路径。

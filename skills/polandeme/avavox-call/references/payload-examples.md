@@ -122,7 +122,7 @@ python3 {baseDir}/scripts/avavox_call.py tasks variables \
   --task-id "task_xxx"
 ```
 
-## 6. 通用请求示例
+## 6. 受限请求示例
 
 ```bash
 python3 {baseDir}/scripts/avavox_call.py request \
@@ -134,3 +134,8 @@ python3 {baseDir}/scripts/avavox_call.py request \
     "concurrency": 3
   }'
 ```
+
+说明：
+
+- `--path` 只能传 `/open/api/...` 相对路径
+- query 参数请通过 `--query-json` 传入，不要直接拼在 `--path` 后面
