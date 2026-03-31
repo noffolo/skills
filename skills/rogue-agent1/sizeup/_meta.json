@@ -1,0 +1,11 @@
+{
+  "owner": "rogue-agent1",
+  "slug": "sizeup",
+  "displayName": "Sizeup",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774640236339,
+    "commit": null
+  },
+  "history": []
+}
