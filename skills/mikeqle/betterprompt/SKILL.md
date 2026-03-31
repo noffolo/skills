@@ -67,8 +67,8 @@ betterprompt generate <skill-slug> --input key=value --input key2=value2
 # Image via URL
 betterprompt generate <skill-slug> --image-input-url <url>
 
-# Image via base64
-betterprompt generate <skill-slug> --image-input-base64 <base64string>
+# Image via local file (auto-compressed)
+betterprompt generate <skill-slug> --image-input-path <path>
 
 # JSON payload (all inputs as a single JSON object)
 betterprompt generate <skill-slug> --input-payload '{"key": "value"}'

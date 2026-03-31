@@ -3,9 +3,15 @@
   "slug": "betterprompt",
   "displayName": "BetterPrompt",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774511422237,
-    "commit": "https://github.com/openclaw/skills/commit/5c9b50ab51d5b676bc171b47e9d40ff20aba0b79"
+    "version": "1.0.3",
+    "publishedAt": 1774581802417,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774511422237,
+      "commit": "https://github.com/openclaw/skills/commit/5c9b50ab51d5b676bc171b47e9d40ff20aba0b79"
+    }
+  ]
 }
