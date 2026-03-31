@@ -3,9 +3,15 @@
   "slug": "emotion-journal",
   "displayName": "Emotion Journal",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774495936468,
-    "commit": "https://github.com/openclaw/skills/commit/216f3eb61cb4f8c4b8887d540ee411a187efb2f9"
+    "version": "1.0.1",
+    "publishedAt": 1774658100300,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774495936468,
+      "commit": "https://github.com/openclaw/skills/commit/216f3eb61cb4f8c4b8887d540ee411a187efb2f9"
+    }
+  ]
 }
