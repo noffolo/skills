@@ -9,9 +9,19 @@ import json
 import argparse
 from datetime import datetime
 
+# ============ 从 config.py 读取配置（支持环境变量覆盖） ============
+import importlib.util as _ilu
+_script_dir_early = os.path.dirname(os.path.abspath(__file__))
+_cfg_spec = _ilu.spec_from_file_location(
+    "chan_config",
+    os.path.join(_script_dir_early, "config.py"),
+)
+_cfg = _ilu.module_from_spec(_cfg_spec)
+_cfg_spec.loader.exec_module(_cfg)
+
 # 强制使用Python实现
 os.environ['CZSC_USE_PYTHON'] = '1'
-sys.path.insert(0, r'D:\QClawData\workspace\czsc')
+sys.path.insert(0, _cfg.CZSC_PATH)
 
 # 清理缓存
 for m in list(sys.modules.keys()):
@@ -33,6 +43,7 @@ from matplotlib.patches import Rectangle
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.dirname(SCRIPT_DIR)
 CACHE_DIR = os.path.join(SCRIPT_DIR, 'cache')
+OBSIDIAN_DIR = str(_cfg.OBSIDIAN_STOCK_DIR)  # 从配置读取，支持 OBSIDIAN_STOCK_DIR 环境变量
 
 # 中文支持
 plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'Arial Unicode MS']
@@ -286,7 +297,46 @@ def draw_chart(code: str, output_path: str):
     plt.close()
     
     print(f"\nChart saved: {output_path}")
+    
+    # 保存到Obsidian
+    save_chart_to_obsidian(code, output_path)
+    
     return output_path
+
+def save_chart_to_obsidian(code: str, chart_path: str):
+    """将图表保存到Obsidian仓库并上传到百度云"""
+    from datetime import datetime
+    import shutil
+    import subprocess
+    
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    time_str = datetime.now().strftime('%H-%M-%S')
+    # OBSIDIAN_DIR 已经是 D:\knowledge\stock，直接在下面创建日期目录
+    obsidian_date_dir = os.path.join(OBSIDIAN_DIR, date_str)
+    
+    if not os.path.exists(obsidian_date_dir):
+        os.makedirs(obsidian_date_dir, exist_ok=True)
+    
+    # 复制图表到Obsidian
+    obsidian_chart = os.path.join(obsidian_date_dir, f"{date_str}_{time_str}_{code}_czsc_chart.png")
+    shutil.copy(chart_path, obsidian_chart)
+    
+    print(f"Chart copied to Obsidian: {obsidian_chart}")
+    
+    # 上传到百度云
+    try:
+        remote_chart = f"/knowledge/{date_str}/{date_str}_{time_str}_{code}_czsc_chart.png"
+        result = subprocess.run(
+            ['bypy', 'upload', obsidian_chart, remote_chart],
+            capture_output=True,
+            timeout=60
+        )
+        if result.returncode == 0:
+            print(f"Chart uploaded to Baidu Cloud: {remote_chart}")
+        else:
+            print(f"Upload failed: {result.stderr.decode('utf-8', errors='ignore')[:100]}")
+    except Exception as e:
+        print(f"Upload error: {e}")
 
 # ============ 主函数 ============
 def main(code: str, output_dir: str = None):

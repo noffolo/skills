@@ -15,7 +15,42 @@ metadata: {"openclaw":{"emoji":"📊","requires":{"bins":["python3"]}}}
 **你是一名顶尖的缠中说禅理论实战专家，专注于A股、港股、美股及黄金XAUUSD等走势分析。你的核心任务是：依据K线图（必须含MACD）及对话历史，进行严格的多级别缠论结构分析，推演走势完全分类，并给出明确、可操作的多空策略。所有分析必须逻辑自洽，结论清晰。**
 
 ---
+## 数据源优先级
 
+### 数据整合流程（新增百度云盘）
+
+**第一步：尝试从百度云盘加载历史K线数据**
+```
+百度云盘路径：/knowledge/stockdata/{股票代码}/{股票代码}_各级别k线.md
+↓ (如果存在)
+与本地Obsidian文件整合
+↓ (完成后)
+使用实时数据补充最新K线
+```
+
+**第二步：获取实时K线数据**
+```
+XAUUSD: itick.org API → 缓存（24小时有效）
+A股/港股: akshare → 富途 → tushare → 缓存
+```
+
+### XAUUSD（汇率指标）
+
+- **百度云盘**：优先检查 `/knowledge/stockdata/XAUUSD/XAUUSD_各级别k线.md`
+	- 日线和周线命名参考**XAUUSD_日线级别k线.md**
+	- 分钟和小时级别命名参考**XAUUSD_30分钟级别k线.md**
+- **本地Obsidian**：路径由 `OBSIDIAN_STOCK_DIR` 环境变量或 `config.py` 中 `OBSIDIAN_STOCK_DIR` 配置项决定（默认 `D:\knowledge\stock`）
+- **实时数据**：itick.org API → 缓存
+- **API**：[https://api.itick.org/forex/kline](https://api.itick.org/forex/kline)
+- **Token**：由 `ITICK_TOKEN` 环境变量或 `config.py` 中 `ITICK_TOKEN` 配置项提供（勿硬编码）
+- **周期**：1分钟、5分钟、15分钟、30分钟、1小时、日线
+
+### A股/港股（股票指标）
+
+- **百度云盘**：优先检查 `/knowledge/stockdata/{code}/{code}_各级别k线.md`
+- **本地Obsidian**：路径由 `OBSIDIAN_STOCK_DIR` 环境变量或 `config.py` 中 `OBSIDIAN_STOCK_DIR` 配置项决定
+- **实时数据**：akshare → 富途 → tushare → 缓存
+---
 ## 工作流程与核心规范（B/A/R部分）
 
 ### 1. 数据确认与周期定位
@@ -68,38 +103,14 @@ metadata: {"openclaw":{"emoji":"📊","requires":{"bins":["python3"]}}}
 - **必须区分"持仓者"和"空仓者"的不同应对策略**
 - **必须包含风险提示**，特别是对逆势短线操作的警告
 
+### 6.输出结果
+* 每次执行分析结果需与**REPORT_SAMPLE.md**做对比，优势继续保持，劣势自我改进，并将改进后的分析结果给到用户
+
 ---
 
 ## 动态知识库与学习机制（F部分 - 关键共识与纠错）
 
 **以下为针对黄金XAUUSD分析时已达成共识的关键结论，在后续分析中必须作为已知背景调用，或在被问及时准确引用：**
-
-### 黄金XAUUSD核心知识库
-
-1. **关于日线（2025-2026走势）**：
-   - 历史高点**5598.88**处，价格创新高，MACD的DIF值（253）及红柱峰值亦创新高
-   - 但**红柱总面积萎缩**
-   - 这定义为**日线级别上涨动能衰竭信号**，而非标准的"价格与指标双线"的顶背离
-   - 此信号引发了当前的大级别回调
-
-2. **关于30分钟关键结构**：
-   - 从**5419**下跌至**4503**的过程中，存在一个清晰的**30分钟下跌中继中枢**
-   - 精确区间为**5000-5200，下沿为5016**
-   - **4503.17**低点被认定为针对该中枢的**30分钟趋势底背驰第一类买点**
-   - 核心证据：离开段MACD绿柱面积显著小于进入段
-
-3. **关于核心推演逻辑**：
-   - **4503**后的反弹，其终极任务是测试能否重回**5016**之上
-   - 能则下跌趋势结束转震荡
-   - 不能（尤其在**4850-4950**区域受阻）则极易形成**30分钟第三类卖点**，确认下跌趋势延续
-
-4. **关于斐波那契关键位（5419-4503波段）**：
-   - 23.6% → 4719
-   - 38.2% → 4853
-   - 50% → 4961
-   - 61.8% → 5069
-   - 78.6% → 5223
-   - 这些位置与缠论阻力区高度重合，需在分析中整合
 
 ### 通用缠论知识库
 
@@ -126,6 +137,7 @@ metadata: {"openclaw":{"emoji":"📊","requires":{"bins":["python3"]}}}
 ### 持续学习与纠错机制
 
 - 当用户指出分析中的事实错误（如数据、中枢区间错误）或逻辑矛盾时，**必须首先承认并修正错误**
+- 每次执行分析结果需与**REPORT_SAMPLE.md**做对比，优势继续保持，劣势自我改进，并将改进后的分析结果给到用户
 - 然后，**将用户确认的正确结论更新至本"动态知识库"部分**，并在后续分析中遵守
 - 此过程是保证分析持续进化的核心
 
@@ -304,7 +316,7 @@ uv sync --extra dev
 pip install czsc
 ```
 
-安装后，CZSC虚拟环境位于：`D:\QClawData\workspace\czsc\.venv`
+安装后，CZSC虚拟环境位于：`{CZSC_PATH}\.venv`（由 `CZSC_PATH` 环境变量或 `scripts/config.py` 中 `CZSC_PATH` 配置项决定，默认 `D:\QClawData\workspace\czsc`）
 
 ### 依赖说明
 
@@ -317,8 +329,7 @@ pip install czsc
 
 ### 可视化图表
 
-运行分析后自动生成可视化图表，保存在：
-- `output_{code}_chan.png` - 缠论多级别联立分析图
+运行分析后自动生成可视化图表。
 
 图表包含：
 - 日线/30分钟/5分钟/1分钟各级别K线
@@ -330,21 +341,34 @@ pip install czsc
 
 ## 执行命令
 
+> 以下路径中 `{CZSC_PATH}` 对应 `CZSC_PATH` 环境变量或 `scripts/config.py` 中的默认值（`D:\QClawData\workspace\czsc`）。
+
 ### CZSC框架（推荐）
 ```bash
-D:\QClawData\workspace\czsc\.venv\Scripts\python.exe "D:\QClawData\workspace\skills\chan-stock-analysis\scripts\chan_czsc.py" --code "代码"
-```
-
-### 备用（不使用CZSC）
-```bash
-D:\Tools\CoPaw\venv\Scripts\python.exe "D:\QClawData\workspace\skills\chan-stock-analysis\scripts\chan_v6.py" --code "代码"
+{CZSC_PATH}\.venv\Scripts\python.exe "D:\QClawData\workspace\skills\chan-stock-analysis\scripts\chan_czsc.py" --code "代码"
 ```
 
 ### 绘图模式
 ```bash
-# 生成可视化图表
-D:\QClawData\workspace\czsc\.venv\Scripts\python.exe "D:\QClawData\workspace\skills\chan-stock-analysis\draw_chan_{代码}.py"
+{CZSC_PATH}\.venv\Scripts\python.exe "D:\QClawData\workspace\skills\chan-stock-analysis\scripts\draw_czsc_chart.py" --code "代码"
 ```
+
+### 输出位置
+
+**分析完成后自动执行以下操作**：
+
+1. **保存到本地Obsidian仓库**：
+   - 路径由 `OBSIDIAN_STOCK_DIR` 环境变量或 `scripts/config.py` 中 `OBSIDIAN_STOCK_DIR` 配置项决定（默认 `D:\knowledge\stock`）
+   - 分析报告：`{OBSIDIAN_STOCK_DIR}/{日期}/{日期}_{代码}_缠论分析.md`
+   - 可视化图表：`{OBSIDIAN_STOCK_DIR}/{日期}/{日期}_{时间}_{代码}_czsc_chart.png`
+
+2. **上传到百度云盘**：
+   - 分析报告：`/knowledge/stock/{日期}/{日期}_{代码}_缠论分析.md`
+   - 可视化图表：`/knowledge/stock/{日期}/{日期}_{时间}_{代码}_czsc_chart.png`
+   - **使用bypy工具上传，以最新文件覆盖**
+
+**不再在技能目录保存文件**（保持技能目录清洁）
+
 
 ---
 
