@@ -3,9 +3,15 @@
   "slug": "video-trimmer",
   "displayName": "Video Trimmer",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1774440066544,
-    "commit": "https://github.com/openclaw/skills/commit/b4fb398dfd9de2dec21bc920a27f7497c2f968f8"
+    "version": "1.0.6",
+    "publishedAt": 1774728233543,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1774440066544,
+      "commit": "https://github.com/openclaw/skills/commit/b4fb398dfd9de2dec21bc920a27f7497c2f968f8"
+    }
+  ]
 }

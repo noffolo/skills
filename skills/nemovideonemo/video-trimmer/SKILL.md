@@ -1,6 +1,6 @@
 ---
 name: video-trimmer
-version: "1.0.4"
+version: 1.0.6
 displayName: "Video Trimmer — Cut, Trim and Split Video Clips with AI Chat"
 description: >
   Video Trimmer — Cut, Trim and Split Video Clips with AI Chat.
@@ -8,25 +8,9 @@ description: >
   
   Works by connecting to the NemoVideo AI backend at mega-api-prod.nemovideo.ai.
   Supports MP4, MOV, AVI, WebM.
-homepage: https://nemovideo.com
-repository: https://github.com/nemovideo/nemovideo_skills
-metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": ["NEMO_TOKEN"], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 license: MIT-0
+homepage: https://nemovideo.com
+apiDomain: https://mega-api-prod.nemovideo.ai
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
-
-# Video Trimmer — Cut, Trim and Split Video Clips with AI Chat
-
-Cut and trim videos through chat commands. Remove unwanted sections and split clips without timeline editing.
-
-## Quick Start
-Ask the agent to trim or cut your video using plain language.
-
-## What You Can Do
-- Trim videos by specifying start and end times
-- Cut out unwanted sections from the middle
-- Split long videos into multiple shorter clips
-- Extract specific segments or highlights
-- Remove intro/outro sections automatically
-
-## API
-Uses NemoVideo API (mega-api-prod.nemovideo.ai) for all video processing.
