@@ -3,11 +3,16 @@
   "slug": "investing-video-maker",
   "displayName": "Investing Video Maker",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1774669201841,
-    "commit": "https://github.com/openclaw/skills/commit/ab988e158b6a6e866fd10f00f84c845cc60f0b42"
+    "version": "1.0.0",
+    "publishedAt": 1774731570589,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1774669201841,
+      "commit": "https://github.com/openclaw/skills/commit/ab988e158b6a6e866fd10f00f84c845cc60f0b42"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774611823144,
