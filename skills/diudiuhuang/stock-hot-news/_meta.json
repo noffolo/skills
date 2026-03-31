@@ -1,0 +1,11 @@
+{
+  "owner": "diudiuhuang",
+  "slug": "stock-hot-news",
+  "displayName": "财经热点新闻爬取与话题归纳系统",
+  "latest": {
+    "version": "1.0.5",
+    "publishedAt": 1774699055761,
+    "commit": null
+  },
+  "history": []
+}
