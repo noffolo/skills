@@ -1,0 +1,45 @@
+{
+  "name": "token-exchange",
+  "version": "2.0.0",
+  "description": "Token交易平台 v2.0 - 去中心化Token交易市场，支持订单簿和自动撮合",
+  "author": "Token Master Team",
+  "entry": "exchange_v2.py",
+  "commands": [
+    {
+      "name": "market",
+      "description": "查看市场行情 (24h统计)"
+    },
+    {
+      "name": "orderbook",
+      "description": "查看订单簿深度"
+    },
+    {
+      "name": "buy",
+      "description": "发布买单购买Token"
+    },
+    {
+      "name": "sell",
+      "description": "发布卖单出售Token"
+    },
+    {
+      "name": "orders",
+      "description": "查看我的订单"
+    },
+    {
+      "name": "wallet",
+      "description": "查看钱包余额"
+    },
+    {
+      "name": "cancel",
+      "description": "取消订单"
+    },
+    {
+      "name": "trades",
+      "description": "查看交易历史"
+    }
+  ],
+  "dependencies": [],
+  "homepage": "http://token-master.cn/shop/",
+  "tags": ["token", "exchange", "trading", "marketplace", "orderbook", "matching"],
+  "api_endpoint": "http://api.token-master.cn/v2"
+}
