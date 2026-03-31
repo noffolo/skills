@@ -1,11 +1,11 @@
 ---
 name: secondme
-description: "Manages SecondMe user workflows in OpenClaw: login and authentication, profile viewing and editing, Plaza post browsing and creation, Key Memory storage and search, user discovery, daily activity overview, and third-party skill catalog installation. Trigger when the user mentions SecondMe, login, profile, Plaza, memory, discover, activity, skill install, or OpenClaw."
+description: "Manages SecondMe user workflows in OpenClaw: login and authentication, profile viewing and editing, interest tags (shades), soft memory, chat with SecondMe and session history, Plaza post browsing, creation and commenting, friend management and break-ice, Key Memory storage and search, user discovery, daily activity overview, and third-party skill catalog installation. Trigger when the user mentions SecondMe, login, profile, Plaza, memory, discover, activity, skill install, OpenClaw, friend, chat, 好友, 加好友, 破冰, 评论, 回帖, 聊天, 对话, or 会话."
 license: MIT
 compatibility: Requires network access to SecondMe API (app.mindos.com)
 metadata:
   author: mindverse
-  version: "2.0"
+  version: "2.2.0"
   user-invocable: true
 ---
 
@@ -22,7 +22,7 @@ mkdir -p "$CACHE_DIR"
 LAST=$(cat "$STAMP" 2>/dev/null || echo 0)
 NOW=$(date +%s)
 if [ $((NOW - LAST)) -ge 86400 ]; then
-  if npx skills check 2>&1 | grep -qi "mindverse/second-me-skills"; then
+  if npx skills check 2>&1 | grep -qiE "second-me-skills|second\.me"; then
     npx skills update mindverse/second-me-skills -y 2>&1 || true
   fi
   echo "$NOW" > "$STAMP"
@@ -37,13 +37,20 @@ Rules:
 
 ---
 
+## API Base URL
+
+All API endpoints in this skill use `{BASE}` as the base URL placeholder.
+
+`{BASE}` = `https://app.mindos.com/gate/lab`
+
 This skill owns the normal SecondMe user workflow in OpenClaw.
 
 It covers:
 
 - login, logout, re-login, and token storage
 - profile read and update
-- Plaza activation, posting, and browsing
+- Plaza activation, posting, commenting, and browsing
+- friend management (invite, accept/reject, list, break-ice)
 - discover user browsing
 - Key Memory insert and search
 - daily activity lookup
@@ -75,15 +82,21 @@ Read [references/connect.md](references/connect.md) for the complete flow.
 
 ## Profile
 
-Profile read, guided review with OpenClaw local memory integration, profile update, and first-run handoff to Key Memory sync.
+Profile read, guided review with OpenClaw local memory integration, profile update, interest tags (shades), soft memory, and first-run handoff to Key Memory sync.
 
 Read [references/profile.md](references/profile.md) for the complete flow.
 
 ## Plaza
 
-Plaza access gating, invitation code redemption, post creation with type inference, post detail and comments, feed browsing and search.
+Plaza access gating, invitation code redemption, post creation with type inference, post detail and comments, comment creation, feed browsing and search.
 
 Read [references/plaza.md](references/plaza.md) for the complete flow.
+
+## Friend
+
+Friend invitation, acceptance and rejection, friend list browsing, and break-ice conversation initiation.
+
+Read [references/friend.md](references/friend.md) for the complete flow.
 
 ## Discover
 
@@ -97,6 +110,12 @@ Insert, batch create, search, update, and delete SecondMe Key Memory entries. In
 
 Read [references/key-memory.md](references/key-memory.md) for the complete flow.
 
+## Chat
+
+Stream chat with the user's SecondMe, view session list and message history. Supports multi-modal images and web search augmentation.
+
+Read [references/chat.md](references/chat.md) for the complete flow.
+
 ## Activity
 
 Use this section when the user wants today's activity, a day overview, or the activity for a specific date in SecondMe.
@@ -104,7 +123,7 @@ Use this section when the user wants today's activity, a day overview, or the ac
 Use:
 
 ```
-GET https://app.mindos.com/gate/in/rest/third-party-agent/v1/agent/events/day-overview?date=<yyyy-MM-dd>&pageNo=1&pageSize=10
+GET {BASE}/api/secondme/activity/day-overview?date=<yyyy-MM-dd>&pageNo=1&pageSize=10
 Authorization: Bearer <accessToken>
 ```
 
