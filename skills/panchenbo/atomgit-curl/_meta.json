@@ -3,9 +3,15 @@
   "slug": "atomgit-curl",
   "displayName": "Atomgit Curl",
   "latest": {
-    "version": "1.0.15",
-    "publishedAt": 1774507567186,
-    "commit": "https://github.com/openclaw/skills/commit/b2158f4b7acce655a7dbf758ee2494b3289c48fd"
+    "version": "3.0.4",
+    "publishedAt": 1774576968691,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.15",
+      "publishedAt": 1774507567186,
+      "commit": "https://github.com/openclaw/skills/commit/b2158f4b7acce655a7dbf758ee2494b3289c48fd"
+    }
+  ]
 }
