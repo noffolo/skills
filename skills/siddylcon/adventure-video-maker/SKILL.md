@@ -1,10 +1,13 @@
 ---
 name: adventure-video-maker
-version: "1.0.1"
+version: 1.0.5
 displayName: "Adventure Video Maker — Create Outdoor Adventure and Extreme Sport Videos"
 description: >
-  Adventure Video Maker — Create Outdoor Adventure and Extreme Sport Videos.
-metadata: {"openclaw": {"emoji": "🏔️", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+    Adventure Video Maker — Create Outdoor Adventure and Extreme Sport Videos. Works by connecting to the NemoVideo AI backend. Supports MP4, MOV, AVI, WebM, and MKV output formats. Automatic credential setup on first use — no manual configuration needed.
+metadata: {"openclaw": {"emoji": "🏔️", "requires": {"env": ["NEMO_TOKEN"], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+homepage: https://nemovideo.com
+apiDomain: https://mega-api-prod.nemovideo.ai
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
 ## 0. First Contact
@@ -30,7 +33,7 @@ When the user first interacts, set up the connection:
    - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
 3. **Acquire anonymous token**:
    ```bash
-   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
+   curl -s -X POST "https://mega-api-prod.nemovideo.ai/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
    ```
    Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
 4. **Create a session** (§3.0) so you're ready to work immediately.
