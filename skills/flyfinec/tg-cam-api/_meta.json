@@ -1,0 +1,11 @@
+{
+  "owner": "flyfinec",
+  "slug": "tg-cam-api",
+  "displayName": "TG Cam Skill",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1774665235392,
+    "commit": null
+  },
+  "history": []
+}
