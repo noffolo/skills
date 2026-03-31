@@ -1,11 +1,17 @@
 {
   "owner": "ernestyu",
   "slug": "clawsqlite-knowledge",
-  "displayName": "ClawSQLite Knowledge",
+  "displayName": "Claw SQLite Knowledge",
   "latest": {
-    "version": "0.1.8",
-    "publishedAt": 1774444845666,
-    "commit": "https://github.com/openclaw/skills/commit/0031b961d45dfdaf2cb48300be40d14092a4b403"
+    "version": "0.1.12",
+    "publishedAt": 1774689354222,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.8",
+      "publishedAt": 1774444845666,
+      "commit": "https://github.com/openclaw/skills/commit/0031b961d45dfdaf2cb48300be40d14092a4b403"
+    }
+  ]
 }

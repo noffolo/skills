@@ -32,7 +32,7 @@ wrapper.
 
 - **clawsqlite-knowledge (this skill)**
   - Lives under `clawhub-skills/clawsqlite-knowledge`.
-  - Installed inside the ClawHub environment as a skill.
+  - Installed inside the ClawHub/OpenClaw environment as a skill.
   - Depends on `clawsqlite` via PyPI (no vendored source, no git clone).
   - Exposes a **small JSON API** over stdin/stdout:
     - `ingest_url`
@@ -48,64 +48,137 @@ The idea is:
 
 ---
 
-## 2. Installation (ClawHub)
+## 2. Installation & upgrade (two-stage)
 
-This skill is meant to be installed and run by ClawHub.
+This skill is installed and upgraded in **two stages**:
 
-The bootstrap script installs the PyPI package `clawsqlite` with a
-version requirement that tracks the features this skill expects. For the
-current version, we require:
+1. Install / update the **skill shell** from ClawHub
+2. Install / update the **clawsqlite PyPI package (v0.1.7+)** that the skill
+   depends on
+
+### 2.1 Stage 1 — install the skill shell
+
+From the OpenClaw environment, use the skills CLI to install the skill into
+your active workspace:
+
+```bash
+openclaw skills install clawsqlite-knowledge
+```
+
+This will create a directory like:
 
 ```text
-clawsqlite>=0.1.2
+~/.openclaw/workspace/skills/clawsqlite-knowledge
 ```
 
-This ensures that tag generation, semantic rerank, query keyword
-extraction and hybrid score weights behave as described in the
-`clawsqlite` README.
+At this point you only have:
 
-- The skill manifest (`manifest.yaml`) declares:
-  - A Python runtime
-  - A bootstrap script: `bootstrap_deps.py`
-  - The runtime entry: `run_clawknowledge.py`
-- The bootstrap script installs `clawsqlite` and falls back to a workspace-local
-  prefix if the runtime env is not writable:
+- `SKILL.md`
+- `manifest.yaml`
+- `bootstrap_deps.py`
+- `run_clawknowledge.py`
+- `README.md` / `README_zh.md`
 
-  ```python
-  cmd = [sys.executable, "-m", "pip", "install", "clawsqlite>=0.1.2"]
-  proc = subprocess.run(cmd)
-  if proc.returncode != 0:
-      subprocess.run([...,"--prefix=.clawsqlite-venv"])
+> **Important:** After Stage 1, the skill shell is present, but the underlying
+> `clawsqlite` CLI may still be missing or outdated. Stage 2 ensures
+> `clawsqlite>=0.1.7` is available in the runtime Python environment.
+
+### 2.2 Stage 2 — install or upgrade `clawsqlite` (PyPI, v0.1.7)
+
+The second stage is handled by the bootstrap script declared in
+`manifest.yaml`:
+
+```yaml
+install:
+  - id: clawsqlite_knowledge_bootstrap
+    kind: python
+    label: Install clawsqlite from PyPI
+    script: bootstrap_deps.py
+```
+
+The script content (simplified) is:
+
+```python
+requirement = "clawsqlite>=0.1.7"
+cmd = [sys.executable, "-m", "pip", "install", requirement]
+proc = subprocess.run(cmd)
+if proc.returncode != 0:
+    prefix = _workspace_prefix()
+    subprocess.run([
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        requirement,
+        f"--prefix={prefix}",
+    ])
+```
+
+This means:
+
+- It first tries to install `clawsqlite>=0.1.7` into the default Python
+  environment used by the skill runtime;
+- If that environment is read‑only (or `pip install` fails), it falls back to a
+  **workspace‑local prefix** under:
+
+  ```text
+  <workspace>/skills/clawsqlite-knowledge/.clawsqlite-venv
   ```
 
-There are **no** git clones, no extra `pip install` calls, and no system
-package installs at runtime. All heavy code lives in the public
-`clawsqlite` package.
+- On success in the prefix, the script prints a `NEXT:` hint describing how the
+  runtime will add the prefix site‑packages directory to `PYTHONPATH`, so both
+  the skill and any manual CLI calls can see the installed `clawsqlite`.
 
-Once installed by ClawHub, agents can invoke the skill by sending JSON
-payloads to `run_clawknowledge.py`.
-
----
-
-### 2.1 OpenClaw workspace-friendly setup (recommended)
-
-If the OpenClaw runtime uses a read-only venv, the bootstrap fallback installs
-`clawsqlite` under `<workspace>/.clawsqlite-venv`. The runtime auto-adds that
-prefix site-packages directory to `PYTHONPATH` when present.
-
-For vector search (vec0), a workspace-local sqlite-vec install is the safest:
+To trigger Stage 2 explicitly after installing the skill shell, run:
 
 ```bash
-python -m pip install "sqlite-vec>=0.1.7" --prefix="./.sqlite-vec"
-CLAWSQLITE_VEC_EXT=<workspace>/.sqlite-vec/lib/python3.X/site-packages/sqlite_vec/vec0.so
-CLAWSQLITE_VEC_DIM=<your-embedding-dim>
+cd ~/.openclaw/workspace/skills/clawsqlite-knowledge
+python bootstrap_deps.py
 ```
 
-For URL ingestion, configure a workspace scraper (clawfetch):
+or, from the OpenClaw CLI if supported:
 
 ```bash
-CLAWSQLITE_SCRAPE_CMD="node <workspace>/clawfetch/clawfetch.js --auto-install"
+openclaw skills install clawsqlite-knowledge  # re-runs the install hooks
 ```
+
+> **Note:** This skill **never** vendors `clawsqlite` source code or clones the
+> GitHub repo. The only way it brings in code is via `pip install
+> "clawsqlite>=0.1.7"`.
+
+### 2.3 Where is the `clawsqlite` CLI installed?
+
+Depending on your environment:
+
+- If `pip install clawsqlite>=0.1.7` succeeds in the base runtime venv, the
+  `clawsqlite` entrypoint will live in that venv’s `bin` directory and be
+  importable as the `clawsqlite_cli` module.
+- If the bootstrap falls back to the workspace prefix,
+  `clawsqlite` will be installed under:
+
+  ```text
+  <workspace>/skills/clawsqlite-knowledge/.clawsqlite-venv/
+  ```
+
+  The runtime will add that prefix’s `site-packages` directory to
+  `PYTHONPATH` before executing `run_clawknowledge.py`, so that
+  `python -m clawsqlite_cli` works as expected.
+
+For OpenClaw users who also want to use the `clawsqlite` CLI manually on the
+host, a safe pattern is:
+
+```bash
+cd ~/.openclaw/workspace/skills/clawsqlite-knowledge
+PYTHONPATH="$(python - << 'EOF'
+from bootstrap_deps import _workspace_prefix, _site_packages
+p = _workspace_prefix()
+print(_site_packages(p))
+EOF)"$PYTHONPATH" \
+  python -m clawsqlite_cli knowledge --help
+```
+
+But in normal Skill usage, you do **not** need to care about this — the runtime
+handles it automatically.
 
 ---
 
@@ -145,10 +218,10 @@ Ingest a web article via URL.
 {
   "action": "ingest_url",
   "url": "https://mp.weixin.qq.com/s/UzgKeQwWWoV4v884l_jcrg",
-  "title": "微信文章: Ground Station 项目",  
+  "title": "WeChat article: Ground Station project",
   "category": "web",
   "tags": "wechat,ground-station",
-  "gen_provider": "openclaw",  
+  "gen_provider": "openclaw",
   "root": "/home/node/.openclaw/workspace/knowledge_data"
 }
 ```
@@ -169,11 +242,11 @@ Ingest a note/idea/quote as plain text.
 ```json
 {
   "action": "ingest_text",
-  "text": "今天想到一个关于网络抓取架构的想法……",
-  "title": "网络抓取架构随记",
+  "text": "Today I had an idea about a web scraping architecture...",
+  "title": "Notes on web scraping architecture",
   "category": "idea",
   "tags": "crawler,architecture",
-  "gen_provider": "openclaw",  
+  "gen_provider": "openclaw",
   "root": "/home/node/.openclaw/workspace/knowledge_data"
 }
 ```
@@ -187,7 +260,8 @@ This is the path for:
 The underlying `clawsqlite knowledge ingest --text ...` call will:
 
 - Generate a long summary (up to ~800 characters, soft‑truncated)
-- Extract tags using jieba/heuristics
+- Extract tags using jieba/heuristics (in clawsqlite>=0.1.7 these reuse the
+  same TextRank/semantic pipelines as the query‑side keyword extraction)
 - Optionally embed the summary (when embedding is configured)
 - Store a markdown file with a pinyin/ASCII slug filename
 
@@ -201,21 +275,33 @@ Under the hood this calls `clawsqlite knowledge search ...` with:
   embeddings or vec0 are not available;
 - tag‑aware scoring: tags are generated from article content via
   TextRank/TF‑IDF + optional semantic rerank (when embeddings + jieba are
-  available) and used as an extra signal in the final score;
+  available) and used as an extra signal in the final score. In
+  clawsqlite>=0.1.7, the scorer embeds both summary and tags into vec0
+  tables, normalizes vector distances via a logistic sigmoid over
+  `1/(1+d)`, and splits the tag channel into semantic (vector) and
+  lexical (FTS) parts; lexical tag scores can be log-compressed via
+  `CLAWSQLITE_TAG_FTS_LOG_ALPHA` so partial hits do not dominate;
 - query keyword extraction: natural‑language queries are converted to a
   small set of keywords using the same heuristics as tag generation
   (TextRank + optional semantic centrality), then normalized for FTS.
 
-You can further tune the hybrid scoring behavior via the
-`CLAWSQLITE_SCORE_WEIGHTS` env (see `ENV_EXAMPLE.md` and the underlying
-`clawsqlite` README for details).
+You can further tune the hybrid scoring behavior via:
+
+- `CLAWSQLITE_SCORE_WEIGHTS` (overall vec/fts/tag/priority/recency weights);
+- `CLAWSQLITE_TAG_VEC_FRACTION` (split of the tag channel between
+  semantic tag vectors and lexical tag match);
+- `CLAWSQLITE_TAG_FTS_LOG_ALPHA` (strength of log compression applied to
+  lexical tag scores).
+
+See `ENV_EXAMPLE.md` and the underlying `clawsqlite` README for details
+and recommended values for mixed Chinese/English knowledge bases.
 
 **Payload example:**
 
 ```json
 {
   "action": "search",
-  "query": "网络爬虫 架构",
+  "query": "web scraping architecture",
   "mode": "hybrid",
   "topk": 10,
   "category": "idea",
@@ -320,7 +406,7 @@ See the `clawsqlite` README for the full behavior and env matrix.
 
 ---
 
-## 7. Upgrade notes (clawsqlite>=0.1.2)
+## 7. Upgrade notes (clawsqlite>=0.1.7)
 
-- This Skill now depends on `clawsqlite>=0.1.2`; updates will install the new PyPI version via `bootstrap_deps.py`.
+- This Skill now depends on `clawsqlite>=0.1.7`; updates will install the new PyPI version via `bootstrap_deps.py`.
 - In OpenClaw, a typical rollout is: `openclaw skills update clawsqlite-knowledge`, then rebuild FTS if you changed `CLAWSQLITE_FTS_JIEBA`.
