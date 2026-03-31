@@ -101,7 +101,7 @@ See `references/research-notes.md` for full citations and design mappings.
 After generating your workspace:
 
 1. **Use persona-builder again** if you want to refine answers or start fresh
-2. **Install agent-ops-toolkit** to set up nightly extraction, morning briefs, heartbeat monitoring
+2. **Install Ops Toolkit** to set up nightly extraction, morning briefs, heartbeat monitoring
 3. **Read the quickstart guide** (`products/guide/zero-to-operator.md`) for step-by-step agent setup
 4. **Iterate** — SOUL.md and other files are living documents, edit as you learn
 
@@ -116,7 +116,7 @@ After generating your workspace:
 Built by Keats. Research-backed. Battle-tested.
 
 Persona Builder is part of the Agent Ops Toolkit ecosystem. It pairs well with:
-- **agent-ops-toolkit:** Nightly extraction, morning briefs, heartbeat monitoring, memory decay
+- **Ops Toolkit:** Nightly extraction, morning briefs, heartbeat monitoring, memory decay
 - **zero-to-operator guide:** End-to-end setup walkthrough from fresh OpenClaw install
 
 ---

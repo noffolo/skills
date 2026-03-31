@@ -24,6 +24,8 @@ version: 1.0.0
 Persona Builder is a structured interview skill that guides OpenClaw users through a 
 comprehensive setup process, then generates a complete, research-backed agent workspace.
 
+Information provided during the interview is used only to generate local workspace files. Nothing is transmitted externally or stored outside your workspace.
+
 **Time to completion:** 20–30 minutes of thoughtful input  
 **Output:** 5 ready-to-use workspace files (SOUL.md, IDENTITY.md, MEMORY.md, AGENTS.md, USER.md)  
 **Research backing:** Semantic XPath (hierarchical memory), Retrieval Bottleneck (atomic facts), MemPO (self-managed decay)
