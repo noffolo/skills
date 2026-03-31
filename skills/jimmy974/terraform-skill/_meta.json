@@ -1,0 +1,11 @@
+{
+  "owner": "jimmy974",
+  "slug": "terraform-skill",
+  "displayName": "Terraform Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774708630881,
+    "commit": null
+  },
+  "history": []
+}
