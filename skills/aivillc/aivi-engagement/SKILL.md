@@ -1,54 +1,52 @@
 ---
 name: aivi-engagement
 description: AIVI is the AI engagement layer for lead generation, contact centers, and customer re-activation. Every conversation is analyzed in real-time, building Conversational Intelligence that makes every future interaction smarter.
-version: 1.0.8
+version: 1.1.0
 author: AIVI
 url: https://aivi.io
-requires:
-  env:
-    - AIVI_API_KEY
+requires: {}
 ---
 
 ## Getting Started
 
-### Setup (One Time — 15 minutes)
+### Setup (One Time)
 
 1. Create your account at app.aivi.io
+   Sign in with Google or email.
 
-2. Get your API key:
-   Profile icon → Settings → API Keys → Generate API Key
+2. Connect AIVI to your agent:
 
-3. Configure your agent with your API key:
+**Claude Code:**
+```
+claude mcp add --transport http aivi https://mcp.aivi.io/mcp
+```
 
-   Claude Code:
-   ```
-   claude mcp add --transport http aivi https://mcp.aivi.io/mcp --env AIVI_API_KEY=aivi_sk_xxxxx
-   ```
+Then authenticate:
+`/mcp` → select AIVI → Authenticate
+Browser opens → sign in with Google → click Allow Access → done.
+Tokens persist across server redeploys (Redis-backed).
 
-   Claude Desktop:
-   ```json
-   {
-     "mcpServers": {
-       "aivi": {
-         "url": "https://mcp.aivi.io/mcp",
-         "headers": {
-           "X-AIVI-API-Key": "aivi_sk_xxxxx"
-         }
-       }
-     }
-   }
-   ```
+**Claude Desktop / claude.ai:**
+Settings → Connectors → Add
+URL: `https://mcp.aivi.io/mcp`
+Sign in when browser opens.
 
-   OpenClaw / NemoClaw:
-   ```
-   export AIVI_API_KEY=aivi_sk_xxxxx
-   clawhub install aivi-engagement
-   ```
+**ChatGPT Developer Mode:**
+Settings → Connectors → Developer Mode
+Add URL: `https://mcp.aivi.io/mcp`
+Sign in when prompted.
 
-   ChatGPT Developer Mode:
-   Settings → Connectors → Developer Mode → Add URL: `https://mcp.aivi.io/mcp`
+**OpenClaw / NemoClaw:**
+```
+clawhub install aivi-engagement
+```
+Then authenticate: `/mcp` → AIVI → Authenticate → done.
 
-Need help with account setup? Full guide at app.aivi.io/getting-started
+**All other MCP clients:**
+Endpoint: `https://mcp.aivi.io/mcp`
+Supports OAuth 2.1 + PKCE.
+
+Need help? app.aivi.io/getting-started
 
 ---
 
@@ -59,43 +57,14 @@ Need help with account setup? Full guide at app.aivi.io/getting-started
 | Transport | HTTP (streamable-http) |
 | Endpoint | https://mcp.aivi.io/mcp |
 | Health | https://mcp.aivi.io/health |
+| Auth Resolve | https://mcp.aivi.io/auth/resolve?authorization_id={id} |
 | Compatible | Claude Code, Claude Desktop, OpenClaw, NemoClaw, ChatGPT, any MCP client |
-
----
-
-## Storing Your API Key Securely
-
-Never paste your API key into chat or conversation history.
-
-AIVI reads your key automatically from the AIVI_API_KEY environment variable. Set it once in your MCP client — you never need to mention it again.
-
-**How to set it depends on your client:**
-
-Most MCP clients support one of these:
-
-1. Environment variable in client config:
-   `AIVI_API_KEY=aivi_sk_xxxxx`
-
-2. Headers in MCP server config:
-   `X-AIVI-API-Key: aivi_sk_xxxxx`
-
-3. Shell environment (persists across sessions):
-   Add to `~/.zshrc` or `~/.bashrc`:
-   `export AIVI_API_KEY=aivi_sk_xxxxx`
-
-Check your MCP client's documentation for how to set environment variables or request headers for remote servers.
-
-**Password manager recommended:**
-Store your API key in 1Password, Bitwarden, or your organization's secret store. Rotate it at app.aivi.io → Settings → API Keys if you suspect it was exposed.
 
 ---
 
 ## Agent Behavior Rules
 
-The AIVI_API_KEY environment variable is read automatically. If not set, direct the user to configure it in their MCP client settings — not to paste it in chat.
-
-If skill returns invalid_api_key:
-> "Your AIVI API key is not configured. Set AIVI_API_KEY in your MCP client settings. Get your key at app.aivi.io → Settings → API Keys"
+Authentication is handled automatically via OAuth 2.1. If credentials are missing, direct user to run `/mcp` auth in Claude Code or reconnect via Settings → Connectors. Do not ask for API keys.
 
 If skill returns insufficient_funds:
 > "Add credits at app.aivi.io → Billing"
@@ -130,9 +99,8 @@ Use this skill when the user wants to:
 - Launch a premium Supercharged campaign
 
 ## Setup Required
-Get your API key at app.aivi.io → Profile → Settings → API Keys
-
 MCP endpoint: https://mcp.aivi.io/mcp
+Auth: OAuth 2.1 (automatic).
 
 ## Available Skills
 
