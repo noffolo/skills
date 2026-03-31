@@ -316,8 +316,11 @@
 
       <div class="col right">
         <div class="toolbar">
+          <span id="mode-badge" class="mode-badge" style="display:none; margin-right:8px; padding:2px 10px; border-radius:4px; font-size:13px; font-weight:600; color:#fff; background:#888;"></span>
           <button id="btn-import" class="btn">导入 JSON</button>
           <button id="btn-load-api" class="btn">从 API 加载</button>
+          <button id="btn-save-review" class="btn" style="display:none;" title="保存审核修改到磁盘（直接导出将使用最新修改）">💾 保存审核</button>
+          <span id="save-status" style="display:none; font-size:12px; margin-right:4px;"></span>
           <button id="btn-export" class="btn primary">提交视频导出任务</button>
         </div>
         <div class="editor">
@@ -489,6 +492,8 @@
         undo: [],
         redo: [],
         ve: null,
+        executionMode: 'cloud',  // 'apig' | 'cloud' | 'local' — 由 review_import_data._execution_mode 设置
+        dirty: false,            // 是否有未保存的审核修改
       }
 
       function restoreTrackSource(track) {
@@ -499,6 +504,19 @@
             if (!el || typeof el !== 'object') continue
             const typ = (el.Type || '').toLowerCase()
             if (typ !== 'video' && typ !== 'audio') continue
+            const ud = el.UserData || {}
+            const previewUrl = ud.url
+            const src0 = el.Source
+            // 本地模式：prepare_export_data 在 UserData.url 提供 /local-media/...，必须用其预览，否则裸绝对路径会变成 http://host/Users/... 导致 404
+            if (
+              previewUrl &&
+              /^https?:\/\//i.test(String(previewUrl)) &&
+              src0 &&
+              !/^(vid|http|https|directurl):\/\//i.test(String(src0))
+            ) {
+              el.Source = String(previewUrl)
+              continue
+            }
             const src = el.Source
             if (!src || /^(vid|http|https|directurl):\/\//i.test(src)) continue
             const prefix = state.sourceById[src]
@@ -674,6 +692,7 @@
           activeId: state.activeId,
         })
         state.redo = []
+        _markDirty()
         renderUndoRedo()
       }
 
@@ -1011,6 +1030,25 @@
         } else {
           t.push(subtitleTrack)
         }
+        if (!exportMode) {
+          restoreTrackSource(t)
+        } else {
+          for (const lane of t) {
+            if (!Array.isArray(lane)) continue
+            for (const el of lane) {
+              if (!el || typeof el !== 'object') continue
+              const typ = (el.Type || '').toLowerCase()
+              if (typ !== 'video' && typ !== 'audio') continue
+              const ud = el.UserData || {}
+              // local 模式: Source 已是 /local-media/ URL（由后端 prepare_export_data 写入），
+              // 导出时 apply_review_to_export 会将其转回裸路径供 ffmpeg 使用，无需在前端恢复
+              if (state.executionMode === 'local') continue
+              if (ud.source != null && String(ud.source).length > 0) {
+                el.Source = String(ud.source)
+              }
+            }
+          }
+        }
         return t
       }
 
@@ -1028,7 +1066,10 @@
             const typ = (el.Type || '').toLowerCase()
             const clean = { Type: el.Type, TargetTime: el.TargetTime }
             if (typ === 'video' || typ === 'audio') {
-              clean.Source = el.Source
+              clean.Source =
+                ud.source != null && String(ud.source).length > 0
+                  ? String(ud.source)
+                  : el.Source
               clean.Extra = (el.Extra || [])
                 .filter(
                   (f) =>
@@ -1311,6 +1352,14 @@
         state.mutedVoiceIds = Array.isArray(data.mutedVoiceIds)
           ? data.mutedVoiceIds
           : []
+
+        // 读取执行模式并更新 UI
+        if (data._execution_mode) {
+          state.executionMode = data._execution_mode
+        }
+        _updateModeUI()
+        state.dirty = false
+        _updateSaveUI()
         state.sourceById = {}
         for (const lane of track) {
           if (!Array.isArray(lane)) continue
@@ -1324,6 +1373,8 @@
               state.sourceById[src.slice(6)] = 'vid://'
             } else if (src.startsWith('directurl://')) {
               state.sourceById[src.slice(12)] = 'directurl://'
+            } else if (/^https?:\/\/.*\/local-media\//i.test(src)) {
+              // local 模式: Source 已是 /local-media/ URL, 无需额外映射
             }
           }
         }
@@ -1407,7 +1458,9 @@
           })()
           const msg =
             data.Status === 'success'
-              ? `导出成功\nOutputVid: ${data.OutputVid || ''}\nPlayURL: ${data.PlayURL || ''}`
+              ? (state.executionMode === 'local'
+                ? `本地导出成功\n输出文件: ${data.OutputFile || data.PlayURL || ''}`
+                : `导出成功\nOutputVid: ${data.OutputVid || ''}\nPlayURL: ${data.PlayURL || ''}`)
               : data.error
                 ? `导出失败: ${data.error}`
                 : data.Status === 'failed_run' && data.Message
@@ -1429,7 +1482,85 @@
         }
       }
 
-      function initEditor() {
+      // ─── 模式感知 UI ────────────────────────────────────
+      function _updateModeUI() {
+        const badge = $('mode-badge')
+        const exportBtn = $('btn-export')
+        const saveBtn = $('btn-save-review')
+        if (!badge) return
+        const mode = state.executionMode || 'cloud'
+        const modeMap = {
+          apig:  { label: 'APIG 模式',  color: '#1890ff' },
+          cloud: { label: '云端模式',    color: '#52c41a' },
+          local: { label: '本地模式',    color: '#fa8c16' },
+        }
+        const info = modeMap[mode] || modeMap.cloud
+        badge.textContent = info.label
+        badge.style.background = info.color
+        badge.style.display = 'inline-block'
+        // 导出按钮文案
+        if (exportBtn) {
+          exportBtn.textContent = mode === 'local' ? '本地导出视频' : '提交视频导出任务'
+        }
+        // 保存按钮仅在有后端支持时显示
+        if (saveBtn) saveBtn.style.display = 'inline-block'
+      }
+
+      function _updateSaveUI() {
+        const el = $('save-status')
+        if (!el) return
+        if (state.dirty) {
+          el.textContent = '● 未保存'
+          el.style.color = '#fa8c16'
+          el.style.display = 'inline'
+        } else {
+          el.textContent = '✓ 已保存'
+          el.style.color = '#52c41a'
+          el.style.display = 'inline'
+          setTimeout(() => { if (!state.dirty) el.style.display = 'none' }, 3000)
+        }
+      }
+
+      function _markDirty() {
+        if (!state.dirty) {
+          state.dirty = true
+          _updateSaveUI()
+        }
+      }
+
+      async function saveReview() {
+        const saveBtn = $('btn-save-review')
+        const saveStatus = $('save-status')
+        if (saveBtn) saveBtn.disabled = true
+        if (saveStatus) { saveStatus.textContent = '正在保存...'; saveStatus.style.color = '#1890ff'; saveStatus.style.display = 'inline'; }
+        const payload = {
+          sentences: state.sentences,
+          baseTrack: state.baseTrack,
+          mergedTrack: buildMergedTrack({ exportMode: false }),
+          canvas: getCanvas(),
+          _execution_mode: state.executionMode,
+        }
+        try {
+          const resp = await fetch('/api/save-review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+          const data = await resp.json()
+          state.dirty = false
+          _updateSaveUI()
+          console.log('[save-review] 保存成功', data)
+        } catch (e) {
+          if (saveStatus) { saveStatus.textContent = '保存失败'; saveStatus.style.color = '#ff4d4f'; saveStatus.style.display = 'inline'; }
+          console.error('[save-review] 保存失败', e)
+          showCopyableAlert('保存失败', '审核数据保存失败：' + (e?.message || String(e)))
+        } finally {
+          if (saveBtn) saveBtn.disabled = false
+        }
+      }
+
+            function initEditor() {
         if (!window.VeVEditor) {
           alert('VeVEditor 未加载成功')
           return
@@ -1755,6 +1886,7 @@
       })
       $('btn-dump-io').addEventListener('click', dumpExportJson)
       $('btn-export').addEventListener('click', callExport)
+      $('btn-save-review').addEventListener('click', saveReview)
 
       // boot：先加载数据再初始化编辑器，确保 canvas 使用视频真实尺寸（非默认 1280x2160）
       ;(async () => {

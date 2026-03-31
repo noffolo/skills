@@ -7,14 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-
-def get_project_root() -> Path:
-    # 工程根：与 SKILL_DIR 之间固定相隔两级父目录（<工程根>/<任意>/<任意>/<SKILL_DIR名>/）。
-    skill_root = Path(__file__).resolve().parents[1]
-    try:
-        return skill_root.parents[2]
-    except IndexError:
-        return skill_root.parent
+from project_paths import get_project_root
 
 
 def main() -> None:

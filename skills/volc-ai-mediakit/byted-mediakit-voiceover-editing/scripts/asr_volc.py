@@ -11,24 +11,11 @@ from typing import Any, Dict, Optional, Tuple
 import requests
 from dotenv import load_dotenv
 
+from project_paths import get_project_root
+
+
 def get_script_dir() -> Path:
     return Path(__file__).resolve().parent
-
-
-def get_project_root() -> Path:
-    """
-    项目根：动态推断，避免依赖固定目录结构。
-
-    规则：
-    - 工程根：与 SKILL_DIR 之间固定相隔两级父目录（不依赖固定目录名）
-
-    默认 ASR 落盘目录为 ``<project_root>/output/``，与 pipeline 等脚本一致。
-    """
-    skill_root = get_script_dir().parent
-    try:
-        return skill_root.parents[2]
-    except IndexError:
-        return skill_root.parent
 
 
 def get_output_dir() -> Path:

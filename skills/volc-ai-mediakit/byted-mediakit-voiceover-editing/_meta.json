@@ -3,9 +3,15 @@
   "slug": "byted-mediakit-voiceover-editing",
   "displayName": "Byted Mediakit Voiceover Editing",
   "latest": {
-    "version": "1.0.8",
-    "publishedAt": 1774599198640,
-    "commit": "https://github.com/openclaw/skills/commit/9bcccfe63cfd01986ad7478a7783fc67cd132c1b"
+    "version": "1.0.9",
+    "publishedAt": 1774876519782,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.8",
+      "publishedAt": 1774599198640,
+      "commit": "https://github.com/openclaw/skills/commit/9bcccfe63cfd01986ad7478a7783fc67cd132c1b"
+    }
+  ]
 }

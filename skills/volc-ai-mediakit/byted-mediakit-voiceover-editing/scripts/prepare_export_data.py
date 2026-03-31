@@ -14,6 +14,9 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from project_paths import get_project_root
+
+
 def _load_skill_env() -> None:
     try:
         from dotenv import load_dotenv
@@ -44,15 +47,6 @@ def _should_export_video_cut(
     return has_subtitle or has_mute
 
 
-def _project_root() -> Path:
-    # 工程根：与 SKILL_DIR 之间固定相隔两级父目录（<工程根>/<任意>/<任意>/<SKILL_DIR名>/）。
-    skill_root = Path(__file__).resolve().parents[1]
-    try:
-        return skill_root.parents[2]
-    except IndexError:
-        return skill_root.parent
-
-
 _OUTPUT_DIR_OVERRIDE: Path | None = None
 
 
@@ -60,7 +54,7 @@ def _output_dir() -> Path:
     if _OUTPUT_DIR_OVERRIDE is not None:
         _OUTPUT_DIR_OVERRIDE.mkdir(parents=True, exist_ok=True)
         return _OUTPUT_DIR_OVERRIDE
-    out = _project_root() / "output"
+    out = get_project_root() / "output"
     out.mkdir(parents=True, exist_ok=True)
     return out
 
@@ -554,6 +548,28 @@ def _global_unique_id() -> str:
     return uuid.uuid4().hex[:12]
 
 
+def _resolve_existing_file_path(path_str: str, output_dir: Path) -> str:
+    """解析为磁盘上存在的绝对路径字符串；否则返回原串（供 URL 编码尝试）。"""
+    if not path_str or not str(path_str).strip():
+        return ""
+    p = Path(path_str.strip())
+    if p.is_file():
+        return str(p.resolve())
+    cand = output_dir / path_str.strip()
+    if cand.is_file():
+        return str(cand.resolve())
+    return str(path_str).strip()
+
+
+def _local_media_url(local_path: str, host: str, port: int) -> str:
+    """将本地文件路径转换为审核页可访问的 HTTP URL（须与 serve_review_page /local-media 一致）。"""
+    from urllib.parse import quote
+    if not local_path:
+        return ""
+    # quote 默认 safe='/'，保留路径分隔符，便于服务端匹配 /local-media/...
+    return f"http://{host}:{port}/local-media{quote(local_path)}"
+
+
 def main() -> None:
     global _OUTPUT_DIR_OVERRIDE
     parser = argparse.ArgumentParser()
@@ -565,11 +581,14 @@ def main() -> None:
     parser.add_argument("--write-step6", action="store_true", help="将修正后的数据写回 step6 文件（去除 mute、校正时间）")
     parser.add_argument("--platform-selection", default="platform_selection.json", help="平台选择 JSON（可选，若存在则用其 canvas/video_source）")
     parser.add_argument("--output-dir", default="", help="输出目录，默认 output；可指定 output/<文件名>")
+    parser.add_argument("--review-host", default="127.0.0.1", help="审核页服务地址（local 模式用于生成媒体 URL）")
+    parser.add_argument("--review-port", type=int, default=5173, help="审核页服务端口（local 模式用于生成媒体 URL）")
+    parser.add_argument("--direct-export", action="store_true", help="local 模式下跳过审核页直接导出最终视频")
     args = parser.parse_args()
 
     if args.output_dir:
         out_str = str(args.output_dir).strip()
-        proj_root = _project_root()
+        proj_root = get_project_root()
         out_base = (proj_root / "output").resolve()
         cand = Path(out_str)
 
@@ -593,16 +612,38 @@ def main() -> None:
 
         _OUTPUT_DIR_OVERRIDE.mkdir(parents=True, exist_ok=True)
     else:
-        _OUTPUT_DIR_OVERRIDE = None
-        # 仅在用户未显式指定输出目录时，提示用户该 output 下存在多个 step6 项
-        out_root = _project_root() / "output"
+        from output_dir_resolve import infer_prepare_output_dir
+
+        out_root = get_project_root() / "output"
         if out_root.exists():
-            subdirs = [d for d in out_root.iterdir() if d.is_dir() and (d / "step6_speech_cut.json").exists()]
+            subdirs = [d for d in out_root.iterdir() if d.is_dir() and (d / args.step6).exists()]
             if len(subdirs) > 1:
-                print(f"[提示] 检测到多个项目目录: {[d.name for d in subdirs]}，建议用 --output-dir output/<目录名> 指定")
+                print(
+                    f"[提示] 检测到多个目录含 {args.step6}: {[d.name for d in subdirs]}，"
+                    f"将按文件修改时间选用最新一份；建议显式使用 --output-dir output/<目录名>"
+                )
+        _OUTPUT_DIR_OVERRIDE = infer_prepare_output_dir(args.step6)
+        _OUTPUT_DIR_OVERRIDE.mkdir(parents=True, exist_ok=True)
 
     _load_skill_env()
     space = os.getenv("VOLC_SPACE_NAME", "").strip()
+
+    # 检测执行模式：优先用 execution_mode 自动检测（基于当前环境变量），
+    # 不依赖 step1 历史数据（上次 local 模式的 step1 不应锁定本次模式）
+    is_local = False
+    _env_is_apig = False
+    try:
+        from execution_mode import resolve_mode, ExecutionMode
+        _current_mode = resolve_mode(interactive=False)
+        is_local = _current_mode == ExecutionMode.LOCAL
+        _env_is_apig = _current_mode == ExecutionMode.APIG
+    except Exception:
+        # fallback: 检查 step1（仅当 resolve_mode 不可用时）
+        step1_check_path = _output_dir() / "step1_preuploaded.json"
+        if step1_check_path.exists():
+            _s1_tmp = _parse_json_file(step1_check_path)
+            if _s1_tmp.get("_execution_mode") == "local" or _s1_tmp.get("AssetType") == "LocalFile":
+                is_local = True
 
     step6 = _read_json(args.step6)
     step3 = _read_json("step3_voice_separation_result.json")
@@ -647,9 +688,11 @@ def main() -> None:
         _write_json(args.step6, step6_out)
         print(f"[OK] 已写回 output/{args.step6}（去除 {len(segments) - len(filtered)} 个 mute 段，时间已校正）")
 
-    # URL 解析：优先用已有 PlayURL/Url，否则调用 get_play_url
+    # URL 解析：local 模式无需 ApiManage/VOD，直接使用本地路径
     api = None
-    if space:
+    if is_local:
+        print("[信息] local 模式：使用本地文件路径，跳过 VOD API")
+    elif space:
         try:
             from api_manage import ApiManage
             api = ApiManage()
@@ -691,7 +734,17 @@ def main() -> None:
 
     # 1. 数据预处理前获取视频源信息（宽高），未指定平台时用原始框高
     video_width, video_height = 1280, 2160  # 默认
-    if api and space and (args.width <= 0 or args.height <= 0):
+    if is_local and (args.width <= 0 or args.height <= 0):
+        local_source = step1.get("LocalPath") or step1.get("AssetValue", "")
+        if local_source and Path(local_source).is_file():
+            try:
+                from ffmpeg_utils import probe_video_info
+                info = probe_video_info(Path(local_source))
+                video_width = int(info.get("Width") or 1280)
+                video_height = int(info.get("Height") or 2160)
+            except Exception as e:
+                print(f"[警告] 获取本地视频尺寸失败，使用默认: {e}")
+    elif api and space and (args.width <= 0 or args.height <= 0):
         try:
             if vid:
                 info = api.get_play_video_info(vid, space)
@@ -729,6 +782,25 @@ def main() -> None:
     if not bg_url:
         bg_url = bg_info.get("Url", "")
 
+    # local 模式：为审核页生成 HTTP 可访问的媒体 URL（解析 output 下相对路径）
+    if is_local:
+        _rh, _rp = args.review_host, args.review_port
+        _od = _output_dir()
+        v_for_preview = _resolve_existing_file_path(str(video_url), _od) if video_url else ""
+        vo_for_preview = _resolve_existing_file_path(str(voice_url), _od) if voice_url else ""
+        if not vo_for_preview and voice_direct:
+            vo_for_preview = _resolve_existing_file_path(str(voice_direct), _od)
+        bg_for_preview = _resolve_existing_file_path(str(bg_url), _od) if bg_url else ""
+        if not bg_for_preview and bg_direct:
+            bg_for_preview = _resolve_existing_file_path(str(bg_direct), _od)
+        video_review_url = _local_media_url(v_for_preview, _rh, _rp) if v_for_preview else ""
+        voice_review_url = _local_media_url(vo_for_preview, _rh, _rp) if vo_for_preview else ""
+        bg_review_url = _local_media_url(bg_for_preview, _rh, _rp) if bg_for_preview else ""
+    else:
+        video_review_url = video_url
+        voice_review_url = voice_url
+        bg_review_url = bg_url
+
     # 总时长 (ms) - 取最后 segment 的 end_time
     total_ms = max((int(s.get("end_time") or 0) for s in segments), default=0)
 
@@ -764,7 +836,14 @@ def main() -> None:
         "Type": "a_volume",
         "Volume": 0,
     }
-    video_source = f"vid://{vid}" if vid else (f"directurl://{video_directurl}" if video_directurl else "directurl://video")
+    if is_local:
+
+        local_video_path = step1.get("LocalPath") or step1.get("AssetValue", "")
+        video_source_raw = local_video_path or vid or ""
+        video_source = _local_media_url(local_video_path, _rh, _rp) if local_video_path else video_source_raw
+    else:
+        video_source = f"vid://{vid}" if vid else (f"directurl://{video_directurl}" if video_directurl else "directurl://video")
+        video_source_raw = video_source  # cloud/apig 无需区分
     video_lane = [{
         "ID": vid_id,
         "Type": "video",
@@ -776,7 +855,7 @@ def main() -> None:
             "name": "main",
             "source": video_source,
             "type": "video",
-            "url": video_url,
+            "url": video_review_url,
             "width": video_width,
             "height": video_height,
             "aspectRatio": video_width / video_height if video_height else 1,
@@ -807,16 +886,22 @@ def main() -> None:
             "id": voice_id,
             "source": voice_direct or "voice",
             "type": "audio",
-            "url": voice_url,
+            "url": voice_review_url,
         }
         if i == 0:
             ud["laneLabel"] = "人声"
         if vs.get("is_mute"):
             ud["status"] = "muted"
+        if is_local:
+            voice_source_raw = voice_direct or voice_url
+            voice_source = _local_media_url(voice_source_raw, _rh, _rp) if voice_source_raw else ""
+        else:
+            voice_source = f"directurl://{voice_direct}" if voice_direct else voice_url
+            voice_source_raw = voice_source  # cloud/apig 无需区分
         voice_lane.append({
             "ID": voice_id,
             "Type": "audio",
-            "Source": f"directurl://{voice_direct}" if voice_direct else voice_url,
+            "Source": voice_source,
             "TargetTime": [vs["target_start_ms"], vs["target_end_ms"]],
             "Extra": extra,
             "UserData": ud,
@@ -824,7 +909,12 @@ def main() -> None:
 
     # 背景轨
     bg_id = _element_id("bg", 0)
-    bg_source = f"directurl://{bg_direct}" if bg_direct else (bg_url or "")
+    if is_local:
+        bg_source_raw = bg_direct or bg_url or ""
+        bg_source = _local_media_url(bg_source_raw, _rh, _rp) if bg_source_raw else ""
+    else:
+        bg_source = f"directurl://{bg_direct}" if bg_direct else (bg_url or "")
+        bg_source_raw = bg_source  # cloud/apig 无需区分
     bg_lane = [{
         "ID": bg_id,
         "Type": "audio",
@@ -839,10 +929,10 @@ def main() -> None:
             "id": bg_id,
             "source": bg_direct or "bg",
             "type": "audio",
-            "url": bg_url or "",
+            "url": bg_review_url or "",
             "laneLabel": "背景",
         },
-    }] if bg_url else []
+    }] if (bg_url or bg_review_url) else []
 
     # baseTrack 顺序：视频、背景、人声、字幕（字幕由 buildMergedTrack 追加）
     base_track = [video_lane, bg_lane, voice_lane] if bg_lane else [video_lane, voice_lane]
@@ -865,6 +955,7 @@ def main() -> None:
         "track": base_track,
         "canvas": {"Width": video_width, "Height": video_height},
         "mutedVoiceIds": muted_voice_ids,
+        "_execution_mode": "local" if is_local else ("apig" if _env_is_apig else "cloud"),
     }
     _write_json(args.review, review_data)
     print(f"[OK] 已生成 output/{args.review}")
@@ -940,6 +1031,9 @@ def main() -> None:
 
     has_mute = any(vs.get("is_mute") for vs in voice_segments)
     has_subtitle = not _skip_subtitle_export() and len(text_lane) > 0
+    # export_request 使用原始路径（供 ffmpeg / VOD），base_track 使用 /local-media/ URL（供审核页预览）
+    video_source_for_export = video_source_raw if is_local else video_source
+    bg_source_for_export = bg_source_raw if is_local else bg_source
     do_video_cut = _should_export_video_cut(has_subtitle, has_mute)
 
     def _voice_extra(vs):
@@ -975,10 +1069,11 @@ def main() -> None:
             cumul += dur
         total_output_ms = cumul
 
+        _export_voice_src = (voice_direct or voice_url) if is_local else (f"directurl://{voice_direct}" if voice_direct else voice_url)
         export_voice_lane = [
             {
                 "Type": "audio",
-                "Source": f"directurl://{voice_direct}" if voice_direct else voice_url,
+                "Source": _export_voice_src,
                 "TargetTime": [vs["out_start_ms"], vs["out_end_ms"]],
                 "Extra": [{"Type": "trim", "StartTime": vs["trim_start_ms"], "EndTime": vs["trim_end_ms"]}],
             }
@@ -987,7 +1082,7 @@ def main() -> None:
         export_video_lane = [
             {
                 "Type": "video",
-                "Source": video_source,
+                "Source": video_source_for_export,
                 "TargetTime": [vs["out_start_ms"], vs["out_end_ms"]],
                 "Extra": _video_trim_extra(vs["trim_start_ms"], vs["trim_end_ms"]),
             }
@@ -1034,7 +1129,7 @@ def main() -> None:
             export_track_clean.append([
                 {
                     "Type": "audio",
-                    "Source": f"directurl://{bg_direct}" if bg_direct else bg_url,
+                    "Source": (bg_direct or bg_url) if is_local else (f"directurl://{bg_direct}" if bg_direct else bg_url),
                     "TargetTime": [0, total_output_ms],
                     "Extra": [
                         {"Type": "trim", "StartTime": 0, "EndTime": total_output_ms},
@@ -1049,20 +1144,21 @@ def main() -> None:
             print("[提示] VOD_EXPORT_SKIP_SUBTITLE=1，导出时跳过字幕压制")
         print("[提示] TALKING_VIDEO_AUTO_EDIT_VIDEO_CUT=1 且（有字幕或音频静音），已移除 mute 段并无缝拼接")
     else:
+        _else_voice_src = (voice_direct or voice_url) if is_local else (f"directurl://{voice_direct}" if voice_direct else voice_url)
         export_voice_lane = [
-            {"Type": "audio", "Source": f"directurl://{voice_direct}" if voice_direct else voice_url,
+            {"Type": "audio", "Source": _else_voice_src,
              "TargetTime": [vs["target_start_ms"], vs["target_end_ms"]],
              "Extra": _voice_extra(vs)}
             for vs in voice_segments
         ]
         export_video_extra = [video_transform, video_volume]
         export_track_clean = [
-            [{"Type": "video", "Source": video_source, "TargetTime": [0, total_ms],
+            [{"Type": "video", "Source": video_source_for_export, "TargetTime": [0, total_ms],
               "Extra": export_video_extra}],
         ]
         if bg_url:
             export_track_clean.append([
-                {"Type": "audio", "Source": f"directurl://{bg_direct}" if bg_direct else bg_url,
+                {"Type": "audio", "Source": (bg_direct or bg_url) if is_local else (f"directurl://{bg_direct}" if bg_direct else bg_url),
                  "TargetTime": [0, total_ms], "Extra": [{
                      "ID": _global_unique_id(),
                      "Type": "a_volume",
@@ -1080,6 +1176,7 @@ def main() -> None:
         "Track": export_track_clean,
         "Upload": {"SpaceName": space, "VideoName": "口播剪辑"},
         "Uploader": space,
+        "_execution_mode": "local" if is_local else ("apig" if _env_is_apig else "cloud"),
     }
     _write_json(args.export, export_request)
     print(f"[OK] 已生成 output/{args.export}")
@@ -1092,7 +1189,23 @@ def main() -> None:
         _out_schema.write_text(_schema_path.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"[OK] 已输出 导出提交数据结构.md 到 output 目录")
 
-    print("CHECKPOINT: 两份 JSON 已生成，track 使用真实 URL")
+    if is_local and args.direct_export:
+        print("\n[local] --direct-export：跳过审核页，直接使用 ffmpeg 导出最终视频...")
+        from local_export import export_local
+        export_req_path = _output_dir() / args.export
+        result_path = export_local(
+            export_request_path=export_req_path,
+            output_dir=_output_dir(),
+            output_filename="export_direct.mp4",
+        )
+        print(f"[local] 导出完成 → {result_path}")
+    elif is_local:
+        print(f"\n[local] 本地模式审核页媒体服务: http://{args.review_host}:{args.review_port}/local-media/...")
+        print("[local] 请启动审核页服务: python serve_review_page.py")
+        print("[local] 如需跳过审核页直接导出，使用: --direct-export")
+        print("CHECKPOINT: 两份 JSON 已生成，track 使用本地媒体 URL")
+    else:
+        print("CHECKPOINT: 两份 JSON 已生成，track 使用真实 URL")
 
 
 if __name__ == "__main__":

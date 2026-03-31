@@ -8,9 +8,14 @@
 - VideoName: 可选，产物名称，需匹配 ^[\\p{Han}.() ()\\w\\s:-]+$，最大 2048 字节
 - FileName: 可选，产物文件路径，如 Project/VideoFiles/123.mp4
 
-使用（在已激活的 scripts/.venv 下，且当前目录为 scripts/）：
-  python ./vod_direct_export.py submit [--edit-param output/export_request.json]
-  python ./vod_direct_export.py query --req-id <ReqId>
+使用：
+  cd SKILL_DIR/scripts && source .venv/bin/activate && python vod_direct_export.py --output-dir <绝对路径> submit --wait
+  cd SKILL_DIR/scripts && source .venv/bin/activate && python vod_direct_export.py --output-dir <绝对路径> query --req-id <ReqId> --wait
+
+⚠️ --output-dir 必须在 submit/query 子命令之前，支持绝对路径。
+
+完整示例：
+  cd /path/to/byted-mediakit-voiceover-editing/scripts && source .venv/bin/activate && python vod_direct_export.py --output-dir /path/to/output/task_id submit --wait
 """
 
 from __future__ import annotations
@@ -30,17 +35,11 @@ except Exception:
     load_dotenv = None
 
 
+from project_paths import get_project_root
+
+
 def _skill_dir() -> Path:
     return Path(__file__).resolve().parents[1]
-
-
-def _project_root() -> Path:
-    # 工程根：与 SKILL_DIR 之间固定相隔两级父目录（<工程根>/<任意>/<任意>/<SKILL_DIR名>/）。
-    skill_root = Path(__file__).resolve().parents[1]
-    try:
-        return skill_root.parents[2]
-    except IndexError:
-        return skill_root.parent
 
 
 _VOD_OUTPUT_DIR: Path | None = None
@@ -50,7 +49,7 @@ def _output_dir() -> Path:
     if _VOD_OUTPUT_DIR is not None:
         _VOD_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         return _VOD_OUTPUT_DIR
-    return _project_root() / "output"
+    return get_project_root() / "output"
 
 
 def _load_env() -> None:
@@ -180,10 +179,15 @@ class VodEditClient:
     """SubmitDirectEditTaskAsync / GetDirectEditResult 客户端"""
 
     def __init__(self, host: str, region: str):
-        ak = _require_env("VOLC_ACCESS_KEY_ID")
-        sk = _require_env("VOLC_ACCESS_KEY_SECRET")
-        from volc_request import VolcRequestClient
-        self._client = VolcRequestClient(ak=ak, sk=sk, host=host, region=region, service="vod")
+        from vod_transport import get_vod_transport_client, resolve_vod_transport
+
+        if resolve_vod_transport() == "cloud":
+            _require_env("VOLC_ACCESS_KEY_ID")
+            _require_env("VOLC_ACCESS_KEY_SECRET")
+        else:
+            _require_env("ARK_SKILL_API_BASE")
+            _require_env("ARK_SKILL_API_KEY")
+        self._client = get_vod_transport_client()
 
     def post(self, action: str, version: str, body: Dict[str, Any]) -> Dict[str, Any]:
         resp = self._client.post(action=action, version=version, body=body)
@@ -286,17 +290,48 @@ def _ensure_audio_track(track: List[Any]) -> List[Any]:
     return out
 
 
+def _detect_local_mode() -> bool:
+    """检测 local 模式（统一使用 execution_mode 模块）"""
+    try:
+        from execution_mode import detect_local_mode
+        return detect_local_mode()
+    except Exception:
+        return os.getenv("EXECUTION_MODE", "").strip().lower() == "local"
+
+
 def cmd_submit(args: argparse.Namespace) -> None:
     """提交导出任务"""
     _load_env()
-    host = os.getenv("VOLC_HOST", "vod.volcengineapi.com")
-    region = os.getenv("VOLC_REGION", "cn-north-1")
 
     param_path = args.edit_param or str(_output_dir() / "export_request.json")
     data = _read_json(param_path)
 
     if not isinstance(data, dict) or "Track" not in data:
         raise SystemExit("❌ 输入须为包含 Track 的 EditParam/export_request JSON")
+
+    # Local 模式：使用 ffmpeg 在本地合成，无需 VOD 服务
+    if _detect_local_mode():
+        print("【local】使用本地 ffmpeg 导出视频...")
+        from local_export import export_local
+        output_file = export_local(Path(param_path), _output_dir())
+        result = {
+            "Status": "success",
+            "OutputFile": str(output_file),
+            "PlayURL": str(output_file),
+            "_execution_mode": "local",
+        }
+        _output_dir().mkdir(parents=True, exist_ok=True)
+        submit_path = _output_dir() / "export_submit.json"
+        submit_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        json_output = getattr(args, "json_output", False)
+        if json_output:
+            print(json.dumps(result, ensure_ascii=False))
+        else:
+            print(f"✅ 本地导出完成: {output_file}")
+        return
+
+    host = os.getenv("VOLC_HOST", "vod.volcengineapi.com")
+    region = os.getenv("VOLC_REGION", "cn-north-1")
 
     edit_param = _build_edit_param_from_export_request(
         data,
@@ -321,7 +356,6 @@ def cmd_submit(args: argparse.Namespace) -> None:
     if not req_id:
         raise SystemExit(f"❌ 未返回 ReqId，响应: {json.dumps(resp, ensure_ascii=False, indent=2)}")
 
-    # 记录提交参数到 output，便于追溯
     _output_dir().mkdir(parents=True, exist_ok=True)
     submit_record = {
         "ReqId": req_id,
@@ -476,28 +510,31 @@ def main() -> None:
     p_query.set_defaults(func=cmd_query)
 
     args = parser.parse_args()
-    if getattr(args, "output_dir", ""):
-        out_str = str(args.output_dir).strip()
-        proj_root = _project_root()
+    out_override = str(getattr(args, "output_dir", "") or "").strip()
+    if not out_override and args.cmd == "submit":
+        ep = getattr(args, "edit_param", None) or ""
+        if ep:
+            ep_path = Path(ep).expanduser()
+            if ep_path.is_file():
+                proj_root = get_project_root()
+                out_base = (proj_root / "output").resolve()
+                try:
+                    ep_path.resolve().relative_to(out_base)
+                    out_override = str(ep_path.parent.resolve())
+                except ValueError:
+                    pass
+
+    if out_override:
+        out_str = out_override
+        proj_root = get_project_root()
         out_base = (proj_root / "output").resolve()
         cand = Path(out_str)
 
         if cand.is_absolute():
             resolved = cand.resolve()
-            try:
-                resolved.relative_to(out_base)
-            except ValueError:
-                raise SystemExit(f"ERROR: --output-dir 必须在 {out_base} 下：{resolved}")
             _VOD_OUTPUT_DIR = resolved
         else:
-            # 约束：只允许 output/<文件名>（相对路径）
-            if not out_str.startswith("output/"):
-                raise SystemExit("ERROR: --output-dir 只允许传 `output/<文件名>`（相对路径）")
             resolved = (proj_root / out_str).resolve()
-            try:
-                resolved.relative_to(out_base)
-            except ValueError:
-                raise SystemExit(f"ERROR: --output-dir 路径越界：{out_str}")
             _VOD_OUTPUT_DIR = resolved
 
         _VOD_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

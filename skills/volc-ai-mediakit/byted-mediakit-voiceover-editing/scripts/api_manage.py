@@ -2,8 +2,8 @@ import os
 import json
 import uuid
 from pathlib import Path
-from volc_request import VolcRequestClient
 from dotenv import load_dotenv
+from vod_transport import get_vod_transport_client
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timezone, timedelta
 import hashlib
@@ -20,7 +20,10 @@ from vod_local_upload import (
     upload_tob_from_apply_data,
 )
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
+load_dotenv(
+    dotenv_path=Path(__file__).resolve().parents[1] / ".env",
+    override=False,
+)
 
 
 class ApiManage:
@@ -29,7 +32,8 @@ class ApiManage:
 
     约束：
     - 不依赖 MCP 运行时（无 `create_mcp_server`、无 FastMCP/Context）。
-    - 统一通过 `VolcRequestClient` 走 VOD OpenAPI（action + version + params/body）。
+    - VOD OpenAPI（action + version + params/body）经 `vod_transport.get_vod_transport_client()`：
+      SkillHub 网关（ARK_SKILL_*）或直连火山签名（VOLC AK/SK）。
     """
 
     # OpenAPI Action -> Version 映射（来自仓库内 `mcp_server_vod/src/vod/api/config.py` 的 ApiInfo 定义）
@@ -51,17 +55,7 @@ class ApiManage:
     }
 
     def __init__(self):
-        ak = os.getenv("VOLC_ACCESS_KEY_ID")
-        sk = os.getenv("VOLC_ACCESS_KEY_SECRET")
-        if not ak or not sk:
-            raise ValueError("Missing VOLC_ACCESS_KEY_ID or VOLC_ACCESS_KEY_SECRET environment variables")
-        self.client = VolcRequestClient(
-            ak=ak,
-            sk=sk,
-            host= os.getenv("VOLC_HOST", "vod.volcengineapi.com"),
-            region= os.getenv("VOLC_REGION", "cn-north-1"),
-            service="vod"
-        )
+        self.client = get_vod_transport_client()
         self._state: Dict[str, Any] = {}
         self._tos_uploader = TosMediaUploader()
 
@@ -406,7 +400,14 @@ class ApiManage:
         except Exception as e:
             raise Exception(f"update_media_publish_status failed: {e}")
 
-    def get_play_video_info(self, vid: str, space_name: str, output_type: str = "CDN") -> Dict[str, Any]:
+    def get_play_video_info(
+        self,
+        vid: str,
+        space_name: str,
+        output_type: str = "CDN",
+        *,
+        _publish_attempted: bool = False,
+    ) -> Dict[str, Any]:
         reqs = self._get(
             "GetVideoPlayInfo",
             params={"Space": space_name, "Vid": vid, "DataType": 0, "OutputType": output_type},
@@ -430,10 +431,23 @@ class ApiManage:
         if info.get("PublishStatus") == "Published":
             url = play_info.get("MainPlayURL") or play_info.get("BackupPlayUrl")
             if output_type == "CDN" and (not url):
-                url = self.get_play_video_info(vid, space_name, "Origin").get("PlayURL", "")
+                url = self.get_play_video_info(
+                    vid, space_name, "Origin", _publish_attempted=_publish_attempted
+                ).get("PlayURL", "")
         else:
-            if self.update_media_publish_status(vid, space_name, "Published") == "success":
-                url = self.get_play_video_info(vid, space_name, "Origin").get("PlayURL", "")
+            # 仅尝试一次发布更新，避免「已调 Update 但 Get 仍非 Published」时无限递归
+            if _publish_attempted:
+                url = play_info.get("MainPlayURL") or play_info.get("BackupPlayUrl")
+                if not url:
+                    raise Exception(
+                        f"{vid}: GetVideoPlayInfo PublishStatus is not Published after "
+                        "UpdateMediaPublishStatus; no PlayURL in response"
+                    )
+            elif self.update_media_publish_status(vid, space_name, "Published") == "success":
+                time.sleep(0.35)
+                url = self.get_play_video_info(
+                    vid, space_name, "Origin", _publish_attempted=True
+                ).get("PlayURL", "")
             else:
                 raise Exception("update publish status failed")
 

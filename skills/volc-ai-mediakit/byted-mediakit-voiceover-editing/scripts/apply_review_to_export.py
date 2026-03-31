@@ -40,11 +40,24 @@ def _ensure_extra_id(f: Dict) -> Dict:
 
 
 def _normalize_source(src: str) -> str:
-    """VOD 要求 DirectUrl 类型 Source 带 directurl:// 前缀，审核页/编辑器可能返回裸文件名"""
+    """VOD 要求 DirectUrl 类型 Source 带 directurl:// 前缀，审核页/编辑器可能返回裸文件名。
+
+    local 模式特殊处理：Source 可能是 /local-media/ URL（审核页传入），
+    需转为裸绝对路径供 ffmpeg 使用。
+    """
     if not src or not isinstance(src, str):
         return src
     s = src.strip()
+    # local 模式: /local-media/ URL → 提取裸绝对路径
+    import re
+    from urllib.parse import unquote
+    m = re.match(r"https?://[^/]+/local-media(/.*)", s)
+    if m:
+        return unquote(m.group(1))  # 裸绝对路径，如 /Users/.../background.mp3
     if s.startswith(("vid://", "http://", "https://", "directurl://")):
+        return s
+    # 裸绝对路径（以 / 开头）: local 模式直接使用，不加 directurl://
+    if s.startswith("/"):
         return s
     return f"directurl://{s}"
 
@@ -185,6 +198,8 @@ def normalize_track_for_export(
                     vol = vol_by_id.get(el_id)
                     if vol is not None:
                         clean["Extra"].append(_ensure_extra_id({"Type": "a_volume", "Volume": vol}))
+                    elif typ == "audio" and ud.get("status") == STATUS_MUTED:
+                        clean["Extra"].append(_ensure_extra_id({"Type": "a_volume", "Volume": 0}))
             elif typ == "text":
                 _font_type_default = (
                     "https://lf3-static.bytednsdoc.com/obj/eden-cn/ljhwz_kvc/"
@@ -252,6 +267,15 @@ def apply_review_to_export(body: Dict[str, Any]) -> Dict[str, Any]:
                 if src:
                     el["Source"] = _normalize_source(src)
 
+    # 与本地 export 一致：单段全时长视频 + 多段人声(含 mute) 时，按保留人声做时间轴剪辑（对齐 prepare_export_data do_video_cut / VOD）
+    from track_cut_realign import realign_export_track
+
+    track_export = realign_export_track(track_export)
+
+    # 保留 Upload / Uploader（来自原始 export_request，由 save-review / export_server 传入）
+    upload = body.get("Upload") or body.get("_upload") or {}
+    uploader = body.get("Uploader") or body.get("_uploader") or ""
+
     result = {
         "Canvas": canvas,
         "Track": track_export,
@@ -260,6 +284,10 @@ def apply_review_to_export(body: Dict[str, Any]) -> Dict[str, Any]:
             "track_lanes": len(track_export),
         },
     }
+    if upload:
+        result["Upload"] = upload
+    if uploader:
+        result["Uploader"] = uploader
 
     print("=== 审核页面转化后的导出数据 (apply_review_to_export 输出) ===")
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
