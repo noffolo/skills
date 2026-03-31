@@ -202,7 +202,7 @@ update-status.sh <specclaw_dir>
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `project_name` | string | — | From `config.yaml` |
-| `git_strategy` | string | `"branch-per-change"` | `branch-per-change` or `direct` |
+| `git_strategy` | string | `"branch-per-change"` | `branch-per-change`, `direct`, or `worktree-per-change` |
 | `branch_prefix` | string | `"specclaw/"` | Prefix for feature branches |
 | `branch_name` | string | — | Full branch name (prefix + change) |
 | `branch_existed` | bool | `false` | `true` if resuming an existing branch |
@@ -365,6 +365,38 @@ build.sh setup   → no branch operations
 build.sh commit  → git add <files> && git commit (on current branch)
 build.sh finalize → run checks only, no merge step
 ```
+
+---
+
+## Git Strategies
+
+SpecClaw supports three git strategies, configured via `git.strategy` in config.yaml:
+
+### branch-per-change (default)
+- Creates a branch `specclaw/<change-name>` and switches to it
+- Each task commits on the branch
+- Finalize merges into main and deletes the branch
+- **Limitation:** Only one change can build at a time (branch switching)
+
+### direct
+- Commits straight to the current branch
+- No branch creation or merging
+- Simplest strategy, good for small projects or CI pipelines
+
+### worktree-per-change
+- Creates an isolated git worktree at `.specclaw/worktrees/<change-name>/`
+- Each change has its own working directory on its own branch
+- Agents get the worktree path as their `cwd`
+- **Enables parallel multi-change builds** — no branch switching, no file conflicts
+- Finalize merges the worktree branch into main, removes worktree
+- Best for: active projects with multiple features in flight
+
+### When to use each:
+| Strategy | Best For | Parallel Changes |
+|----------|----------|-----------------|
+| branch-per-change | Single active change | ❌ |
+| direct | Simple projects, CI | ❌ |
+| worktree-per-change | Multiple parallel changes | ✅ |
 
 ---
 

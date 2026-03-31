@@ -14,11 +14,17 @@ models:
   review: "anthropic/claude-sonnet-4-5"       # Verification & code review
 
 # Git strategy
+#
+# Git strategies:
+#   branch-per-change    — one branch per change, switches working directory (default)
+#   direct               — commits straight to current branch
+#   worktree-per-change  — isolated worktree per change, enables parallel multi-change builds
 git:
-  strategy: "branch-per-change"   # "branch-per-change" | "direct"
+  strategy: "branch-per-change"   # "branch-per-change" | "direct" | "worktree-per-change"
   auto_commit: true
   commit_prefix: "specclaw"       # Prefix for auto-commits
   branch_prefix: "specclaw/"      # Prefix for feature branches
+  worktree_dir: ".specclaw/worktrees"  # Base directory for worktrees (worktree-per-change only)
 
 # Build settings
 build:
@@ -36,6 +42,18 @@ notifications:
   on_complete: true
   on_failure: true
   on_approval_needed: true
+
+# GitHub Issues integration (optional)
+# When enabled, syncs proposals as GitHub Issues with task checklists
+github:
+  sync: false                    # Enable GitHub Issues sync
+  repo: ""                       # owner/repo (auto-detected from git remote if empty)
+  token: ""                      # GitHub PAT for curl fallback (not needed if gh CLI is authed)
+  label: "specclaw"              # Label applied to SpecClaw issues
+
+# Workflow enforcement
+workflow:
+  strict: true                     # Enforce phase prerequisites (disable for rapid prototyping)
 
 # Automation
 automation:

@@ -32,7 +32,8 @@ When initialized (`.specclaw/` exists in project root):
     │   ├── tasks.md     # Ordered tasks with status markers
     │   ├── status.md    # Progress tracking
     │   ├── errors.md    # Build error journal (auto-generated on failures)
-    │   └── learnings.md # Build learnings (spec gaps, patterns, insights)
+    │   ├── learnings.md # Build learnings (spec gaps, patterns, insights)
+    │   └── verify-report.md # Verification results (auto-generated)
     └── archive/         # Completed changes
 ```
 
@@ -57,23 +58,30 @@ The user triggers commands conversationally. Recognize these patterns:
 3. Include: problem statement, proposed solution, scope, impact, open questions
 4. Present proposal to user for review
 5. Update `STATUS.md`
+6. **GitHub sync** (if `github.sync` is true): Run `bash skill/scripts/gh-sync.sh create .specclaw <change>` to create a GitHub Issue for the proposal. (gh-sync.sh create requires proposal.md — validation is enforced by validate-change.sh.)
 
 ### `specclaw plan <change>`
 **Trigger:** "specclaw plan", "plan the feature", "generate spec for"
 
-1. Read the proposal
-2. Analyze existing codebase (file structure, patterns, dependencies)
-3. Generate:
+1. **Validate:** Run `bash skill/scripts/validate-change.sh .specclaw <change> plan`. If it fails, report missing prerequisites and stop.
+2. Read the proposal
+3. Analyze existing codebase (file structure, patterns, dependencies)
+4. Generate:
    - `spec.md` — functional requirements, acceptance criteria, edge cases
    - `design.md` — technical approach, architecture, file changes map
    - `tasks.md` — ordered implementation tasks with dependencies
-4. Present plan summary to user
-5. Update status
+5. Present plan summary to user
+6. Update status
+7. **GitHub sync** (if enabled): Run `bash skill/scripts/gh-sync.sh update .specclaw <change>` to add the task checklist to the GitHub Issue.
 
 ### `specclaw build <change>`
 **Trigger:** "specclaw build", "implement the feature", "start building"
 
 **This is where OpenClaw shines.** Follow this execution flow exactly:
+
+#### Step 0 — Validate
+
+Run `bash skill/scripts/validate-change.sh .specclaw <change> build`. If it fails, report missing prerequisites and stop.
 
 #### Step 1 — Setup
 
@@ -84,6 +92,10 @@ bash skill/scripts/build.sh setup .specclaw <change_name>
 ```
 
 This returns JSON config including `parallel_tasks`, `models.coding`, `git.strategy`, and `notifications.channel`. Capture this output — you'll need `parallel_tasks` and `model` values throughout the build.
+
+**Worktree strategy:** When `git.strategy` is `"worktree-per-change"`, setup creates an isolated worktree at `.specclaw/worktrees/<change>/`. The `worktree_path` from the config JSON should be used as the `cwd` parameter when spawning coding agents via `sessions_spawn`, ensuring each change's agents work in complete isolation.
+
+**Parallel changes:** With `worktree-per-change` strategy, multiple changes can be built simultaneously since each has its own worktree. No branch switching required.
 
 Send a **build started** notification:
 
@@ -206,8 +218,11 @@ For each agent that **failed**:
    ```
 
 5. Mark all dependent tasks in later waves as **skipped/failed** — they cannot proceed
+6. **GitHub sync** (if enabled): Run `bash skill/scripts/gh-sync.sh comment .specclaw <change> "❌ Task <task_id> failed: <summary>"` to log the error on the issue.
 
-**f. Repeat** for the next wave number until no pending tasks remain.
+**f. GitHub sync** (if enabled): Run `bash skill/scripts/gh-sync.sh update .specclaw <change>` to update task checkboxes.
+
+**g. Repeat** for the next wave number until no pending tasks remain.
 
 #### Step 4 — Finalize
 
@@ -371,15 +386,70 @@ Pattern registry lives at `.specclaw/patterns.md` (global, not per-change).
 ### `specclaw verify <change>`
 **Trigger:** "specclaw verify", "validate implementation", "check against spec"
 
-1. Read `spec.md` acceptance criteria
-2. Check each criterion against the implementation
-3. Run tests if configured (`config.yaml test_command`)
-4. Generate verification report
-5. Update `status.md` with pass/fail per criterion
-6. If failures: suggest remediation tasks
+Validate that the implementation satisfies the spec's acceptance criteria.
+
+#### Step 0: Validate
+
+Run `bash skill/scripts/validate-change.sh .specclaw <change> verify`. If it fails (tasks not all complete), report and stop.
+
+#### Step 1: Collect Evidence
+
+Run `bash skill/scripts/verify.sh collect .specclaw <change>` to gather:
+- Acceptance criteria from spec.md
+- Current content of all changed files
+- Test/lint/build command results (if configured)
+
+#### Step 2: Build Verify Context
+
+Run `bash skill/scripts/verify-context.sh .specclaw <change>` to construct the verification agent's context payload from the evidence + Verify Agent prompt template.
+
+#### Step 3: Spawn Verify Agent
+
+Spawn a verification agent:
+```
+sessions_spawn(
+  task: <verify context payload>,
+  model: <config.yaml models.review>,  # default: anthropic/claude-sonnet-4-5
+  mode: "run",
+  label: "specclaw-verify-<change>"
+)
+```
+Wait for completion via `sessions_yield`.
+
+#### Step 4: Save Report
+
+Save the agent's output as `.specclaw/changes/<change>/verify-report.md`.
+
+#### Step 5: Update Status
+
+Run `bash skill/scripts/verify.sh update-status .specclaw <change> <verdict>` where verdict is PASS, FAIL, or PARTIAL (extracted from the report).
+
+Update status.md and run `bash skill/scripts/update-status.sh .specclaw` to refresh the dashboard.
+
+#### Step 6: GitHub Sync (if enabled)
+
+If `github.sync` is true, post verification summary as a comment:
+`bash skill/scripts/gh-sync.sh comment .specclaw <change> "<verdict summary>"`
+
+#### Step 7: Notify
+
+Send verification results via configured notification channel.
+
+#### Auto-Verify
+
+When `automation.auto_verify: true` in config.yaml, the build flow automatically triggers verification after a successful build (all tasks complete).
+
+#### Remediation
+
+If verdict is FAIL or PARTIAL:
+1. List the failed acceptance criteria
+2. Suggest creating remediation tasks (new tasks targeting the gaps)
+3. The user can re-plan just the failed criteria or manually fix and re-verify
 
 ### `specclaw status`
 **Trigger:** "specclaw status", "project status", "what's the progress"
+
+For a specific change: `bash skill/scripts/validate-change.sh .specclaw <change> status`
 
 1. Read all changes in `.specclaw/changes/`
 2. Compile dashboard showing:
@@ -392,10 +462,12 @@ Pattern registry lives at `.specclaw/patterns.md` (global, not per-change).
 ### `specclaw archive <change>`
 **Trigger:** "specclaw archive", "mark as done", "archive the change"
 
-1. Verify change is complete (all tasks done, verification passed)
-2. Move to `.specclaw/changes/archive/YYYY-MM-DD-<change-name>/`
-3. Update `STATUS.md`
-4. Optionally create git tag
+1. **Validate:** Run `bash skill/scripts/validate-change.sh .specclaw <change> archive`. If it fails, report and stop.
+2. Verify change is complete (all tasks done, verification passed)
+3. Move to `.specclaw/changes/archive/YYYY-MM-DD-<change-name>/`
+4. Update `STATUS.md`
+5. **GitHub sync** (if enabled): Run `bash skill/scripts/gh-sync.sh close .specclaw <change>` to close the issue.
+6. Optionally create git tag
 
 ### `specclaw auto`
 **Trigger:** "specclaw auto", "autonomous mode", "auto-build"
@@ -466,7 +538,7 @@ Key settings:
 - `models.planning` — model for proposals, specs, design (default: opus)
 - `models.coding` — model for implementation (default: codex)
 - `models.review` — model for verification (default: sonnet)
-- `git.strategy` — "branch-per-change" or "direct"
+- `git.strategy` — "branch-per-change", "direct", or "worktree-per-change"
 - `notifications.channel` — where to send updates
 - `automation.max_tasks_per_run` — limit for auto mode
 
@@ -477,3 +549,9 @@ Key settings:
 3. **Wave-based execution** — group independent tasks, respect dependencies
 4. **Fresh context always** — never let agents accumulate stale context
 5. **Verify early** — run verification after each wave, not just at the end
+
+### GitHub Integration (Optional)
+
+When `github.sync: true` in config.yaml, SpecClaw creates a GitHub Issue per change and tracks progress as a task checklist. Requires `gh` CLI (authenticated) or `GITHUB_TOKEN` environment variable.
+
+Run `bash skill/scripts/gh-sync.sh setup` to verify auth and create labels.

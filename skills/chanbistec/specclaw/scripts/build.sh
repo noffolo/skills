@@ -12,14 +12,22 @@ usage() {
 Usage: build.sh <subcommand> [options]
 
 Subcommands:
-  setup    <specclaw_dir> <change_name>
-           Read config.yaml, create git branch if branch-per-change, output config JSON.
+  setup         <specclaw_dir> <change_name>
+                Read config.yaml, create git branch/worktree if needed, output config JSON.
 
-  commit   <specclaw_dir> <change_name> <task_id> "<title>" [files...]
-           Stage listed files and commit with specclaw prefix.
+  commit        <specclaw_dir> <change_name> <task_id> "<title>" [files...]
+                Stage listed files and commit with specclaw prefix.
 
-  finalize <specclaw_dir> <change_name>
-           Run configured checks, merge branch if branch-per-change, output summary JSON.
+  finalize      <specclaw_dir> <change_name>
+                Run configured checks, merge branch if branch/worktree-per-change, output summary JSON.
+
+  worktree-path <specclaw_dir> <change_name>
+                Output the worktree path for a change (reads git.worktree_dir from config).
+
+Git strategies (git.strategy in config.yaml):
+  branch-per-change   Create a branch and switch to it (default)
+  worktree-per-change Create a branch + git worktree for isolated parallel work
+  direct              Work on the current branch
 
 Options:
   -h, --help   Show this help message
@@ -126,11 +134,32 @@ cmd_setup() {
   parallel_tasks="${parallel_tasks:-3}"
   timeout_seconds="${timeout_seconds:-300}"
 
+  local worktree_dir_cfg; worktree_dir_cfg="$(yaml_val "$config" "git.worktree_dir")"
+
   local branch_name="${branch_prefix}${change_name}"
   local branch_existed=false
+  local worktree_path=""
 
   # Git branch handling
-  if [[ "$git_strategy" == "branch-per-change" ]]; then
+  if [[ "$git_strategy" == "worktree-per-change" ]]; then
+    local worktree_dir="${worktree_dir_cfg:-.specclaw/worktrees}"
+    worktree_path="$worktree_dir/$change_name"
+
+    mkdir -p "$worktree_dir"
+
+    if [ -d "$worktree_path" ]; then
+      # Resume — worktree exists
+      branch_existed=true
+      warn "Worktree '$worktree_path' already exists — resuming"
+    else
+      # Create branch if needed
+      if ! git rev-parse --verify "$branch_name" >/dev/null 2>&1; then
+        git branch "$branch_name"
+      fi
+      # Create worktree
+      git worktree add "$worktree_path" "$branch_name"
+    fi
+  elif [[ "$git_strategy" == "branch-per-change" ]]; then
     if git rev-parse --verify "$branch_name" >/dev/null 2>&1; then
       # Branch exists — resume case
       branch_existed=true
@@ -157,7 +186,8 @@ cmd_setup() {
   "build_command": $(json_str "$build_command"),
   "parallel_tasks": ${parallel_tasks},
   "timeout_seconds": ${timeout_seconds},
-  "coding_model": $(json_str "$coding_model")
+  "coding_model": $(json_str "$coding_model"),
+  "worktree_path": $(json_str "$worktree_path")
 }
 ENDJSON
 }
@@ -173,10 +203,21 @@ cmd_commit() {
   local config="$specclaw_dir/config.yaml"
   [[ -f "$config" ]] || die "Config not found: $config"
 
+  local git_strategy; git_strategy="$(yaml_val "$config" "git.strategy")"
   local auto_commit; auto_commit="$(yaml_val "$config" "git.auto_commit")"
   local commit_prefix; commit_prefix="$(yaml_val "$config" "git.commit_prefix")"
+  git_strategy="${git_strategy:-branch-per-change}"
   auto_commit="${auto_commit:-true}"
   commit_prefix="${commit_prefix:-specclaw}"
+
+  # If worktree strategy, cd into the worktree
+  if [[ "$git_strategy" == "worktree-per-change" ]]; then
+    local worktree_dir="$(yaml_val "$config" "git.worktree_dir")"
+    worktree_dir="${worktree_dir:-.specclaw/worktrees}"
+    local worktree_path="$worktree_dir/$change_name"
+    [[ -d "$worktree_path" ]] || die "Worktree not found: $worktree_path"
+    cd "$worktree_path"
+  fi
 
   # Stage files
   if [[ ${#files[@]} -gt 0 ]]; then
@@ -250,8 +291,33 @@ cmd_finalize() {
     fi
   fi
 
-  # Merge branch if branch-per-change
-  if [[ "$git_strategy" == "branch-per-change" ]]; then
+  # Merge branch if branch-per-change or worktree-per-change
+  if [[ "$git_strategy" == "worktree-per-change" ]]; then
+    local branch_name="${branch_prefix}${change_name}"
+    local worktree_dir="$(yaml_val "$config" "git.worktree_dir")"
+    worktree_dir="${worktree_dir:-.specclaw/worktrees}"
+    local worktree_path="$worktree_dir/$change_name"
+
+    # Determine the main branch name
+    local main_branch="main"
+    if git rev-parse --verify main >/dev/null 2>&1; then
+      main_branch="main"
+    elif git rev-parse --verify master >/dev/null 2>&1; then
+      main_branch="master"
+    fi
+
+    # We're in the main repo — merge the worktree's branch
+    if git merge --no-ff "$branch_name" -m "Merge $branch_name" 2>&1; then
+      merged=true
+      # Clean up worktree and branch
+      git worktree remove "$worktree_path" 2>/dev/null || true
+      git branch -d "$branch_name" 2>/dev/null || true
+    else
+      # Merge conflict — abort, keep worktree intact
+      git merge --abort 2>/dev/null || true
+      errors+=("Merge conflict merging $branch_name into $main_branch — worktree preserved at $worktree_path for manual resolution")
+    fi
+  elif [[ "$git_strategy" == "branch-per-change" ]]; then
     local branch_name="${branch_prefix}${change_name}"
     local current_branch; current_branch="$(git branch --show-current)"
 
@@ -310,14 +376,27 @@ cmd_finalize() {
 ENDJSON
 }
 
+# ─── worktree-path ────────────────────────────────────────────────────────────
+
+cmd_worktree_path() {
+  [[ $# -ge 2 ]] || die "worktree-path requires: <specclaw_dir> <change_name>"
+  local specclaw_dir="$1" change_name="$2"
+  local config="$specclaw_dir/config.yaml"
+  [[ -f "$config" ]] || die "Config not found: $config"
+  local worktree_dir="$(yaml_val "$config" "git.worktree_dir")"
+  worktree_dir="${worktree_dir:-.specclaw/worktrees}"
+  echo "$worktree_dir/$change_name"
+}
+
 # ─── Main dispatch ────────────────────────────────────────────────────────────
 
 [[ $# -gt 0 ]] || { usage; exit 1; }
 
 case "$1" in
   -h|--help) usage; exit 0 ;;
-  setup)    shift; cmd_setup "$@" ;;
-  commit)   shift; cmd_commit "$@" ;;
-  finalize) shift; cmd_finalize "$@" ;;
-  *)        die "Unknown subcommand: $1 (try --help)" ;;
+  setup)         shift; cmd_setup "$@" ;;
+  commit)        shift; cmd_commit "$@" ;;
+  finalize)      shift; cmd_finalize "$@" ;;
+  worktree-path) shift; cmd_worktree_path "$@" ;;
+  *)             die "Unknown subcommand: $1 (try --help)" ;;
 esac
