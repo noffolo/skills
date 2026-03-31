@@ -1,0 +1,11 @@
+{
+  "owner": "macmerg",
+  "slug": "stripe-blazor-server",
+  "displayName": "Stripe for .net projects",
+  "latest": {
+    "version": "1.0.5",
+    "publishedAt": 1774362396866,
+    "commit": null
+  },
+  "history": []
+}
