@@ -1,12 +1,17 @@
-# DolphinDB 量化金融技能 v1.1.0
+# DolphinDB 量化金融技能 v1.1.3
 
-## ⚠️ 前置依赖：Python 环境检测（必须首先执行）
+## ⚠️ 前置依赖
+
+**本技能依赖 `dolphindb-basic` 技能，请先安装：**
+```bash
+clawhub install dolphindb-basic
+```
 
 **运行前初始化需确保 Python 环境有 DolphinDB SDK，详细方法可参见 dolphindb-skills 技能。**
 
 ```bash
-# 加载环境检测器
-source ~/.jvs/.openclaw/workspace/skills/dolphindb-skills/scripts/load_dolphindb_env.sh
+# 加载环境检测器（相对路径，技能安装后自动可用）
+source ../dolphindb-skills/scripts/load_dolphindb_env.sh
 
 # 查看环境信息
 dolphin_env_info

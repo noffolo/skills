@@ -3,9 +3,15 @@
   "slug": "dolphindb-quant-finance",
   "displayName": "Dolphindb Quant Finance",
   "latest": {
-    "version": "1.1.2",
-    "publishedAt": 1774482658597,
-    "commit": "https://github.com/openclaw/skills/commit/a1116884d0bd5da3cd72e57e474f0346a5fff978"
+    "version": "1.1.3",
+    "publishedAt": 1774795436452,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.2",
+      "publishedAt": 1774482658597,
+      "commit": "https://github.com/openclaw/skills/commit/a1116884d0bd5da3cd72e57e474f0346a5fff978"
+    }
+  ]
 }
