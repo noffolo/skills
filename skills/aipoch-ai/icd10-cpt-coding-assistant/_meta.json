@@ -1,0 +1,11 @@
+{
+  "owner": "aipoch-ai",
+  "slug": "icd10-cpt-coding-assistant",
+  "displayName": "Icd10 Cpt Coding Assistant",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774242943731,
+    "commit": null
+  },
+  "history": []
+}
