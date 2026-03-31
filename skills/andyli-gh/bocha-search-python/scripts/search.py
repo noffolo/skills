@@ -407,7 +407,7 @@ def main():
     parser.add_argument(
         "--version", "-V",
         action="version",
-        version="博查搜索 Python 客户端 1.0.0"
+        version="博查搜索 Python 客户端 0.1.1"
     )
     
     args = parser.parse_args()

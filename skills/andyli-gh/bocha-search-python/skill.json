@@ -1,0 +1,11 @@
+{
+  "name": "bocha-search-python",
+  "version": "0.1.1",
+  "description": "博查搜索 (Bocha Search) 的 Python 实现技能",
+  "env": {
+    "BOCHA_API_KEY": {
+      "description": "博查搜索 API 密钥",
+      "required": true
+    }
+  }
+}
