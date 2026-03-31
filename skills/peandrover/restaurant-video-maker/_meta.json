@@ -3,9 +3,15 @@
   "slug": "restaurant-video-maker",
   "displayName": "Restaurant Video Maker",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774513852619,
-    "commit": "https://github.com/openclaw/skills/commit/2bdf92f57aad1a5957b070768c6be16d832f33fe"
+    "version": "1.0.6",
+    "publishedAt": 1774858598803,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774513852619,
+      "commit": "https://github.com/openclaw/skills/commit/2bdf92f57aad1a5957b070768c6be16d832f33fe"
+    }
+  ]
 }
