@@ -26,7 +26,7 @@ import urllib.parse
 from pathlib import Path
 from datetime import datetime
 
-API_URL = "http://gpt.juhe.cn/text2image/generate"
+API_URL = "https://gpt.juhe.cn/text2image/generate"
 REGISTER_URL = "https://www.juhe.cn/docs/api/id/824"
 
 SIZE_MAP = {

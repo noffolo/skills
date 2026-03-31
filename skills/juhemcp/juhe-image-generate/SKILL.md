@@ -100,7 +100,7 @@ python scripts/image_generate.py "元气少女插画风格" --no-download
 ### 直接调用 API（无需脚本）
 
 ```
-POST http://gpt.juhe.cn/text2image/generate
+POST https://gpt.juhe.cn/text2image/generate
 Content-Type: application/x-www-form-urlencoded
 
 key=YOUR_KEY&prompt=一只猫咪钓鱼&size=1&model=auto
