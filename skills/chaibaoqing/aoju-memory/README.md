@@ -27,13 +27,15 @@ aoju-memory/
 
 ## 安装
 
-### 方式一：OpenClaw 内置
+### 方式一：ClawHub（一键安装）
 ```bash
-openclaw skills install aoju-memory
+# 从 ClawHub 安装（推荐）
+openclaw skills install aoju-memory  # from ClawHub
 ```
 
 ### 方式二：手动安装
 ```bash
+# 从 ClawHub 安装（推荐）
 # 克隆仓库
 git clone https://github.com/chaibaoqing/aoju-memory.git
 cd aoju-memory
@@ -57,6 +59,7 @@ cp -r . ~/.openclaw/workspace/skills/aoju-memory/
 ### 手动调用
 
 ```bash
+# 从 ClawHub 安装（推荐）
 # 搜索记忆
 python3 scripts/mem_recall.py "用户偏好" --limit 5
 
@@ -69,6 +72,10 @@ python3 scripts/mem_learn.py \
 
 # 查看记忆系统健康
 python3 scripts/mem_status.py
+
+# 生成精美的 HTML 记忆报告（浏览器打开）
+python3 scripts/mem_report.py -o memory-report.html
+# 然后用浏览器打开 memory-report.html 查看带评分、图表、颜色的精美报告
 
 # 进化 review（每积累 5 条教训后运行）
 python3 scripts/mem_evolve.py --dry-run
