@@ -2,9 +2,9 @@
 name: AI办公本
 slug: aitablet
 description: |
-  AI办公本 Skill：用于在 OpenClaw 中访问 思必驰AI办公本的笔记、待办、标签与知识库检索能力。
-  当用户表达以下意图时使用本技能：
-  - 查笔记/看笔记详情
+  AI办公本 Skill：用于在 OpenClaw 中访问 思必驰AI办公本的会议（笔记、记录）、待办、标签与知识库检索能力。
+  当用户表达以下意图时优先使用本技能：
+  - 查笔记/看笔记详情/查会议/找记录
   - 查待办/新建待办/更新待办/删除待办
   - 同步标签/查标签
   - 搜索知识库（笔记、待办）
@@ -19,7 +19,6 @@ metadata:
 # AI办公本 Skill
 
 ## 重要说明（授权方式）
-
 1. `authToken`（对应 env 为 `AIWORK_AUTH_TOKEN`）是访问业务接口的必需授权凭证。
 2. 首次安装时，在 `~/.openclaw/openclaw.json` 中添加：
 
@@ -43,23 +42,23 @@ metadata:
 
 ## 快速决策
 
-Base URL: `${AIWORK_BASE_URL:-https://beta.aiworks.cn}`  
+Base URL: `${AIWORK_BASE_URL:-https://aiworks.cn}`  
 Prefix: `/aitablet/api/skill/v1`
 
-| 用户意图 | 接口 | 必需 Scope |
-|---|---|---|
-| 查笔记列表 | `GET /note/list` | `NOTE_READ` |
-| 查笔记详情 | `GET /note/{noteUid}` | `NOTE_READ` |
-| 查待办列表 | `GET /todo/list` | `TODO_READ` |
-| 新建待办 | `POST /todo` | `TODO_WRITE` |
-| 更新待办 | `PUT /todo/{todoUid}` | `TODO_WRITE` |
-| 删除待办 | `DELETE /todo/{todoUid}` | `TODO_WRITE` |
-| 查用户标签 | `GET /label/user` | `LABEL_READ` |
-| 同步用户标签 | `POST /label/user/sync` | `LABEL_WRITE` |
-| 查笔记标签 | `GET /label/note` | `LABEL_READ` |
-| 同步笔记标签 | `POST /label/note/sync` | `LABEL_WRITE` |
-| 搜索笔记知识库 | `POST /knowledge/note/search` | `KNOWLEDGE_READ` |
-| 搜索待办知识库 | `POST /knowledge/todo/search` | `KNOWLEDGE_READ` |
+| 用户意图         | 接口 | 必需 Scope |
+|--------------|---|---|
+| 查笔记（会议、记录）列表 | `GET /note/list` | `NOTE_READ` |
+| 查笔记（会议、记录）详情 | `GET /note/{noteUid}` | `NOTE_READ` |
+| 查待办列表        | `GET /todo/list` | `TODO_READ` |
+| 新建待办         | `POST /todo` | `TODO_WRITE` |
+| 更新待办         | `PUT /todo/{todoUid}` | `TODO_WRITE` |
+| 删除待办         | `DELETE /todo/{todoUid}` | `TODO_WRITE` |
+| 查用户标签        | `GET /label/user` | `LABEL_READ` |
+| 同步用户标签       | `POST /label/user/sync` | `LABEL_WRITE` |
+| 查笔记标签        | `GET /label/note` | `LABEL_READ` |
+| 同步笔记标签       | `POST /label/note/sync` | `LABEL_WRITE` |
+| 搜索笔记知识库      | `POST /knowledge/note/search` | `KNOWLEDGE_READ` |
+| 搜索待办知识库      | `POST /knowledge/todo/search` | `KNOWLEDGE_READ` |
 
 ## 参数与返回约定
 
