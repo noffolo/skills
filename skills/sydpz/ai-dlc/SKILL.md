@@ -37,6 +37,15 @@ AI-DLC 是一种结构化但自适应的软件开发方法论，由 AI 主导流
 - **Application Design** (条件执行) — 高层组件设计
 - **Units Generation** (条件执行) — 拆解为工作单元
 
+### 🔵 INCEPTION 阶段 — 做什么 + 为什么
+- **Workspace Detection** (始终执行) — 分析是 greenfield 还是 brownfield
+- **Reverse Engineering** (brownfield 有现有代码时执行) — 分析现有代码库
+- **Requirements Analysis** (始终执行，深度自适应) — 收集需求并提问澄清
+- **User Stories** (条件执行) — 创建用户故事和角色
+- **Workflow Planning** (始终执行) — 确定执行计划
+- **Application Design** (条件执行) — 高层组件设计
+- **Units Generation** (条件执行) — 拆解为工作单元
+
 ### 🟢 CONSTRUCTION 阶段 — 怎么做
 - **Per-Unit Loop** (每个工作单元依次执行):
   - Functional Design (条件执行)
@@ -45,6 +54,7 @@ AI-DLC 是一种结构化但自适应的软件开发方法论，由 AI 主导流
   - Infrastructure Design (条件执行)
   - Code Generation (始终执行) — Part 1 计划 → Part 2 生成
 - **Build and Test** (始终执行) — 构建、单元测试、集成测试
+- **Changelog** (始终执行) — 每次合并到 master 后更新 `aidlc-docs/aidlc-state.md` 的 changelog（格式：时间/commit/变更内容），SubAgent 靠此了解进展
 
 ### 🟡 OPERATIONS 阶段 — 部署 (占位)
 

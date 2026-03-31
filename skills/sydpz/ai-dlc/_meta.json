@@ -1,11 +1,17 @@
 {
   "owner": "sydpz",
   "slug": "ai-dlc",
-  "displayName": "AI-DLC: AI-Driven Development Life Cycle",
+  "displayName": "AI-DLC",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774599018125,
-    "commit": "https://github.com/openclaw/skills/commit/405655ff7b40c5cc020d02e7fdb858d263a1f801"
+    "version": "1.1.0",
+    "publishedAt": 1774891604712,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774599018125,
+      "commit": "https://github.com/openclaw/skills/commit/405655ff7b40c5cc020d02e7fdb858d263a1f801"
+    }
+  ]
 }
