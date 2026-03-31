@@ -1,11 +1,17 @@
 {
   "owner": "xiaobai1226",
   "slug": "finder-local-search",
-  "displayName": "Finder 达人搜索",
+  "displayName": "Finder Local Search",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774511466476,
-    "commit": "https://github.com/openclaw/skills/commit/61e9edb40cf7730b4e83ecdc47541684d5c974ce"
+    "version": "1.0.1",
+    "publishedAt": 1774597315711,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774511466476,
+      "commit": "https://github.com/openclaw/skills/commit/61e9edb40cf7730b4e83ecdc47541684d5c974ce"
+    }
+  ]
 }
