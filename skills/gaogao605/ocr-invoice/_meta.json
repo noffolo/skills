@@ -1,0 +1,11 @@
+{
+  "owner": "gaogao605",
+  "slug": "ocr-invoice",
+  "displayName": "发票识别报销",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774946527453,
+    "commit": null
+  },
+  "history": []
+}
