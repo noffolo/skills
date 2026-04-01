@@ -1,0 +1,11 @@
+{
+  "owner": "kevinkom-byte",
+  "slug": "facebook-secure",
+  "displayName": "Facebook Graph API Skill (Secure)",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1774806499962,
+    "commit": null
+  },
+  "history": []
+}
