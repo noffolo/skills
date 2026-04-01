@@ -1,0 +1,11 @@
+{
+  "owner": "careytian-ai",
+  "slug": "content-batch-processor",
+  "displayName": "content-batch-processor（批量内容处理工具，支持文本格式化、摘要生成、关键词提取、文件格式转换等批处理操作，提升内容工作效率。）",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774794208027,
+    "commit": null
+  },
+  "history": []
+}
