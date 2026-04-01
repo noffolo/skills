@@ -1,0 +1,11 @@
+{
+  "owner": "allinherog-star",
+  "slug": "bilibili-sentiment-dashboard",
+  "displayName": "bilibili B站评论分析",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774937487830,
+    "commit": null
+  },
+  "history": []
+}
