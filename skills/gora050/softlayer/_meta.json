@@ -1,0 +1,11 @@
+{
+  "owner": "gora050",
+  "slug": "softlayer",
+  "displayName": "Softlayer",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774812184760,
+    "commit": null
+  },
+  "history": []
+}
