@@ -1,0 +1,11 @@
+{
+  "owner": "hongjiapeng",
+  "slug": "winget-package-manager",
+  "displayName": "winget-package-manager",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774784992120,
+    "commit": null
+  },
+  "history": []
+}
