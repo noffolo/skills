@@ -1,6 +1,6 @@
 ---
 name: medical-billing-coder
-version: 1.0.0
+version: 1.0.3
 description: "Use this skill when a clinician, biller, or practice manager needs to look up ICD-10 diagnosis codes, CPT procedure codes, or E&M visit level codes. Takes a clinical note, visit summary, or plain-language description and suggests the most appropriate billing codes with confidence scores and audit trail. Also validates code combinations, checks for common denials, and flags upcoding or undercoding risks. DO NOT use as the sole basis for claim submission — all codes must be reviewed and approved by a qualified medical coder or clinician."
 tags: ["healthcare", "billing", "icd-10", "cpt", "coding", "revenue-cycle", "claims", "em-coding"]
 author: "optimusprime19"
@@ -8,7 +8,7 @@ license: "MIT"
 homepage: https://github.com/optimusprime19/medical-billing-coder
 repository: https://github.com/optimusprime19/medical-billing-coder
 optionalEnv:
-  - CMS_API_KEY  # Optional: for real-time CMS code validation
+  - CMS_API_KEY  # Optional: calls https://api.cms.gov/medicare-coverage-database/v2 for real-time NCCI edit validation. No clinical text is transmitted — only code pairs are sent for validation.
 ---
 
 # Medical Billing Code Suggester
@@ -26,13 +26,15 @@ This skill analyzes clinical documentation and suggests accurate ICD-10, CPT, an
 - Identify undercoding opportunities (lost revenue)
 - Generate a coded superbill ready for billing
 
-**Data sources (all free):**
-- **CMS ICD-10-CM** — official diagnosis code database
-- **AMA CPT** — procedure code reference (common codes built-in)
-- **CMS Fee Schedule** — RVU and reimbursement data
-- **CMS NCCI Edits** — National Correct Coding Initiative
+**Data sources:**
+- **CMS ICD-10-CM** — official diagnosis code database (free, public domain)
+- **CPT codes** — common procedure codes are referenced by number only; CPT is a proprietary code set owned by the AMA and requires a license for production use in claim submission. This skill does not include or distribute CPT code descriptions — it references codes by number and widely-known descriptions for educational/advisory purposes only.
+- **CMS Fee Schedule** — RVU and reimbursement data (free, public domain)
+- **CMS NCCI Edits** — National Correct Coding Initiative (free, public domain)
 
 > ⚠️ **Disclaimer:** Code suggestions are AI-assisted and must be reviewed by a qualified medical coder or clinician before claim submission. Incorrect coding may constitute fraud.
+
+> 🔒 **Privacy / PHI Warning:** Do not include patient-identifiable information (names, MRNs, DOBs, addresses) in any query. Submit de-identified clinical descriptions only (e.g. "58F with T2DM and HTN, diabetes follow-up"). If `CMS_API_KEY` is set, only billing code pairs are transmitted to the CMS API — no clinical text leaves your environment.
 
 ---
 
@@ -323,4 +325,5 @@ Ready for billing review ✓
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.3 | 2026-03-29 | Corrected CPT licensing statement; added PHI warning; clarified CMS_API_KEY endpoint and data transmission scope. |
 | 1.0.0 | 2026-03-29 | Initial release. ICD-10 lookup, CPT coding, E&M level determination, code validation, superbill generation. |

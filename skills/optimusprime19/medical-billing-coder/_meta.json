@@ -3,9 +3,15 @@
   "slug": "medical-billing-coder",
   "displayName": "Medical Billing Coder",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1774827009991,
-    "commit": "https://github.com/openclaw/skills/commit/5bf559883455195f7b1f3c177de3660217773952"
+    "version": "1.0.3",
+    "publishedAt": 1774827170401,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1774827009991,
+      "commit": "https://github.com/openclaw/skills/commit/5bf559883455195f7b1f3c177de3660217773952"
+    }
+  ]
 }
