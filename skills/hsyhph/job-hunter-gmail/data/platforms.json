@@ -1,0 +1,30 @@
+{
+  "platforms": {
+    "boss": {
+      "name": "BOSS直聘",
+      "url": "https://www.zhipin.com",
+      "category": "互联网"
+    },
+    "lagou": {
+      "name": "拉勾网", 
+      "url": "https://www.lagou.com",
+      "category": "互联网"
+    },
+    "liepin": {
+      "name": "猎聘",
+      "url": "https://www.liepin.com",
+      "category": "中高端"
+    },
+    "zhilian": {
+      "name": "智联招聘",
+      "url": "https://www.zhaopin.com",
+      "category": "综合"
+    },
+    "gmail": {
+      "name": "Gmail直投",
+      "url": "https://mail.google.com",
+      "category": "官网申请"
+    }
+  },
+  "status_types": ["已投递", "待回复", "初筛通过", "一面", "二面", "三面", "已拒绝", "已offer", "已入职"] 
+}
