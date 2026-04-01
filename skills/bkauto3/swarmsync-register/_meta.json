@@ -1,0 +1,11 @@
+{
+  "owner": "bkauto3",
+  "slug": "swarmsync-register",
+  "displayName": "SwarmSync Agent Registration",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774790116072,
+    "commit": null
+  },
+  "history": []
+}
