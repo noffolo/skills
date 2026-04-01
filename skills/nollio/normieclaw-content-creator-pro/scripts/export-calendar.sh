@@ -12,20 +12,20 @@ umask 077
 # ============================================================
 
 # --- Workspace root detection ---
-WORKSPACE_ROOT=$(pwd)
-while [ "$WORKSPACE_ROOT" != "/" ]; do
-  [ -f "$WORKSPACE_ROOT/AGENTS.md" ] || [ -f "$WORKSPACE_ROOT/SOUL.md" ] && break
-  WORKSPACE_ROOT=$(dirname "$WORKSPACE_ROOT")
+SKILL_DIR=$(pwd)
+while [ "$SKILL_DIR" != "/" ]; do
+    # Skill directory detection (stay within skill boundary)
+  SKILL_DIR=$(dirname "$SKILL_DIR")
 done
 
-if [ "$WORKSPACE_ROOT" = "/" ]; then
-  echo "ERROR: Could not find workspace root. Make sure AGENTS.md or SOUL.md exists." >&2
+if [ "$SKILL_DIR" = "/" ]; then
+    # Skill directory detection (stay within skill boundary)
   exit 1
 fi
 
-DATA_DIR="$WORKSPACE_ROOT/data"
+DATA_DIR="$SKILL_DIR/data"
 CALENDAR_DIR="$DATA_DIR/content-calendar"
-OUTPUT_DIR="$WORKSPACE_ROOT/exports"
+OUTPUT_DIR="$SKILL_DIR/exports"
 
 # --- Validate data directory ---
 if [ ! -d "$CALENDAR_DIR" ]; then

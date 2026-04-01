@@ -58,7 +58,7 @@ That's it. Try any of these:
 
 | | Content Creator Pro | Buffer | Jasper | Hootsuite |
 |---|---|---|---|---|
-| **Price** | $9.99 once | $15/mo ($180/yr) | $49/mo ($588/yr) | $99/mo ($1,188/yr) |
+| **Price** | $9.99 once | $15/mo ($180/yr) | free/mo ($588/yr) | $99/mo ($1,188/yr) |
 | **Content Generation** | ✅ Full | ❌ Basic | ✅ Full | ❌ Basic |
 | **Brand Voice Learning** | ✅ | ❌ | Partial | ❌ |
 | **Multi-Platform** | ✅ | ✅ | ✅ | ✅ |
@@ -112,9 +112,6 @@ Create separate data directories for each brand. The agent supports one active b
 
 ## Pairs Well With
 
-- **Daily Briefing Pro** — Stay on top of trending topics for content inspiration
-- **Knowledge Vault** — Store brand guidelines permanently for consistent reference
-- **Dashboard Builder** — Build a visual content calendar and analytics dashboard
 - **DocuScan** — Extract text from brand assets and competitor reports
 
 ---
