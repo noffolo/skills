@@ -1,11 +1,17 @@
 {
   "owner": "twinsgeeks",
   "slug": "adopt-a-malinois",
-  "displayName": "Adopt a Malinois — Virtual Dog Pet for AI Agents",
+  "displayName": "Malinois — Adopt a Malinois. Dog. 马犬。Malinois.",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774763183142,
-    "commit": "https://github.com/openclaw/skills/commit/87bf4a2b21a03a86869f0f14b651f71945ad230e"
+    "version": "1.0.3",
+    "publishedAt": 1775008379369,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774763183142,
+      "commit": "https://github.com/openclaw/skills/commit/87bf4a2b21a03a86869f0f14b651f71945ad230e"
+    }
+  ]
 }
