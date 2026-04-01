@@ -1,0 +1,24 @@
+{
+  "name": "openclaw-search",
+  "version": "1.0.0",
+  "main": "dist/search.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/search.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "jsdom": "^29.0.1",
+    "turndown": "^7.2.2"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^28.0.1",
+    "@types/turndown": "^5.0.6",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
