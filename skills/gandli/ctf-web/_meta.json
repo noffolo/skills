@@ -1,0 +1,11 @@
+{
+  "owner": "gandli",
+  "slug": "ctf-web",
+  "displayName": "Ctf Web",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774866263458,
+    "commit": null
+  },
+  "history": []
+}
