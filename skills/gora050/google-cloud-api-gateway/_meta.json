@@ -1,0 +1,11 @@
+{
+  "owner": "gora050",
+  "slug": "google-cloud-api-gateway",
+  "displayName": "Google Cloud Api Gateway",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774875954879,
+    "commit": null
+  },
+  "history": []
+}
