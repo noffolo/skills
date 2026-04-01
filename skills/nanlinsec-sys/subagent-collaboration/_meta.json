@@ -1,0 +1,11 @@
+{
+  "owner": "nanlinsec-sys",
+  "slug": "subagent-collaboration",
+  "displayName": "Subagent Collaboration",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774885310341,
+    "commit": null
+  },
+  "history": []
+}
