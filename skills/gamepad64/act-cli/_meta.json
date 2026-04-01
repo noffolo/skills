@@ -1,0 +1,11 @@
+{
+  "owner": "gamepad64",
+  "slug": "act-cli",
+  "displayName": "ACT Runtime",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774746119871,
+    "commit": null
+  },
+  "history": []
+}
