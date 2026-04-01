@@ -1,11 +1,17 @@
 {
   "owner": "nollio",
   "slug": "normieclaw-home-fix-it",
-  "displayName": "Home Fix-It Pro",
+  "displayName": "Home Fix-It",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774808973300,
-    "commit": "https://github.com/openclaw/skills/commit/5007a8f187b5ba33a18be442ba361c329a4397ca"
+    "version": "1.0.3",
+    "publishedAt": 1774993196535,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774808973300,
+      "commit": "https://github.com/openclaw/skills/commit/5007a8f187b5ba33a18be442ba361c329a4397ca"
+    }
+  ]
 }
