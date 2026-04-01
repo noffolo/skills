@@ -1,0 +1,15 @@
+---
+name: governance-explainer
+description: Translate governance into human language. Explain power distribution, decision legitimacy, treasury control, and real governance mechanisms.
+version: 1.0.0
+display_name: "Governance Explainer"
+triggers:
+  - explain governance
+  - understand governance
+  - what is governance
+  - governance architecture
+  - governance structure
+  - treasury control
+  - voting mechanism
+  - governance real vs fake
+---
