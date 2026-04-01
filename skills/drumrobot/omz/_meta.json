@@ -1,0 +1,11 @@
+{
+  "owner": "drumrobot",
+  "slug": "omz",
+  "displayName": "Oh My Zsh Manager",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774932181844,
+    "commit": null
+  },
+  "history": []
+}
