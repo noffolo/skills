@@ -1,0 +1,25 @@
+{
+  "name": "brunson-academy",
+  "version": "1.0.0",
+  "description": "Hybrid skill combining Russell Brunson's marketing frameworks into actionable tools for high-ticket offers",
+  "main": "brunson_academy.py",
+  "keywords": [
+    "brunson",
+    "funnel",
+    "value-ladder",
+    "marketing",
+    "high-ticket",
+    "expert-secrets",
+    "dotcom-secrets",
+    "traffic-secrets"
+  ],
+  "author": "OGAR (Tio Huli Ecosystem)",
+  "license": "MIT",
+  "dependencies": {},
+  "openclaw": {
+    "skill": true,
+    "commands": [
+      "brunson"
+    ]
+  }
+}
