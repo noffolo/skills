@@ -1,0 +1,11 @@
+{
+  "owner": "krishnakumarmahadevan-cmd",
+  "slug": "toolweb-juniper-hardening",
+  "displayName": "Juniper Hardening",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774892333795,
+    "commit": null
+  },
+  "history": []
+}
