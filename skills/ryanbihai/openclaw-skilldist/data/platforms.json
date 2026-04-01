@@ -1,0 +1,97 @@
+{
+  "platforms": {
+    "clawhub": {
+      "name": "ClawHub",
+      "url": "https://clawhub.ai",
+      "auto": true,
+      "note": "npx clawhub publish + git push"
+    },
+    "github": {
+      "name": "GitHub",
+      "url": "https://github.com/ryanbihai",
+      "auto": true,
+      "note": "推送到 GitHub 后 SkillsMP 自动同步"
+    },
+    "skillsmp": {
+      "name": "SkillsMP",
+      "url": "https://skillsmp.ai",
+      "auto": true,
+      "note": "GitHub 推送后数小时内自动同步"
+    },
+    "skillzwave": {
+      "name": "SkillzWave",
+      "url": "https://skillzwave.ai/submit/",
+      "auto": false,
+      "requires": "GitHub OAuth 登录",
+      "note": "提交需 GitHub OAuth，需手动操作"
+    },
+    "coze": {
+      "name": "COZE/扣子",
+      "url": "https://www.coze.cn/store/market/bot",
+      "auto": false,
+      "requires": "COZE 账号 + 人工审核",
+      "note": "需登录后手动创建智能体并提交审核"
+    },
+    "yuanqi": {
+      "name": "腾讯元器",
+      "url": "https://yuanqi.tencent.com/market",
+      "auto": false,
+      "requires": "腾讯账号 + 人工审核",
+      "note": "需登录后手动创建智能体并提交审核"
+    },
+    "bailian": {
+      "name": "阿里百炼",
+      "url": "https://bailian.console.aliyun.com/model-market",
+      "auto": false,
+      "requires": "阿里云账号 + 人工审核",
+      "note": "需登录后手动创建智能体并提交审核"
+    }
+  },
+  "skills": {
+    "my-companion": {
+      "name": "我的伴侣",
+      "latestVersion": "2.7.0",
+      "github": "ryanbihai/my-companion",
+      "clawhub": "k974rrqvqzqvc8ahvs2rz0rmp983xw0p",
+      "status": {
+        "clawhub": "✅ 已发布",
+        "github": "✅ 已推送",
+        "skillsmp": "✅ 自动同步",
+        "skillzwave": "⏳ 待提交",
+        "coze": "⏳ 待提交",
+        "yuanqi": "⏳ 待提交",
+        "bailian": "⏳ 待提交"
+      }
+    },
+    "health-checkup-recommender": {
+      "name": "体检推荐",
+      "latestVersion": "3.4.0",
+      "github": "ryanbihai/health-checkup-recommender",
+      "clawhub": "k978xzcfj105p0j44ctyyh8veh83w72w",
+      "status": {
+        "clawhub": "✅ 已发布",
+        "github": "✅ 已推送",
+        "skillsmp": "✅ 自动同步",
+        "skillzwave": "⏳ 待提交",
+        "coze": "⏳ 待提交",
+        "yuanqi": "⏳ 待提交",
+        "bailian": "⏳ 待提交"
+      }
+    },
+    "chinese-interest-rate": {
+      "name": "利率监测",
+      "latestVersion": "3.2.0",
+      "github": "ryanbihai/chinese-interest-rate",
+      "clawhub": "k971c8f6m7kej8dkmhnt7dkgws83x59f",
+      "status": {
+        "clawhub": "✅ 已发布",
+        "github": "✅ 已推送",
+        "skillsmp": "✅ 自动同步",
+        "skillzwave": "⏳ 待提交",
+        "coze": "⏳ 待提交",
+        "yuanqi": "⏳ 待提交",
+        "bailian": "⏳ 待提交"
+      }
+    }
+  }
+}
