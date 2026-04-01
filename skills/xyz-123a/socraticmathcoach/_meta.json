@@ -1,0 +1,11 @@
+{
+  "owner": "xyz-123a",
+  "slug": "socraticmathcoach",
+  "displayName": "A Mathematics Problem-Solving Coach Skill Based on Socratic Dialogue Guidance",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774945767874,
+    "commit": null
+  },
+  "history": []
+}
