@@ -1,0 +1,11 @@
+{
+  "owner": "sdk-team",
+  "slug": "alibabacloud-cksync-plan",
+  "displayName": "Alibabacloud Cksync Plan",
+  "latest": {
+    "version": "0.0.1",
+    "publishedAt": 1774941160525,
+    "commit": null
+  },
+  "history": []
+}
