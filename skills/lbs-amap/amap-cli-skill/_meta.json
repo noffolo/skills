@@ -1,0 +1,11 @@
+{
+  "owner": "lbs-amap",
+  "slug": "amap-cli-skill",
+  "displayName": "amap-cli-skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774936714737,
+    "commit": null
+  },
+  "history": []
+}
