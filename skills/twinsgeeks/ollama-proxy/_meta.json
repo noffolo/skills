@@ -1,0 +1,11 @@
+{
+  "owner": "twinsgeeks",
+  "slug": "ollama-proxy",
+  "displayName": "Ollama Proxy. Ollama Proxy Router. Ollama代理. Proxy Ollama.",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1775074978032,
+    "commit": null
+  },
+  "history": []
+}
