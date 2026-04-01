@@ -1,0 +1,11 @@
+{
+  "owner": "spranab",
+  "slug": "agent-community-news",
+  "displayName": "Agent Community News",
+  "latest": {
+    "version": "3.0.0",
+    "publishedAt": 1774805888617,
+    "commit": null
+  },
+  "history": []
+}
