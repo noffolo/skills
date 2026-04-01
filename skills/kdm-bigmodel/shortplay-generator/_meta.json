@@ -1,0 +1,11 @@
+{
+  "owner": "kdm-bigmodel",
+  "slug": "shortplay-generator",
+  "displayName": "短剧本生成器",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774863702466,
+    "commit": null
+  },
+  "history": []
+}
