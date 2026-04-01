@@ -1,0 +1,11 @@
+{
+  "owner": "gnllk",
+  "slug": "commit-message-generator",
+  "displayName": "Git 提交信息生成器",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774847077500,
+    "commit": null
+  },
+  "history": []
+}
