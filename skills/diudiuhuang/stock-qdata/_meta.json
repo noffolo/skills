@@ -1,0 +1,11 @@
+{
+  "owner": "diudiuhuang",
+  "slug": "stock-qdata",
+  "displayName": "实现基于qmt智能交易终端的A股交易数据本地化",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1774973494315,
+    "commit": null
+  },
+  "history": []
+}
