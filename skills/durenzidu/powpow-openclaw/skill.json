@@ -1,0 +1,12 @@
+{
+  "skill_id": "powpow_openclaw",
+  "name": "PowPow OpenClaw - Test Skill",
+  "version": "1.0.0",
+  "description": "Independent test skill mirroring PowPow integration capabilities (OpenClaw)",
+  "language": "zh-CN",
+  "source": {
+    "file": "src/index.ts",
+    "hash": "<sha256>"
+  },
+  "urls": []
+}
