@@ -1,0 +1,11 @@
+{
+  "owner": "aipoch-ai",
+  "slug": "variant-pathogenicity-predictor-1",
+  "displayName": "Variant Pathogenicity Predictor",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775095646377,
+    "commit": null
+  },
+  "history": []
+}
