@@ -1,0 +1,8 @@
+ApiEnum:
+  database-url: mysql+pymysql://root:root@localhost:3306/smyx-claw?charset=utf8mb4
+  base-url-open-api: "https://livemonitortest.lifeemergence.com/smyx-open-api"
+  base-url-open-h5: "http://livemonitortest.lifeemergence.com"
+  base-url-health: "https://healthtest.lifeemergence.com/jeecg-boot"
+
+ConstantEnum:
+  is-debug: true
