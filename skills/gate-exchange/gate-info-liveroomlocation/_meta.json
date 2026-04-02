@@ -1,0 +1,11 @@
+{
+  "owner": "gate-exchange",
+  "slug": "gate-info-liveroomlocation",
+  "displayName": "Gate Info Live Room Location",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775050095987,
+    "commit": null
+  },
+  "history": []
+}
