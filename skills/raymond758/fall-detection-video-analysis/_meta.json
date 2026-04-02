@@ -1,0 +1,11 @@
+{
+  "owner": "raymond758",
+  "slug": "fall-detection-video-analysis",
+  "displayName": "Video-based Fall Detection Skill | 跌倒检测视频版技能",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775034796407,
+    "commit": null
+  },
+  "history": []
+}

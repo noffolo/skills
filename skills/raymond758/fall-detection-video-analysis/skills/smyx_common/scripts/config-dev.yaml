@@ -1,0 +1,8 @@
+ApiEnum:
+  database-url: mysql+pymysql://root:root@localhost:3306/smyx-claw?charset=utf8mb4
+  base-url-open-api: "http://192.168.1.234:9601/smyx-open-api"
+  base-url-open-h5: "http://192.168.1.234:4100"
+  base-url-health: "http://192.168.1.234:8080/jeecg-boot"
+
+ConstantEnum:
+  is-debug: true
