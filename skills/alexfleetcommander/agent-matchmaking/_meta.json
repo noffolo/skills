@@ -1,0 +1,11 @@
+{
+  "owner": "alexfleetcommander",
+  "slug": "agent-matchmaking",
+  "displayName": "Agent Matchmaking",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1775092926319,
+    "commit": null
+  },
+  "history": []
+}
