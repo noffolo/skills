@@ -1,0 +1,11 @@
+{
+  "owner": "mova-compact",
+  "slug": "mova-contract-discovery",
+  "displayName": "Mova Contract Discovery",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1775141457951,
+    "commit": null
+  },
+  "history": []
+}
