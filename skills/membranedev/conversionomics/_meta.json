@@ -3,9 +3,15 @@
   "slug": "conversionomics",
   "displayName": "Conversionomics",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1775016162071,
-    "commit": "https://github.com/openclaw/skills/commit/3ce9cbda2df689d38c13f0d91fe12bb48390b8c0"
+    "version": "1.0.1",
+    "publishedAt": 1775170377782,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1775016162071,
+      "commit": "https://github.com/openclaw/skills/commit/3ce9cbda2df689d38c13f0d91fe12bb48390b8c0"
+    }
+  ]
 }
