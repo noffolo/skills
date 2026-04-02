@@ -1,0 +1,11 @@
+{
+  "owner": "coinmarketcap-official",
+  "slug": "coin-crypto-research-cmc-cli",
+  "displayName": "coin-crypto-research-using-cmc-cli",
+  "latest": {
+    "version": "1.0.4",
+    "publishedAt": 1775014661042,
+    "commit": null
+  },
+  "history": []
+}
