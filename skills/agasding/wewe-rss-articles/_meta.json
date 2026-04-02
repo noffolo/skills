@@ -1,0 +1,11 @@
+{
+  "owner": "agasding",
+  "slug": "wewe-rss-articles",
+  "displayName": "WeWe RSS 文章读取",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775102185461,
+    "commit": null
+  },
+  "history": []
+}
