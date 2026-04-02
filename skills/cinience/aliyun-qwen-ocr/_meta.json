@@ -1,0 +1,11 @@
+{
+  "owner": "cinience",
+  "slug": "aliyun-qwen-ocr",
+  "displayName": "Aliyun Qwen Ocr",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775058685281,
+    "commit": null
+  },
+  "history": []
+}
