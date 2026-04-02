@@ -1,0 +1,11 @@
+{
+  "owner": "lxy914",
+  "slug": "lxy914-weather",
+  "displayName": "和风天气 API 查询服务，支持实时天气、天气预报和小时预报。使用城市名称进行查询。",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775009786805,
+    "commit": null
+  },
+  "history": []
+}
