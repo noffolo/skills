@@ -1,6 +1,6 @@
 ---
 name: family-medical-history
-description: Comprehensive family medical records management system with SQLite database as primary storage. Use when: (1) setting up medical records for a new family - initialize database, create member profiles; (2) managing family health records - logging visits, tracking medications, recording allergies and vaccinations; (3) answering medical history queries - "what medications is bob currently taking", "when was the last visit for a condition"; (4) tracking treatment progress - monitoring chronic conditions, recurring symptoms, or post-treatment recovery; (5) scheduling follow-ups - medication courses, periodic treatments, review appointments; (6) a family member reports symptoms - creating a new visit record, cross-referencing existing conditions. Triggers on: "medical record", "健康档案", "medication history", "visit log", "allergy", "vaccination", "chronic condition", "prescription renewal", "symptom log", "家庭医疗".
+description: Family Medical Records (家庭医疗档案) | SQLite DB as single source of truth, auto-initializes on first use. EN: (1) set up family health records; (2) log visits, meds, allergies, vaccinations; (3) query medical history; (4) track chronic/periodic treatments; (5) schedule follow-ups. Triggers: "medical record", "health record", "medication history", "visit log", "allergy", "vaccination", "chronic condition", "prescription renewal", "symptom log". ZH: 家庭成员健康档案创建与管理；就诊/用药/过敏/疫苗记录；医疗历史查询；慢性病与周期治疗追踪；随访复诊安排。触发词：医疗记录、健康档案、用药历史、就诊日志、过敏、疫苗接种、慢性病、处方续药、症状记录、家庭医疗。
 ---
 
 # Family Medical History Skill
@@ -88,7 +88,7 @@ cur.execute("""
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """, (
     "bob",        # member_code (internal ID)
-    "七七",            # name
+    "小明",            # name
     "女儿",             # relationship
     "2017-01-01",      # dob
     "女",               # gender

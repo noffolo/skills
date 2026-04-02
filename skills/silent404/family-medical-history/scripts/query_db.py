@@ -22,8 +22,26 @@ def get_connection(db_path: str = None):
 
 # ─── Member Queries ───────────────────────────────────────────────────────────
 
+
+def require_db(db_path: str = None) -> str:
+    """Ensure database exists and is initialized. Auto-initializes if missing."""
+    import subprocess
+    path = get_db_path() if db_path is None else db_path
+    if not os.path.exists(path):
+        print("[INFO] Database not found. Initializing...")
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        result = subprocess.run(
+            ["python3", os.path.join(script_dir, "init_db.py")],
+            capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            raise RuntimeError("[ERROR] Auto-init failed: " + result.stderr.strip())
+        print("[OK] Database auto-initialized.")
+    return path
+
 def list_members(db_path: str = None) -> list:
     """Return all family members."""
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     rows = conn.execute("""
         SELECT id, member_code, name, relationship, dob, gender 
@@ -34,6 +52,7 @@ def list_members(db_path: str = None) -> list:
 
 def get_member(member_code: str, db_path: str = None) -> dict:
     """Return full profile for a member."""
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     row = conn.execute("SELECT * FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not row:
@@ -44,6 +63,7 @@ def get_member(member_code: str, db_path: str = None) -> dict:
     return dict(zip(cols, row))
 
 def get_member_allergies(member_code: str, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not member_row:
@@ -53,6 +73,7 @@ def get_member_allergies(member_code: str, db_path: str = None) -> list:
     return rows
 
 def get_member_medical_history(member_code: str, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not member_row:
@@ -62,6 +83,7 @@ def get_member_medical_history(member_code: str, db_path: str = None) -> list:
     return rows
 
 def get_member_current_medications(member_code: str, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not member_row:
@@ -78,6 +100,7 @@ def get_member_current_medications(member_code: str, db_path: str = None) -> lis
 # ─── Visit Queries ─────────────────────────────────────────────────────────────
 
 def get_visits(member_code: str, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not member_row:
@@ -92,6 +115,7 @@ def get_visits(member_code: str, db_path: str = None) -> list:
     return [dict(zip(cols, r)) for r in rows]
 
 def get_visit(visit_id: str, db_path: str = None) -> dict:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     row = conn.execute("SELECT * FROM visits WHERE visit_id = ?", (visit_id,)).fetchone()
     conn.close()
@@ -101,6 +125,7 @@ def get_visit(visit_id: str, db_path: str = None) -> dict:
     return dict(zip(cols, row))
 
 def get_recent_visits(member_code: str, days: int = 30, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not member_row:
@@ -118,6 +143,7 @@ def get_recent_visits(member_code: str, days: int = 30, db_path: str = None) -> 
 # ─── Medication Queries ───────────────────────────────────────────────────────
 
 def get_medications(member_code: str = None, visit_id: str = None, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     if member_code:
         member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
@@ -138,6 +164,7 @@ def get_medications(member_code: str = None, visit_id: str = None, db_path: str 
     return [dict(zip(cols, r)) for r in rows]
 
 def get_medication_tracking(medication_id: str, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     rows = conn.execute("""
         SELECT * FROM medication_tracking 
@@ -163,6 +190,7 @@ def get_next_dose(medication_id: str, db_path: str = None) -> dict:
 # ─── Exam Queries ─────────────────────────────────────────────────────────────
 
 def get_exams(member_code: str = None, visit_id: str = None, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     if member_code:
         member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
@@ -185,6 +213,7 @@ def get_exams(member_code: str = None, visit_id: str = None, db_path: str = None
 # ─── Daily Vitals Queries ─────────────────────────────────────────────────────
 
 def get_vitals(member_code: str, year: int = None, db_path: str = None) -> list:
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     member_row = conn.execute("SELECT id FROM members WHERE member_code = ?", (member_code,)).fetchone()
     if not member_row:
@@ -209,6 +238,7 @@ def get_vitals(member_code: str, year: int = None, db_path: str = None) -> list:
 
 def get_family_summary(db_path: str = None) -> dict:
     """Get a summary of all family members and key stats."""
+    db_path = require_db(db_path)
     conn = get_connection(db_path)
     members = conn.execute("SELECT COUNT(*) FROM members").fetchone()[0]
     visits = conn.execute("SELECT COUNT(*) FROM visits").fetchone()[0]

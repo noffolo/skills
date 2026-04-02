@@ -1,11 +1,17 @@
 {
   "owner": "silent404",
   "slug": "family-medical-history",
-  "displayName": "Family Medical History",
+  "displayName": "Family Medical History / 家庭医疗档案",
   "latest": {
-    "version": "1.2.1",
-    "publishedAt": 1775097059878,
-    "commit": "https://github.com/openclaw/skills/commit/4dc3287facddeedeea66707fd758fb3385c9632e"
+    "version": "1.5.1",
+    "publishedAt": 1775097723261,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.2.1",
+      "publishedAt": 1775097059878,
+      "commit": "https://github.com/openclaw/skills/commit/4dc3287facddeedeea66707fd758fb3385c9632e"
+    }
+  ]
 }
