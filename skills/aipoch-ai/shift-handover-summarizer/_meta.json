@@ -1,0 +1,11 @@
+{
+  "owner": "aipoch-ai",
+  "slug": "shift-handover-summarizer",
+  "displayName": "Shift Handover Summarizer",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775009834396,
+    "commit": null
+  },
+  "history": []
+}
