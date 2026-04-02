@@ -1,0 +1,11 @@
+{
+  "owner": "mystour",
+  "slug": "claude-memory-optimizer",
+  "displayName": "Claude Memory Optimizer",
+  "latest": {
+    "version": "1.2.0",
+    "publishedAt": 1775105824234,
+    "commit": null
+  },
+  "history": []
+}
