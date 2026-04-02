@@ -1,0 +1,11 @@
+{
+  "owner": "rookiecoder-jsjs",
+  "slug": "bilibili-trending",
+  "displayName": "Bilibili 热门趋势分析",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1775144342696,
+    "commit": null
+  },
+  "history": []
+}
