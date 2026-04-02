@@ -1,0 +1,11 @@
+{
+  "owner": "membranedev",
+  "slug": "logstash",
+  "displayName": "Logstash",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775109770422,
+    "commit": null
+  },
+  "history": []
+}
