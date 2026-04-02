@@ -1,0 +1,11 @@
+{
+  "owner": "lvleiai123",
+  "slug": "bilibili-hot-recommend",
+  "displayName": "bilibili 热门视频推荐排行榜",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1775121202272,
+    "commit": null
+  },
+  "history": []
+}
