@@ -1,0 +1,11 @@
+{
+  "owner": "swor-dart",
+  "slug": "smb-auto-mount",
+  "displayName": "smb-auto-mount",
+  "latest": {
+    "version": "1.0.7",
+    "publishedAt": 1775040867422,
+    "commit": null
+  },
+  "history": []
+}
