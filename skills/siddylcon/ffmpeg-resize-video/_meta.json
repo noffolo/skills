@@ -1,0 +1,11 @@
+{
+  "owner": "siddylcon",
+  "slug": "ffmpeg-resize-video",
+  "displayName": "Ffmpeg Resize Video",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775040140253,
+    "commit": null
+  },
+  "history": []
+}
