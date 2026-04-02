@@ -1,11 +1,17 @@
 {
   "owner": "sunny0826",
   "slug": "dockerfile-optimizer",
-  "displayName": "dockerfile optimizer",
+  "displayName": "Dockerfile Optimizer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1775113683548,
-    "commit": "https://github.com/openclaw/skills/commit/f15887430aed89bb5d10bb669e23180d6bc9f624"
+    "version": "1.0.1",
+    "publishedAt": 1775120697189,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1775113683548,
+      "commit": "https://github.com/openclaw/skills/commit/f15887430aed89bb5d10bb669e23180d6bc9f624"
+    }
+  ]
 }
