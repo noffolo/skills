@@ -1,0 +1,11 @@
+{
+  "owner": "qujingyang28",
+  "slug": "ur-robot",
+  "displayName": "Universal Robots 机器人控制技能 - URSim 仿真 + URScript + RTDE",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1775118072439,
+    "commit": null
+  },
+  "history": []
+}
