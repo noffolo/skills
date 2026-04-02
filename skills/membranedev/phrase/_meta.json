@@ -3,9 +3,15 @@
   "slug": "phrase",
   "displayName": "Phrase",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773349345813,
-    "commit": "https://github.com/openclaw/skills/commit/610100c3e9a2622bbfcf1e6c87abc2158c8c503f"
+    "version": "1.0.1",
+    "publishedAt": 1775163565051,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773349345813,
+      "commit": "https://github.com/openclaw/skills/commit/610100c3e9a2622bbfcf1e6c87abc2158c8c503f"
+    }
+  ]
 }
