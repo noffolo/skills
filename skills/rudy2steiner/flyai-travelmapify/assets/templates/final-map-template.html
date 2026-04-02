@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Map - Final</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+            overflow: hidden;
+        }
+        #container { 
+            width: 100%; 
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .left-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            border: 1px solid rgba(233, 236, 239, 0.8);
+        }
+        .panel-section {
+            margin-bottom: 20px;
+        }
+        .panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4a9eff;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .north-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #4a9eff;
+            border: 1px solid #dee2e6;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 12px;
+            padding: 6px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .legend-number {
+            width: 24px;
+            height: 24px;
+            background: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            font-weight: bold;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .legend-name {
+            color: #212529;
+            flex: 1;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .generate-section {
+            text-align: center;
+            padding-top: 12px;
+            border-top: 2px solid #e9ecef;
+        }
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .generate-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div class="north-indicator">↑ North</div>
+    
+    <div class="left-panel">
+        <div class="panel-section">
+            <div class="panel-title">📍 最终路线 ({{TOTAL_POIS}}个)</div>
+            <div id="routeList">
+                {{ROUTE_LIST}}
+            </div>
+        </div>
+        <div class="panel-section">
+            <div class="generate-section">
+                <button class="generate-btn" onclick="window.location.href='travel-map-editable.html'">编辑路线</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=88628414733cf2ccb7ce2f94cfd680ef"></script>
+    <script>
+        // Initialize map with error handling
+        var map;
+        try {
+            map = new AMap.Map('container', {
+            zoom: 17,
+            viewMode: '2D',
+            pitch: 0,
+            rotation: 0,
+            layers: [
+                new AMap.TileLayer({
+                    detectRetina: true
+                }),
+                new AMap.TileLayer.RoadNet({
+                    opacity: 1.0
+                })
+            ],
+            mapStyle: 'normal',
+            lang: 'zh_cn',
+            showLabel: true
+        });
+        } catch (error) {
+            console.error('Map initialization failed:', error);
+            document.getElementById('container').innerHTML = '<div style="padding:20px;color:red;text-align:center;font-size:16px;">地图加载失败: ' + error.message + '<br>请确保网络连接正常并刷新页面</div>';
+            return;
+        }
+        
+        // Load POIs from localStorage or use default
+        var poiList = JSON.parse(localStorage.getItem('travelMapPois')) || [];
+        
+        if (poiList.length === 0) {
+            // Fallback to default POIs
+            poiList = [
+                {
+                    name: "解放碑步行街",
+                    location: [106.575329, 29.557253],
+                    address: "民族路177号",
+                    rating: "4.9"
+                },
+                {
+                    name: "洪崖洞民俗风貌区", 
+                    location: [106.579027, 29.562204],
+                    address: "嘉陵江滨江路88号",
+                    rating: "4.8"
+                },
+                {
+                    name: "重庆十八梯传统风貌区",
+                    location: [106.573042, 29.551015],
+                    address: "中兴路1号",
+                    rating: "4.8"
+                }
+            ];
+        }
+        
+        // Set map center to first POI
+        if (poiList.length > 0 && poiList[0].location) {
+            map.setCenter(poiList[0].location);
+        }
+        
+        // Add numbered markers
+        poiList.forEach(function(poi, index) {
+            if (poi.location) {
+                var marker = new AMap.Marker({
+                    position: poi.location,
+                    content: `<div style="width:28px;height:28px;background:#f59e0b;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;text-shadow:0 1px 1px rgba(0,0,0,0.3);box-shadow:0 2px 6px rgba(0,0,0,0.4);">${index + 1}</div>`,
+                    offset: new AMap.Pixel(-14, -14)
+                });
+                map.add(marker);
+            }
+        });
+        
+        // Draw arrowed route line
+        if (poiList.length > 1) {
+            const validPois = poiList.filter(poi => poi.location);
+            if (validPois.length > 1) {
+                const routePath = validPois.map(poi => poi.location);
+                var polyline = new AMap.Polyline({
+                    path: routePath,
+                    strokeColor: "#4a9eff",
+                    strokeWeight: 4,
+                    strokeOpacity: 0.95,
+                    showDir: true,
+                    dirColor: "#ff6b35",
+                    dirWidth: 8,
+                    zIndex: 50,
+                    lineJoin: 'round',
+                    lineCap: 'round'
+                });
+                map.add(polyline);
+            }
+        }
+    </script>
+</body>
+</html>

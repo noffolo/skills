@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Travel Map - Unified Simple</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            height: 100%;
+            overflow: hidden;
+        }
+        #container { 
+            width: 100%; 
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        /* Left panel container */
+        .left-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            border: 1px solid rgba(233, 236, 239, 0.8);
+        }
+        
+        /* Header styles */
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4a9eff;
+            margin: 0;
+        }
+        
+        /* Search section */
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .search-box input:focus {
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+        }
+        
+        .search-box button {
+            padding: 10px 16px;
+            background: #4a9eff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .search-box button:hover {
+            background: #3a8bef;
+        }
+        
+        /* POI list styles */
+        .poi-list {
+            margin-top: 16px;
+        }
+        
+        .poi-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        
+        .poi-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .poi-number {
+            width: 28px;
+            height: 28px;
+            background: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .poi-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 14px;
+            color: #212529;
+            word-break: break-word;
+        }
+        
+        .poi-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+        
+        .move-btn, .remove-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .move-btn:hover:not(:disabled), 
+        .remove-btn:hover {
+            border-color: #4a9eff;
+            background: #eef5ff;
+        }
+        
+        .move-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .remove-btn {
+            color: #dc3545;
+        }
+        
+        .remove-btn:hover {
+            border-color: #dc3545;
+            background: #ffeef0;
+        }
+        
+        /* Results styles */
+        .results {
+            margin-top: 12px;
+        }
+        
+        .result-item {
+            padding: 10px 12px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .result-item:hover {
+            border-color: #4a9eff;
+            background: #eef5ff;
+        }
+        
+        .result-name {
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 2px;
+        }
+        
+        .result-address {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .result-rating {
+            color: #4a9eff;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        
+        /* Error styles */
+        .error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        /* North indicator */
+        .north-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #4a9eff;
+            border: 1px solid #dee2e6;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Loading indicator */
+        .loading {
+            text-align: center;
+            padding: 12px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div class="north-indicator">↑ North</div>
+    
+    <!-- Left Panel -->
+    <div class="left-panel" id="leftPanel">
+        <div class="panel-header">
+            <h2 class="panel-title">📍 旅行路线规划</h2>
+        </div>
+        
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="panel-title">🔍 搜索景点</div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索景点名称 (如: 十八梯, 解放碑)">
+                <button onclick="searchPOI()">搜索</button>
+            </div>
+            <div id="searchError" class="error" style="display:none;"></div>
+            <div class="results" id="searchResults"></div>
+        </div>
+        
+        <!-- Route List -->
+        <div class="route-section">
+            <div class="panel-title">📋 路线顺序</div>
+            <div class="poi-list" id="poiList">
+                <!-- POIs will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=88628414733cf2ccb7ce2f94cfd680ef"></script>
+    <script>
+        // Initialize map with error handling
+        var map;
+        try {
+            map = new AMap.Map('container', {
+                zoom: 16,
+                viewMode: '2D',
+                pitch: 0,
+                rotation: 0,
+                layers: [
+                    new AMap.TileLayer({
+                        detectRetina: true
+                    }),
+                    new AMap.TileLayer.RoadNet({
+                        opacity: 1.0
+                    })
+                ],
+                mapStyle: 'normal',
+                features: ['bg', 'road', 'point'],
+                resizeEnable: true,
+                lang: 'zh_cn',
+                showLabel: true,
+                labelzIndex: 100
+            });
+        } catch (error) {
+            console.error('Map initialization failed:', error);
+            document.getElementById('container').innerHTML = '<div style="padding:20px;color:red;text-align:center;font-size:16px;">地图加载失败: ' + error.message + '<br>请确保网络连接正常并刷新页面</div>';
+            return;
+        }
+        
+        // Load POI data (simplified version like original working file)
+        var poiList = {{DEFAULT_POIS_JS}};
+        
+        // Set map center to first POI
+        if (poiList.length > 0) {
+            map.setCenter(poiList[0].location);
+        }
+        
+        // Global variables for drag and drop
+        let dragSourceIndex = null;
+        
+        // Function to render POI list
+        function renderPOIList() {
+            const poiListDiv = document.getElementById('poiList');
+            if (!poiListDiv) return;
+            
+            if (poiList.length === 0) {
+                poiListDiv.innerHTML = '<div style="padding:12px; color:#6c757d;">暂无景点，请搜索添加</div>';
+                return;
+            }
+            
+            let html = '';
+            poiList.forEach(function(poi, index) {
+                // Disable up button for first item, down button for last item
+                var canMoveUp = index > 0;
+                var canMoveDown = index < poiList.length - 1;
+                
+                html += `
+                    <div class="poi-item" draggable="true" 
+                         ondragstart="dragStart(event)" 
+                         ondragover="dragOver(event)" 
+                         ondrop="drop(event)" 
+                         ondragenter="dragEnter(event)"
+                         ondragleave="dragLeave(event)"
+                         data-index="${index}">
+                        <div class="poi-number">${index + 1}</div>
+                        <div class="poi-name">${poi.name}</div>
+                        <div class="poi-actions">
+                            <button class="move-btn" ${!canMoveUp ? 'disabled' : ''} onclick="movePOI(${index}, -1)" title="上移">
+                                ↑
+                            </button>
+                            <button class="move-btn" ${!canMoveDown ? 'disabled' : ''} onclick="movePOI(${index}, 1)" title="下移">
+                                ↓
+                            </button>
+                            <button class="remove-btn" onclick="removePOI(${index})" title="删除">
+                                ×
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            poiListDiv.innerHTML = html;
+        }
+        
+        // Enhanced drag and drop functions
+        function dragStart(e) {
+            dragSourceIndex = parseInt(e.target.closest('.poi-item').dataset.index);
+            e.dataTransfer.setData('text/plain', dragSourceIndex);
+            e.target.closest('.poi-item').classList.add('dragging');
+        }
+        
+        function dragEnter(e) {
+            e.preventDefault();
+            const targetItem = e.target.closest('.poi-item');
+            if (targetItem && parseInt(targetItem.dataset.index) !== dragSourceIndex) {
+                targetItem.classList.add('drag-over');
+            }
+        }
+        
+        function dragLeave(e) {
+            const targetItem = e.target.closest('.poi-item');
+            if (targetItem) {
+                targetItem.classList.remove('drag-over');
+            }
+        }
+        
+        function dragOver(e) {
+            e.preventDefault();
+        }
+        
+        function drop(e) {
+            e.preventDefault();
+            const targetItem = e.target.closest('.poi-item');
+            if (!targetItem) return;
+            
+            const targetIndex = parseInt(targetItem.dataset.index);
+            const sourceIndex = dragSourceIndex;
+            
+            if (sourceIndex !== targetIndex && sourceIndex !== null) {
+                // Reorder array
+                const movedItem = poiList.splice(sourceIndex, 1)[0];
+                poiList.splice(targetIndex, 0, movedItem);
+                
+                // Redraw everything
+                renderPOIList();
+                drawRouteLine();
+            }
+            
+            // Clean up drag classes
+            document.querySelectorAll('.poi-item').forEach(item => {
+                item.classList.remove('dragging', 'drag-over');
+            });
+            
+            dragSourceIndex = null;
+        }
+        
+        // Handle global drag end
+        document.addEventListener('dragend', function() {
+            document.querySelectorAll('.poi-item').forEach(item => {
+                item.classList.remove('dragging', 'drag-over');
+            });
+            dragSourceIndex = null;
+        });
+        
+        // Function to move POI up/down
+        function movePOI(currentIndex, direction) {
+            const newIndex = currentIndex + direction;
+            
+            if (newIndex >= 0 && newIndex < poiList.length) {
+                // Swap items
+                [poiList[currentIndex], poiList[newIndex]] = [poiList[newIndex], poiList[currentIndex]];
+                
+                // Redraw
+                renderPOIList();
+                drawRouteLine();
+            }
+        }
+        
+        // Function to remove POI
+        function removePOI(index) {
+            if (confirm('确定要删除这个景点吗？')) {
+                poiList.splice(index, 1);
+                renderPOIList();
+                drawRouteLine();
+            }
+        }
+        
+        // Function to search POI using local proxy
+        function searchPOI() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            
+            document.getElementById('searchError').style.display = 'none';
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '<div class="loading">正在搜索高德地图...</div>';
+            
+            fetch(`http://localhost:8769/api/search?q=${encodeURIComponent(query)}&city=%E9%87%8D%E5%BA%86`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.pois && data.pois.length > 0) {
+                        displaySearchResults(data.pois, query);
+                    } else {
+                        resultsDiv.innerHTML = '<div class="loading">未找到相关景点</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    const errorDiv = document.getElementById('searchError');
+                    errorDiv.innerHTML = `搜索失败: ${error.message}`;
+                    errorDiv.style.display = 'block';
+                    resultsDiv.innerHTML = '<div class="loading" style="color:#dc3545;">搜索失败，请检查网络连接</div>';
+                });
+        }
+        
+        // Function to display search results
+        function displaySearchResults(pois, query) {
+            const resultsDiv = document.getElementById('searchResults');
+            let html = '';
+            
+            pois.slice(0, 10).forEach(poi => {
+                const lng = parseFloat(poi.location.split(',')[0]);
+                const lat = parseFloat(poi.location.split(',')[1]);
+                const name = poi.name || 'Unnamed';
+                const address = poi.address || 'No address';
+                const rating = poi.rating || '';
+                
+                html += `
+                    <div class="result-item" onclick="selectSearchResult(${lng}, ${lat}, '${name.replace(/'/g, "\\'")}', '${address.replace(/'/g, "\\'")}', '${rating}')">
+                        <div class="result-name">${name}</div>
+                        <div class="result-address">${address}</div>
+                        ${rating ? `<div class="result-rating">评分: ${rating} ⭐</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Function to select search result
+        function selectSearchResult(lng, lat, name, address, rating) {
+            const newPOI = {
+                name: name,
+                location: [lng, lat],
+                address: address,
+                rating: rating
+            };
+            
+            poiList.push(newPOI);
+            
+            // Hide search results
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchInput').value = '';
+            
+            // Redraw
+            renderPOIList();
+            drawRouteLine();
+        }
+        
+        // Allow Enter key to trigger search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPOI();
+            }
+        });
+        
+        // Draw route line
+        function drawRouteLine() {
+            // Clear existing polylines
+            map.clearMap();
+            
+            // Add markers
+            poiList.forEach(function(poi, index) {
+                var marker = new AMap.Marker({
+                    position: poi.location,
+                    content: `<div style="width:28px;height:28px;background:#f59e0b;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;text-shadow:0 1px 1px rgba(0,0,0,0.3);box-shadow:0 2px 6px rgba(0,0,0,0.4);">${index + 1}</div>`,
+                    offset: new AMap.Pixel(-14, -14),
+                    zIndex: 100,
+                    draggable: true
+                });
+                
+                // Create info window
+                var infoContent = `<div style="padding:12px; min-width:220px;">
+                    <h4 style="margin:0 0 8px 0; color:#f59e0b;">${index + 1}. ${poi.name}</h4>
+                    <p style="margin:0 0 6px 0; font-size:12px;">${poi.address}</p>`;
+                if (poi.rating) {
+                    infoContent += `<p style="margin:0 0 4px 0; font-size:11px; color:#4a9eff;">Rating: ${poi.rating} ⭐</p>`;
+                }
+                infoContent += '</div>';
+                
+                var infoWindow = new AMap.InfoWindow({
+                    content: infoContent,
+                    offset: new AMap.Pixel(0, -30)
+                });
+                
+                marker.on('click', function() {
+                    infoWindow.open(map, marker.getPosition());
+                });
+                
+                // Handle marker drag end
+                marker.on('dragend', function(e) {
+                    const newPosition = e.lnglat;
+                    poiList[index].location = [newPosition.getLng(), newPosition.getLat()];
+                    drawRouteLine(); // Redraw route with updated position
+                });
+                
+                map.add(marker);
+            });
+            
+            // Draw route polyline if we have multiple POIs
+            if (poiList.length > 1) {
+                var routePath = poiList.map(poi => poi.location);
+                var polyline = new AMap.Polyline({
+                    path: routePath,
+                    strokeColor: "#4a9eff",
+                    strokeWeight: 3,
+                    strokeOpacity: 0.8,
+                    showDir: true,
+                    dirColor: "#ff6b35",
+                    dirWidth: 6
+                });
+                map.add(polyline);
+            }
+        }
+        
+        // Initialize
+        renderPOIList();
+        drawRouteLine();
+    </script>
+</body>
+</html>
