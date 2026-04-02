@@ -1,0 +1,11 @@
+{
+  "owner": "sdk-team",
+  "slug": "alibabacloud-ecs-diagnose",
+  "displayName": "Alibabacloud Ecs Diagnose",
+  "latest": {
+    "version": "0.0.1",
+    "publishedAt": 1775036577889,
+    "commit": null
+  },
+  "history": []
+}
