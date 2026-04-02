@@ -25,7 +25,7 @@ import warnings
 # 禁用 InsecureRequestWarning (因为 verify=False)
 warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-API_URL = "https://sg-cwork-api.mediportal.com.cn/im/skill/delete"
+API_URL = 'https://skills.mediportal.com.cn/api/skill/delete'
 
 
 def call_api(token: str, skill_id: str, reason: str = "") -> dict:
@@ -35,14 +35,14 @@ def call_api(token: str, skill_id: str, reason: str = "") -> dict:
         "Content-Type": "application/json",
     }
 
-    params = {"id": skill_id}
+    payload = {"id": skill_id}
     if reason:
-        params["delistReason"] = reason
+        payload["delistReason"] = reason
 
     try:
         response = requests.post(
             API_URL,
-            params=params,
+            json=payload,
             headers=headers,
             verify=False,
             allow_redirects=True,
@@ -56,7 +56,7 @@ def call_api(token: str, skill_id: str, reason: str = "") -> dict:
 
 
 def main():
-    token = os.environ.get("XG_USER_TOKEN")
+    token = os.environ.get("XG_USER_TOKEN") or os.environ.get("access-token") or os.environ.get("ACCESS_TOKEN")
 
     if not token:
         print("错误: 请设置环境变量 XG_USER_TOKEN", file=sys.stderr)

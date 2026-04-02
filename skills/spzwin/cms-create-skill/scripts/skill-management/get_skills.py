@@ -38,7 +38,7 @@ else:
     # 禁用 InsecureRequestWarning (因为 verify=False)
     warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-    API_URL = "https://sg-cwork-api.mediportal.com.cn/im/skill/nologin/list"
+    API_URL = 'https://skills.mediportal.com.cn/api/skill/list'
 
     parser = argparse.ArgumentParser(description="发现 Skill — 浏览、搜索、查看详情")
     parser.add_argument("--search", "-s", type=str, help="按关键词搜索 Skill")
@@ -47,7 +47,13 @@ else:
     args = parser.parse_args()
 
     try:
-        response = requests.get(API_URL, verify=False, allow_redirects=True, timeout=60)
+        response = requests.post(
+            API_URL,
+            headers={"Content-Type": "application/json"},
+            verify=False,
+            allow_redirects=True,
+            timeout=60,
+        )
         response.raise_for_status()
         result = response.json()
     except Exception as e:
@@ -75,5 +81,5 @@ else:
             print(f"  {s.get('code', '')} - {s.get('name', '')} - {(s.get('description') or '')[:40]}")
     else:
         for i, s in enumerate(skills, 1):
-            print(f"  {i}. {s.get('code', '')} ({s.get('name', '')}) v{s.get('version', '')}")
+            print(f"  {i}. {s.get('code', '')} ({s.get('name', '')}) v{s.get('clawVersion', '')}")
         print(f"\n共 {len(skills)} 个 Skill")

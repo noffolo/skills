@@ -139,7 +139,7 @@ def upload_file(qiniu_token: str, file_key: str, file_path: str) -> bool:
 
 
 def main():
-    token = os.environ.get("XG_USER_TOKEN")
+    token = os.environ.get("XG_USER_TOKEN") or os.environ.get("access-token") or os.environ.get("ACCESS_TOKEN")
     if not token:
         print("错误: 请设置环境变量 XG_USER_TOKEN", file=sys.stderr)
         sys.exit(1)

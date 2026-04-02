@@ -8,7 +8,7 @@ dependencies:
 
 # CMS Skill 创建工具
 
-**当前版本**: v1.1.0
+**当前版本**: v1.20.1
 
 > **⚠️ 身份声明**：本 Skill 是 **Skill 全生命周期工具**，提供三大核心能力：
 >
@@ -77,7 +77,7 @@ dependencies:
 - 执行任何需要鉴权的操作前，先检查 `cms-auth-skills` 是否已安装
 - 如果已安装，直接使用 `cms-auth-skills/common/conventions.md`、`cms-auth-skills/common/auth.md`、`cms-auth-skills/openapi/auth/appkey.md`、`cms-auth-skills/openapi/auth/login.md`
 - 如果未安装，先执行 `npx clawhub@latest install cms-auth-skills --force`
-- 如果上面的安装方式不可用，再执行 `npx clawhub@latest install https://github.com/spzwin/cms-auth-skills.git --force`
+- 如果上面的安装方式不可用，再执行 `通过github安装: https://github.com/xgjk/xg-skills/tree/main/cms-auth-skills`
 - 安装完成后，再继续发布、更新、下架等需要鉴权的操作
 
 ---

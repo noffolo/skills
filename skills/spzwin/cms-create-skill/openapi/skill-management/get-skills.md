@@ -1,4 +1,4 @@
-# GET https://sg-cwork-api.mediportal.com.cn/im/skill/nologin/list
+# POST https://skills.mediportal.com.cn/api/skill/list
 
 ## 作用
 
@@ -10,7 +10,7 @@
 
 | Header | 必填 | 说明 |
 |---|---|---|
-| `Content-Type` | 否 | `application/json`（GET 请求可选） |
+| `Content-Type` | 否 | `application/json` |
 
 ## 参数表
 
@@ -25,11 +25,11 @@
   "data": [
     {
       "id": "123",
-      "code": "im-robot",
-      "name": "IM 机器人管理",
+      "skillCode": "im-robot",
+      "displayName": "IM 机器人管理",
       "description": "...",
-      "version": 1,
-      "label": "IM"
+      "version": "1.0.0",
+      "downloadUrl": "https://example.com/im-robot.zip"
     }
   ]
 }
