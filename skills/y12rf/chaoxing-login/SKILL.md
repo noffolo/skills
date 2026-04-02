@@ -3,7 +3,7 @@ name: chaoxing
 description: 超星学习通自动化 - 登录、查看课程、查看作业。使用 puppeteer-extra + stealth 插件绕过自动化检测。
 metadata:
   author: OpenClaw
-  version: 1.1.0
+  version: 1.0.1
   requires: puppeteer-extra, puppeteer-extra-plugin-stealth
 ---
 
@@ -67,7 +67,7 @@ await page.evaluate(({ phone, pwd }) => {
   const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;
   s.call(phoneInput, phone); phoneInput.dispatchEvent(new Event('input',{bubbles:true}));
   s.call(pwdInput, pwd); pwdInput.dispatchEvent(new Event('input',{bubbles:true}));
-}, { phone: '手机号', pwd: '密码' });
+}, { phone: 'your phone number', pwd: 'password' });
 
 await new Promise(r => setTimeout(r, 500));
 await page.evaluate(() => document.querySelector('.btn-big-blue')?.click());
