@@ -1,0 +1,11 @@
+{
+  "owner": "goog",
+  "slug": "big-ai-news",
+  "displayName": "Big AI NEWS from multiple technews sources",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775121377529,
+    "commit": null
+  },
+  "history": []
+}
