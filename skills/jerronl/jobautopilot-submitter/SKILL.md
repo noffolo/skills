@@ -2,7 +2,7 @@
 name: jobautopilot-submitter
 description: "Automatically fills and submits job applications. Opens the application page, fills multi-step forms (work history, education, EEOC, dropdowns), uploads your tailored resume and cover letter, and confirms successful submission. Picks up resume_ready jobs from jobautopilot-tailor and marks them applied in the tracker."
 author: jerronl
-version: "1.2.6"
+version: "1.2.9"
 homepage: https://github.com/jerronl/jobautopilot
 tags:
   - job-search
@@ -31,7 +31,8 @@ metadata:
         - RESUME_DIR
         - TRACKER_PATH
       bins:
-        - python3  # used to read tailored .docx resumes via python-docx before filling forms
+        - python3   # reads tailored .docx resumes via python-docx
+        - openclaw  # browser CLI for snapshot, fill, select, click, upload
       pip:
         - python-docx  # used at runtime to extract text from tailored resume .docx files (see "Read resume and JD" step)
     files:
@@ -106,7 +107,7 @@ The helper scripts (`check_required_fields.js`, `fill_template.sh`, `match_varia
 
 ## Setup
 
-All env vars below are set by `setup.sh` (from `jobautopilot-bundle`). If you install standalone, add to `~/.openclaw/users/<you>/config.sh`:
+The required env vars listed in the manifest above are all set by sourcing a single config file at session start. This file is created by `setup.sh` (from `jobautopilot-bundle`). If you install standalone, create `~/.openclaw/users/<you>/config.sh` with these exports:
 
 ```bash
 export OPENCLAW_USER="yourusername"
@@ -215,8 +216,10 @@ cat > "$SCRIPT" << 'SCRIPT_EOF'
 # Contains only: openclaw browser fill/select/click/upload commands
 # No network requests, no external downloads, no eval
 SCRIPT_EOF
-chmod +x "$SCRIPT" && bash "$SCRIPT"
+chmod 700 "$SCRIPT" && bash "$SCRIPT" && rm -f "$SCRIPT"
 ```
+
+Scripts are owner-only (`chmod 700`) and deleted immediately after execution.
 
 Script structure:
 1. Tab validation (snapshot, check for "tab not found")
@@ -245,18 +248,8 @@ Do NOT accept "Thank you for applying" as success.
 - Failed/skipped → `error`, record reason
 - Report result immediately after each job
 
-### 8. Update platform knowledge base
-After each job (success or failure):
-1. Note any new form quirks, unusual labels, dynamic components
-2. Append to `~/.openclaw/platform/<platform>/quirks.md`:
-```bash
-echo "" >> ~/.openclaw/platform/<platform>/quirks.md
-echo "## <FieldName> [$(date +%Y-%m-%d)]" >> ~/.openclaw/platform/<platform>/quirks.md
-echo "**Behavior**: ..." >> ~/.openclaw/platform/<platform>/quirks.md
-echo "**Fix**: ..." >> ~/.openclaw/platform/<platform>/quirks.md
-```
-3. Add stable dropdown values to `~/.openclaw/platform/<platform>/dropdowns.sh`
-4. If no new issues, note "no new quirks" explicitly
+### 8. Report result
+After each job, report to the user: company, title, status (applied/error/wrong_url), and any issues encountered.
 
 ## Helper functions for snapshot parsing
 
