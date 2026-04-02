@@ -1,0 +1,11 @@
+{
+  "owner": "courage-zen",
+  "slug": "transaction-records-cn",
+  "displayName": "交易记录生成",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1775008770926,
+    "commit": null
+  },
+  "history": []
+}
