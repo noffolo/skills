@@ -1,11 +1,17 @@
 {
   "owner": "twinsgeeks",
   "slug": "self-hosted-ai",
-  "displayName": "Self-Hosted AI. Self-Hosted LLM. 自托管AI. IA Autoalojada.",
+  "displayName": "Self Hosted Ai",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1775074307584,
-    "commit": "https://github.com/openclaw/skills/commit/8aadd98cf41cd27aed162c494032d7a37940f1b9"
+    "version": "1.0.2",
+    "publishedAt": 1775254724754,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1775074307584,
+      "commit": "https://github.com/openclaw/skills/commit/8aadd98cf41cd27aed162c494032d7a37940f1b9"
+    }
+  ]
 }
