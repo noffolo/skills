@@ -1,6 +1,6 @@
 # On-Page SEO Auditor — Output Templates
 
-Detailed output templates for on-page-seo-auditor steps 5-11. Referenced from [SKILL.md](../SKILL.md).
+Detailed output templates for on-page-seo-auditor steps 5-11. Referenced from [SKILL.md](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/optimize/on-page-seo-auditor/SKILL.md).
 
 ---
 
@@ -183,7 +183,7 @@ Detailed output templates for on-page-seo-auditor steps 5-11. Referenced from [S
 
 ## Step 10: CORE-EEAT Content Quality Quick Scan
 
-Run a quick scan of on-page-relevant CORE-EEAT items. Reference: [CORE-EEAT Benchmark](../../references/core-eeat-benchmark.md)
+Run a quick scan of on-page-relevant CORE-EEAT items. Reference: [CORE-EEAT Benchmark](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/references/core-eeat-benchmark.md)
 
 ```markdown
 ## CORE-EEAT Quick Scan
@@ -212,7 +212,7 @@ Content-relevant items from the 80-item benchmark:
 
 **CORE-EEAT Quick Score**: [X]/17 items passing
 
-> For a complete 80-item audit with weighted scoring, use [content-quality-auditor](../../cross-cutting/content-quality-auditor/).
+> For a complete 80-item audit with weighted scoring, use `content-quality-auditor`.
 ```
 
 ---

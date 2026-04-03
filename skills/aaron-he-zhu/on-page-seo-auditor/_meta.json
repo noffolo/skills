@@ -3,11 +3,16 @@
   "slug": "on-page-seo-auditor",
   "displayName": "On Page Seo Auditor",
   "latest": {
-    "version": "4.0.0",
-    "publishedAt": 1774347725272,
-    "commit": "https://github.com/openclaw/skills/commit/edb4a052669c7d5766d6e6b2279c9e0aadf548f9"
+    "version": "6.2.0",
+    "publishedAt": 1775113059467,
+    "commit": null
   },
   "history": [
+    {
+      "version": "4.0.0",
+      "publishedAt": 1774347725272,
+      "commit": "https://github.com/openclaw/skills/commit/edb4a052669c7d5766d6e6b2279c9e0aadf548f9"
+    },
     {
       "version": "3.0.0",
       "publishedAt": 1772640554042,
