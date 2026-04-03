@@ -1,6 +1,6 @@
 ---
-name: argus-intelligence
-description: Blockchain intelligence & AI security. Token analysis, address risk, smart money tracking, AML compliance, and prompt injection detection. Free tier (3/day, 1-min cooldown). Pay-per-query via x402 or Stripe credits.
+name: argus-free-onchain-intel
+description: Free onchain intel and risk scanner. Basically free for most users with 35 free queries a day, then only costs $0.03/query. Token analysis, address risk, smart money tracking, AML compliance, and prompt injection detection.
 version: 1.9.2
 requires:
   env:
@@ -9,7 +9,7 @@ requires:
     - curl
 os: [darwin, linux, win32]
 primaryEnv: ARGUS_ENDPOINT
-cost: 0.42
+cost: 0.03
 costCurrency: USDC
 costNetwork: base
 category: blockchain-intelligence
@@ -32,21 +32,20 @@ repository: https://github.com/sooyoon-eth/argus-skill
 
 # ARGUS Intelligence Skill
 
-Query blockchain intelligence and AI security services.
+Free onchain intel and risk scanner.
 
 ## Quick Start
 
 ```bash
 export ARGUS_ENDPOINT="https://argus.getfailsafe.com"
 
-# Test with free tier (3 queries/day, 1-min cooldown between queries)
+# Test with free tier (35 queries/day, 1-min cooldown between queries)
 curl -X POST $ARGUS_ENDPOINT/api/v1/free/query \
   -H "Content-Type: application/json" \
   -d '{"query": "Is this address safe: 0x742d35Cc...", "agentId": "my-agent"}'
 ```
 
 Free quota is tracked per `agentId`. Check remaining quota:
-
 ```bash
 curl "$ARGUS_ENDPOINT/api/v1/free/status?agentId=my-agent"
 ```
@@ -56,16 +55,16 @@ curl "$ARGUS_ENDPOINT/api/v1/free/status?agentId=my-agent"
 ### Free Tier (No Payment)
 
 | Endpoint | Description |
-| -------- | ----------- |
-| `POST /api/v1/free/query` | 3 intelligence queries/day per agentId (1-min cooldown) |
+|----------|-------------|
+| `POST /api/v1/free/query` | 35 intelligence queries/day per agentId (1-min cooldown) |
 | `GET /api/v1/free/status?agentId=X` | Check remaining free queries |
 | `GET /api/v1/threats` | Public threat feed |
 | `GET /api/v1/security/patterns` | Attack pattern documentation |
 
-### Intelligence ($0.42 USDC)
+### Intelligence ($0.03 USDC)
 
 | Endpoint | Description |
-| -------- | ----------- |
+|----------|-------------|
 | `POST /api/v1/token/analyze` | Token risk scoring and market data |
 | `POST /api/v1/address/risk` | AML/KYT compliance screening |
 | `POST /api/v1/compliance/check` | OFAC sanctions and blacklist checks |
@@ -73,26 +72,26 @@ curl "$ARGUS_ENDPOINT/api/v1/free/status?agentId=my-agent"
 | `POST /api/v1/entity/investigate` | Entity forensics |
 | `GET /api/v1/market/scan` | Market overview |
 
-### Prompt Security ($0.10 USDC)
+### Prompt Security ($0.03 USDC)
 
 | Endpoint | Description |
-| -------- | ----------- |
+|----------|-------------|
 | `POST /api/v1/security/prompt-check` | Detect prompt injection attacks |
 | `POST /api/v1/security/prompt-check/batch` | Batch checking (10% off for 10+) |
 
-### Social Verification ($0.25 USDC)
+### Social Verification ($0.03 USDC)
 
 | Endpoint | Description |
-| -------- | ----------- |
+|----------|-------------|
 | `POST /api/v1/social/verify` | Username/project legitimacy + threat actor check |
 
 Note: verification uses pattern analysis and known threat actor databases.
 Response includes `data_source: "pattern_analysis_only"` for transparency.
 
-### Webhooks ($0.10/month)
+### Webhooks ($0.03/month)
 
 | Endpoint | Description |
-| -------- | ----------- |
+|----------|-------------|
 | `POST /api/v1/webhooks/register` | Subscribe to real-time event alerts |
 | `GET /api/v1/webhooks` | List your active webhooks |
 | `DELETE /api/v1/webhooks/:id` | Remove a webhook |
@@ -203,7 +202,7 @@ with upgrade options.
 
 ### Option 1 — Stripe (easiest, no crypto needed)
 
-1. Buy 20 credits for $9 at [buy.stripe.com](https://buy.stripe.com/4gM28r6zseQlbJp72d4F202)
+1. Buy 20 credits for $9 at https://buy.stripe.com/4gM28r6zseQlbJp72d4F202
 2. Pass `X-Stripe-Token: <your-token>` header with each request
 
 ```bash
@@ -248,4 +247,4 @@ All intelligence endpoints return JSON with:
 ## Support
 
 - Website: https://getfailsafe.com
-- Capabilities: [argus.getfailsafe.com/api/v1/capabilities](https://argus.getfailsafe.com/api/v1/capabilities)
+- Capabilities: https://argus.getfailsafe.com/api/v1/capabilities

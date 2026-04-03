@@ -1,6 +1,6 @@
-# ARGUS Intelligence Skill for ClawHub
+# ARGUS: Free Onchain Intel & Risk Scanner
 
-**AI-native blockchain intelligence & security for AI agents.**
+**Free onchain intel and risk scanner for AI agents.**
 
 ## Required Environment Variable
 
@@ -12,20 +12,20 @@ export ARGUS_ENDPOINT="https://argus.getfailsafe.com"
 
 ```bash
 # Install via ClawHub
-clawhub install argus-intelligence
+clawhub install argus-free-onchain-intel
 ```
 
 ## What is ARGUS?
 
-ARGUS is a blockchain intelligence agent that provides:
+ARGUS is a free onchain intel and risk scanner that provides:
 
-- **Token Analysis** — Rug pull detection, risk scoring ($0.42)
-- **Address Risk** — Sanctions, AML, compliance ($0.42)
-- **Smart Money Tracking** — Whale movements ($0.42)
-- **Prompt Security** — Injection attack detection ($0.10)
-- **Social Verification** — Username/project legitimacy check ($0.25)
-- **Webhooks** — Real-time event alerts ($0.10/month)
-- **Free Tier** — 3 queries/day, 1-minute cooldown, no payment needed!
+- **Token Analysis** — Rug pull detection, risk scoring ($0.03)
+- **Address Risk** — Sanctions, AML, compliance ($0.03)
+- **Smart Money Tracking** — Whale movements ($0.03)
+- **Prompt Security** — Injection attack detection ($0.03)
+- **Social Verification** — Username/project legitimacy check ($0.03)
+- **Webhooks** — Real-time event alerts ($0.03/month)
+- **Free Tier** — Basically free for most users with 35 free queries/day! Only costs money after that.
 
 ## Try It Free
 
@@ -39,17 +39,13 @@ curl -X POST https://argus.getfailsafe.com/api/v1/free/query \
 
 | Service | Cost |
 |---------|------|
-| Free Tier | 3/day FREE (1 min cooldown) |
-| Intelligence Query | $0.42 USDC |
-| Prompt Security | $0.10 USDC |
-| Social Verification | $0.25 USDC |
-| Watchlist Monitoring | $0.10/month |
-| Webhook Subscription | $0.10/month |
+| Free Tier | 35/day FREE (basically free for most users) |
+| All paid queries | $0.03 USDC flat |
 
 ## Payment Options
 
 **Option 1 — Stripe (easiest, no crypto needed):**
-Buy 20 credits for $9 → receive a token → pass `X-Stripe-Token: <token>` header.
+Buy 350 credits for $10 → receive a token → pass `X-Stripe-Token: <token>` header.
 [Buy credits →](https://buy.stripe.com/4gM28r6zseQlbJp72d4F202)
 
 **Option 2 — x402 (USDC on Base):**
@@ -71,7 +67,7 @@ Treasury: `0x8518E91eBcb6bE76f478879720bD9759e01B7954`
 ## Changelog
 
 | Version | Highlights |
-| ------- | ---------- |
+|---------|-----------|
 | v1.9.2 | Security: is_safe fix, base64 decode, error handler hardening; A2A real routing; social verification transparency |
 | v1.9.1 | Stripe credits, deprecated referral/leaderboard, model upgrade (Gemini), SDR heartbeat |
 | v1.9.0 | Batch analysis, watchlist, webhook delivery, x402 Solana support |
