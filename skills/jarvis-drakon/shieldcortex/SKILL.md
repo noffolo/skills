@@ -184,3 +184,53 @@ Free local package is unlimited. Cloud adds team dashboards, audit aggregation, 
 ## 70 Exported APIs
 
 The library exports 70 named functions and types covering defence, memory, knowledge graph, skill scanning, and audit. Full list in the [CHANGELOG](https://github.com/Drakon-Systems-Ltd/ShieldCortex/blob/main/CHANGELOG.md#2100---2026-02-13).
+
+## v4.x Features (v4.0.0 – v4.4.0)
+
+### Memory Intelligence
+| Feature | Description |
+|---------|-------------|
+| **Memory Types** | `user`, `feedback`, `project`, `reference` — typed memories with validation |
+| **Staleness Scoring** | Age-based decay with warnings on old memories |
+| **LLM-Powered Reranking** | Hybrid recall: embedding search + LLM reranker for precision |
+| **Dream Mode** | Background memory consolidation (`shieldcortex consolidate`) — like sleep for AI |
+| **Memory Scopes** | `private` vs `team` for multi-agent deployments |
+| **Positive Feedback** | `shieldcortex cortex confirm` — learn from success, not just mistakes |
+| **Save Filtering** | Blocks saving derivable info (file paths, git refs) |
+
+### X-Ray Security Scanner (v4.3.0+)
+
+On-demand security scanning for files, directories, plugins, and npm packages:
+
+```bash
+# Scan a local file or directory
+shieldcortex xray ./path
+
+# Deep scan an npm package (registry + local)
+shieldcortex xray some-package --deep
+
+# CI/CD pipeline gate
+shieldcortex xray --ci --threshold=HIGH
+
+# Continuous file monitoring
+shieldcortex xray --watch
+
+# npm pre-install hook
+shieldcortex xray-preinstall
+```
+
+**X-Ray detects:**
+- `eval`/`exec` and shell execution patterns
+- AI directives and prompt injection
+- Steganography indicators and obfuscation
+- Unicode tricks and homoglyph attacks
+- Network beacons and persistence hooks
+- Dependency risk scoring
+- Typosquat detection (e.g. `axois` → `axios`)
+- Suspicious postinstall scripts
+
+**Trust score:** 0–100 with SAFE / LOW / MEDIUM / HIGH / CRITICAL ratings.
+
+**Memory Guard:** Auto-scans content before agent memory writes (via OpenClaw plugin).
+
+Free tier: 5 local scans/day. Pro: unlimited + deep npm registry scan.

@@ -1,13 +1,18 @@
 {
   "owner": "jarvis-drakon",
   "slug": "shieldcortex",
-  "displayName": "Shieldcortex",
+  "displayName": "ShieldCortex",
   "latest": {
-    "version": "3.4.37",
-    "publishedAt": 1774373290111,
-    "commit": "https://github.com/openclaw/skills/commit/17d7494dae48888c7bb9cadef3d7c02d34aef5af"
+    "version": "4.4.0",
+    "publishedAt": 1775163969373,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.4.37",
+      "publishedAt": 1774373290111,
+      "commit": "https://github.com/openclaw/skills/commit/17d7494dae48888c7bb9cadef3d7c02d34aef5af"
+    },
     {
       "version": "3.4.4",
       "publishedAt": 1773668641428,
