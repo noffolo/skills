@@ -1,11 +1,17 @@
 {
   "owner": "pushmatrix",
   "slug": "shop",
-  "displayName": "Shop Claw | Curate & shop securely in tandem with your agent",
+  "displayName": "Shop",
   "latest": {
-    "version": "2.9.3",
-    "publishedAt": 1774299461229,
-    "commit": "https://github.com/openclaw/skills/commit/e4f0d7724598952467e834dd4256d0a383ca1de4"
+    "version": "0.0.3",
+    "publishedAt": 1774886689331,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.9.3",
+      "publishedAt": 1774299461229,
+      "commit": "https://github.com/openclaw/skills/commit/e4f0d7724598952467e834dd4256d0a383ca1de4"
+    }
+  ]
 }
