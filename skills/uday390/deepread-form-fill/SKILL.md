@@ -1,6 +1,6 @@
 ---
 name: deepread-form-fill
-title: image.png
+title: DeepRead Form Fill
 description: AI-powered PDF form filling. Upload any PDF form and your data as JSON — AI detects fields visually, maps your data semantically, fills the form with quality checks, and returns a completed PDF. Works with scanned forms, handwritten templates, and any PDF — no AcroForm fields required.
 disable-model-invocation: true
 metadata:
@@ -489,4 +489,18 @@ This is expected for 2-5% of fields. Check `report.fields` for the `reason` on e
 
 ---
 
-**Get started free:** https://www.deepread.tech/dashboard/?utm_source=clawdhub
+## BYOK — Bring Your Own Key
+
+Connect your own OpenAI, Google, or OpenRouter API key via the dashboard. All form fill processing routes through YOUR provider account — zero DeepRead LLM costs, page quota skipped entirely.
+
+Set it up: https://www.deepread.tech/dashboard/byok
+
+## Related DeepRead Skills
+
+- **deepread-ocr** — Extract text and structured JSON from documents — `clawhub install uday390/deepread-ocr`
+- **deepread-form-fill** — Fill any PDF form with AI vision (this skill) — `clawhub install uday390/deepread-form-fill`
+- **deepread-pii** — Redact 14 types of PII from documents — `clawhub install uday390/deepread-pii`
+- **deepread-agent-setup** — Authenticate via OAuth device flow — `clawhub install uday390/deepread-agent-setup`
+- **deepread-byok** — Bring Your Own Key setup — `clawhub install uday390/deepread-byok`
+
+**Get started free:** https://www.deepread.tech/dashboard/?utm_source=clawhub
