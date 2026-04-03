@@ -3,11 +3,16 @@
   "slug": "wiseocr",
   "displayName": "WiseOCR",
   "latest": {
-    "version": "1.0.18",
-    "publishedAt": 1773917513758,
-    "commit": "https://github.com/openclaw/skills/commit/96dc19bfe4cb87ca94252a4f5c51c800849e723c"
+    "version": "1.0.28",
+    "publishedAt": 1775005541259,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.18",
+      "publishedAt": 1773917513758,
+      "commit": "https://github.com/openclaw/skills/commit/96dc19bfe4cb87ca94252a4f5c51c800849e723c"
+    },
     {
       "version": "1.0.9",
       "publishedAt": 1772157996518,
