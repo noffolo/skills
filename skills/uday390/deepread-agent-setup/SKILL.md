@@ -243,3 +243,11 @@ export DEEPREAD_API_KEY="sk_live_your_key_here"
 - **Dashboard**: https://www.deepread.tech/dashboard
 - **Issues**: https://github.com/deepread-tech/deep-read-service/issues
 - **Email**: hello@deepread.tech
+
+## Related DeepRead Skills
+
+- **deepread-ocr** — Extract text and structured JSON from documents — `clawhub install uday390/deepread-ocr`
+- **deepread-form-fill** — Fill any PDF form with AI vision — `clawhub install uday390/deepread-form-fill`
+- **deepread-pii** — Redact 14 types of PII from documents — `clawhub install uday390/deepread-pii`
+- **deepread-agent-setup** — Authenticate via OAuth device flow (this skill) — `clawhub install uday390/deepread-agent-setup`
+- **deepread-byok** — Bring Your Own Key for zero LLM costs — `clawhub install uday390/deepread-byok`
