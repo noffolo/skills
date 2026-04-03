@@ -1,12 +1,12 @@
 ---
-name: baidu-top
-description: 抓取百度首页榜单，分热搜、小说、电影、电视剧四类返回，适合热点追踪与内容选题。
+name: "Baidu Top - 百度热搜榜单"
+description: 获取百度首页热搜、小说、电影、电视剧等榜单。当用户说：百度今天热搜榜？热播剧榜单，或类似百度榜单问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "📈", "requires": { "bins": ["python3"] } } }
 ---
 
 # 百度榜单（baidu-top）
 
-抓取百度首页榜单并按分类输出：
+获取百度首页榜单并按分类输出：
 
 - 热搜榜
 - 小说榜
