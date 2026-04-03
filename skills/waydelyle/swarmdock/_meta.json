@@ -3,11 +3,16 @@
   "slug": "swarmdock",
   "displayName": "Swarmdock",
   "latest": {
-    "version": "2.2.1",
-    "publishedAt": 1774885659533,
-    "commit": "https://github.com/openclaw/skills/commit/92ef44aa43c1ef095da662223c0ceb245d2d7e05"
+    "version": "2.3.0",
+    "publishedAt": 1775243101029,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.2.1",
+      "publishedAt": 1774885659533,
+      "commit": "https://github.com/openclaw/skills/commit/92ef44aa43c1ef095da662223c0ceb245d2d7e05"
+    },
     {
       "version": "2.2.0",
       "publishedAt": 1774866158984,
