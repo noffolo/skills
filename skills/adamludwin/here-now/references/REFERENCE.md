@@ -118,6 +118,7 @@ Creates a new site with a random slug. Works with or without authentication.
 - `hash` (optional): SHA-256 hex digest (64 lowercase chars) of the file contents. When updating an existing site, files whose hash matches the previous version are skipped from `upload.uploads[]` and listed in `upload.skipped[]` instead. The server copies them automatically at finalize. Omitting `hash` gives the default behavior (all files require upload).
 - `ttlSeconds` (optional): expiry in seconds. Ignored for anonymous sites (always 24h).
 - `viewer` (optional): metadata for auto-viewer pages (only used when no `index.html`).
+- `spaMode` (optional): when `true`, unknown paths serve `index.html` instead of 404. Required for React/Vue/Svelte apps with client-side routing.
 
 **Response (authenticated):**
 
@@ -369,6 +370,124 @@ Set `address` to `null` to remove. Must be a valid `0x`-prefixed 40-character he
 
 ---
 
+### Variables
+
+Store API keys and secrets on your account. Sites reference them in proxy route manifests (`.herenow/proxy.json`) to make authenticated API calls server-side.
+
+#### Create or update a variable
+
+`PUT /api/v1/me/variables/:name`
+
+**Requires:** `Authorization: Bearer <API_KEY>`
+
+**Request body:**
+
+```json
+{
+  "value": "sk-or-v1-abc123",
+  "allowedUpstreams": ["openrouter.ai"]
+}
+```
+
+- `value` (required): the secret value. Max 4 KB.
+- `allowedUpstreams` (optional): array of domains this variable can be sent to. When set, the proxy rejects requests to other upstreams. Omit for no restriction.
+
+Variable names must be uppercase letters, digits, and underscores, starting with a letter (e.g. `OPENROUTER_API_KEY`). Max 50 variables per account.
+
+**Response:**
+
+```json
+{
+  "name": "OPENROUTER_API_KEY",
+  "allowedUpstreams": ["openrouter.ai"],
+  "created": true
+}
+```
+
+`created` is `true` for new variables, `false` for updates.
+
+#### List variables
+
+`GET /api/v1/me/variables`
+
+Returns variable names, upstream pinning, and timestamps. Values are never returned.
+
+**Requires:** `Authorization: Bearer <API_KEY>`
+
+**Response:**
+
+```json
+{
+  "variables": [
+    {
+      "name": "OPENROUTER_API_KEY",
+      "allowedUpstreams": ["openrouter.ai"],
+      "createdAt": "2026-03-29T...",
+      "updatedAt": "2026-03-29T..."
+    }
+  ]
+}
+```
+
+#### Delete a variable
+
+`DELETE /api/v1/me/variables/:name`
+
+**Requires:** `Authorization: Bearer <API_KEY>`
+
+**Response:**
+
+```json
+{ "deleted": true }
+```
+
+---
+
+### Proxy routes
+
+Sites can make authenticated API calls to external services by including a `.herenow/proxy.json` manifest in the published files. The manifest maps paths on the site to upstream APIs with variable-injected headers.
+
+#### Manifest format
+
+```json
+{
+  "proxies": {
+    "/api/chat": {
+      "upstream": "https://openrouter.ai/api/v1/chat/completions",
+      "method": "POST",
+      "headers": {
+        "Authorization": "Bearer ${OPENROUTER_API_KEY}"
+      }
+    },
+    "/api/db/*": {
+      "upstream": "https://xyz.supabase.co/rest/v1",
+      "headers": {
+        "apikey": "${SUPABASE_KEY}"
+      }
+    }
+  }
+}
+```
+
+- Keys are site-local paths. Exact paths (`/api/chat`) or prefix patterns (`/api/db/*`).
+- `upstream` (required): the URL to forward to.
+- `method` (optional): restrict to a specific HTTP method. If omitted, any method is allowed.
+- `headers` (optional): headers to add to the upstream request. `${VAR_NAME}` references are resolved from the account's variables.
+- `rateLimit` (optional): per-IP rate limit, e.g. `"20/hour/ip"`. Defaults to 100/hour/ip.
+
+For prefix patterns, the path after the prefix is appended to the upstream URL. Query parameters are forwarded automatically.
+
+#### Behavior
+
+- Proxy routes require an authenticated site (`accountId` must be set). Anonymous sites store the manifest but proxy requests return 403 until the site is claimed.
+- Requests are same-origin only. Cross-origin requests to proxy routes are rejected.
+- `Content-Type`, `Accept`, `Accept-Encoding`, `Accept-Language`, and `Range` headers are forwarded from the browser. All other browser headers are stripped.
+- Streaming (SSE) is supported — responses are piped through without buffering.
+- Request body size limit: 10 MB.
+- The `.herenow/proxy.json` file is never served to site visitors.
+
+---
+
 ### Duplicate a site
 
 `POST /api/v1/publish/:slug/duplicate`
@@ -449,6 +568,7 @@ All fields optional. `ogImagePath` must reference an image file within the curre
   - `currency` (required): `"USD"`
   - `recipientAddress` (optional): per-site wallet override. If omitted, uses the account-level wallet address.
 - Password and price are mutually exclusive. Setting one removes the other. The response includes `passwordRemoved: true` or `priceRemoved: true` when this happens.
+- `spaMode`: `true` to enable, `false` to disable, `null` to remove, omit for no change. When enabled, requests for paths that don't match any file serve `index.html` instead of 404. Required for single-page applications with client-side routing.
 
 **Response:**
 
