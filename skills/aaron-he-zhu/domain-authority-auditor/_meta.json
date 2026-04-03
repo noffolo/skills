@@ -3,11 +3,16 @@
   "slug": "domain-authority-auditor",
   "displayName": "Domain Authority Auditor",
   "latest": {
-    "version": "3.0.0",
-    "publishedAt": 1772640329384,
-    "commit": "https://github.com/openclaw/skills/commit/d3bfc96fa258a7e3bbe76233ec70c4d959754b28"
+    "version": "6.2.0",
+    "publishedAt": 1775113089777,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.0",
+      "publishedAt": 1772640329384,
+      "commit": "https://github.com/openclaw/skills/commit/d3bfc96fa258a7e3bbe76233ec70c4d959754b28"
+    },
     {
       "version": "2.0.0",
       "publishedAt": 1771042714361,

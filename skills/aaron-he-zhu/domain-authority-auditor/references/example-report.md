@@ -1,6 +1,6 @@
 # CITE Domain Authority Report — Example
 
-Full example audit output for reference. See the [SKILL.md](../SKILL.md) for the complete workflow.
+Full example audit output for reference. See the [SKILL.md](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/cross-cutting/domain-authority-auditor/SKILL.md) for the complete workflow.
 
 ## Example
 
@@ -93,7 +93,7 @@ Sorted by: weight × points lost (highest impact first)
 
 ### Recommended Next Steps
 
-- For entity building: run [entity-optimizer](../entity-optimizer/) to strengthen I-dimension signals
-- For content audit: use [content-quality-auditor](../content-quality-auditor/) on key pages
+- For entity building: run `entity-optimizer` to strengthen I-dimension signals
+- For content audit: use `content-quality-auditor` on key pages
 - For tracking progress: run `/seo:report` with CITE score trends quarterly
 ```
