@@ -3,9 +3,15 @@
   "slug": "ottertext",
   "displayName": "Ottertext",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773378141656,
-    "commit": "https://github.com/openclaw/skills/commit/30ba7883f4f35d641a2e404c49b4eaa7326186cd"
+    "version": "1.0.2",
+    "publishedAt": 1775163715657,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773378141656,
+      "commit": "https://github.com/openclaw/skills/commit/30ba7883f4f35d641a2e404c49b4eaa7326186cd"
+    }
+  ]
 }
