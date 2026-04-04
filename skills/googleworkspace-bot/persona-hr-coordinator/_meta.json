@@ -3,11 +3,16 @@
   "slug": "persona-hr-coordinator",
   "displayName": "Persona Hr Coordinator",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551083364,
-    "commit": "https://github.com/openclaw/skills/commit/74cd14f0d4ed19243447f6e822c9e84c8c5e8f7d"
+    "version": "1.0.12",
+    "publishedAt": 1774982124146,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551083364,
+      "commit": "https://github.com/openclaw/skills/commit/74cd14f0d4ed19243447f6e822c9e84c8c5e8f7d"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774300539860,
