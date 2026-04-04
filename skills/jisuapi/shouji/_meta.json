@@ -3,11 +3,16 @@
   "slug": "shouji",
   "displayName": "Mobile Phone Number Location Query - 手机号码归属地查询",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1774592390960,
-    "commit": "https://github.com/openclaw/skills/commit/5374fd5b180591fa6b2652c181b2ae2e35c5b3c6"
+    "version": "1.0.5",
+    "publishedAt": 1775209682699,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1774592390960,
+      "commit": "https://github.com/openclaw/skills/commit/5374fd5b180591fa6b2652c181b2ae2e35c5b3c6"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1773720171077,

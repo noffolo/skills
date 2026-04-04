@@ -1,6 +1,6 @@
 ---
-name: jisu-shouji
-description: 使用极速数据手机号码归属地 API，根据手机号查询归属省市、运营商及卡类型。
+name: "Mobile Phone Number Location Query - 手机号码归属地查询"
+description: 根据手机号查归属省市、运营商与卡类型。当用户说：138xxxx 是哪里的号？这个号码联通还是移动？或类似手机号归属地问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "📱", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
