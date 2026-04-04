@@ -3,11 +3,16 @@
   "slug": "jisu-enterprise",
   "displayName": "Enterprise Business Information Inquiry - 企业工商信息查询",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1774592804307,
-    "commit": "https://github.com/openclaw/skills/commit/721539d79f2231e80cd52e4c5e0853260800f3e2"
+    "version": "1.0.6",
+    "publishedAt": 1775208241709,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1774592804307,
+      "commit": "https://github.com/openclaw/skills/commit/721539d79f2231e80cd52e4c5e0853260800f3e2"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1773719748681,

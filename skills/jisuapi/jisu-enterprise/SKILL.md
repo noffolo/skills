@@ -1,6 +1,6 @@
 ---
-name: jisu-enterprise
-description: 使用极速数据企业工商信息 API，查询企业基本信息、名称搜索结果、变更记录以及股东高管信息。
+name: "Enterprise Business Information Inquiry - 企业工商信息查询"
+description: 查企业工商基本信息、名称搜索、变更与股东高管等。当用户说：查一下某某公司的注册资本、法人是谁？企业变更记录，或类似工商信息问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🏢", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
