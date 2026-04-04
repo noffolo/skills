@@ -3,9 +3,15 @@
   "slug": "servicenow-integration",
   "displayName": "Servicenow",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772776933552,
-    "commit": "https://github.com/openclaw/skills/commit/14797e1886bee43e95599c8a4681ba7dac8c2ddc"
+    "version": "1.0.2",
+    "publishedAt": 1775161787074,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772776933552,
+      "commit": "https://github.com/openclaw/skills/commit/14797e1886bee43e95599c8a4681ba7dac8c2ddc"
+    }
+  ]
 }
