@@ -127,6 +127,8 @@ The script will:
 5. Poll the reactor API until the player ID is confirmed (default 120s timeout)
 6. Output JSON to stdout with all results
 
+**Note**: When a player joins a guild, they receive a default guild rank of 101. Guild leadership can later promote members to lower (higher-privilege) ranks. See the [structs-guild skill](https://structs.ai/skills/structs-guild/SKILL) for rank management.
+
 **Output format** (parse this JSON):
 
 ```json
