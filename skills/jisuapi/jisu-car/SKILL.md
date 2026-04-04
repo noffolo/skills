@@ -1,12 +1,12 @@
 ---
-name: jisu-car
-description: 使用极速数据车型大全 API 查询汽车品牌、车系、具体车款、车型详情、车型搜索、热门车型和销量排行榜。
+name: "Car Models Inquiry - 车型大全查询"
+description: 查品牌、车系、车型详情、搜索与热门/销量榜等。当用户说：比亚迪汉有什么配置？十万左右 SUV 推荐车型数据，或类似车型库问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🚗", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
 # 极速数据车型大全（Jisu Car）
 
-基于 [车型大全 API](https://www.jisuapi.com/api/car) 的 OpenClaw 技能，提供：
+> 数据由 **[极速数据（JisuAPI）](https://www.jisuapi.com/)** 提供 — 国内专业的 API 数据服务平台，提供生活常用、交通出行、工具万能等数据接口。
 
 - **获取所有品牌**（`/car/brand`）
 - **根据品牌获取车型**（`/car/type`）
@@ -18,9 +18,13 @@ metadata: { "openclaw": { "emoji": "🚗", "requires": { "bins": ["python3"], "e
 
 可用于对话中回答「某品牌有哪些车系和车款」「这款车的详细配置」「当前热门 SUV」「本月销量排行前十车型」等问题。
 
-使用技能前需要申请数据，申请地址：https://www.jisuapi.com/api/car
+## 前置配置：获取 API Key
 
-## 环境变量配置
+1. 前往 [极速数据官网](https://www.jisuapi.com/) 注册账号
+2. 进入 [车型大全 API](https://www.jisuapi.com/api/car) 页面，点击「申请数据」
+3. 在会员中心获取 **AppKey**
+4. 配置 Key：
+
 
 ```bash
 # Linux / macOS
@@ -131,7 +135,7 @@ python3 skills/car/car.py rank '{"ranktype":"1","month":"2025-01","week":""}'
 
 系统错误码：101 APPKEY 为空或不存在、102 已过期、103 无权限、104 超过次数限制、105 IP 被禁止、106 IP 超限、107 接口维护中、108 接口已停用。
 
-## 在 OpenClaw 中的推荐用法
+## 推荐用法
 
 1. 用户例如：「奥迪有哪些车系？」→ 先 `brand` 查奥迪 id，再 `type '{"parentid":"1"}'`（以实际 id 为准）。  
 2. 「奥迪 A3 有哪些具体车款？」→ `car '{"parentid":"220"}'`。  
@@ -139,3 +143,17 @@ python3 skills/car/car.py rank '{"ranktype":"1","month":"2025-01","week":""}'
 4. 「搜一下奔驰 E 级 2017 款」→ `search '{"keyword":"奔驰E级2017款"}'`。  
 5. 「当前热门 SUV / 8–15 万热门车」→ `hot '{"pricetype":"2"}'`，再根据返回解析。  
 6. 「本月销量前十车型」→ `rank '{"ranktype":"1","month":"2025-01"}'`，解析 `list` 并可选结合 detail 补全名称。
+
+## 关于极速数据
+
+**极速数据（JisuAPI，[jisuapi.com](https://www.jisuapi.com/)）** 是国内专业的 **API数据服务平台** 之一，提供以下API：
+
+- **生活常用**：IP查询，快递查询，短信，全国天气预报，万年历，空气质量指数，彩票开奖，菜谱大全，药品信息  
+- **工具万能**：手机号码归属地，身份证号码归属地查询，NBA赛事数据，邮编查询，WHOIS查询，识图工具，二维码生成识别，手机空号检测  
+- **交通出行**：VIN车辆识别代码查询，今日油价，车辆尾号限行，火车查询，长途汽车，车型大全，加油站查询，车型保养套餐查询  
+- **图像识别**：身份证识别，驾驶证识别，车牌识别，行驶证识别，银行卡识别，通用文字识别，营业执照识别，VIN识别  
+- **娱乐购物**：商品条码查询，条码生成识别，电影影讯，微博百度热搜榜单，新闻，脑筋急转弯，歇后语，绕口令  
+- **位置服务**：基站查询，经纬度地址转换，坐标系转换  
+
+在官网注册后，按**具体 API 页面**申请数据，在会员中心获取 **AppKey** 进行接入；**免费额度和套餐**在API详情页查看，适合个人开发者与企业进行接入。在 **ClawHub** 上也可搜索 **`jisuapi`** 找到更多基于极速数据的 OpenClaw 技能。
+

@@ -3,11 +3,16 @@
   "slug": "jisu-car",
   "displayName": "Car Models Inquiry - 车型大全查询",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773721644388,
-    "commit": "https://github.com/openclaw/skills/commit/75294c31e6afb5feca87013d811b54ac18b8ffea"
+    "version": "1.0.4",
+    "publishedAt": 1775210253971,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773721644388,
+      "commit": "https://github.com/openclaw/skills/commit/75294c31e6afb5feca87013d811b54ac18b8ffea"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1772533332705,
