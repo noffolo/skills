@@ -3,9 +3,15 @@
   "slug": "confluence-integration",
   "displayName": "Confluence",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772603756133,
-    "commit": "https://github.com/openclaw/skills/commit/ee6f65553aa7c4b0cf47bf7351fe7088b438c053"
+    "version": "1.0.2",
+    "publishedAt": 1775161546460,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772603756133,
+      "commit": "https://github.com/openclaw/skills/commit/ee6f65553aa7c4b0cf47bf7351fe7088b438c053"
+    }
+  ]
 }
