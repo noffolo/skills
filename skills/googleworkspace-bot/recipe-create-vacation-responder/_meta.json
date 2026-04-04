@@ -3,11 +3,16 @@
   "slug": "recipe-create-vacation-responder",
   "displayName": "Recipe Create Vacation Responder",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551142501,
-    "commit": "https://github.com/openclaw/skills/commit/e0e1fda4fdd89fc7fa37dd8c752aea6e7885abdc"
+    "version": "1.0.12",
+    "publishedAt": 1774982181938,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551142501,
+      "commit": "https://github.com/openclaw/skills/commit/e0e1fda4fdd89fc7fa37dd8c752aea6e7885abdc"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774300601933,
