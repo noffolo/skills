@@ -1,6 +1,6 @@
 ---
-name: jisu-silver
-description: 使用极速数据白银价格 API，查询上海黄金交易所白银、上海期货交易所白银及伦敦银等市场白银价格行情。
+name: "Silver Price Inquiry - 白银价格查询"
+description: 查询国内白银期货/现货相关及伦敦银等参考行情。当用户说：白银现在什么价？伦敦银涨跌多少？或类似白银价格问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🥈", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 

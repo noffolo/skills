@@ -3,11 +3,16 @@
   "slug": "silver",
   "displayName": "Silver Price Inquiry - 白银价格查询",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1774592663507,
-    "commit": "https://github.com/openclaw/skills/commit/c6f85c962b7f17d528d5255940723e122b2506fc"
+    "version": "1.0.4",
+    "publishedAt": 1775209825156,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1774592663507,
+      "commit": "https://github.com/openclaw/skills/commit/c6f85c962b7f17d528d5255940723e122b2506fc"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773720337079,
