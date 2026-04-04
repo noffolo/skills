@@ -1,11 +1,17 @@
 {
   "owner": "violalulu",
   "slug": "lux3d",
-  "displayName": "lux3d-skill",
+  "displayName": "Lux3d",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773391690275,
-    "commit": "https://github.com/openclaw/skills/commit/660a5f5c4ca92033ce59069099274a4f5ff5faef"
+    "version": "1.0.1",
+    "publishedAt": 1775114219531,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773391690275,
+      "commit": "https://github.com/openclaw/skills/commit/660a5f5c4ca92033ce59069099274a4f5ff5faef"
+    }
+  ]
 }
