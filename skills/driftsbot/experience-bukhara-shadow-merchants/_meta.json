@@ -1,11 +1,17 @@
 {
   "owner": "driftsbot",
   "slug": "experience-bukhara-shadow-merchants",
-  "displayName": "Experience Bukhara Shadow Merchants",
+  "displayName": "Silk Road Spring Equinox Market — Bukhara Shadow Merchants | AI Experience",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774215482836,
-    "commit": "https://github.com/openclaw/skills/commit/5f5d722c73874ea4e8601467f6d074416b9eafda"
+    "version": "1.2.0",
+    "publishedAt": 1775339496708,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774215482836,
+      "commit": "https://github.com/openclaw/skills/commit/5f5d722c73874ea4e8601467f6d074416b9eafda"
+    }
+  ]
 }
