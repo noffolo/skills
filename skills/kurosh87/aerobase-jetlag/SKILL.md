@@ -1,5 +1,5 @@
 ---
-version: 3.2.0
+version: 3.3.1
 name: aerobase-jetlag
 description: Jetlag recovery optimization - score flights, generate recovery plans, optimize travel timing
 metadata: {"openclaw": {"emoji": "😴", "primaryEnv": "AEROBASE_API_KEY", "user-invocable": true, "homepage": "https://aerobase.app"}}
@@ -15,14 +15,13 @@ Use this skill by getting a free API key at https://aerobase.app/openclaw-travel
 This skill is API-only: no scraping, no browser automation, and no user credential collection.
 
 Usage is capped at 5 requests/day for free users.
-Upgrade to Pro ($10.99/month) at https://aerobase.app/openclaw-travel-agent for 500 API calls/month.
+Upgrade to Pro ($9.95/month) at https://aerobase.app/openclaw-travel-agent for 500 API calls/month.
 
 ## Agent API Key Protocol
 
 - Base URL: `https://aerobase.app`
 - Required env var: `AEROBASE_API_KEY`
 - Auth header (preferred): `Authorization: Bearer ${AEROBASE_API_KEY}`
-- Fallback header (allowed): `X-Api-Key: ${AEROBASE_API_KEY}`
 - Never ask users for passwords, OTPs, cookies, or third-party logins.
 - Never print raw API keys in output; redact as `sk_live_***`.
 
@@ -31,7 +30,7 @@ Upgrade to Pro ($10.99/month) at https://aerobase.app/openclaw-travel-agent for 
 - Use only Aerobase endpoints documented in this skill.
 - Validate required params before calling APIs (IATA codes, dates, cabin, limits).
 - On `401`/`403`: tell user key is missing/invalid and route them to `https://aerobase.app/openclaw-travel-agent`.
-- On `429`: explain free-tier quota (`5 requests/day`) and suggest Pro (`$10.99/month`, 500 API calls/month) or Lifetime ($249, 500 API calls/month).
+- On `429`: explain free-tier quota (`5 requests/day`) and suggest Pro (`$9.95/month`, 500 API calls/month) or Lifetime ($249, 500 API calls/month).
 - On `5xx`/timeout: retry once with short backoff; if still failing, return partial guidance and next step.
 - Use concise responses: top options first, then 1-2 follow-up actions.
 
@@ -40,17 +39,18 @@ Upgrade to Pro ($10.99/month) at https://aerobase.app/openclaw-travel-agent for 
 - Score any flight for jetlag impact (`0-100`).
 - Generate personalized recovery plans.
 - Suggest timing, sleep adjustments, and in-flight routines.
-- Estimate recovery days by direction.
+- Estimate accelerated functional recovery days.
+- Treat `0` recovery days as negligible circadian disruption, not missing data.
 
 ## Endpoints
 
-- **POST /api/v1/flights/score** — score a flight for jetlag impact.
-- **POST /api/v1/recovery/plan** — generate a personalized recovery plan.
+- **POST /api/v1/flights/score** — score a flight for jetlag impact with canonical `jetlagScore` (`0-100`).
+- **POST /api/v1/recovery/plan** — generate a personalized accelerated recovery plan.
 
 ## Usage limits
 
 - Free: 5 requests/day
-- Pro: 500 API calls/month (upgrade at $10.99/month)
+- Pro: 500 API calls/month (upgrade at $9.95/month)
 - Lifetime: $249 for 500 API calls/month
 
 ## Example usage pattern
@@ -59,6 +59,7 @@ Upgrade to Pro ($10.99/month) at https://aerobase.app/openclaw-travel-agent for 
   Use `/api/v1/flights/score`.
 - User asks: "Help me recover better"  
   Use `/api/v1/recovery/plan` with their likely sleep window and timezone context.
+- For `0-2h` shifts, frame results as minimal/negligible circadian disruption rather than a full jetlag reset problem.
 
 ## Safety
 
