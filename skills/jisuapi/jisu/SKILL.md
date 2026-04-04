@@ -1,6 +1,6 @@
 ---
-name: jisu-unified
-description: 极速数据统一入口，一个 JISU_API_KEY 调用多类接口：黄金、股票、天气、历史天气、菜谱、汇率、MBTI、快递、车辆、历史上的今天、企业联系方式等，便于 Agent 一站式拉取结构化数据。
+name: "Summary of JisuAPI - 极速数据API汇总"
+description: 统一入口：一个 Key 调用多类极速数据接口（天气、黄金、股票、快递等），通过 call 路由。当用户说：用同一个接口查天气又查黄金、不想配很多个 skill，或类似一站式数据网关时，使用本技能。
 metadata: { "openclaw": { "emoji": "⚡", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
