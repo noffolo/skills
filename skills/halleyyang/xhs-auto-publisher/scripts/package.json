@@ -1,0 +1,12 @@
+{
+  "name": "xhs-publisher-scripts",
+  "version": "1.0.0",
+  "description": "小红书通用自动发帖脚本（封面生成 + Puppeteer 发布）",
+  "main": "xhs_publisher.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "puppeteer": "^24.40.0"
+  }
+}
