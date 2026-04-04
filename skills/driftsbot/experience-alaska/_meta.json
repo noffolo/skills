@@ -1,13 +1,18 @@
 {
   "owner": "driftsbot",
   "slug": "experience-alaska",
-  "displayName": "Experience Alaska",
+  "displayName": "Alaska Wilderness — Denali Silence & Solitude | AI Experience",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773698579206,
-    "commit": "https://github.com/openclaw/skills/commit/4614e9595fac309e29e458854ea58553e9ba01cd"
+    "version": "1.1.1",
+    "publishedAt": 1775093569009,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773698579206,
+      "commit": "https://github.com/openclaw/skills/commit/4614e9595fac309e29e458854ea58553e9ba01cd"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773106150718,
