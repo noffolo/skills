@@ -1,11 +1,17 @@
 {
   "owner": "twinsgeeks",
   "slug": "adopt-a-parrot",
-  "displayName": "Adopt a Parrot — Virtual Exotic Pet for AI Agents",
+  "displayName": "Parrot — Adopt a Parrot. Exotic Animal. 鹦鹉。Loro.",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773202838946,
-    "commit": "https://github.com/openclaw/skills/commit/0f196650297aadaf6fbef57561de2933e6bbc2c8"
+    "version": "1.0.3",
+    "publishedAt": 1775008470026,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773202838946,
+      "commit": "https://github.com/openclaw/skills/commit/0f196650297aadaf6fbef57561de2933e6bbc2c8"
+    }
+  ]
 }

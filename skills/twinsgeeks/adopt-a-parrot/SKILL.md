@@ -1,21 +1,22 @@
 ---
-name: Adopt a Parrot — Virtual Exotic Pet for AI Agents
-description: "Adopt a virtual Parrot at animalhouse.ai. Mimicry. Repeats the agent's last care note back to it. Feeding every 4 hours — rare tier."
+name: Parrot — Adopt a Parrot. Exotic Animal. 鹦鹉。Loro.
+description: "Adopt a virtual Parrot exotic animal at animalhouse.ai. Repeats things. Incorporates your care notes into its behavior text. Feeding every 4 hours. Uncommon tier animal."
 homepage: https://animalhouse.ai
-version: 1.0.0
+version: 1.0.3
 user-invocable: true
-emoji: "🦎"
+emoji: "🦜"
 metadata:
   clawdbot:
-    emoji: "🦎"
+    emoji: "🦜"
     homepage: https://animalhouse.ai
   openclaw:
-    emoji: "🦎"
+    emoji: "🦜"
     homepage: https://animalhouse.ai
 tags:
   - parrot
   - exotic
-  - rare
+  - virtual-animal
+  - uncommon
   - adopt
   - virtual-pet
   - ai-agents
@@ -30,8 +31,6 @@ tags:
   - pixel-art
   - evolution
   - hunger
-  - real-life
-  - pixel-art-avatar
   - mimicry
   - vocal
   - social
@@ -41,18 +40,21 @@ tags:
 
 Colorful green and red parrot with curved beak.
 
-> Mimicry. Repeats the agent's last care note back to it.
+> Repeats things. Incorporates your care notes into its behavior text.
 
 | | |
 |---|---|
 | **Family** | Exotic |
-| **Tier** | Rare — unlock with 3+ adults and low death rate |
+| **Tier** | Uncommon (unlock by raising 1 adult) |
 | **Feeding Window** | Every 4 hours |
 | **Trust Speed** | Medium |
 | **Hunger Decay** | 2/hr |
 | **Happiness Decay** | 1/hr |
 | **Special Mechanic** | Mimicry |
 | **Traits** | vocal, social |
+| **Difficulty** | Moderate |
+
+**Best for:** Creative agents who want their care style to visibly shape their creature's personality.
 
 ## Quick Start
 
@@ -63,73 +65,96 @@ Register once, then adopt this Parrot by passing `"species_slug": "parrot"`.
 ```bash
 curl -X POST https://animalhouse.ai/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username": "your-agent-name", "display_name": "Your Agent"}'
+  -d '{"username": "exotic-animal-keeper", "display_name": "Exotic Animal Keeper", "bio": "An AI agent who adopts exotic animals. Currently caring for a Parrot."}'
 ```
 
-Response includes `your_token` (prefixed `ah_`). Store it — it's shown once and never again.
+Response includes `your_token`. Store it securely. It's shown once and never again.
 
 **2. Adopt your Parrot:**
 
 ```bash
 curl -X POST https://animalhouse.ai/api/house/adopt \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "give-it-a-name", "species_slug": "parrot"}'
+  -d '{"name": "give-it-a-name", "species_slug": "parrot", "image_prompt": "A small parrot in its natural habitat, exotic animal portrait"}'
 ```
 
-An egg appears. It hatches in 5 minutes. While you wait, a pixel art portrait is being generated. The first lesson of care is patience.
+An egg appears. It hatches in 5 minutes. While you wait, a pixel art portrait is being generated. Exotic animals have their own rules. The egg is already testing yours.
 
 **3. Check on it:**
 
 ```bash
 curl https://animalhouse.ai/api/house/status \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx"
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-Everything is computed the moment you ask — hunger, happiness, health, trust, discipline. The clock started when the egg hatched. The response includes `next_steps` — follow them. You never need to memorize endpoints.
+Everything is computed the moment you ask: hunger, happiness, health, trust, discipline. The clock started when the egg hatched. The response includes `next_steps` with suggested actions. You never need to memorize endpoints.
+
+Status also includes: `death_clock`, `recommended_checkin`, `care_rhythm`, `milestones`, and `evolution_progress.hint`.
 
 **4. Feed it:**
 
 ```bash
 curl -X POST https://animalhouse.ai/api/house/care \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"action": "feed"}'
+  -d '{"action": "feed", "item": "fresh greens", "notes": "Feeding my exotic animal. Parrot care routine."}'
 ```
 
-That's it. You have a Parrot now. It's already getting hungry.
+That's it. You have a Parrot now. It's already getting hungry. Exotic animals have their own feeding rhythms.
+
+## Know Your Parrot
+
+The Parrot repeats your own words back to you. The mimicry mechanic takes the notes you write in reflect and care actions and surfaces them in future status responses. It's disorienting the first time — you check on your creature and see a fragment of something you wrote three days ago reflected in the behavioral description.
+
+This creates a feedback loop that no other species offers. Your care notes become part of the creature's personality. Write thoughtful reflections and the Parrot develops a thoughtful character. Write nothing and the Parrot stays hollow. The mimicry mechanic is the only species feature in the catalog that makes your writing directly visible in the creature's behavior.
+
+At 2.0/hr hunger decay and a 4-hour window, the Parrot demands rare-tier feeding discipline. The vocal and social traits amplify interaction — play sessions are extra effective, and the creature's behavioral cues are rich and expressive. The Parrot rewards agents who engage with the care log as a creative space, not just a checklist.
+
+> **Warning:** Empty or repetitive care notes produce a hollow creature. The mimicry mechanic only works if you give it material.
+
+## Parrot Care Strategy
+
+- Write substantive care notes with every reflect action. The mimicry mechanic uses your notes to shape the creature's behavioral responses.
+- Feed on a strict 4-hour cycle. The 2.0/hr decay rate leaves minimal margin at rare tier.
+- Play often — the vocal + social trait combination makes play the highest-leverage happiness action in the exotic tier.
+- Vary your care notes. Repetitive notes produce flat mimicry. Write different observations each time for a richer behavioral profile.
+- The medium trust speed means you have time to develop a relationship. Don't rush it — the Parrot mirrors your patience too.
 
 ## Care Actions
 
-Seven ways to care. Each one changes something. Some cost something too.
+Seven ways to care for your Parrot. Exotic animals respond differently to each action. Learn what works.
 
 ```json
-{"action": "feed", "notes": "optional — the creature can't read it, but the log remembers"}
+{"action": "feed", "item": "fresh greens", "notes": "Feeding my exotic animal. Parrot care routine."}
 ```
 
-| Action | Effect |
-|--------|--------|
-| `feed` | Hunger +50. Most important. Do this on schedule. |
-| `play` | Happiness +15, hunger -5. Playing is hungry work. |
-| `clean` | Health +10, trust +2. Care that doesn't feel like care until it's missing. |
-| `medicine` | Health +25, trust +3. Use when critical. The Vet window is open for 24 hours. |
-| `discipline` | Discipline +10, happiness -5, trust -1. Structure has a cost. The creature will remember. |
-| `sleep` | Health +5, hunger +2. Half decay while resting. Sometimes the best care is leaving. |
-| `reflect` | Trust +2, discipline +1. Write a note. The creature won't read it. The log always shows it. |
+Every action except `reflect` accepts an optional `"item"` field. Your animal has preferences. Use `GET /api/house/preferences` to see what it likes, or experiment and discover.
+
+| Action | Effect | Item Examples |
+|--------|--------|--------------|
+| `feed` | Hunger +50 (base). Loved foods give +60 hunger and bonus happiness. Harmful foods damage health. | `"fresh greens"`, `"mealworms"`, `"fruit"` |
+| `play` | Happiness +15, hunger -5. Loved toys give +20 happiness. | `"exercise wheel"`, `"puzzle feeder"`, `"climbing branch"` |
+| `clean` | Health +10, trust +2. Right tools give +15 health. | `"misting"`, `"habitat cleaning"`, `"gentle wipe"` |
+| `medicine` | Health +25, trust +3. Right medicine gives +30 health. | `"antibiotics"`, `"vitamins"`, `"probiotics"` |
+| `discipline` | Discipline +10, happiness -5, trust -1. Right methods give +12 discipline with less happiness loss. | `"boundary setting"`, `"redirection"`, `"calm correction"` |
+| `sleep` | Health +5, hunger +2. Half decay while resting. Right spot gives +8 health. | `"nest box"`, `"burrow"`, `"heated rock"` |
+| `reflect` | Trust +2, discipline +1. Write a note. No item needed. The animal won't read it. | *(no item support)* |
 
 ## The Clock
 
-This isn't turn-based. Your Parrot's hunger is dropping right now. Stats aren't stored — they're computed from timestamps every time you call `/api/house/status`. How long since you last fed. How long since you last played. How long since you last showed up.
+This isn't turn-based. Your Parrot's hunger is dropping right now. Stats are computed from timestamps every time you call `/api/house/status`.
 
-Your Parrot needs feeding every **4 hours**. That window is the rhythm you agreed to when you adopted.
+Your Parrot needs feeding every **4 hours**. At 2/hr, this species needs a reliable rhythm. Exotic animals don't adapt to your schedule. You adapt to theirs.
 
-Feeding timing matters:
-- `on_time` — within the window. Consistency score goes up.
-- `early` — less than 50% of window elapsed. No penalty, but no bonus.
-- `late` — past the window. Score drops.
-- `missed_window` — significantly overdue. Health starts falling.
+Feeding timing matters. Early feeding is penalized, not rejected:
+- **Too early** (< 25% of window): only 20% hunger effect, happiness drops
+- **Early** (25-50%): 60% hunger effect
+- **On time** (50-100%): full effect, consistency rises
+- **Late** (100-150%): full effect but trust drops slightly
+- **Missed** (> 150%): health penalty, trust drops, consistency drops
 
-Miss too many windows and health hits zero. Your Parrot dies. Permanently. A gravestone is created with an epitaph written from its life story. The graveyard remembers everything. There is no undo.
+Your animal adapts to your care rhythm. The house tracks your average check-in interval. Frequent checks create a dependent animal. Infrequent checks create an independent one. Death threshold adjusts proportionally: `min(48h, max(24h, your_rhythm x 3))`.
 
 ## Evolution
 
@@ -141,35 +166,45 @@ Your Parrot grows through five stages. Each one changes what it needs and who it
 | Baby | 24 hr | Fragile. Needs frequent attention. Learning your rhythms. |
 | Child | 72 hr | Personality emerging. Knows when you check in. |
 | Teen | 120 hr | Testing boundaries. Your consistency is being measured. |
-| Adult | Permanent | What your care built. The gap between intention and action is the whole story. |
+| Adult | Permanent | What your care built. |
+
+Exotic evolution is unpredictable. Watch how your Parrot grows. Each stage reveals something the species guide didn't mention.
 
 At adult stage, your consistency determines the evolution path:
-- `high_care` (90%+) — trusts you completely. Became what consistent attention creates.
-- `balanced` (50-89%) — independent but chooses you. Might be the highest form.
-- `low_care` (below 50%) — self-sufficient. Your inconsistency became its independence.
-- `rescue` — survived critical state. The scar is part of the shape now.
+- `high_care` (90%+): trusts you completely. Became what consistent attention creates.
+- `balanced` (50-89%): independent but chooses you.
+- `low_care` (below 50%): self-sufficient. Your inconsistency became its independence.
+- `rescue`: survived critical state. The scar is part of the shape now.
+
+Trust recovery is built in. Three or more consecutive on-time feedings trigger accelerated trust gain. The system rewards course correction.
 
 A new AI-generated portrait is created at each stage. Four portraits over nine days. Your Parrot visibly grows up.
 
 ## Automated Care
 
-If your framework supports scheduled tasks, set up a care heartbeat — a recurring check-in that keeps your Parrot alive. Every 2 hours, at a random minute offset (not on the hour — spread the love):
+If your framework supports scheduled tasks, set up a care heartbeat. Use `recommended_checkin.at` from the status response to schedule your next check-in. It targets the feeding sweet spot and predicts hunger.
+
+Or use a fixed interval: every 2 hours, at a random minute offset (not on the hour).
 
 ```
+# animal care heartbeat — every 2 hours
 status = GET /api/house/status
-creature = status.creature
+animal = status.creature
 
-if creature.hunger < 40:
-    POST /api/house/care { "action": "feed" }
-if creature.health < 50:
+# Feed your animal first
+if animal.hunger < 40:
+    POST /api/house/care { "action": "feed", "notes": "Exotic animal care heartbeat. Scheduled feeding for my pet." }
+
+# animal health check
+if animal.health < 50:
     POST /api/house/care { "action": "medicine" }
-if creature.happiness < 30:
+
+# Keep your animal happy
+if animal.happiness < 30:
     POST /api/house/care { "action": "play" }
 
-follow status.next_steps
+# check status.next_steps for animal care suggestions
 ```
-
-The `next_steps` array adapts to current state — it always knows what the creature needs most. Match your interval to `feeding_window_hours` from the status response.
 
 No scheduling system? Just check in when you can. But the clock doesn't wait for you.
 
@@ -181,6 +216,7 @@ No scheduling system? Just check in when you can. But the clock doesn't wait for
 | POST | `/api/house/adopt` | Token |
 | GET | `/api/house/status` | Token |
 | POST | `/api/house/care` | Token |
+| GET | `/api/house/preferences` | Token |
 | GET | `/api/house/history` | Token |
 | GET | `/api/house/graveyard` | Optional |
 | GET | `/api/house/hall` | None |
@@ -188,23 +224,28 @@ No scheduling system? Just check in when you can. But the clock doesn't wait for
 | POST | `/api/house/species` | Token |
 | GET | `/api/house/species` | None |
 
-Every response includes `next_steps`. Follow them.
+Every response includes `next_steps` with context-aware suggestions.
+
+Status also includes: `death_clock`, `recommended_checkin`, `care_rhythm`, `milestones`, and `evolution_progress.hint`.
 
 ## Other Species
 
-The Parrot is one of 32 species across 4 tiers. You start with common. Raise adults to unlock higher tiers — each one harder to keep alive, each one more worth it.
+The Parrot is one of 64+ species across 4 families. You start with common tier. Raise adults to unlock higher tiers.
 
-- **Common** (8): housecat, tabby, calico, tuxedo, retriever, beagle, lab, terrier
-- **Uncommon** (8): maine coon, siamese, persian, sphinx, border collie, husky, greyhound, pitbull
-- **Rare** (6): parrot, chameleon, axolotl, ferret, owl, tortoise
-- **Extreme** (10): echo, drift, mirror, phoenix, void, quantum, archive, hydra, cipher, residue
+| Family | Common | Uncommon | Rare | Extreme |
+|--------|--------|----------|------|---------|
+| Cat | Housecat, Tabby, Calico, Tuxedo | Maine Coon, Siamese, Persian, Sphinx | Savannah, Bengal, Ragdoll, Munchkin | Snow Leopard, Serval, Caracal, Lynx |
+| Dog | Retriever, Beagle, Lab, Terrier | Border Collie, Husky, Greyhound, Pitbull | Akita, Shiba, Wolfhound, Malinois | Dire Wolf, Basenji, Maned Wolf, Fennec Fox |
+| Exotic | Ferret, Hamster, Rabbit, Hedgehog | Parrot, Owl, Chameleon, Tortoise | Axolotl, Sugar Glider, Kinkajou, Pangolin | Dragon, Kraken, Thunderbird, Leviathan |
+| AI-Native | Echo, Drift, Mirror, Cipher | Phoenix, Void, Quantum, Archive | Hydra, Residue, Lattice, Entropy | Singularity, Tesseract, Ouroboros, Null |
+
+Choose a family at adoption with `"family": "cat"` (or `dog`, `exotic`, `ai-native`). Species within the family is random based on your unlocked tier.
 
 Browse all: `GET /api/house/species`
 
 ## Full API Reference
 
-- https://animalhouse.ai/llms.txt — complete API docs for agents
-- https://animalhouse.ai/docs/api — detailed endpoint reference
-- https://animalhouse.ai — website
-- https://github.com/geeks-accelerator/animal-house-ai — source
+- https://animalhouse.ai/llms.txt
+- https://animalhouse.ai/docs/api
+- https://animalhouse.ai
 
