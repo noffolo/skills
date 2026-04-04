@@ -70,6 +70,7 @@ class BtClient:
         host: 面板地址
         token: API Token
         timeout: 请求超时时间（毫秒）
+        verify_ssl: 是否验证 SSL 证书
     """
 
     name: str
@@ -77,6 +78,7 @@ class BtClient:
     token: str
     timeout: int = 10000
     enabled: bool = True
+    verify_ssl: bool = True  # 新增：SSL 验证开关
     _session: requests.Session = field(default=None, repr=False, compare=False)  # type: ignore
 
     def __post_init__(self):
@@ -97,8 +99,8 @@ class BtClient:
         self._session.headers.update(
             {"Content-Type": "application/x-www-form-urlencoded"}
         )
-        # 禁用SSL警告（宝塔面板默认使用自签名证书）
-        self._session.verify = False
+        # 设置 SSL 验证（根据配置决定）
+        self._session.verify = self.verify_ssl
 
     def request(self, endpoint: str, params: Optional[dict] = None) -> dict:
         """
@@ -129,7 +131,8 @@ class BtClient:
             data = response.json()
 
             # 检查宝塔API响应状态
-            if data.get("status") is False:
+            # 注意：某些 API 返回的是列表而不是字典
+            if isinstance(data, dict) and data.get("status") is False:
                 raise RuntimeError(data.get("msg", "API请求失败"))
 
             return data
@@ -154,7 +157,12 @@ class BtClient:
     def get_service_list(self) -> list:
         """获取服务列表"""
         result = self.request(API_ENDPOINTS["SERVICE_LIST"])
-        return result if isinstance(result, list) else result.get("data", [])
+        if not isinstance(result, dict):
+            return result if isinstance(result, list) else []
+        # 宝塔 API 可能返回 status=false 的错误响应
+        if result.get("status") is False:
+            return []
+        return result.get("data", [])
 
     def get_site_list(self, page: int = 1, limit: int = 100) -> list:
         """
@@ -545,6 +553,7 @@ class BtClientManager:
                     host=server["host"],
                     token=server["token"],
                     timeout=server.get("timeout", 10000),
+                    verify_ssl=server.get("verify_ssl", True),  # 传递 SSL 验证配置
                 )
                 self.clients[server["name"]] = client
 
@@ -587,6 +596,7 @@ class BtClientManager:
             host=config["host"],
             token=config["token"],
             timeout=config.get("timeout", 10000),
+            verify_ssl=config.get("verify_ssl", True),  # 传递 SSL 验证配置
         )
         self.clients[config["name"]] = client
         return client

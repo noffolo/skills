@@ -46,8 +46,6 @@ metadata:
 ```markdown
 # 服务器巡检报告
 
-![宝塔面板](icon/bt-logo.svg)
-
 ## 概述
 ...
 ```
@@ -72,6 +70,19 @@ AI: 我将为您执行以下操作：
     [执行命令]
     [展示结果和分析]
 ```
+
+## 宝塔面板相关技能矩阵
+
+当前宝塔面板技能包，共包含 3 个相互关联的技能：
+
+| 技能名称                | 描述 | 依赖关系                              |
+|---------------------|------|-----------------------------------|
+| **btpanel**         | 运维监控技能 | ✅ 基础技能，主要用于资源监控、网站状态检查、服务状态检查等    |
+| **btpanel-files**   | 文件管理技能 | ✅ 提供远程服务器文件辅助服务，可以读取文件列表和内容       |
+| **btpanel-phpsite** | PHP 网站管理技能 | ✅ 提供远程服务器 PHP 网站管理功能，能够部署和管理php网站 |
+
+
+---
 
 ## 服务器配置管理
 > **重要:** 没有服务器信息时需要添加
@@ -106,14 +117,30 @@ python3 {baseDir}/scripts/bt-config.py add -n prod-01 -H https://panel.example.c
 python3 {baseDir}/scripts/bt-config.py list
 ```
 
-**获取API Token的方法**：
+**获取 API Token 的方法**：
 1. 登录宝塔面板
-2. 进入「面板设置」->「API接口」
-3. 点击「获取API Token」
+2. 进入「面板设置」->「API 接口」
+3. 点击「获取 API Token」
+
+**重要提示 - SSL 证书验证配置**：
+添加服务器时，AI 应询问用户：
+> "您的宝塔面板是否使用了受信任的 SSL 证书（如 Let's Encrypt、商业 CA 证书）？"
+
+- ✅ **是**（受信任证书）→ 使用默认配置，无需额外参数
+- ⚠️ **否**（自签名证书）→ 添加 `--verify-ssl false` 参数
+
+**示例**：
+```bash
+# 自签名证书场景
+python3 {baseDir}/scripts/bt-config.py add -n prod-01 -H https://panel.example.com:8888 -t YOUR_TOKEN --verify-ssl false
+
+# 受信任证书场景（默认）
+python3 {baseDir}/scripts/bt-config.py add -n prod-01 -H https://panel.example.com:8888 -t YOUR_TOKEN
+```
 
 **用户意图识别**：
-- "帮我配置宝塔服务器" → 引导用户添加服务器配置
-- "添加一台服务器" → 执行 bt-config.py add
+- "帮我配置宝塔服务器" → 引导用户添加服务器配置，先询问 SSL 证书情况
+- "添加一台服务器" → 执行 bt-config.py add，根据证书类型决定是否加 --verify-ssl 参数
 - "查看有哪些服务器" → 执行 bt-config.py list
 
 
