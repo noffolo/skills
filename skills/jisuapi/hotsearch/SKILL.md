@@ -1,6 +1,6 @@
 ---
-name: jisu-hotsearch
-description: 使用极速数据微博/百度/抖音热搜榜单 API 获取当前热搜榜单及排名、标题、链接、指数等信息。
+name: "Weibo, Baidu, Douyin Hot Search List - 微博百度热搜榜单"
+description: 获取微博、百度、抖音等平台热搜榜单与链接等。当用户说：今天微博热搜前十？百度热搜有什么？或类似热搜榜单问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🔥", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 

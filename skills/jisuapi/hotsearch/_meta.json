@@ -3,11 +3,16 @@
   "slug": "hotsearch",
   "displayName": "Weibo, Baidu, Douyin Hot Search List - 微博百度热搜榜单",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1774584656427,
-    "commit": "https://github.com/openclaw/skills/commit/05d9005feb8d82e4eb34b668a71a21d9e531be39"
+    "version": "1.0.4",
+    "publishedAt": 1775209177626,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1774584656427,
+      "commit": "https://github.com/openclaw/skills/commit/05d9005feb8d82e4eb34b668a71a21d9e531be39"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773720648010,
