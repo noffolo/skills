@@ -1,11 +1,17 @@
 {
   "owner": "chartgen-ai",
   "slug": "data-analysis-pro",
-  "displayName": "data analysis pro",
+  "displayName": "Data Analysis Pro",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1773394098824,
-    "commit": "https://github.com/openclaw/skills/commit/2fa55b2a15635b88005ffc0266677a352e02d05a"
+    "version": "1.0.5",
+    "publishedAt": 1775034297062,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1773394098824,
+      "commit": "https://github.com/openclaw/skills/commit/2fa55b2a15635b88005ffc0266677a352e02d05a"
+    }
+  ]
 }
