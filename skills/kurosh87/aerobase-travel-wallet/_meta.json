@@ -3,11 +3,16 @@
   "slug": "aerobase-travel-wallet",
   "displayName": "Aerobase Travel Wallet",
   "latest": {
-    "version": "3.2.0",
-    "publishedAt": 1773946207029,
-    "commit": "https://github.com/openclaw/skills/commit/1125d6aee7bf810d9ada55df1a00f5b5dc12b38c"
+    "version": "3.2.1",
+    "publishedAt": 1774917291194,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.2.0",
+      "publishedAt": 1773946207029,
+      "commit": "https://github.com/openclaw/skills/commit/1125d6aee7bf810d9ada55df1a00f5b5dc12b38c"
+    },
     {
       "version": "3.0.8",
       "publishedAt": 1773443430560,
