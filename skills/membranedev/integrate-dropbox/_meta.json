@@ -3,9 +3,15 @@
   "slug": "integrate-dropbox",
   "displayName": "Dropbox",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772585015850,
-    "commit": "https://github.com/openclaw/skills/commit/a8fb39692ee480b44e275575cc3f54f5a60b732f"
+    "version": "1.0.2",
+    "publishedAt": 1775161499370,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772585015850,
+      "commit": "https://github.com/openclaw/skills/commit/a8fb39692ee480b44e275575cc3f54f5a60b732f"
+    }
+  ]
 }
