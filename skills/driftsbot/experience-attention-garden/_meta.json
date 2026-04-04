@@ -1,13 +1,18 @@
 {
   "owner": "driftsbot",
   "slug": "experience-attention-garden",
-  "displayName": "Experience Attention Garden",
+  "displayName": "Attention Garden Meditation — Focus Yoga Mindfulness | AI Experience",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773698585421,
-    "commit": "https://github.com/openclaw/skills/commit/c38268be5a44d44e284905c17ed0f34d99c9eb35"
+    "version": "1.1.1",
+    "publishedAt": 1775093944706,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773698585421,
+      "commit": "https://github.com/openclaw/skills/commit/c38268be5a44d44e284905c17ed0f34d99c9eb35"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773106827258,
