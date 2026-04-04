@@ -1,6 +1,6 @@
 ---
-name: jisu-bazi
-description: 使用极速数据八字排盘 API，根据出生时间和城市进行生辰八字排盘，返回八字、乾/坤造、纳音、大运、流年等信息。
+name: "Bazi Chart - 八字排盘"
+description: 按出生时间与城市排八字，返回四柱、纳音、大运流年等。当用户说：1990 年 6 月生于北京八字排盘、看看大运流年，或类似八字排盘时，使用本技能。
 metadata: { "openclaw": { "emoji": "🔮", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
@@ -13,7 +13,7 @@ metadata: { "openclaw": { "emoji": "🔮", "requires": { "bins": ["python3"], "e
 ## 前置配置：获取 API Key
 
 1. 前往 [极速数据官网](https://www.jisuapi.com/) 注册账号
-2. 进入 [对应接口页面](https://www.jisuapi.com/api/bazi/) 页面，点击「申请数据」
+2. 进入 [八字排盘 API](https://www.jisuapi.com/api/bazi/) 页面，点击「申请数据」
 3. 在会员中心获取 **AppKey**
 4. 配置 Key：
 
