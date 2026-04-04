@@ -1,6 +1,6 @@
 ---
-name: configure-OpenClaw
-description: Use when asked to change, configure, or update any OpenClaw setting — model selection, channel setup, auth, tools, gateway, session, cron, hooks, env, skills, multi-agent bindings, sandbox, heartbeat, or any other field in openclaw.json. Also use when user reports config errors, startup failures, or unknown field warnings. Covers all root-level sections including agents, channels, session, cron, hooks, gateway, tools, browser, skills, audio, talk, ui, logging, identity, bindings, broadcast, discovery, env, messages, plugins, and web.
+name: configure-openclaw
+description: Use when asked to change, configure, or update any OpenClaw setting — model selection, channel setup, auth, tools, gateway, session, cron, hooks, env, skills, multi-agent bindings, sandbox, heartbeat, messages, commands, plugins, browser, talk, compaction, context pruning, subagents, UI, or any other field in openclaw.json. Also use when user reports config errors, startup failures, or unknown field warnings. Covers all root-level sections including agents, channels, session, cron, hooks, gateway, tools, browser, skills, talk, ui, logging, identity, bindings, broadcast, discovery, env, messages, plugins, commands, models, and web.
 ---
 
 # configure-OpenClaw
@@ -16,7 +16,7 @@ digraph config_edit {
     "READ current config" [shape=box];
     "ANALYZE user intent" [shape=box];
     "Need detail on unfamiliar field?" [shape=diamond];
-    "Fetch live docs (Jina)" [shape=box];
+    "Fetch live docs (WebFetch)" [shape=box];
     "PROPOSE: explain + minimal patch" [shape=box];
     "User confirms?" [shape=diamond];
     "APPLY: deep merge + write" [shape=box];
@@ -24,9 +24,9 @@ digraph config_edit {
 
     "READ current config" -> "ANALYZE user intent";
     "ANALYZE user intent" -> "Need detail on unfamiliar field?";
-    "Need detail on unfamiliar field?" -> "Fetch live docs (Jina)" [label="yes"];
+    "Need detail on unfamiliar field?" -> "Fetch live docs (WebFetch)" [label="yes"];
     "Need detail on unfamiliar field?" -> "PROPOSE: explain + minimal patch" [label="no"];
-    "Fetch live docs (Jina)" -> "PROPOSE: explain + minimal patch";
+    "Fetch live docs (WebFetch)" -> "PROPOSE: explain + minimal patch";
     "PROPOSE: explain + minimal patch" -> "User confirms?";
     "User confirms?" -> "APPLY: deep merge + write" [label="yes"];
     "User confirms?" -> "Abort" [label="no"];
@@ -37,9 +37,9 @@ digraph config_edit {
 - Never write to file before user confirmation
 - Never output full config unless user explicitly requests it
 - Only change fields the user requested — no bonus edits
-- Never guess unknown fields — fetch Jina docs first
+- Never guess unknown fields — fetch live docs first
 - Config changes are hot-reloaded for most sections — no restart needed
-- Restart required only for: gateway server settings (port, bind, auth, TLS), infrastructure (discovery, canvasHost, plugins)
+- Restart required only for: gateway server settings (port, bind, auth, TLS), infrastructure (discovery, plugins)
 - If startup fails after edit, run `openclaw doctor` to diagnose, `openclaw doctor --fix` to auto-repair
 
 ## Output Format
@@ -47,7 +47,7 @@ digraph config_edit {
 Natural language explanation + minimal JSON5 patch (changed fields only):
 
 ```
-Changing `agents.defaults.model.primary` from "anthropic/claude-sonnet-4-5" to "anthropic/claude-opus-4-6".
+Changing `agents.defaults.model.primary` from "anthropic/claude-sonnet-4-6" to "anthropic/claude-opus-4-6".
 
 // patch
 {
@@ -65,9 +65,9 @@ Changing `agents.defaults.model.primary` from "anthropic/claude-sonnet-4-5" to "
 
 When the requested field is not in the quick reference below, or you need to validate allowed values:
 
-- **Configuration overview:** `https://r.jina.ai/https://docs.openclaw.ai/gateway/configuration`
-- **Field reference:** `https://r.jina.ai/https://docs.openclaw.ai/gateway/configuration-reference`
-- **Examples:** `https://r.jina.ai/https://docs.openclaw.ai/gateway/configuration-examples`
+- **Configuration overview:** `https://docs.openclaw.ai/gateway/configuration`
+- **Field reference:** `https://docs.openclaw.ai/gateway/configuration-reference`
+- **Examples:** `https://docs.openclaw.ai/gateway/configuration-examples`
 
 ## CLI Alternatives
 
@@ -83,8 +83,9 @@ When the requested field is not in the quick reference below, or you need to val
 | Rule | Example |
 |------|---------|
 | Duration strings | `"30m"` `"1h"` `"24h"` `"30d"` |
+| Size strings | `"2mb"` `"10mb"` `"1g"` |
 | File paths | `"~/.openclaw/workspace"` (`~` supported) |
-| Model IDs | `"anthropic/claude-sonnet-4-5"` (must include provider prefix) |
+| Model IDs | `"anthropic/claude-sonnet-4-6"` (must include provider prefix) |
 | Phone numbers | `"+15555550123"` (E.164 format, array) |
 | JSON5 format | `//` comments and trailing commas supported |
 | `$include` | `{ $include: "./agents.json5" }` — include external files, supports arrays for deep-merge |
@@ -111,29 +112,64 @@ When the requested field is not in the quick reference below, or you need to val
     defaults: {
       workspace: "~/.openclaw/workspace",  // required
       model: {
-        primary: "anthropic/claude-sonnet-4-5",
+        primary: "anthropic/claude-sonnet-4-6",
         fallbacks: ["anthropic/claude-opus-4-6"],
       },
+      imageModel: { primary: "anthropic/claude-sonnet-4-6" },
+      imageGenerationModel: { primary: "anthropic/claude-sonnet-4-6" },
+      pdfModel: { primary: "anthropic/claude-sonnet-4-6" },
+      pdfMaxBytesMb: 10,
+      pdfMaxPages: 20,
       imageMaxDimensionPx: 1200,
       timeoutSeconds: 600,
       maxConcurrent: 3,
-      thinkingDefault: "low",   // "off" | "low" | "medium" | "high"
-      elevatedDefault: "on",    // "on" | "off"
+      contextTokens: 200000,
+      mediaMaxMb: 5,
+      userTimezone: "America/New_York",  // IANA timezone
+      timeFormat: "auto",                // "auto" | "12" | "24"
+      thinkingDefault: "low",    // "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "adaptive"
+      elevatedDefault: "on",     // "off" | "on" | "ask" | "full"
+      verboseDefault: "off",     // "off" | "on" | "full"
+      typingMode: "instant",     // "never" | "instant" | "thinking" | "message"
+      typingIntervalSeconds: 6,
       sandbox: {
         mode: "off",            // "off" | "non-main" | "all"
+        backend: "docker",      // "docker" | "ssh" | "openshell"
         scope: "session",       // "session" | "agent" | "shared"
+        workspaceAccess: "none", // "none" | "ro" | "rw"
       },
       heartbeat: {
         every: "30m",           // duration string; "0m" disables
-        target: "last",         // "last" | "whatsapp" | "telegram" | "discord" | "none"
+        target: "none",         // "none" | "last" | channel name
         directPolicy: "allow",  // "allow" | "block"
+        isolatedSession: false,
+        prompt: "",             // custom heartbeat prompt
       },
+      compaction: {
+        mode: "safeguard",           // "default" | "safeguard"
+        timeoutSeconds: 900,
+        reserveTokensFloor: 24000,
+        identifierPolicy: "strict",  // "strict" | "off" | "custom"
+        memoryFlush: { enabled: true, softThresholdTokens: 6000 },
+      },
+      contextPruning: {
+        mode: "cache-ttl",      // "off" | "cache-ttl"
+        ttl: "1h",
+        keepLastAssistants: 3,
+      },
+      subagents: {
+        maxConcurrent: 8,
+        runTimeoutSeconds: 900,
+        archiveAfterMinutes: 60,
+      },
+      blockStreamingDefault: "off",  // "on" | "off"
     },
     list: [                     // multi-agent setup
       {
         id: "default",
         default: true,
         workspace: "~/.openclaw/workspace",
+        identity: { name: "Bot", theme: "assistant", emoji: "🤖" },
         groupChat: { mentionPatterns: ["@bot"] },
       },
     ],
@@ -143,7 +179,7 @@ When the requested field is not in the quick reference below, or you need to val
 
 ### channels
 
-Supported: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Google Chat, Mattermost, MS Teams.
+Supported: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Google Chat, Mattermost, MS Teams, Matrix, IRC, BlueBubbles.
 
 ```json5
 {
@@ -153,22 +189,93 @@ Supported: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Google Chat, Ma
       dmPolicy: "pairing",        // "pairing" | "allowlist" | "open" | "disabled"
       groupPolicy: "allowlist",   // "pairing" | "allowlist" | "open" | "disabled"
       groups: { "*": { requireMention: true } },
+      textChunkLimit: 4000,
+      chunkMode: "length",        // "length" | "newline"
+      mediaMaxMb: 50,
+      sendReadReceipts: true,
     },
     telegram: {
       enabled: true,
       botToken: "YOUR_TOKEN",
       allowFrom: ["123456789"],
+      historyLimit: 50,
+      replyToMode: "off",         // "off" | "first" | "all"
+      streaming: "off",           // "off" | "partial" | "block" | "progress"
+      linkPreview: true,
+      proxy: "",                  // SOCKS5 URL
     },
     discord: {
       enabled: true,
       token: "YOUR_TOKEN",
       dm: { enabled: true, allowFrom: ["USER_ID"] },
+      historyLimit: 20,
+      textChunkLimit: 2000,
+      streaming: "off",           // "off" | "partial" | "block" | "progress"
+      voice: { enabled: true },
+      threadBindings: { enabled: true, idleHours: 24 },
     },
     slack: {
       enabled: true,
       botToken: "xoxb-...",
       appToken: "xapp-...",
       channels: { "#general": { allow: true, requireMention: true } },
+      historyLimit: 50,
+      streaming: "partial",       // "off" | "partial" | "block" | "progress"
+      nativeStreaming: true,
+      slashCommand: { enabled: true, name: "openclaw" },
+    },
+    signal: {
+      enabled: true,
+      account: "+15555550123",    // phone number
+      dmPolicy: "pairing",
+      allowFrom: ["+15555550123"],
+      historyLimit: 50,
+    },
+    imessage: {
+      enabled: true,
+      dmPolicy: "pairing",
+      allowFrom: ["+15555550123"],
+      historyLimit: 50,
+      includeAttachments: false,
+      mediaMaxMb: 16,
+    },
+    googlechat: {
+      enabled: true,
+      serviceAccountFile: "path/to/sa.json",
+      webhookPath: "/googlechat",
+      dm: { enabled: true, policy: "pairing" },
+      groupPolicy: "allowlist",
+    },
+    mattermost: {
+      enabled: true,
+      botToken: "YOUR_TOKEN",
+      baseUrl: "https://your.mattermost.com",
+      chatmode: "oncall",         // "oncall" | "onmessage" | "onchar"
+    },
+    matrix: {
+      enabled: true,
+      homeserver: "https://matrix.example.com",
+      accessToken: "YOUR_TOKEN",
+      encryption: true,
+    },
+    msteams: { enabled: true },
+    irc: {
+      enabled: true,
+      dmPolicy: "pairing",
+      nickserv: { enabled: true, password: "PASS" },
+    },
+  }
+}
+```
+
+### Channel model overrides
+
+```json5
+{
+  channels: {
+    modelByChannel: {
+      discord: { "CHANNEL_ID": "anthropic/claude-opus-4-6" },
+      slack: { "#heavy-tasks": "anthropic/claude-opus-4-6" },
     },
   }
 }
@@ -215,6 +322,7 @@ Supported: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Google Chat, Ma
         }],
       },
     },
+    bedrockDiscovery: { enabled: false, region: "us-east-1" },
   }
 }
 ```
@@ -236,6 +344,55 @@ Supported: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Google Chat, Ma
       idleMinutes: 60,
     },
     resetTriggers: ["/new", "/reset"],
+    mainKey: "main",
+    agentToAgent: { maxPingPongTurns: 5 },
+    maintenance: {
+      mode: "warn",          // "warn" | "enforce"
+      pruneAfter: "30d",
+      maxEntries: 500,
+      rotateBytes: "10mb",
+    },
+  }
+}
+```
+
+### messages
+
+```json5
+{
+  messages: {
+    responsePrefix: "🦞",       // emoji/text or "auto"
+    ackReaction: "👀",           // emoji or "" to disable
+    ackReactionScope: "group-mentions", // "group-mentions" | "group-all" | "direct" | "all"
+    removeAckAfterReply: false,
+    queue: {
+      mode: "collect",          // "steer" | "followup" | "collect" | "steer-backlog" | "queue" | "interrupt"
+      debounceMs: 1000,
+      cap: 20,
+      drop: "summarize",       // "old" | "new" | "summarize"
+    },
+    inbound: { debounceMs: 2000 },
+    tts: {
+      auto: "always",          // "off" | "always" | "inbound" | "tagged"
+      mode: "final",           // "final" | "all"
+      provider: "elevenlabs",  // "elevenlabs" | "openai"
+    },
+  }
+}
+```
+
+### commands
+
+```json5
+{
+  commands: {
+    native: "auto",            // "auto" | "true" | "false"
+    text: true,                // parse text commands
+    bash: false,               // enable !/bash
+    bashForegroundMs: 2000,
+    config: false,             // enable /config
+    debug: false,              // enable /debug
+    useAccessGroups: true,
   }
 }
 ```
@@ -245,14 +402,26 @@ Supported: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Google Chat, Ma
 ```json5
 {
   gateway: {
+    mode: "local",              // "local" | "remote"
     port: 18789,
-    bind: "loopback",       // IP address or "loopback" | "all"
+    bind: "loopback",          // IP address or "loopback" | "all"
     auth: {
-      token: "your-token",  // token-based auth
+      mode: "token",           // "none" | "token" | "password" | "trusted-proxy"
+      token: "your-token",
     },
     reload: {
-      mode: "hybrid",       // "hybrid" | "hot" | "restart" | "off"
+      mode: "hybrid",         // "hybrid" | "hot" | "restart" | "off"
       debounceMs: 300,
+    },
+    controlUi: {
+      enabled: true,
+      basePath: "/openclaw",
+    },
+    tailscale: {
+      mode: "off",             // "off" | "serve" | "funnel"
+    },
+    push: {
+      apns: { relay: { baseUrl: "", timeoutMs: 10000 } },
     },
   }
 }
@@ -265,14 +434,33 @@ Reload modes: `hybrid` = hot-apply safe + auto-restart critical; `hot` = hot-app
 ```json5
 {
   tools: {
+    profile: "coding",         // "minimal" | "coding" | "messaging" | "full"
     allow: ["exec", "read", "write", "edit"],
     deny: ["browser"],
     elevated: {
       enabled: true,
-      allowFrom: {
-        whatsapp: ["+15555550123"],
-      },
+      allowFrom: { whatsapp: ["+15555550123"] },
     },
+    exec: {
+      backgroundMs: 10000,
+      timeoutSec: 1800,
+      applyPatch: { enabled: false },
+    },
+    web: {
+      search: { enabled: true, maxResults: 5 },
+      fetch: { enabled: true, maxChars: 50000 },
+    },
+    media: {
+      audio: { enabled: true, maxBytes: 20971520 },
+      video: { enabled: true, maxBytes: 52428800 },
+    },
+    loopDetection: {
+      enabled: false,
+      warningThreshold: 10,
+      criticalThreshold: 20,
+    },
+    agentToAgent: { enabled: false },
+    sessions: { visibility: "tree" },  // "self" | "tree" | "agent" | "all"
   }
 }
 ```
@@ -331,12 +519,14 @@ Reload modes: `hybrid` = hot-apply safe + auto-restart critical; `hot` = hot-app
 }
 ```
 
-### skills.entries
+### skills
 
 ```json5
 {
   skills: {
     allowBundled: ["gemini", "peekaboo"],
+    load: { extraDirs: ["~/my-skills"] },
+    install: { preferBrew: true, nodeManager: "npm" },
     entries: {
       "my-skill": {
         enabled: true,
@@ -348,16 +538,87 @@ Reload modes: `hybrid` = hot-apply safe + auto-restart critical; `hot` = hot-app
 }
 ```
 
+### plugins
+
+```json5
+{
+  plugins: {
+    enabled: true,
+    allow: ["plugin-name"],
+    deny: [],
+    load: { paths: ["~/my-plugins"] },
+    entries: {
+      "my-plugin": { enabled: true, config: {} },
+    },
+    slots: {
+      memory: "",              // active memory plugin
+      contextEngine: "legacy", // active context engine
+    },
+  }
+}
+```
+
+### browser
+
+```json5
+{
+  browser: {
+    enabled: true,
+    evaluateEnabled: true,
+    defaultProfile: "user",
+    headless: false,
+    color: "#FF4500",
+    profiles: {
+      user: {
+        driver: "existing-session",
+        cdpPort: 9222,
+      },
+    },
+    ssrfPolicy: {
+      dangerouslyAllowPrivateNetwork: true,
+      hostnameAllowlist: [],
+    },
+  }
+}
+```
+
+### ui
+
+```json5
+{
+  ui: {
+    seamColor: "#FF4500",
+    assistant: { name: "Clawd", avatar: "🦞" },
+  }
+}
+```
+
+### talk (voice)
+
+```json5
+{
+  talk: {
+    voiceId: "ELEVENLABS_VOICE_ID",
+    modelId: "eleven_v3",
+    outputFormat: "mp3_44100_128",
+    silenceTimeoutMs: 1500,
+    interruptOnSpeech: true,
+  }
+}
+```
+
 ### bindings (multi-agent routing)
 
 ```json5
 {
   bindings: [
     {
+      type: "route",           // "route" | "acp"
       agentId: "support-bot",
       match: {
         channel: "discord",
         accountId: "USER_ID",
+        peer: { kind: "direct", id: "PEER_ID" },
       },
     },
   ],
@@ -369,11 +630,15 @@ Reload modes: `hybrid` = hot-apply safe + auto-restart critical; `hot` = hot-app
 | Mistake | Correct approach |
 |---------|-----------------|
 | Write full config overwriting existing settings | Output patch only, deep merge |
-| Use `agent.workspace` | Correct path: `agents.defaults.workspace` |
-| Model ID `"claude-sonnet-4-5"` | Must include prefix: `"anthropic/claude-sonnet-4-5"` |
+| Use `agent.workspace` (flat) | Correct path: `agents.defaults.workspace` |
+| Model ID `"claude-sonnet-4-6"` | Must include prefix: `"anthropic/claude-sonnet-4-6"` |
 | `allowFrom: "+1555..."` as string | `allowFrom: ["+1555..."]` must be array |
 | Write to file before user confirms | Propose patch first, wait for explicit confirmation |
-| Guess unknown fields | Fetch Jina docs first, then generate patch |
+| Guess unknown fields | Fetch live docs first, then generate patch |
 | Add unknown fields arbitrarily | Schema strictly validated — unknown fields prevent startup |
-| Tell user to restart after edit | Config hot-reloads automatically (except gateway/infrastructure) |
+| Tell user to restart after edit | Config hot-reloads automatically (except gateway/infrastructure/plugins) |
 | Use `session.scope` | Correct field: `session.dmScope` |
+| Use `thinkingDefault: "on"` | Valid values: `"off"` `"minimal"` `"low"` `"medium"` `"high"` `"xhigh"` `"adaptive"` |
+| Use `elevatedDefault: "true"` | Valid values: `"off"` `"on"` `"ask"` `"full"` |
+| Omit `models.mode` with custom providers | Set `mode: "merge"` to keep built-in catalog, `"replace"` to override |
+| Set `sandbox.mode` without backend | Must also set `sandbox.backend`: `"docker"` `"ssh"` `"openshell"` |
