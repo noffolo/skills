@@ -101,7 +101,14 @@ The interaction between weapon control (guided/unguided) and target defense dete
 
 - Minimum damage after reduction is 1 -- attacks always deal at least 1 damage
 - Offline/destroyed structs cannot counter-attack
-- Each struct can only commit once per attack action (no double-commit)
+- Each struct can counter-attack **at most once per `struct-attack` invocation** -- not per target, not per shot
+- **Defender counter-attack fires before block**, and fires even on evaded shots
+- **Target counter-attack fires after all shots resolve** -- destroyed targets cannot counter
+- **Block does NOT fire on evaded shots** -- only counter-attacks happen on evasion
+- Evasion is per-target (entire volley evaded), while shot accuracy is per-projectile
+- Each projectile gets its own EventAttackShotDetail -- `targetPlayerId` is on EventAttackShotDetail (not EventAttackDetail)
+- PDC does not counter-attack -- it only auto-fires after all targets are resolved
+- Multiple players' PDCs on the same planet stack correctly
 - Target struct existence is validated before attack proceeds
 - Hashing for raid-compute is open by default -- any valid proof accepted
 - Successful raids seize ALL of the target's storedOre -- one raid takes everything
@@ -138,8 +145,9 @@ structsd tx structs struct-defense-set --from [key] --gas auto -y -- [starfighte
 **Rules**:
 - Defenders must be in the **same ambit as the target being defended** to block (not the attacker's ambit)
 - A struct cannot block for a friendly in a different ambit
-- Defenders whose weapons can reach the attacker's ambit will **counter-attack automatically** — this is in addition to the normal counter-attack most structs have
+- Defenders counter-attack **once per `struct-attack` invocation** (before block, even on evaded shots) -- for multi-shot weapons (Attack Run with 3 projectiles), the defender counters on the first shot only but can attempt to block all 3 shots
 - Counter-attacks are ambit-independent from the defended target (a space defender can counter a space attacker while defending a land struct)
+- Attacking Signal Jamming targets (Battleship, Pursuit Fighter, Cruiser) with guided weapons is riskier -- you miss AND get countered
 - Each defender assignment costs 1 charge -- stagger 6s apart (same account)
 - Build defense BEFORE economy or offense -- always
 - Defense protects structs from destruction but does **NOT** prevent ore seizure -- the only defense for ore is immediate refining
