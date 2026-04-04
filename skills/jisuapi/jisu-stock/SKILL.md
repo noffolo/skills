@@ -1,6 +1,6 @@
 ---
-name: jisu-stock
-description: 使用极速数据股票查询 API，按股票代码查当日行情与详情，或按分类获取股票列表（沪深/港股/北证A股）。
+name: "Stock Inquiry - 股票查询"
+description: 按股票代码查当日行情与详情（分钟级趋势），或按分类拉取沪深、港股、北证等股票列表。当用户说：今天的宁德时代股票走势怎样？宁德时代股票行情怎样？贵州茅台现在多少钱？或类似个股行情、股票列表问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "📈", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
