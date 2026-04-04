@@ -7,6 +7,8 @@ description: Install and configure the Owletto memory plugin for OpenClaw, inclu
 
 Use this skill when a user wants Owletto long-term memory working in OpenClaw.
 
+For general Owletto usage with Codex, ChatGPT, Claude, Cursor, Gemini, or generic MCP workflows, use `owletto`.
+
 ## Setup Flow
 
 1. Ensure CLI prerequisites are available.
@@ -26,36 +28,33 @@ openclaw plugins install owletto-openclaw-plugin
 3. Log in to Owletto for MCP access.
 
 ```bash
-owletto login --mcpUrl https://owletto.com/mcp
+owletto login --mcpUrl <mcp-url>
 ```
 
 4. Configure OpenClaw plugin settings.
 
 ```bash
-owletto configure --mcpUrl https://owletto.com/mcp/acme
+owletto configure --mcpUrl <mcp-url>
 ```
 
 5. Verify auth + MCP connectivity.
 
 ```bash
-owletto health --mcpUrl https://owletto.com/mcp/acme
+owletto health
 ```
 
-## Direct CLI Usage
+## CLI Fallback
 
-After setup, use the CLI to interact with Owletto directly:
+If `owletto` is not on PATH, use the repo-local CLI entrypoint:
 
-- `owletto mcp tools` — list available tools
-- `owletto mcp call <tool> --params '<json>'` — call any tool
-- `owletto token --raw` — get bearer token for scripting
-
-Examples:
-- `owletto mcp call search --params '{"query":"spotify"}'`
-- `owletto mcp call save_content --params '{"entity_id":1,"content":"user prefers dark mode","metadata":{}}'`
-- `owletto mcp call get_content --params '{"query":"user preferences","limit":5}'`
+```bash
+pnpm -C packages/cli exec tsx src/bin.ts login --mcpUrl <mcp-url>
+pnpm -C packages/cli exec tsx src/bin.ts configure --mcpUrl <mcp-url>
+pnpm -C packages/cli exec tsx src/bin.ts health
+```
 
 ## Notes
 
-- For self-hosted or non-default environments, replace `https://owletto.com/mcp/acme` with the target MCP URL.
+- Replace `<mcp-url>` with the target MCP URL (e.g. the URL shown on the workspace data sources page).
 - If `openclaw` is not on PATH, install OpenClaw CLI first, then rerun setup.
-- If browser login is unavailable, complete OAuth on another machine/browser and rerun from a shell with browser access.
+- For headless environments without browser access, use `owletto login --device --mcpUrl <mcp-url>`.
