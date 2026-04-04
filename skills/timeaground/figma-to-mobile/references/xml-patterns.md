@@ -261,6 +261,62 @@ When a View appears in two states where one has `opacity < 1` and the other has 
 
 ## ConstraintLayout Mapping
 
+### Child View Sizing Rules (from real-project analysis)
+
+When generating a child View inside ConstraintLayout, choose width/height based on content type:
+
+| Content Type | Width × Height | When |
+|---|---|---|
+| Text / auto-size content | `wrap_content` × `wrap_content` | Default for labels, titles |
+| Text filling horizontal space | `0dp` × `wrap_content` | When constrained Start+End |
+| Icon (small indicator) | `12dp` × `12dp` | Dots, status indicators |
+| Icon (inline/row) | `20dp` × `20dp` | Icons next to text in rows |
+| Icon (standard action) | `24dp` × `24dp` | Toolbar/action icons (Material standard) |
+| Icon (medium) | `32dp` × `32dp` | Feature icons, navigation |
+| Touch target / avatar | `48dp` × `48dp` | Buttons, avatars (Material min touch) |
+| Divider/separator | `match_parent` × `1px` | Horizontal line between sections |
+| Full-width scrollable area | `match_parent` × `0dp` | RecyclerView/ScrollView filling remaining space |
+| Row container (fixed height) | `match_parent` × `44dp`~`56dp` | List items, settings rows |
+
+**Divider pattern** — use a plain `View` with background color:
+```xml
+<View
+    android:layout_width="match_parent"
+    android:layout_height="1px"
+    android:background="@color/divider"
+    app:layout_constraintTop_toBottomOf="@id/prevView" />
+```
+Note: use `1px` not `1dp` for hairline dividers (1dp = 2-3px on high-DPI, too thick).
+
+### ImageView Mapping
+
+Figma icon nodes should map to a simple `ImageView` with `src`/`srcCompat`:
+```xml
+<ImageView
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    app:srcCompat="@drawable/ic_arrow_right" />
+```
+
+**Default: `src` only.** In practice, most ImageViews only need `src`/`srcCompat`.
+
+**When to use `background` + `src`:**
+- Figma shows a filled circle/rectangle behind the icon → `background` (shape drawable) + `src` (icon)
+- **Vector/SVG icons with dark mode support** → `background` (shape with `@color/` reference) + `src` (vector drawable) + `app:tint` (`@color/` reference). This combination is the dark mode best practice: background color, icon, and tint all follow theme via color resources, no need for separate light/dark assets
+- A tappable area larger than the icon → wrap in a container or use padding
+
+**Dark mode trend:** As more projects adopt dark mode, the `background + vector + tint` pattern will become more common. When generating code for a project that supports dark mode (detected via scan or user context), prefer this pattern over plain `src` for icon containers:
+```xml
+<!-- Dark mode friendly icon container -->
+<ImageView
+    android:layout_width="32dp"
+    android:layout_height="32dp"
+    android:background="@drawable/bg_icon_circle"
+    app:srcCompat="@drawable/ic_settings"
+    app:tint="@color/icon_primary" />
+```
+All three attributes reference theme-aware resources, so light/dark switching is automatic.
+
 ```xml
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"

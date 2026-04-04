@@ -6,6 +6,23 @@ description: >
   Use when a user provides a Figma link and wants mobile layout code.
   Extracts design tokens via Figma REST API, asks clarifying questions,
   then generates production-ready code files.
+metadata:
+  {
+    "openclaw":
+      {
+        "requires": { "bins": ["python3"], "env": ["FIGMA_TOKEN"] },
+        "primaryEnv": "FIGMA_TOKEN",
+        "install":
+          [
+            {
+              "id": "python-requests",
+              "kind": "shell",
+              "command": "pip3 install requests",
+              "label": "Install Python requests package",
+            },
+          ],
+      },
+  }
 ---
 
 # Figma to Mobile
@@ -39,27 +56,28 @@ For example, if the user says "Android XML, the 3 cards are a RecyclerView list"
 When user provides a Figma link:
 
 1. Run `scripts/figma_fetch.py "<url>"` to get design data
+   If the user provides multiple Figma links (different states of the same page), use `--compare` mode to fetch all and get a diff summary. This helps generate multi-state code (selector drawables, conditional styling, etc.)
 2. Analyze the structure: identify sections, repeated patterns, component types
-3. Note INSTANCE nodes — they indicate reusable components
+3. Note INSTANCE nodes — they indicate reusable components. Check `variantProperties` for component state (e.g. State=Default, Size=Large) — these map to multi-state code
 4. Note gradient/shadow data — flag for the user if complex
+5. Apply Figma node interpretation rules before generating code
 
-**Figma node interpretation (apply before generating any platform code):**
-- **Skip system chrome**: StatusBar, HomeIndicator, NavigationBar are iOS design placeholders — don't generate code for them. Also skip duplicate nodes at the same position (Figma artifacts)
-- **Skip invisible nodes**: VECTOR/RECTANGLE with empty fills and all strokes `visible: false`, or `absoluteRenderBounds: null` — these are leftover design artifacts that render nothing
-- **Container + icon = single view**: A FRAME (with background/cornerRadius) wrapping a small VECTOR/INSTANCE is one ImageView/Image, not nested layouts
-- **VECTOR/ELLIPSE compositions = single asset**: Multiple small VECTOR/ELLIPSE siblings inside a FRAME are pieces of one icon — output as a single image reference, not separate views
-- **RECTANGLE as background**: When a GROUP's first child is a RECTANGLE matching the GROUP's dimensions, it's a background shape, not a separate view
-- **GROUP vs FRAME**: FRAME with `layoutMode` maps to structured layouts (LinearLayout, HStack, etc.); GROUP without `layoutMode` uses absolute positioning — map to ConstraintLayout constraints or explicit offsets
-- **Round Figma decimals**: Round dp to nearest integer, sp to nearest 0.5. Snap near-standard values (e.g., 47.99 → 48dp)
-- **Width strategy**: Don't blindly copy Figma width values — infer design intent. Elements spanning near-full screen width → `match_parent` + `marginHorizontal`. In side-by-side layouts, identify the "flexible" element (text/content) vs "fixed" element (icon/avatar) and use `0dp` + constraints for the flexible one. See xml-patterns.md "Width Strategy" for full rules.
+**Detailed interpretation rules**: Read `references/figma-interpretation.md`
 
-**Page architecture analysis (Android XML specific):**
-- Multiple tab labels → likely `TabLayout` + `ViewPager2`, content in Fragment layouts (strong signal, not absolute — ask if unsure)
-- Tab color differences between items → selected/unselected state, use `tabSelectedTextColor` / `tabTextColor`, not hardcoded per-tab colors
-- Navigation bar with back/close icon → `ImageView` (src + background), not FrameLayout wrapper
-- Buttons with icon + text → prefer `LinearLayout` + `ImageView` + `TextView` over `MaterialButton` with `app:icon`
-- List item with left sidebar + right content → observe multiple items to judge if equal-height or independent
-- **Stacked/overlapping cards** with similar structure (same shape, offset position) → likely a card-switching interaction (swipe, stack, flip). Do NOT generate as separate static Views. Instead, ask the user: "These cards appear stacked — is this a swipe/switch interaction? If so, what's the switching behavior (left-right swipe, tap to flip, auto-play)?" The implementation (custom View, ViewPager2, third-party CardStackView, etc.) depends on the answer.
+### Step 1.5: Structure Summary
+
+Before asking any questions, present a brief **structure summary** to the user so they can confirm your understanding:
+
+> I see: [navigation bar with back button + title] → [2 content sections: user profile card, settings list (8 items)] → [bottom action button]. Total ~25 nodes.
+
+Keep it to 2-3 lines. Mention:
+- Major sections identified (nav bar, content areas, footer)
+- Repeated patterns ("8 similar list items", "3 tab labels")
+- Notable elements (gradients, complex illustrations, stacked cards)
+
+If the user says "that's wrong" or corrects the structure, adjust understanding before proceeding to Step 2.
+
+If the structure is simple and obvious (e.g., a single card with a few text fields), skip this step.
 
 ### Step 2: Confirm & Clarify
 
@@ -90,39 +108,21 @@ When user provides a Figma link:
 - Single clear hierarchy, no ambiguity → high confidence → SKIP questions, go to Step 3
 - Gradient/complex shadow in design → MENTION in summary ("I see a gradient here, I'll approximate it as X")
 
+### Step 2.5: Project Scan (optional but recommended)
+
+If the target project is available locally, run a project scan:
+
+```bash
+python scripts/project_scan.py /path/to/project --json --output scan-report.json
+```
+
+**How to use scan results in code generation**: Read `references/scan-usage.md`
+
 ### Step 3: Generate Code
 
 After user confirms (or if no questions needed), generate code files.
 
-**Output rules (absolute — never break these):**
-- **Colors**: Before hardcoding, search `res/values/colors.xml` (and `res/values/colors_*.xml` if present) for a matching hex value. If found, use the resource reference (e.g. `@color/primary`). If not found, write hex directly (`android:textColor="#0F0F0F"` / `Color(0xFF0F0F0F)`).
-- **Strings**: Before hardcoding, search `res/values/strings.xml` for matching text content. If found, use the resource reference (e.g. `@string/notification_settings`). If not found, write text directly (`android:text="通知设置"`).
-- **Dimensions**: write values directly (`android:textSize="17sp"`). Dimension resources are rarely worth matching.
-- **Lists**: output main layout + separate item layout file. Do NOT generate Adapter/ViewHolder.
-- **Resource matching priority**: Use project-defined `@color/` and `@string/` when an exact match exists. Hardcode everything else for instant preview. Never create new resource definitions — only reference existing ones.
-
-**Drawable resources — generate, don't placeholder:**
-- **Shape drawables** (backgrounds, outlines, tracks): Generate the actual XML shape drawable code based on Figma data (color, cornerRadius, stroke, gradient). Output each as a separate file with `📄 drawable/filename.xml` header.
-- **Icons/vectors**: Use `figma_fetch.py --export-svg <node-ids>` to export SVG from Figma API, then convert to Android Vector Drawable XML. The simplified JSON includes an `"id"` field on every node — use these IDs for export. Output each as `📄 drawable/ic_name.xml`.
-- **Photos/bitmaps**: These cannot be generated — use `@drawable/placeholder` and note what image is needed.
-- **Goal**: The generated code should be copy-pasteable and immediately render a close approximation of the design, not a blank screen with placeholders.
-
-**Platform guidelines (the agent already knows these — this is a reminder to follow them strictly):**
-- **Android XML**: Material Design 3. ConstraintLayout as default for any non-trivial layout. 8dp grid. Min touch target 48dp. MaterialCardView/MaterialSwitch over legacy.
-- **Android Compose**: Material3 composables. Modifier chains. LazyColumn for lists. Scaffold for pages.
-- **iOS SwiftUI**: Apple HIG. NavigationStack, List, VStack/HStack/ZStack. Safe areas. System fonts.
-- **iOS UIKit**: Apple HIG. AutoLayout (NSLayoutConstraint or StackView). UITableView/UICollectionView for lists. Safe areas.
-
-**Handling special visual properties:**
-- **Gradients**: generate platform-appropriate gradient code (GradientDrawable / Brush.linearGradient / LinearGradient / CAGradientLayer). If gradient is complex, add a comment noting it may need visual tuning.
-- **Shadows**: use platform shadow APIs. Note if the design shadow differs from default elevation shadow.
-- **Per-corner radius**: use platform-specific per-corner APIs when radii differ.
-
-Read platform-specific mapping details from:
-- Android Compose → references/compose-patterns.md
-- Android XML → references/xml-patterns.md
-- iOS SwiftUI → references/swiftui-patterns.md
-- iOS UIKit → references/uikit-patterns.md
+**Detailed generation rules**: Read `references/generation-rules.md`
 
 If multiple files are needed, output each with a clear filename header:
 ```
@@ -133,7 +133,7 @@ If multiple files are needed, output each with a clear filename header:
 [code]
 ```
 
-### Step 4: Iterate
+### Step 4: Iterate & Capture Feedback
 
 After showing code, ask briefly:
 > Matches the design? Any adjustments?
@@ -146,6 +146,31 @@ After showing code, ask briefly:
 - "颜色不对，这里应该是 #333333" → fix specific values
 
 Continue iterating until the user is satisfied. Each round only regenerates the changed parts, not the entire file (unless the user asks for full regeneration).
+
+**Feedback capture (automatic):**
+Whenever the user corrects your generated output, log the correction to `feedback-log.md` in the project root (create if it doesn't exist). Each entry follows this format:
+
+```
+## YYYY-MM-DD HH:MM
+- **Platform**: Android XML / Compose / SwiftUI / UIKit
+- **Figma node type**: (e.g., FRAME with icon, Tab bar, Button group)
+- **Issue**: Brief description of what was wrong
+- **Before**: What the agent generated (snippet or description)
+- **After**: What the user wanted (snippet or description)
+- **Rule candidate**: (optional) If this correction suggests a general pattern rule, note it here
+```
+
+Log entries should be:
+- **Concise** — only the relevant diff, not entire files
+- **Categorized** — always include platform and Figma node type for later analysis
+- **Actionable** — focus on the mapping error, not cosmetic preferences (e.g., "user prefers 16dp" is not a rule; "VECTOR compositions should be single ImageView" is)
+
+Do NOT log:
+- One-off personal preferences (specific color choices, naming conventions)
+- Corrections to non-mapping issues (typos, import statements)
+- Feedback the user explicitly says is project-specific, not general
+
+Periodically (or when asked), run `scripts/feedback_analyze.py` to identify patterns and generate rule candidates.
 
 ## Error Handling
 

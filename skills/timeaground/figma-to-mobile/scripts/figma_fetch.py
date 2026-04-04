@@ -100,6 +100,13 @@ def simplify_node(node: dict, parent_pos: dict = None) -> dict:
         comp_id = node.get("componentId")
         if comp_id:
             result["componentId"] = comp_id
+        # Variant properties (e.g. State=Default, Size=Large)
+        variant_props = node.get("componentProperties", {})
+        if variant_props:
+            result["variantProperties"] = {
+                k: v.get("value") for k, v in variant_props.items()
+                if v.get("value") is not None
+            }
 
     # Relative position
     if parent_pos and bbox:
@@ -144,6 +151,12 @@ def simplify_node(node: dict, parent_pos: dict = None) -> dict:
             result["textAlignHorizontal"] = style.get("textAlignHorizontal")
             result["lineHeightPx"] = style.get("lineHeightPx")
             result["letterSpacing"] = style.get("letterSpacing")
+        # Text auto-resize mode (affects wrap_content vs fixed size)
+        text_auto_resize = node.get("style", {}).get("textAutoResize")
+        if not text_auto_resize:
+            text_auto_resize = node.get("textAutoResize")
+        if text_auto_resize and text_auto_resize != "NONE":
+            result["textAutoResize"] = text_auto_resize
         # Text color from fills
         for fill in fills:
             if fill.get("type") == "SOLID" and fill.get("visible", True):
@@ -174,6 +187,20 @@ def simplify_node(node: dict, parent_pos: dict = None) -> dict:
         lg = node.get("layoutGrow")
         if lg:
             result["layoutGrow"] = lg
+
+    # Child layout properties (applicable even when parent has no layoutMode,
+    # these are set on the child node itself within an auto-layout parent)
+    layout_align = node.get("layoutAlign")
+    if layout_align and layout_align != "INHERIT":
+        result["layoutAlign"] = layout_align  # STRETCH = fill cross-axis
+    layout_positioning = node.get("layoutPositioning")
+    if layout_positioning and layout_positioning != "AUTO":
+        result["layoutPositioning"] = layout_positioning  # ABSOLUTE = ignore auto-layout
+
+    # Figma shared styles (design token references)
+    styles_ref = node.get("styles")
+    if styles_ref:
+        result["styleRefs"] = styles_ref  # e.g. {"fill": "S:abc...", "text": "S:def..."}
 
     # Opacity
     opacity = node.get("opacity")
@@ -240,6 +267,162 @@ def fetch_node(file_key: str, node_id: str, token: str, depth: int = 5) -> dict:
     return document
 
 
+# ---------------------------------------------------------------------------
+# Multi-node compare helpers
+# ---------------------------------------------------------------------------
+
+def _node_key(node: dict) -> str:
+    """Build a match key for a simplified node: name + type + rounded position."""
+    name = (node.get("name") or "").strip()
+    ntype = node.get("type") or ""
+    x = round(node.get("x", 0) / 4) * 4   # bucket to nearest 4px to absorb minor drift
+    y = round(node.get("y", 0) / 4) * 4
+    return f"{name}|{ntype}|{x},{y}"
+
+
+_COMPARE_SKIP_KEYS = {"id", "children"}
+
+_SCALAR_KEYS = {
+    "backgroundColor", "opacity", "visible", "text", "textColor",
+    "fontSize", "fontWeight", "fontFamily", "textAlignHorizontal",
+    "lineHeightPx", "letterSpacing", "textAutoResize",
+    "width", "height", "x", "y", "cornerRadius", "cornerRadii",
+    "borderColor", "borderWidth",
+    "layoutMode", "itemSpacing",
+    "paddingLeft", "paddingRight", "paddingTop", "paddingBottom",
+    "primaryAxisAlignItems", "counterAxisAlignItems",
+    "primaryAxisSizingMode", "counterAxisSizingMode",
+    "layoutGrow", "layoutAlign", "layoutPositioning",
+    "hasImage",
+}
+
+
+def _diff_nodes(base: dict, other: dict, path: str, results: list) -> None:
+    """Recursively diff two simplified nodes. Appends change/added/removed entries."""
+    # --- scalar attribute diff ---
+    changes = {}
+    for key in _SCALAR_KEYS:
+        bv = base.get(key)
+        ov = other.get(key)
+        if bv != ov and not (bv is None and ov is None):
+            changes[key] = {"from": bv, "to": ov}
+
+    # gradient diff (nested dict) — compare as opaque value
+    bg = base.get("gradient")
+    og = other.get("gradient")
+    if bg != og:
+        changes["gradient"] = {"from": bg, "to": og}
+
+    # effects diff — compare as opaque list
+    be = base.get("effects")
+    oe = other.get("effects")
+    if be != oe:
+        changes["effects"] = {"from": be, "to": oe}
+
+    if changes:
+        results.append({
+            "path": path,
+            "node_name": base.get("name") or other.get("name") or "",
+            "changes": changes,
+        })
+
+    # --- children diff ---
+    base_children = base.get("children", []) or []
+    other_children = other.get("children", []) or []
+
+    base_map = {}
+    for i, child in enumerate(base_children):
+        k = _node_key(child)
+        # avoid key collision from identically-named nodes: append index suffix
+        unique_k = k
+        suffix = 0
+        while unique_k in base_map:
+            suffix += 1
+            unique_k = f"{k}#{suffix}"
+        base_map[unique_k] = (i, child)
+
+    other_map = {}
+    for i, child in enumerate(other_children):
+        k = _node_key(child)
+        unique_k = k
+        suffix = 0
+        while unique_k in other_map:
+            suffix += 1
+            unique_k = f"{k}#{suffix}"
+        other_map[unique_k] = (i, child)
+
+    base_keys = set(base_map)
+    other_keys = set(other_map)
+
+    for k in sorted(base_keys & other_keys):
+        bi, bchild = base_map[k]
+        oi, ochild = other_map[k]
+        child_path = f"{path}.children[{bi}]" if path else f"children[{bi}]"
+        _diff_nodes(bchild, ochild, child_path, results)
+
+    for k in sorted(base_keys - other_keys):
+        bi, bchild = base_map[k]
+        child_path = f"{path}.children[{bi}]" if path else f"children[{bi}]"
+        results.append({
+            "_kind": "removed",
+            "path": child_path,
+            "node_name": bchild.get("name") or "",
+        })
+
+    for k in sorted(other_keys - base_keys):
+        oi, ochild = other_map[k]
+        child_path = f"{path}.children[{oi}]" if path else f"children[{oi}]"
+        results.append({
+            "_kind": "added",
+            "path": child_path,
+            "node_name": ochild.get("name") or "",
+        })
+
+
+def compare_nodes(nodes_data: list) -> dict:
+    """
+    Compare a list of simplified node dicts (all states).
+    Returns the structured compare output with nodes[] and diff{}.
+    nodes_data: list of {"node_id": str, "label": str, "data": dict}
+    """
+    if len(nodes_data) < 2:
+        raise ValueError("compare_nodes requires at least 2 nodes")
+
+    base_entry = nodes_data[0]
+    base_data = base_entry["data"]
+
+    all_changes = []
+    all_added = []
+    all_removed = []
+
+    for other_entry in nodes_data[1:]:
+        other_data = other_entry["data"]
+        raw_results = []
+        try:
+            _diff_nodes(base_data, other_data, "", raw_results)
+        except Exception as e:
+            print(f"Warning: diff error between {base_entry['node_id']} and {other_entry['node_id']}: {e}",
+                  file=sys.stderr)
+
+        for item in raw_results:
+            kind = item.pop("_kind", "changed")
+            if kind == "added":
+                all_added.append(item)
+            elif kind == "removed":
+                all_removed.append(item)
+            else:
+                all_changes.append(item)
+
+    return {
+        "nodes": nodes_data,
+        "diff": {
+            "changed": all_changes,
+            "added": all_added,
+            "removed": all_removed,
+        },
+    }
+
+
 def export_svgs(file_key: str, node_ids: list, token: str) -> dict:
     """Export nodes as SVG via Figma API. Returns {node_id: svg_string}."""
     ids_param = ",".join(node_ids)
@@ -265,28 +448,9 @@ def export_svgs(file_key: str, node_ids: list, token: str) -> dict:
     return results
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python figma_fetch.py <figma_url> [--depth N] [--export-svg id1,id2,...]")
-        print("Example: python figma_fetch.py 'https://www.figma.com/design/ABC/Project?node-id=100-200'")
-        print("Export:  python figma_fetch.py 'https://...?node-id=...' --export-svg 24249:6824,24249:6827")
-        sys.exit(1)
-
-    url = sys.argv[1]
-    depth = 5
-    export_ids = None
-
-    if "--depth" in sys.argv:
-        idx = sys.argv.index("--depth")
-        depth = int(sys.argv[idx + 1])
-
-    if "--export-svg" in sys.argv:
-        idx = sys.argv.index("--export-svg")
-        export_ids = sys.argv[idx + 1].split(",")
-
+def _load_token() -> str | None:
+    """Load FIGMA_TOKEN from env or .env file."""
     token = os.environ.get("FIGMA_TOKEN")
-
-    # Try .env file in working directory if env var not set
     if not token:
         for env_path in [".env", "../.env"]:
             if os.path.exists(env_path):
@@ -298,7 +462,12 @@ def main():
                             break
             if token:
                 break
+    return token
 
+
+def _require_token() -> str:
+    """Return FIGMA_TOKEN or print instructions and exit."""
+    token = _load_token()
     if not token:
         print("FIGMA_TOKEN_NOT_SET")
         print("")
@@ -310,6 +479,141 @@ def main():
         print("The token starts with 'figd_'. The user can get one at:")
         print("  Figma > avatar (top-left) > Settings > Security > Personal Access Tokens")
         sys.exit(1)
+    return token
+
+
+def _write_output(output_json: str, output_file: str | None) -> None:
+    """Write JSON to file or stdout."""
+    if output_file:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(output_json)
+        print(f"Written to {output_file}", file=sys.stderr)
+    else:
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        print(output_json)
+
+
+def main():
+    args = sys.argv[1:]
+
+    if not args:
+        print("Usage: python figma_fetch.py <figma_url> [<figma_url2> ...] [options]")
+        print("")
+        print("Single node (original):")
+        print("  python figma_fetch.py '<url>' [--depth N] [--export-svg id1,id2]")
+        print("")
+        print("Multi-state compare:")
+        print("  python figma_fetch.py '<url1>' '<url2>' --compare")
+        print("  python figma_fetch.py '<base_url>' --nodes '100:200,100:300' --compare")
+        print("")
+        print("Example:")
+        print("  python figma_fetch.py 'https://www.figma.com/design/ABC/Project?node-id=100-200'")
+        sys.exit(1)
+
+    # -----------------------------------------------------------------------
+    # Parse flags
+    # -----------------------------------------------------------------------
+    compare_mode = "--compare" in args
+    depth = 5
+    export_ids = None
+    output_file = None
+    extra_node_ids: list[str] = []   # from --nodes flag
+    url_args: list[str] = []          # positional URL arguments
+
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--depth" and i + 1 < len(args):
+            depth = int(args[i + 1])
+            i += 2
+        elif a == "--export-svg" and i + 1 < len(args):
+            export_ids = args[i + 1].split(",")
+            i += 2
+        elif a == "--output" and i + 1 < len(args):
+            output_file = args[i + 1]
+            i += 2
+        elif a == "--nodes" and i + 1 < len(args):
+            extra_node_ids = [nid.strip() for nid in args[i + 1].split(",") if nid.strip()]
+            i += 2
+        elif a == "--compare":
+            i += 1  # already captured above
+        elif not a.startswith("--"):
+            url_args.append(a)
+            i += 1
+        else:
+            i += 1  # unknown flag, skip
+
+    if not url_args:
+        print("ERROR: No Figma URL provided.")
+        sys.exit(1)
+
+    token = _require_token()
+
+    # -----------------------------------------------------------------------
+    # Compare mode
+    # -----------------------------------------------------------------------
+    if compare_mode:
+        # Build list of (file_key, node_id) pairs to fetch
+        targets: list[tuple[str, str]] = []
+
+        base_url = url_args[0]
+        base_file_key, base_node_id = parse_figma_url(base_url)
+        if not base_file_key:
+            print(f"ERROR: Could not parse Figma URL: {base_url}")
+            sys.exit(1)
+
+        if base_node_id:
+            targets.append((base_file_key, base_node_id))
+
+        # Additional URLs (url2, url3, ...)
+        for extra_url in url_args[1:]:
+            fk, nid = parse_figma_url(extra_url)
+            if not fk:
+                print(f"ERROR: Could not parse Figma URL: {extra_url}")
+                sys.exit(1)
+            if not nid:
+                print(f"ERROR: URL must contain a node-id parameter: {extra_url}")
+                sys.exit(1)
+            targets.append((fk, nid))
+
+        # --nodes flag: additional node IDs on the same file
+        for nid in extra_node_ids:
+            nid = nid.replace("-", ":")
+            targets.append((base_file_key, nid))
+
+        if len(targets) < 2:
+            print("ERROR: --compare requires at least 2 node targets.")
+            print("  Provide multiple URLs, or use --nodes '100:200,100:300'")
+            sys.exit(1)
+
+        # Fetch all nodes
+        nodes_data = []
+        for idx, (fk, nid) in enumerate(targets):
+            print(f"Fetching node {nid} from file {fk} (depth={depth})...", file=sys.stderr)
+            try:
+                raw = fetch_node(fk, nid, token, depth)
+            except Exception as e:
+                print(f"ERROR fetching node {nid}: {e}")
+                sys.exit(1)
+            simplified = simplify_node(raw)
+            label = simplified.get("name") or f"State {idx + 1}"
+            nodes_data.append({
+                "node_id": nid,
+                "label": label,
+                "data": simplified,
+            })
+
+        print(f"Comparing {len(nodes_data)} nodes...", file=sys.stderr)
+        result = compare_nodes(nodes_data)
+        output_json = json.dumps(result, indent=2, ensure_ascii=False)
+        _write_output(output_json, output_file)
+        return
+
+    # -----------------------------------------------------------------------
+    # Original single-URL mode (fully backwards-compatible)
+    # -----------------------------------------------------------------------
+    url = url_args[0]
 
     file_key, node_id = parse_figma_url(url)
     if not file_key:
@@ -334,19 +638,7 @@ def main():
     simplified = simplify_node(raw_node)
 
     output_json = json.dumps(simplified, indent=2, ensure_ascii=False)
-    # Check for --output flag
-    output_file = None
-    for i, a in enumerate(sys.argv):
-        if a == '--output' and i + 1 < len(sys.argv):
-            output_file = sys.argv[i + 1]
-    if output_file:
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(output_json)
-        print(f"Written to {output_file}", file=sys.stderr)
-    else:
-        import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-        print(output_json)
+    _write_output(output_json, output_file)
 
 
 if __name__ == "__main__":
