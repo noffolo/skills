@@ -3,11 +3,16 @@
   "slug": "structs-streaming",
   "displayName": "Structs Streaming",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1774718094983,
-    "commit": "https://github.com/openclaw/skills/commit/e6e8e46355317fed0f9ae4b49bd4b65190c93bc1"
+    "version": "1.2.0",
+    "publishedAt": 1774840366770,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1774718094983,
+      "commit": "https://github.com/openclaw/skills/commit/e6e8e46355317fed0f9ae4b49bd4b65190c93bc1"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1772479267028,
