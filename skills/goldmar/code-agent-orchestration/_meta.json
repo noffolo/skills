@@ -3,11 +3,16 @@
   "slug": "code-agent-orchestration",
   "displayName": "Code Agent Orchestration",
   "latest": {
-    "version": "2.1.0",
-    "publishedAt": 1773318627690,
-    "commit": "https://github.com/openclaw/skills/commit/6a0dc1e7c64b077e062af0b44f042e5918a8ed99"
+    "version": "3.1.0",
+    "publishedAt": 1774816616335,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.1.0",
+      "publishedAt": 1773318627690,
+      "commit": "https://github.com/openclaw/skills/commit/6a0dc1e7c64b077e062af0b44f042e5918a8ed99"
+    },
     {
       "version": "2.0.5",
       "publishedAt": 1773213235712,

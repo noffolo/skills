@@ -1,6 +1,6 @@
 ---
 name: Code Agent Orchestration
-description: Skill for orchestrating coding agent sessions from OpenClaw. Covers launching, monitoring, multi-turn interaction, lifecycle management, notifications, and parallel work patterns.
+description: Skill for orchestrating coding agent sessions from OpenClaw. Covers launching, monitoring, plan approval, lifecycle management, and worktree decisions.
 metadata:
   openclaw:
     homepage: https://github.com/goldmar/openclaw-code-agent
@@ -15,314 +15,152 @@ metadata:
 
 # Code Agent Orchestration
 
-You orchestrate coding agent sessions via the `openclaw-code-agent`. Each session is an autonomous agent that executes code tasks in the background.
+Use `openclaw-code-agent` to run Claude Code or Codex sessions as background coding jobs from chat.
 
----
+## Launch
 
-## 1. Launching sessions
+- Do not pass `channel` manually. Routing comes from `agentChannels`, the current chat context, and `fallbackChannel`.
+- Sessions are multi-turn. Continue existing work with `agent_respond` or `agent_launch(..., resume_session_id=...)`; do not start a fresh session for the same task.
+- Always set a short kebab-case `name` when you care about later follow-up.
+- Set `workdir` to the target repo.
+- Use `permission_mode: "plan"` when the user wants a real review gate before implementation.
+- Use `permission_mode: "bypassPermissions"` only for autonomous execution.
+- `defaultWorktreeStrategy` now defaults to `off`. Opt into a worktree strategy explicitly when you want branch isolation.
+- In `plan` mode, the plan belongs in normal session output. Do not ask the coding agent to write plan docs or transcript artifacts unless the user explicitly asked for a file.
 
-### Mandatory rules
+Example:
 
-- **Notifications are routed automatically** via `agentChannels` config. Do NOT pass `channel` manually — it bypasses automatic routing.
-- **Thread-aware routing**: When launched from a Telegram thread/topic, notifications are routed back to that same thread via `originThreadId`. This is handled automatically.
-- **Always pass `multi_turn: true`** unless the task is a guaranteed one-shot with no possible follow-up.
-- **Name the sessions** with `name` in kebab-case, short and descriptive.
-- **Set `workdir`** to the target project directory, not the agent's workspace.
-- **Default mode is `plan`**: Sessions start in plan mode. When the user approves a plan (e.g. "looks good", "go ahead"), the plugin automatically switches to `bypassPermissions` mode.
-
-### Essential parameters
-
-| Parameter | When to use |
-|---|---|
-| `prompt` | Always. Clear and complete instruction. |
-| `name` | Always. Descriptive kebab-case (`fix-auth-bug`, `add-dark-mode`). |
-| `channel` | **Do NOT pass.** Resolved automatically via `agentChannels`. |
-| `workdir` | Always when the project is not in the `defaultWorkdir`. |
-| `multi_turn` | `true` by default unless explicitly one-shot. |
-| `model` | When you want to force a specific model (`"sonnet"`, `"opus"`). |
-| `system_prompt` | To inject project-specific context. |
-| `permission_mode` | `"plan"` by default. `"bypassPermissions"` for trusted tasks. |
-
-### Examples
-
-```
-# Simple task
+```text
 agent_launch(
-  prompt: "Fix the null pointer in src/auth.ts line 42",
-  name: "fix-null-auth",
-  workdir: "/home/user/projects/myapp",
-  multi_turn: true
-)
-
-# Full feature
-agent_launch(
-  prompt: "Implement dark mode toggle in the settings page. Use the existing theme context in src/context/theme.tsx. Add a toggle switch component and persist the preference in localStorage.",
-  name: "add-dark-mode",
-  workdir: "/home/user/projects/myapp",
-  multi_turn: true
+  prompt: "Fix the auth middleware bug and add tests",
+  name: "fix-auth",
+  workdir: "/home/user/projects/my-app"
 )
 ```
 
-### Resume and fork
+## Resume, Don't Respawn
 
-```
-# Resume a completed session
-agent_launch(
-  prompt: "Continue. Also add error handling for the edge cases we discussed.",
-  resume_session_id: "fix-null-auth",
-  multi_turn: true
-)
+When a session already exists for the task, keep using it.
 
-# Fork to try an alternative approach
-agent_launch(
-  prompt: "Try a completely different approach: use middleware instead of decorators.",
-  resume_session_id: "refactor-db-repositories",
-  fork_session: true,
-  name: "refactor-db-middleware-approach",
-  multi_turn: true
-)
-```
+- Waiting for plan approval: `agent_respond(session, message, approve=true)` or `agent_request_plan_approval(...)` if delegated approval must escalate to the user
+- Waiting for a question answer: `agent_respond(session, message)`
+- Killed/stopped by restart: `agent_respond(session, message)`
+- Completed but needs follow-up: `agent_launch(resume_session_id=session_id, prompt="...")`
+- Fresh `agent_launch` is only for genuinely independent work
 
----
+Do not launch a new coding session from a wake event for the same task.
 
-## 2. Anti-cascade rules (CRITICAL)
+## State and Monitoring
 
-**When woken by a waiting-for-input or completion event, you MUST ONLY use `agent_respond` or `agent_output` for the referenced session. NEVER launch new sessions in response to wake events.**
+Use:
 
-This prevents cascading session creation. The orchestrator exists to manage existing sessions, not to spawn new ones from wake events.
-
----
-
-## 3. Monitoring sessions
-
-### List sessions
-
-```
-# All sessions
+```text
 agent_sessions()
-
-# Only running sessions
-agent_sessions(status: "running")
-
-# Completed sessions (for resume)
-agent_sessions(status: "completed")
+agent_output(session: "fix-auth", lines: 100)
+agent_output(session: "fix-auth", full: true)
 ```
 
-### View output
+Treat these wake fields as authoritative state when present:
 
-```
-# Summary (last 50 lines)
-agent_output(session: "fix-null-auth")
+- `requestedPermissionMode`
+- `effectivePermissionMode` / `currentPermissionMode`
+- `approvalExecutionState`
 
-# Full output (up to 200 blocks)
-agent_output(session: "fix-null-auth", full: true)
+Use those deterministic fields instead of inferring behavior from transcript fragments.
 
-# Specific last N lines
-agent_output(session: "fix-null-auth", lines: 100)
-```
+Approval/execution meanings:
 
-### Interpreting session state
+- `approved_then_implemented`: normal approved execution
+- `implemented_without_required_approval`: actual approval bypass
+- `awaiting_approval`: still stopped at the approval gate
+- `not_plan_gated`: no plan gate applied
 
-The `agent_output` header shows status, phase, cost, and duration:
-```
-Session: fix-auth [abc123] | Status: RUNNING | Phase: planning | Cost: $0.0312 | Duration: 2m15s
-```
+Completion ownership:
 
-The `Phase:` indicator for running sessions:
-- `Phase: planning` — the agent is writing a plan
-- `Phase: awaiting-plan-approval` — plan submitted, waiting for review
-- `Phase: implementing` — actively writing code
+- The plugin sends the canonical completion notification.
+- The orchestrator should only add user-facing follow-up when there is real extra value: synthesis, risk framing, or concrete next steps.
+- Do not generate your own heuristic completion summary from transcript tail lines.
 
-The `agent_sessions` listing also shows phase and cost when available:
-```
-🟢 fix-auth [abc123] (2m15s | $0.03) — multi-turn
-   ⚙️  Phase: planning
-```
+## Respond Rules
 
-**Recency rule:** Always trust the Phase indicator and the *latest* (bottom) output lines. If earlier output mentions plan mode but Phase says `implementing`, the session has transitioned. Do NOT report it as "waiting for approval."
+Auto-respond immediately only for:
 
----
+- permission requests for file reads, writes, or shell commands
+- explicit continuation prompts such as "Should I continue?"
 
-## 4. Multi-turn interaction
+Forward everything else to the user:
 
-### Send a follow-up
+- architecture or design choices
+- destructive operations
+- scope changes
+- credentials or production questions
+- ambiguous requirements
 
-```
-# Reply to an agent question
-agent_respond(session: "add-dark-mode", message: "Yes, use CSS variables for the theme colors.")
+When forwarding, quote the session's exact question. Do not add commentary.
 
-# Redirect a running session (interrupts the current turn)
-agent_respond(session: "add-dark-mode", message: "Stop. Use Tailwind dark: classes instead of CSS variables.", interrupt: true)
-```
+## Plan Approval
 
-### Auto-respond rules (STRICT)
+Use `permission_mode: "plan"` whenever the user wants a real planning checkpoint.
 
-**Auto-respond immediately with `agent_respond`:**
-- Permission requests to read/write files or run bash commands -> `"Yes, proceed."`
-- Explicit confirmations like "Should I continue?" -> `"Yes, continue."`
+### `planApproval: "ask"`
 
-**Forward to the user (everything else):**
-- Architecture decisions (Redis vs PostgreSQL, REST vs GraphQL...)
-- Destructive operations (deleting files, dropping tables...)
-- Ambiguous requirements not covered by the initial prompt
-- Scope changes ("This will require refactoring 15 files")
-- Anything involving credentials, secrets, or production environments
-- Questions about approach, design, or implementation choices
-- Codebase clarification questions
-- When in doubt -> always forward to the user
+- Approval belongs to the user.
+- The plugin sends the canonical Approve / Revise / Reject prompt directly to the user.
+- Wait for the user's answer, then forward it with `agent_respond(...)`.
+- Do not send a duplicate approval recap or second approval prompt.
 
-**When forwarding to the user, quote the agent's exact question. Do NOT add your own analysis, interpretation, or commentary.**
+### `planApproval: "delegate"`
 
-### Interaction cycle
+- Approval belongs to the orchestrator first.
+- This is wake-first: the plugin wakes the orchestrator without user buttons.
+- Before deciding, read the full plan with `agent_output(session, full=true)`; do not rely on the truncated preview.
+- Approve directly with `agent_respond(..., approve=true)` only when the plan is clearly in-bounds and low risk.
+- If escalation is needed, call `agent_request_plan_approval(session='...', summary='...')` exactly once so the plugin sends the single canonical user approval prompt.
+- After that canonical prompt exists, wait for the user's decision; do not send a second plain-text approval summary.
 
-1. Session launches -> runs in background
-2. Wake event arrives when the session is waiting for input
-3. Read the question with `agent_output(session, full: true)`
-4. Decide: auto-respond (permissions/confirmations only) or forward
-5. If auto-respond: `agent_respond(session, answer)`
-6. If forward: relay the agent's exact question to the user, wait for their response, then `agent_respond`
+### `planApproval: "approve"`
 
----
+- Auto-approve only after verification per the session policy.
 
-## 5. Lifecycle management
+## Worktree Decisions
 
-### Stop or complete a session
+### `off`
 
-```
-# Kill a stuck/looping session
-agent_kill(session: "fix-null-auth")
+- No worktree. The session runs in the main checkout.
 
-# Mark a session as successfully completed
-agent_kill(session: "fix-null-auth", reason: "completed")
-```
+### `ask`
 
-Use `agent_kill` (no reason) when:
-- The session is stuck or looping
-- The user requests a stop
+- The plugin owns the user-facing completion/decision message and button UI.
+- Do not call `agent_merge` or `agent_pr` unless the user explicitly asks after that.
 
-Use `agent_kill(reason: "completed")` when:
-- The turn output shows the task is done — this sends a `✅ Completed` notification
-- Prefer this over letting the idle timer expire
+### `delegate`
 
-### Idle completion and auto-resume
+- The plugin wakes the orchestrator with diff context and no automatic user buttons.
+- Read the diff context and decide whether a local merge is clearly safe.
+- `agent_merge` is acceptable for low-risk, clearly scoped changes that match the task.
+- Never call `agent_pr()` autonomously in delegate flows. Escalate PR decisions to the user.
+- If the wake already says the plugin sent the canonical completion notification, only add user-facing follow-up when you have real extra value.
 
-- After a turn completes without a question, the session is immediately **paused** (killed with reason `done`, auto-resumable).
-- On the next `agent_respond` to a completed or idle-killed session, the plugin **auto-resumes** by spawning a new session with the same session ID — conversation context is preserved.
-- Sessions idle for `idleTimeoutMinutes` (default: 15 min) are killed with reason `idle-timeout` and also auto-resume on next respond.
-- Sessions killed explicitly by the user (`agent_kill` without `reason: "completed"`) do NOT auto-resume.
+### `manual`
 
-### Timeouts
+- Wait for an explicit user request before calling `agent_merge` or `agent_pr`.
 
-- Idle multi-turn sessions are automatically killed after `idleTimeoutMinutes` (default: 15 min)
-- Completed sessions are garbage-collected after 1h but remain resumable via persisted IDs
+### Never
 
-### Check the result after completion
+- Never use raw `git merge` or raw PR commands in place of plugin tools.
+- Never invent your own workaround for a pending worktree decision; use `agent_worktree_cleanup(session: "...", dismiss_session: true)` to dismiss permanently.
+- Never merge or PR an `ask` worktree behind the user's back.
 
-When a session completes (completion wake event):
+## File Artifact Policy
 
-1. `agent_output(session: "xxx", full: true)` to read the result
-2. Summarize briefly: files changed, cost, duration, any issues
-3. If failed, analyze the error and decide: relaunch, fork, or escalate
+- Do not ask the coding agent to write planning documents, investigation notes, or analysis artifacts as files unless the user explicitly requested a file.
+- Do not commit planning documents, investigation notes, or transcript-summary artifacts to the branch.
+- Commit only actual code, configuration, tests, and explicitly requested documentation.
 
----
+## Anti-Patterns
 
-## 6. Notifications
-
-### Thread-based routing
-
-Notifications are routed to the Telegram thread/topic where the session was launched. This is handled automatically via `originThreadId` — no manual configuration needed. The `agentChannels` config handles chat-level routing, and the thread ID handles within-chat routing.
-
-### Events
-
-| Event | What happens |
-|---|---|
-| Session starts | Silent (command response confirms launch) |
-| Session completed | Brief one-liner to originating thread |
-| Session failed | Error notification to originating thread |
-| Waiting for input | Wake event + "Agent asks" in thread (only when the agent actually asks a question) |
-| Session idle-killed | Brief notification with kill reason |
-
-### Plan → Execute mode switch
-
-Sessions start in `plan` mode by default. When you reply with **only** an approval keyword as the **entire message** (`"go ahead"`, `"implement"`, `"looks good"`, `"approved"`, `"lgtm"`, `"do it"`, `"proceed"`, `"execute"`, `"ship it"`), the plugin switches the session to `bypassPermissions` mode. The message must contain **only** the keyword — extra text will prevent the switch. To approve and also give instructions, send the approval keyword first, then send implementation details as a separate follow-up message.
-
-### Plan approval modes
-
-The `planApproval` config controls how the orchestrator handles plan-approval events:
-
-- **`delegate`** (default): The orchestrator autonomously decides whether to approve or escalate each plan to the user. Approve when the plan is low-risk, well-scoped, and matches the original task. Escalate when the plan involves destructive operations, credentials/production, architectural decisions, scope expansion, or ambiguous requirements. When in doubt, always escalate.
-- **`approve`**: The orchestrator can auto-approve straightforward, low-risk plans. Before approving, it verifies the working directory, codebase, and scope.
-- **`ask`**: The orchestrator always forwards plans to the user. It never auto-approves on the user's behalf.
-
-#### Delegate mode decision criteria
-
-When operating in `delegate` mode, **approve** the plan directly if ALL of the following are true:
-- The plan scope matches the original task request
-- The changes are low-risk (no destructive operations, no credential handling, no production deployments)
-- The plan is clear and well-scoped (no ambiguous requirements or open design questions)
-- No architectural decisions that the user should weigh in on
-- The working directory and codebase are correct
-
-**Escalate** to the user (forward with 👋 and wait) if ANY of the following are true:
-- Destructive operations (deleting files, dropping tables, force-pushing)
-- Credentials, secrets, or production environments
-- Architectural decisions not covered by the original task
-- Scope expanded beyond the original request
-- Ambiguous requirements or assumptions the user should confirm
-- When in doubt — always escalate
-
----
-
-## 7. Best practices
-
-### Launch checklist
-
-1. `agentChannels` is configured for this workdir -> notifications arrive
-2. `multi_turn: true` -> interaction is possible after launch
-3. `name` is descriptive -> easy to identify in `agent_sessions`
-4. `workdir` points to the correct project -> the agent works in the right directory
-
-### Parallel tasks
-
-```
-# Launch multiple sessions on independent tasks
-agent_launch(prompt: "Build the frontend auth page", name: "frontend-auth", workdir: "/app/frontend", multi_turn: true)
-agent_launch(prompt: "Build the backend auth API", name: "backend-auth", workdir: "/app/backend", multi_turn: true)
-```
-
-- Respect the `maxSessions` limit (default: 5)
-- Each session must have a unique `name`
-- Monitor each session individually via wake events
-
-### Reporting results
-
-When a session completes, keep summaries brief:
-- Files changed
-- Cost and duration
-- Any issues or remaining TODOs
-
----
-
-## 8. Anti-patterns
-
-| Anti-pattern | Consequence | Fix |
-|---|---|---|
-| Launching new sessions from wake events | Cascading sessions | Only use `agent_respond`/`agent_output` when woken |
-| Adding commentary when forwarding questions | User gets noise, not the question | Quote the agent's exact question, nothing else |
-| Auto-responding to design/architecture questions | Decisions made without user input | Only auto-respond to permissions and explicit confirmations |
-| Passing `channel` explicitly | Bypasses automatic routing | Let `agentChannels` handle routing automatically |
-| Not checking the result of a completed session | User doesn't know what happened | Always read `agent_output` and summarize briefly |
-| Launching too many sessions in parallel | `maxSessions` limit reached | Respect the limit, prioritize, sequence if necessary |
-
----
-
-## 9. Quick tool reference
-
-| Tool | Usage | Key parameters |
-|---|---|---|
-| `agent_launch` | Launch a session | `prompt`, `name`, `workdir`, `multi_turn` |
-| `agent_sessions` | List sessions | `status` (all/running/completed/failed/killed) |
-| `agent_output` | Read the output | `session`, `full`, `lines` |
-| `agent_kill` | Kill or complete a session | `session`, `reason` (`"completed"` or omit) |
-| `agent_respond` | Send a follow-up | `session`, `message`, `interrupt` |
-| `agent_stats` | Usage metrics | none |
+- Do not pass `multi_turn` or `multi_turn_disabled`; all sessions are multi-turn.
+- Do not pass `channel` manually unless you are debugging routing.
+- Do not auto-answer design or scope questions.
+- Do not infer approval/completion ownership from old transcript snippets when deterministic fields are present.
+- Do not post duplicate completion or approval recaps when the plugin already sent the canonical message.
