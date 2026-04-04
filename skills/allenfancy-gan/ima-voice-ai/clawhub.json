@@ -1,7 +1,7 @@
 {
-  "name": "IMA Studio Music Generation",
-  "tagline": "Text-to-music with Suno and DouBao models via IMA Open API.",
-  "description": "AI music generation for text_to_music tasks with Suno (sonic), DouBao BGM (GenBGM), and DouBao Song (GenSong). Requires IMA_API_KEY. Uses only api.imastudio.com and runs standalone.",
+  "name": "IMA Music Generator",
+  "tagline": "Generate voiceovers, narration, and spoken audio for videos, explainers, ads, and social content.",
+  "description": "Generate voiceovers, narration, and spoken audio for videos, explainers, ads, and social content.",
   "category": "file-generation",
   "requiredEnvVars": [
     "IMA_API_KEY"
@@ -24,11 +24,15 @@
   },
   "supported_models": [
     "sonic",
+    "Suno",
     "GenBGM",
     "GenSong",
+    "DouBao BGM",
+    "DouBao Song",
     "text-to-music",
     "BGM",
-    "song with lyrics"
+    "song with lyrics",
+    "AI composer"
   ],
   "tags": [
     "ima-studio",
@@ -38,43 +42,77 @@
     "suno",
     "doubao",
     "genbgm",
-    "gensong"
+    "gensong",
+    "bgm",
+    "song-generator",
+    "ai-composer",
+    "soundtrack",
+    "audio-generation"
   ],
   "version": "1.2.2",
   "license": "MIT",
   "pricing": "free",
   "author": {
     "name": "IMA Studio",
-    "url": "https://imastudio.com/"
+    "url": "https://www.imaclaw.ai/"
   },
+  "support_url": "https://www.imaclaw.ai/",
+  "homepage": "https://www.imaclaw.ai/",
   "keywords": [
     "music generation",
     "text to music",
+    "AI music",
+    "AI composer",
+    "song generator",
+    "BGM generator",
+    "background music",
+    "soundtrack",
+    "audio generation",
     "ima studio",
     "suno",
     "doubao",
     "genbgm",
-    "gensong"
+    "gensong",
+    "AI作曲",
+    "音乐生成",
+    "背景音乐",
+    "BGM",
+    "歌曲生成",
+    "配乐"
   ],
   "search_optimized_terms": [
     "suno",
     "doubao",
     "music generation",
     "text to music",
-    "AI music"
+    "AI music",
+    "AI composer",
+    "song generator",
+    "BGM",
+    "background music",
+    "soundtrack",
+    "AI作曲",
+    "音乐生成",
+    "背景音乐",
+    "配乐"
   ],
   "related_skills": [
+    "ima-knowledge-ai",
     "ima-all-ai",
     "ima-tts-ai"
   ],
   "use_cases": [
-    "Music generation and AI composition",
-    "Background music creation",
-    "Song drafts with lyrics"
+    "Video background music and intro/outro",
+    "Podcast music and jingles",
+    "Game soundtracks and ambient music",
+    "Commercial and marketing audio",
+    "Song demos and prototypes",
+    "Social media content music"
   ],
   "key_features": [
-    "Suno and DouBao models",
-    "Product-list-first dynamic routing",
-    "Contextual failure diagnosis"
+    "Suno and DouBao models (sonic, GenBGM, GenSong)",
+    "Text-to-music with multiple genres and styles",
+    "Background music and full songs with lyrics",
+    "Fast generation with automatic retry"
   ]
 }

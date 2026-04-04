@@ -1,13 +1,18 @@
 {
   "owner": "allenfancy-gan",
   "slug": "ima-voice-ai",
-  "displayName": "IMA Studio Music — Suno, DouBao",
+  "displayName": "IMA AI Music  Generator — Suno, DouBao",
   "latest": {
-    "version": "1.0.11",
-    "publishedAt": 1773772332834,
-    "commit": "https://github.com/openclaw/skills/commit/813ec27c4afac1d037141f1dee38852e8fcd2ec7"
+    "version": "1.0.14",
+    "publishedAt": 1774853754148,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.11",
+      "publishedAt": 1773772332834,
+      "commit": "https://github.com/openclaw/skills/commit/813ec27c4afac1d037141f1dee38852e8fcd2ec7"
+    },
     {
       "version": "1.0.7",
       "publishedAt": 1773331931263,
