@@ -46,7 +46,7 @@ except ImportError:
     _COS_SDK_AVAILABLE = False
 
 try:
-    from load_env import ensure_env_loaded as _ensure_env_loaded
+    from mps_load_env import ensure_env_loaded as _ensure_env_loaded
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
@@ -77,7 +77,7 @@ def get_credentials():
             secret_key = os.environ.get("TENCENTCLOUD_SECRET_KEY", "")
         if not secret_id or not secret_key:
             if _LOAD_ENV_AVAILABLE:
-                from load_env import _print_setup_hint, _TARGET_VARS
+                from mps_load_env import _print_setup_hint, _TARGET_VARS
                 _print_setup_hint(["TENCENTCLOUD_SECRET_ID", "TENCENTCLOUD_SECRET_KEY"])
             else:
                 print(
@@ -196,7 +196,7 @@ def print_image_process_results(result_set):
 
 def query_task(args):
     """查询图片处理任务详情。"""
-    region = args.region or "ap-guangzhou"
+    region = args.region or os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
 
     # 1. 获取凭证和客户端
     cred = get_credentials()
@@ -302,6 +302,8 @@ def main():
                         help="输出完整 JSON 响应")
     parser.add_argument("--json", action="store_true",
                         help="仅输出原始 JSON，不打印格式化摘要")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="模拟执行，不实际查询任务")
 
     args = parser.parse_args()
 
@@ -310,6 +312,17 @@ def main():
     print("=" * 60)
     print(f"TaskId: {args.task_id}")
     print("-" * 60)
+
+    # Dry-run 模式：仅显示操作摘要
+    if args.dry_run:
+        region = args.region or os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
+        print("\n=== 模拟执行（Dry-run）===\n")
+        print("操作：查询图片处理任务详情")
+        print(f"  TaskId: {args.task_id}")
+        print(f"  MPS Region: {region}")
+        print(f"  API: DescribeImageTaskDetail")
+        print("\n不会实际查询任务。移除 --dry-run 参数后执行实际操作。")
+        return
 
     query_task(args)
 

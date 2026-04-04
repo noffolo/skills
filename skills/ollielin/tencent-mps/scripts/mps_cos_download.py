@@ -31,7 +31,7 @@ import sys
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _SCRIPT_DIR)
 try:
-    from load_env import ensure_env_loaded, check_required_vars, _print_setup_hint
+    from mps_load_env import ensure_env_loaded, check_required_vars, _print_setup_hint
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
@@ -93,6 +93,11 @@ def parse_args():
         "--verbose", "-v",
         action="store_true",
         help="显示详细日志"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="模拟执行，不实际下载文件"
     )
     
     return parser.parse_args()
@@ -198,6 +203,26 @@ def main():
     if not bucket:
         print("错误：缺少 COS Bucket 配置。请设置 TENCENTCLOUD_COS_BUCKET 环境变量，或使用 --bucket 参数。", file=sys.stderr)
         sys.exit(1)
+    
+    # Dry-run 模式：仅显示操作摘要
+    if args.dry_run:
+        print("=== 模拟执行（Dry-run）===\n")
+        print("操作：从 COS 下载文件")
+        print(f"  COS Bucket: {bucket}")
+        print(f"  COS Region: {region}")
+        print(f"  COS Key: {args.cos_key}")
+        print(f"  完整 URL: https://{bucket}.cos.{region}.myqcloud.com/{args.cos_key.lstrip('/')}")
+        print(f"  本地保存路径: {args.local_file}")
+        
+        # 检查本地目录是否可写
+        local_dir = os.path.dirname(os.path.abspath(args.local_file))
+        if local_dir and not os.path.exists(local_dir):
+            print(f"  本地目录: {local_dir}（不存在，下载时会自动创建）")
+        elif local_dir:
+            print(f"  本地目录: {local_dir}（存在）")
+        
+        print("\n不会实际下载文件。移除 --dry-run 参数后执行实际操作。")
+        return 0
     
     # 执行下载
     result = download_file(

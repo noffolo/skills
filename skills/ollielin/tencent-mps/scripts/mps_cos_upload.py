@@ -31,7 +31,7 @@ import sys
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _SCRIPT_DIR)
 try:
-    from load_env import ensure_env_loaded, check_required_vars, _print_setup_hint
+    from mps_load_env import ensure_env_loaded, check_required_vars, _print_setup_hint
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
@@ -93,6 +93,11 @@ def parse_args():
         "--verbose", "-v",
         action="store_true",
         help="显示详细日志"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="模拟执行，不实际上传文件"
     )
     
     return parser.parse_args()
@@ -216,6 +221,26 @@ def main():
     if not bucket:
         print("错误：缺少 COS Bucket 配置。请设置 TENCENTCLOUD_COS_BUCKET 环境变量，或使用 --bucket 参数。", file=sys.stderr)
         sys.exit(1)
+    
+    # Dry-run 模式：仅显示操作摘要
+    if args.dry_run:
+        print("=== 模拟执行（Dry-run）===\n")
+        print("操作：上传文件到 COS")
+        print(f"  本地文件: {args.local_file}")
+        
+        # 检查文件是否存在并获取大小
+        if os.path.isfile(args.local_file):
+            file_size = os.path.getsize(args.local_file)
+            print(f"  文件大小: {file_size / 1024 / 1024:.2f} MB")
+        else:
+            print(f"  文件状态: 不存在（上传前会失败）")
+        
+        print(f"  目标 Bucket: {bucket}")
+        print(f"  目标 Region: {region}")
+        print(f"  COS Key: {args.cos_key}")
+        print(f"  完整 URL: https://{bucket}.cos.{region}.myqcloud.com/{args.cos_key.lstrip('/')}")
+        print("\n不会实际上传文件。移除 --dry-run 参数后执行实际操作。")
+        return 0
     
     # 执行上传
     result = upload_file(

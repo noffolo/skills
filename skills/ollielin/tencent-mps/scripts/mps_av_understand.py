@@ -34,9 +34,9 @@
       --mode audio \\
       --prompt "请对比这两段音频，分析演奏水平的差异"
 
-  # 指定 COS 对象输入
+  # COS输入（推荐，使用 --cos-input-key）
   python scripts/mps_av_understand.py \\
-      --cos-object input/video.mp4 \\
+      --cos-input-key /input/video.mp4 \\
       --mode video \\
       --prompt "总结视频内容"
 
@@ -68,7 +68,7 @@ import argparse
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _script_dir)
 try:
-    import load_env as _le
+    import mps_load_env as _le
     _le.load_env_files()
 except Exception:
     pass
@@ -81,10 +81,16 @@ except ImportError:
     print("错误: 未安装腾讯云 SDK，请运行: pip install tencentcloud-sdk-python", file=sys.stderr)
     sys.exit(1)
 
+try:
+    from mps_poll_task import auto_upload_local_file, poll_video_task, auto_download_outputs
+    _POLL_AVAILABLE = True
+except ImportError:
+    _POLL_AVAILABLE = False
+
 # ─────────────────────────────────────────────
 # 配置
 # ─────────────────────────────────────────────
-DEFAULT_REGION     = "ap-guangzhou"
+DEFAULT_REGION     = os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
 DEFAULT_DEFINITION = 33   # 预设视频理解模板（官方推荐）
 DEFAULT_MODE       = "video"
 POLL_INTERVAL      = 10   # 轮询间隔（秒）
@@ -143,7 +149,6 @@ def build_extended_parameter(
 def create_understand_task(
     client,
     url: str = None,
-    cos_object: str = None,
     cos_input_bucket: str = None,
     cos_input_region: str = None,
     cos_input_key: str = None,
@@ -166,7 +171,7 @@ def create_understand_task(
         url_input.Url = url
         input_info.UrlInputInfo = url_input
     elif cos_input_key:
-        # 新版 COS 路径输入（--cos-input-bucket + --cos-input-region + --cos-input-key）
+        # COS 路径输入
         input_info.Type = "COS"
         cos_input = models.CosInputInfo()
         bucket = cos_input_bucket or os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
@@ -179,21 +184,8 @@ def create_understand_task(
         # 确保 key 以 / 开头
         cos_input.Object = cos_input_key if cos_input_key.startswith("/") else f"/{cos_input_key}"
         input_info.CosInputInfo = cos_input
-    elif cos_object:
-        # 旧版 COS 对象路径（已废弃，保持兼容）
-        input_info.Type = "COS"
-        cos_input  = models.CosInputInfo()
-        bucket     = os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
-        cos_region = os.environ.get("TENCENTCLOUD_COS_REGION", region)
-        if not bucket:
-            print("错误: 使用 COS 输入时请设置 TENCENTCLOUD_COS_BUCKET", file=sys.stderr)
-            sys.exit(1)
-        cos_input.Bucket = bucket
-        cos_input.Region = cos_region
-        cos_input.Object = cos_object
-        input_info.CosInputInfo = cos_input
     else:
-        print("错误: 请提供 --url 或 --cos-input-key 或 --cos-object", file=sys.stderr)
+        print("错误: 请提供 --url 或 --cos-input-key", file=sys.stderr)
         sys.exit(1)
 
     req.InputInfo = input_info
@@ -318,8 +310,8 @@ def main():
 
     # 输入源（三选一）
     input_grp = parser.add_mutually_exclusive_group()
+    input_grp.add_argument("--local-file", help="本地文件路径，自动上传到 COS 后处理（需配置 TENCENTCLOUD_COS_BUCKET）")
     input_grp.add_argument("--url",        help="音视频 URL（HTTP/HTTPS）")
-    input_grp.add_argument("--cos-object", help="COS 对象路径（如 input/video.mp4，已废弃，请使用 --cos-input-key）")
     input_grp.add_argument("--task-id",    help="直接查询已有任务结果（跳过创建）")
     
     # COS 路径输入（新版，与 mps_transcode.py 等保持一致）
@@ -358,9 +350,37 @@ def main():
     parser.add_argument("--json",       action="store_true", dest="json_output", help="JSON 格式输出")
     parser.add_argument("--output-dir", help="将结果 JSON 保存到指定目录")
     parser.add_argument("--dry-run",    action="store_true", help="只打印参数预览，不调用 API")
+
     parser.add_argument("-v", "--verbose", action="store_true", help="显示详细日志信息")
 
     args = parser.parse_args()
+    # --url 本地路径自动转换为本地上传模式
+    if getattr(args, 'url', None) and not getattr(args, 'local_file', None):
+        _val = args.url
+        if not _val.startswith('http://') and not _val.startswith('https://'):
+            print(f"提示：'{_val}' 未指定来源，默认按本地文件处理", file=sys.stderr)
+            args.local_file = _val
+            args.url = None
+
+    # --local-file 与 COS 输入参数互斥
+    if getattr(args, 'local_file', None):
+        cos_conflicts = [x for x in [
+            getattr(args, 'cos_input_bucket', None), getattr(args, 'cos_input_key', None)
+        ] if x]
+        if cos_conflicts:
+            parser.error("--local-file 不能与 --cos-input-bucket / --cos-input-key 同时使用")
+
+    # 本地文件自动上传
+    if getattr(args, 'local_file', None):
+        if not _POLL_AVAILABLE:
+            print("错误：--local-file 需要 mps_poll_task 模块支持", file=sys.stderr)
+            sys.exit(1)
+        upload_result = auto_upload_local_file(args.local_file)
+        if not upload_result:
+            sys.exit(1)
+        args.cos_input_key = upload_result["Key"]
+        args.cos_input_bucket = upload_result["Bucket"]
+        args.cos_input_region = upload_result["Region"]
 
     # ── dry-run ──
     if args.dry_run:
@@ -374,8 +394,6 @@ def main():
                 bucket = args.cos_input_bucket or os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
                 region = args.cos_input_region or os.environ.get("TENCENTCLOUD_COS_REGION", args.region)
                 print(f"  输入       = COS={bucket}/{region}{args.cos_input_key}")
-            elif args.cos_object:
-                print(f"  输入       = COS={args.cos_object} (旧版)")
             print(f"  mode       = {args.mode}")
             print(f"  prompt     = {args.prompt!r}")
             print(f"  extend-url = {args.extend_urls}")
@@ -401,19 +419,17 @@ def main():
         return
 
     # ── 提交任务 ──
-    has_input = bool(args.url) or bool(args.cos_input_key) or bool(args.cos_object)
+    has_input = bool(args.url) or bool(args.cos_input_key)
     if not has_input:
-        parser.error("请提供 --url、--cos-input-key、--cos-object 或 --task-id 之一")
+        parser.error("请提供 --url、--cos-input-key 或 --task-id 之一")
 
     # 确定输入源显示
     if args.url:
         src = f"URL={args.url}"
-    elif args.cos_input_key:
+    else:
         bucket = args.cos_input_bucket or os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
         region = args.cos_input_region or os.environ.get("TENCENTCLOUD_COS_REGION", args.region)
         src = f"COS={bucket}/{region}{args.cos_input_key}"
-    else:
-        src = f"COS={args.cos_object} (旧版)"
     
     print(f"🚀 提交音视频理解任务")
     print(f"   输入     : {src}")
@@ -429,8 +445,6 @@ def main():
         print(f"   cos_region: {args.cos_input_region or os.environ.get('TENCENTCLOUD_COS_REGION', args.region)}")
         if args.cos_input_key:
             print(f"   cos_key  : {args.cos_input_key}")
-        elif args.cos_object:
-            print(f"   cos_object: {args.cos_object}")
         ep = build_extended_parameter(args.mode, args.prompt, args.extend_urls)
         print(f"   extended_param: {ep}")
 
@@ -438,7 +452,6 @@ def main():
         task_id = create_understand_task(
             client,
             url=args.url,
-            cos_object=args.cos_object,
             cos_input_bucket=args.cos_input_bucket,
             cos_input_region=args.cos_input_region,
             cos_input_key=args.cos_input_key,

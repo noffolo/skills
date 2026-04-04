@@ -19,7 +19,7 @@ COS 存储约定：
   - 输入文件默认路径：{TENCENTCLOUD_COS_BUCKET}/input/   （即 COS Object 以 /input/ 开头）
   - 输出文件默认路径：{TENCENTCLOUD_COS_BUCKET}/output/quality_control/  （即输出目录为 /output/quality_control/）
 
-  当使用 COS 输入时，如果未显式指定 --cos-bucket，自动使用 TENCENTCLOUD_COS_BUCKET。
+  当使用 COS 输入时，bucket/region 自动从 TENCENTCLOUD_COS_BUCKET/TENCENTCLOUD_COS_REGION 环境变量读取。
   当未显式指定 --output-bucket，自动使用 TENCENTCLOUD_COS_BUCKET 作为输出 Bucket。
   当未显式指定 --output-dir，自动使用 /output/quality_control/ 作为输出目录。
 用法：
@@ -35,8 +35,8 @@ COS 存储约定：
   # 音频质检（模板 50）：检测音频质量、音频事件等音频内容问题
   python scripts/mps_qualitycontrol.py --url https://example.com/audio.mp3 --definition 50
 
-  # 指定 COS 对象输入
-  python scripts/mps_qualitycontrol.py --cos-object input/video.mp4
+  # COS输入（推荐，使用 --cos-input-key）
+  python scripts/mps_qualitycontrol.py --cos-input-key /input/video.mp4
 
   # COS路径输入（推荐，本地上传后使用）
   python scripts/mps_qualitycontrol.py --cos-input-bucket mybucket-125xxx --cos-input-region ap-guangzhou --cos-input-key /input/video.mp4
@@ -57,8 +57,8 @@ COS 存储约定：
   python scripts/mps_qualitycontrol.py --url https://example.com/video.mp4 --region ap-guangzhou
 
 参数规范：
-  所有命令行参数必须使用连字符形式（--task-id、--cos-object、--no-wait、--dry-run 等），
-  不能使用下划线形式（--task_id、--cos_object、--no_wait 等）。
+  所有命令行参数必须使用连字符形式（--task-id、--no-wait、--dry-run 等），
+  不能使用下划线形式（--task_id、--no_wait 等）。
 """
 
 import sys
@@ -70,7 +70,7 @@ import argparse
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _script_dir)
 try:
-    import load_env as _le
+    import mps_load_env as _le
     _le.load_env_files()
 except Exception:
     pass
@@ -83,10 +83,16 @@ except ImportError:
     print("错误: 未安装腾讯云 SDK，请运行: pip install tencentcloud-sdk-python", file=sys.stderr)
     sys.exit(1)
 
+try:
+    from mps_poll_task import auto_upload_local_file, poll_video_task, auto_download_outputs
+    _POLL_AVAILABLE = True
+except ImportError:
+    _POLL_AVAILABLE = False
+
 # ─────────────────────────────────────────────
 # 配置
 # ─────────────────────────────────────────────
-DEFAULT_REGION     = "ap-guangzhou"
+DEFAULT_REGION     = os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
 DEFAULT_DEFINITION = 60   # 格式质检-Pro版（默认）
 POLL_INTERVAL      = 5    # 轮询间隔（秒）
 POLL_TIMEOUT       = 600  # 最大等待时间（秒）
@@ -162,7 +168,7 @@ def is_placeholder(value: str) -> bool:
 # ─────────────────────────────────────────────
 # 构建输入信息
 # ─────────────────────────────────────────────
-def build_input_info(url: str = None, cos_object: str = None, 
+def build_input_info(url: str = None,
                      cos_input_bucket: str = None, cos_input_region: str = None, cos_input_key: str = None,
                      region: str = DEFAULT_REGION) -> dict:
     # 方式1: URL 输入
@@ -172,38 +178,30 @@ def build_input_info(url: str = None, cos_object: str = None,
             sys.exit(1)
         return {"Type": "URL", "UrlInputInfo": {"Url": url}}
     
-    # 方式3: COS 完整路径输入（新版，推荐）
-    if cos_input_bucket and cos_input_region and cos_input_key:
-        if is_placeholder(cos_input_bucket) or is_placeholder(cos_input_region) or is_placeholder(cos_input_key):
-            print("❌ --cos-input-bucket/--cos-input-region/--cos-input-key 参数值包含占位符，请替换为真实值", file=sys.stderr)
+    # COS 路径输入
+    if cos_input_key:
+        if is_placeholder(cos_input_key):
+            print("❌ --cos-input-key 参数值包含占位符，请替换为真实值", file=sys.stderr)
             sys.exit(1)
-        return {
-            "Type": "COS",
-            "CosInputInfo": {"Bucket": cos_input_bucket, "Region": cos_input_region, "Object": cos_input_key},
-        }
-    
-    # 方式2: COS 对象路径输入（旧版，兼容）
-    if cos_object:
-        if is_placeholder(cos_object):
-            print(f"❌ --cos-object 参数值 '{cos_object}' 是占位符，请替换为真实的 COS 对象路径", file=sys.stderr)
-            sys.exit(1)
-        bucket = os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
+        bucket = cos_input_bucket or os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
+        r = cos_input_region or os.environ.get("TENCENTCLOUD_COS_REGION", region)
         if not bucket:
-            print("❌ 使用 COS 对象输入时需要配置 TENCENTCLOUD_COS_BUCKET 环境变量", file=sys.stderr)
+            print("❌ 使用 COS 输入时需要指定 --cos-input-bucket 参数或配置 TENCENTCLOUD_COS_BUCKET 环境变量", file=sys.stderr)
             sys.exit(1)
         return {
             "Type": "COS",
-            "CosInputInfo": {"Bucket": bucket, "Region": region, "Object": cos_object},
+            "CosInputInfo": {"Bucket": bucket, "Region": r, "Object": cos_input_key if cos_input_key.startswith("/") else f"/{cos_input_key}"},
         }
     
-    print("❌ 请指定输入源：--url、--cos-object 或 --cos-input-bucket/--cos-input-region/--cos-input-key", file=sys.stderr)
+    print("❌ 请指定输入源：--url 或 --cos-input-key（配合 --cos-input-bucket/--cos-input-region 或环境变量）", file=sys.stderr)
     sys.exit(1)
 
 
 # ─────────────────────────────────────────────
 # 提交质检任务
 # ─────────────────────────────────────────────
-def submit_quality_check(client, input_info: dict, definition: int, output_storage: dict = None) -> str:
+def submit_quality_check(client, input_info: dict, definition: int, output_storage: dict = None,
+                         notify_url: str = None, output_dir: str = None) -> str:
     req = models.ProcessMediaRequest()
     req.InputInfo = models.MediaInputInfo()
     req.InputInfo.Type = input_info["Type"]
@@ -227,6 +225,15 @@ def submit_quality_check(client, input_info: dict, definition: int, output_stora
         req.OutputStorage.CosOutputStorage = models.CosOutputStorage()
         req.OutputStorage.CosOutputStorage.Bucket = output_storage["CosOutputStorage"]["Bucket"]
         req.OutputStorage.CosOutputStorage.Region = output_storage["CosOutputStorage"]["Region"]
+    
+    # 设置回调 URL
+    if notify_url:
+        req.TaskNotifyConfig = models.TaskNotifyConfig()
+        req.TaskNotifyConfig.Url = notify_url
+    
+    # 设置输出目录
+    if output_dir:
+        req.OutputDir = output_dir
 
     resp = client.ProcessMedia(req)
     return resp.TaskId
@@ -412,8 +419,8 @@ def main():
     )
 
     input_group = parser.add_mutually_exclusive_group()
+    input_group.add_argument("--local-file", help="本地文件路径，自动上传到 COS 后处理（需配置 TENCENTCLOUD_COS_BUCKET）")
     input_group.add_argument("--url",        help="音视频 URL（HTTP/HTTPS）")
-    input_group.add_argument("--cos-object", help="COS 对象路径（如 input/video.mp4，已废弃，请使用 --cos-input-key）")
     input_group.add_argument("--task-id",    help="直接查询已有任务结果（跳过创建）")
     
     # COS 路径输入（新版，与 mps_transcode.py 等保持一致）
@@ -437,20 +444,24 @@ def main():
     parser.add_argument("--region",   default=DEFAULT_REGION, help=f"地域（默认 {DEFAULT_REGION}）")
     parser.add_argument("--output-bucket", type=str, help="输出 COS Bucket 名称（默认从环境变量 TENCENTCLOUD_COS_BUCKET 读取）")
     parser.add_argument("--output-region", type=str, help="输出 COS Region（默认从环境变量 TENCENTCLOUD_COS_REGION 读取）")
+    parser.add_argument("--output-dir", type=str, help="输出目录路径（如 /output/quality_control/）")
+    parser.add_argument("--notify-url", type=str, help="任务完成回调 URL（可选）")
     parser.add_argument("--no-wait",  action="store_true",    help="异步模式：只提交任务，不等待结果")
     parser.add_argument("--json",     action="store_true",    dest="json_output", help="JSON 格式输出原始结果")
     parser.add_argument("--dry-run",  action="store_true",    help="只打印参数，不实际调用 API")
+
 
     # 在 parse_args 之前检测下划线形式的参数，严格拒绝不规范用法。
     # 原因：Python argparse 将 --task-id 内部转换为 task_id，外部调用必须使用连字符形式；
     #       下划线形式（--task_id）不被 argparse 识别，会作为未知参数静默忽略，
     #       导致逻辑错误且难以排查，因此在此提前拦截并给出明确提示。
     _underscore_map = {
-        "--task_id":     "--task-id",
-        "--cos_object":  "--cos-object",
-        "--no_wait":     "--no-wait",
-        "--dry_run":     "--dry-run",
-        "--json_output": "--json",
+        "--task-id":     "--task-id",
+        "--output-dir":  "--output-dir",
+        "--notify-url":  "--notify-url",
+        "--no-wait":     "--no-wait",
+        "--dry-run":     "--dry-run",
+        "--json-output": "--json",
     }
     for raw_arg in sys.argv[1:]:
         arg_name = raw_arg.split("=")[0]
@@ -464,25 +475,47 @@ def main():
             sys.exit(2)
 
     args = parser.parse_args()
+    # --url 本地路径自动转换为本地上传模式
+    if getattr(args, 'url', None) and not getattr(args, 'local_file', None):
+        _val = args.url
+        if not _val.startswith('http://') and not _val.startswith('https://'):
+            print(f"提示：'{_val}' 未指定来源，默认按本地文件处理", file=sys.stderr)
+            args.local_file = _val
+            args.url = None
+
+    # --local-file 与 COS 输入参数互斥
+    if getattr(args, 'local_file', None):
+        cos_conflicts = [x for x in [
+            getattr(args, 'cos_input_bucket', None), getattr(args, 'cos_input_key', None)
+        ] if x]
+        if cos_conflicts:
+            parser.error("--local-file 不能与 --cos-input-bucket / --cos-input-key 同时使用")
+
+    # 本地文件自动上传
+    if getattr(args, 'local_file', None):
+        if not _POLL_AVAILABLE:
+            print("错误：--local-file 需要 mps_poll_task 模块支持", file=sys.stderr)
+            sys.exit(1)
+        upload_result = auto_upload_local_file(args.local_file)
+        if not upload_result:
+            sys.exit(1)
+        args.cos_input_key = upload_result["Key"]
+        args.cos_input_bucket = upload_result["Bucket"]
+        args.cos_input_region = upload_result["Region"]
 
     # 检查输入源
     has_url = bool(args.url)
-    has_cos_object = bool(args.cos_object)
-    has_cos_path = bool(getattr(args, 'cos_input_bucket', None) and 
-                        getattr(args, 'cos_input_region', None) and 
-                        getattr(args, 'cos_input_key', None))
+    has_cos_path = bool(getattr(args, 'cos_input_key', None))
     
-    if not args.task_id and not has_url and not has_cos_object and not has_cos_path:
-        parser.error("请指定 --url、--cos-object、--cos-input-bucket/--cos-input-region/--cos-input-key 或 --task-id")
+    if not args.task_id and not has_url and not has_cos_path:
+        parser.error("请指定 --url、--cos-input-key（配合 --cos-input-bucket/--cos-input-region 或环境变量）或 --task-id")
 
-    # 占位符检测（在 dry-run 之前，确保任何模式下均拒绝占位符）
+    # 占位符检测
     if args.url and is_placeholder(args.url):
         parser.error(f"--url 参数值 '{args.url}' 是占位符，请替换为真实的视频 URL")
-    if args.cos_object and is_placeholder(args.cos_object):
-        parser.error(f"--cos-object 参数值 '{args.cos_object}' 是占位符，请替换为真实的 COS 对象路径")
     if has_cos_path:
-        if is_placeholder(args.cos_input_bucket) or is_placeholder(args.cos_input_region) or is_placeholder(args.cos_input_key):
-            parser.error("--cos-input-bucket/--cos-input-region/--cos-input-key 参数值包含占位符，请替换为真实值")
+        if is_placeholder(args.cos_input_key):
+            parser.error("--cos-input-key 参数值包含占位符，请替换为真实值")
 
     # dry-run
     if args.dry_run:
@@ -491,10 +524,9 @@ def main():
             print(f"  TaskId:     {args.task_id}")
         elif args.url:
             print(f"  输入:       URL={args.url}")
-        elif has_cos_path:
-            print(f"  输入:       COS={args.cos_input_bucket}:{args.cos_input_key} (region: {args.cos_input_region})")
         else:
-            print(f"  输入:       COS={args.cos_object}")
+            bucket_d = getattr(args, 'cos_input_bucket', None) or os.environ.get("TENCENTCLOUD_COS_BUCKET", "未设置")
+            print(f"  输入:       COS={bucket_d}:{args.cos_input_key}")
         print(f"  Definition: {args.definition} ({DEFINITION_DESC.get(args.definition, '')})")
         print(f"  Region:     {args.region}")
         print(f"  No-wait:    {args.no_wait}")
@@ -516,7 +548,6 @@ def main():
     # 提交新任务
     input_info = build_input_info(
         url=args.url, 
-        cos_object=args.cos_object,
         cos_input_bucket=getattr(args, 'cos_input_bucket', None),
         cos_input_region=getattr(args, 'cos_input_region', None),
         cos_input_key=getattr(args, 'cos_input_key', None),
@@ -537,17 +568,21 @@ def main():
     print(f"🚀 提交媒体质检任务")
     if args.url:
         print(f"   输入:     URL={args.url}")
-    elif has_cos_path:
-        print(f"   输入:     COS={args.cos_input_bucket}:{args.cos_input_key} (region: {args.cos_input_region})")
     else:
-        print(f"   输入:     COS={args.cos_object}")
+        bucket_d = getattr(args, 'cos_input_bucket', None) or os.environ.get("TENCENTCLOUD_COS_BUCKET", "未设置")
+        region_d = getattr(args, 'cos_input_region', None) or os.environ.get("TENCENTCLOUD_COS_REGION", args.region)
+        print(f"   输入:     COS={bucket_d}:{args.cos_input_key} (region: {region_d})")
     print(f"   模板:     {args.definition} — {def_desc}")
     print(f"   地域:     {args.region}")
     if output_storage:
         print(f"   输出:     COS={output_storage['CosOutputStorage']['Bucket']} (region: {output_storage['CosOutputStorage']['Region']})")
 
     try:
-        task_id = submit_quality_check(client, input_info, args.definition, output_storage)
+        task_id = submit_quality_check(
+            client, input_info, args.definition, output_storage,
+            notify_url=getattr(args, 'notify_url', None),
+            output_dir=getattr(args, 'output_dir', None)
+        )
     except TencentCloudSDKException as e:
         print(f"❌ 提交任务失败: {e}", file=sys.stderr)
         sys.exit(1)
@@ -556,7 +591,7 @@ def main():
 
     if args.no_wait:
         print("ℹ️  异步模式，使用以下命令查询结果：")
-        print(f"   python scripts/mps_quality_check.py --task-id {task_id}")
+        print(f"   python scripts/mps_qualitycontrol.py --task-id {task_id}")
         return
 
     try:

@@ -40,7 +40,7 @@ from datetime import datetime
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _SCRIPT_DIR)
 try:
-    from load_env import ensure_env_loaded, check_required_vars, _print_setup_hint
+    from mps_load_env import ensure_env_loaded, check_required_vars, _print_setup_hint
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
@@ -126,6 +126,11 @@ def parse_args():
         "--show-url",
         action="store_true",
         help="显示文件完整 URL"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="模拟执行，不实际查询文件列表"
     )
     
     return parser.parse_args()
@@ -351,6 +356,22 @@ def main():
     if not bucket:
         print("错误：缺少 COS Bucket 配置。请设置 TENCENTCLOUD_COS_BUCKET 环境变量，或使用 --bucket 参数。", file=sys.stderr)
         sys.exit(1)
+    
+    # Dry-run 模式：仅显示操作摘要
+    if args.dry_run:
+        print("=== 模拟执行（Dry-run）===\n")
+        print("操作：列出 COS Bucket 中的文件")
+        print(f"  COS Bucket: {bucket}")
+        print(f"  COS Region: {region}")
+        print(f"  路径前缀: {args.prefix if args.prefix else '(根目录)'}")
+        if args.search:
+            match_type = "精确匹配" if args.exact else "模糊匹配"
+            print(f"  搜索关键字: {args.search} ({match_type})")
+        print(f"  最大返回数量: {min(args.limit, 1000)}")
+        if args.show_url:
+            print(f"  显示 URL: 是")
+        print("\n不会实际查询文件列表。移除 --dry-run 参数后执行实际操作。")
+        return 0
     
     # 限制最大返回数量
     limit = min(args.limit, 1000)

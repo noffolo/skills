@@ -52,10 +52,10 @@ from datetime import datetime, timedelta, timezone
 
 # ── 加载环境变量 ──
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-_load_env = os.path.join(_script_dir, "load_env.py")
+_load_env = os.path.join(_script_dir, "mps_load_env.py")
 if os.path.exists(_load_env):
     import importlib.util
-    spec = importlib.util.spec_from_file_location("load_env", _load_env)
+    spec = importlib.util.spec_from_file_location("mps_load_env", _load_env)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
 

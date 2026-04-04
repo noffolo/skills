@@ -283,7 +283,7 @@ def get_cos_region():
 
 
 try:
-    from load_env import ensure_env_loaded as _ensure_env_loaded
+    from mps_load_env import ensure_env_loaded as _ensure_env_loaded
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
@@ -303,7 +303,7 @@ def get_credentials():
             secret_key = os.environ.get("TENCENTCLOUD_SECRET_KEY", "")
         if not secret_id or not secret_key:
             if _LOAD_ENV_AVAILABLE:
-                from load_env import _print_setup_hint, _TARGET_VARS
+                from mps_load_env import _print_setup_hint, _TARGET_VARS
                 _print_setup_hint(["TENCENTCLOUD_SECRET_ID", "TENCENTCLOUD_SECRET_KEY"])
             else:
                 print(
@@ -890,7 +890,7 @@ def validate_args(args, parser):
 
 def run(args):
     """执行主流程。"""
-    region = args.region or "ap-guangzhou"
+    region = args.region or os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
     cred = get_credentials()
     client = create_mps_client(cred, region)
 
@@ -1107,6 +1107,23 @@ def run(args):
         for i, url in enumerate(video_urls, 1):
             print(f"   视频 {i}: {url}")
         print("\n⚠️  视频存储12小时，请尽快下载使用。")
+
+        # 自动下载生成视频
+        download_dir = getattr(args, 'download_dir', None)
+        if download_dir and video_urls:
+            import urllib.request
+            import os as _os
+            _os.makedirs(download_dir, exist_ok=True)
+            print(f"\n📥 自动下载生成视频到: {_os.path.abspath(download_dir)}")
+            for i, url in enumerate(video_urls, 1):
+                ext = ".mp4"
+                local_path = _os.path.join(download_dir, f"aigc_video_{i}{ext}")
+                try:
+                    urllib.request.urlretrieve(url, local_path)
+                    size = _os.path.getsize(local_path)
+                    print(f"   [{i}] ✅ {local_path} ({size / 1024 / 1024:.2f} MB)")
+                except Exception as e:
+                    print(f"   [{i}] ❌ 下载失败: {e}")
 
         if args.verbose:
             print("\n完整响应：")
@@ -1355,6 +1372,8 @@ def main():
                              help="输出详细信息")
     other_group.add_argument("--dry-run", action="store_true",
                              help="仅打印请求参数，不实际调用 API")
+    other_group.add_argument("--download-dir", type=str, default=None,
+                             help="任务完成后自动下载生成视频到指定目录（默认：不下载；指定路径后自动下载）")
 
     args = parser.parse_args()
 

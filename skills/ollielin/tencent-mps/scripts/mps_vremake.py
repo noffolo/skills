@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-腾讯云 MPS 视频去重脚本
+腾讯云 MPS 视频二次创作脚本
 
 功能：
-  调用 MPS VideoRemake 能力，对视频进行去重处理，避免因重复内容被平台限流。
-  通过 ExtendedParameter 的 vremake 参数控制去重模式。
+  调用 MPS VideoRemake 能力，对视频进行二次创作处理（画中画/换脸/换人/背景扩展等）。
+  通过 ExtendedParameter 的 vremake 参数控制创作模式。
 
   API 文档：https://cloud.tencent.com/document/product/862/124394
-  接口：ProcessMedia → AiAnalysisTask.Definition=29（视频去重模板）
+  接口：ProcessMedia → AiAnalysisTask.Definition=29（视频二次创作模板）
 
-支持的去重模式（--mode）：
+支持的创作模式（--mode）：
   PicInPic         画中画：将视频以画中画形式嵌入新背景
   BackgroundExtend 视频扩展：扩展视频画面边界
   VerticalExtend   垂直填充：在视频上下方向添加填充内容
@@ -25,9 +25,9 @@
       --mode PicInPic \\
       --wait
 
-  # COS 对象输入 + 视频扩展
+  # COS输入（推荐）+ 视频扩展
   python scripts/mps_vremake.py \\
-      --cos-object input/video.mp4 \\
+      --cos-input-key /input/video.mp4 \\
       --mode BackgroundExtend \\
       --wait
 
@@ -82,7 +82,7 @@ import argparse
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _script_dir)
 try:
-    import load_env as _le
+    import mps_load_env as _le
     _le.load_env_files()
 except Exception:
     pass
@@ -96,6 +96,12 @@ except ImportError:
     sys.exit(1)
 
 try:
+    from mps_poll_task import auto_upload_local_file, poll_video_task, auto_download_outputs
+    _POLL_AVAILABLE = True
+except ImportError:
+    _POLL_AVAILABLE = False
+
+try:
     from qcloud_cos import CosConfig, CosS3Client
     _COS_SDK_AVAILABLE = True
 except ImportError:
@@ -104,8 +110,8 @@ except ImportError:
 # ─────────────────────────────────────────────
 # 配置
 # ─────────────────────────────────────────────
-DEFAULT_REGION     = "ap-guangzhou"
-DEFAULT_DEFINITION = 29    # 视频去重模板 ID（官方）
+DEFAULT_REGION     = os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
+DEFAULT_DEFINITION = 29    # 视频二次创作模板 ID（官方）
 POLL_INTERVAL      = 15    # 轮询间隔（秒）
 POLL_TIMEOUT       = 3600  # 最大等待时间（秒）
 
@@ -241,7 +247,7 @@ def build_extended_parameter(args) -> str:
 # ─────────────────────────────────────────────
 
 def create_task(client, args) -> str:
-    """提交视频去重任务，返回 TaskId。"""
+    """提交视频二次创作任务，返回 TaskId。"""
     req = models.ProcessMediaRequest()
 
     # 输入源
@@ -265,21 +271,8 @@ def create_task(client, args) -> str:
         # 确保 key 以 / 开头
         cos_input.Object = args.cos_input_key if args.cos_input_key.startswith("/") else f"/{args.cos_input_key}"
         input_info.CosInputInfo = cos_input
-    elif args.cos_object:
-        # 旧版 COS 对象路径（已废弃，保持兼容）
-        input_info.Type = "COS"
-        cos_input  = models.CosInputInfo()
-        bucket     = os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
-        cos_region = os.environ.get("TENCENTCLOUD_COS_REGION", args.region)
-        if not bucket:
-            print("错误: 使用 COS 输入时请设置 TENCENTCLOUD_COS_BUCKET", file=sys.stderr)
-            sys.exit(1)
-        cos_input.Bucket = bucket
-        cos_input.Region = cos_region
-        cos_input.Object = args.cos_object
-        input_info.CosInputInfo = cos_input
     else:
-        print("错误: 请提供 --url、--cos-input-key 或 --cos-object", file=sys.stderr)
+        print("错误: 请提供 --url 或 --cos-input-key", file=sys.stderr)
         sys.exit(1)
 
     req.InputInfo = input_info
@@ -417,15 +410,15 @@ def print_result(result: dict, as_json: bool = False, output_dir: str = None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="腾讯云 MPS 视频去重（VideoRemake）",
+        description="腾讯云 MPS 视频二次创作（VideoRemake）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
 
     # 输入源（三选一）
     input_grp = parser.add_mutually_exclusive_group()
+    input_grp.add_argument("--local-file", help="本地文件路径，自动上传到 COS 后处理（需配置 TENCENTCLOUD_COS_BUCKET）")
     input_grp.add_argument("--url",        help="视频 URL（HTTP/HTTPS）")
-    input_grp.add_argument("--cos-object", help="COS 对象路径（如 input/video.mp4，已废弃，请使用 --cos-input-key）")
     input_grp.add_argument("--task-id",    help="直接查询已有任务结果（跳过创建）")
     
     # COS 路径输入（新版，与 mps_transcode.py 等保持一致）
@@ -461,7 +454,7 @@ def main():
 
     # 任务参数
     parser.add_argument("--definition", type=int, default=DEFAULT_DEFINITION,
-                        help=f"AiAnalysisTask 模板 ID（默认 {DEFAULT_DEFINITION}，即视频去重模板）")
+                        help=f"AiAnalysisTask 模板 ID（默认 {DEFAULT_DEFINITION}，即视频二次创作模板）")
     parser.add_argument("--region", default=DEFAULT_REGION,
                         help=f"地域（默认 {DEFAULT_REGION}）")
 
@@ -470,8 +463,37 @@ def main():
     parser.add_argument("--json",       action="store_true", dest="json_output", help="JSON 格式输出")
     parser.add_argument("--output-dir", help="将结果 JSON 保存到指定目录")
     parser.add_argument("--dry-run",    action="store_true", help="只打印参数预览（含 ExtendedParameter），不调用 API")
+    parser.add_argument("--download-dir", type=str, default=None,
+                        help="任务完成后自动下载结果到指定目录（默认：不下载；指定路径后自动下载）")
 
     args = parser.parse_args()
+    # --url 本地路径自动转换为本地上传模式
+    if getattr(args, 'url', None) and not getattr(args, 'local_file', None):
+        _val = args.url
+        if not _val.startswith('http://') and not _val.startswith('https://'):
+            print(f"提示：'{_val}' 未指定来源，默认按本地文件处理", file=sys.stderr)
+            args.local_file = _val
+            args.url = None
+
+    # --local-file 与 COS 输入参数互斥
+    if getattr(args, 'local_file', None):
+        cos_conflicts = [x for x in [
+            getattr(args, 'cos_input_bucket', None), getattr(args, 'cos_input_key', None)
+        ] if x]
+        if cos_conflicts:
+            parser.error("--local-file 不能与 --cos-input-bucket / --cos-input-key 同时使用")
+
+    # 本地文件自动上传
+    if getattr(args, 'local_file', None):
+        if not _POLL_AVAILABLE:
+            print("错误：--local-file 需要 mps_poll_task 模块支持", file=sys.stderr)
+            sys.exit(1)
+        upload_result = auto_upload_local_file(args.local_file)
+        if not upload_result:
+            sys.exit(1)
+        args.cos_input_key = upload_result["Key"]
+        args.cos_input_bucket = upload_result["Bucket"]
+        args.cos_input_region = upload_result["Region"]
 
     # ── dry-run ──
     if args.dry_run:
@@ -486,13 +508,13 @@ def main():
                 region = args.cos_input_region or os.environ.get("TENCENTCLOUD_COS_REGION", args.region)
                 src = f"COS={bucket}/{region}{args.cos_input_key}"
             else:
-                src = f"COS={args.cos_object} (旧版)"
+                src = "未指定"
             print(f"  输入       = {src}")
             print(f"  mode       = {args.mode}（{MODE_CN.get(args.mode, '?')}）")
             print(f"  definition = {args.definition}")
             print(f"  region     = {args.region}")
             print(f"  wait       = {args.wait}")
-        if args.mode and (args.url or args.cos_object or args.cos_input_key):
+        if args.mode and (args.url or args.cos_input_key):
             ep = build_extended_parameter(args)
             print(f"\n  ExtendedParameter =\n  {ep}")
         return
@@ -508,24 +530,22 @@ def main():
         return
 
     # ── 提交任务 ──
-    has_input = bool(args.url) or bool(args.cos_object) or bool(args.cos_input_key)
+    has_input = bool(args.url) or bool(args.cos_input_key)
     if not has_input:
-        parser.error("请提供 --url、--cos-input-key、--cos-object 或 --task-id 之一")
+        parser.error("请提供 --url、--cos-input-key 或 --task-id 之一")
     if not args.mode:
         parser.error("提交任务时 --mode 为必填参数")
 
     # 确定输入源显示
     if args.url:
         src = f"URL={args.url}"
-    elif args.cos_input_key:
+    else:
         bucket = args.cos_input_bucket or os.environ.get("TENCENTCLOUD_COS_BUCKET", "")
         region = args.cos_input_region or os.environ.get("TENCENTCLOUD_COS_REGION", args.region)
         src = f"COS={bucket}/{region}{args.cos_input_key}"
-    else:
-        src = f"COS={args.cos_object} (旧版)"
     
     mode_cn = MODE_CN.get(args.mode, args.mode)
-    print(f"🚀 提交视频去重任务")
+    print(f"🚀 提交视频二次创作任务")
     print(f"   输入  : {src}")
     print(f"   模式  : {args.mode}（{mode_cn}）")
     print(f"   模板  : {args.definition}  地域: {args.region}")
@@ -552,6 +572,36 @@ def main():
         detail = poll_task(client, task_id)
         result = extract_result(detail)
         print_result(result, as_json=args.json_output, output_dir=args.output_dir)
+
+        # --download-dir：下载输出视频到本地目录
+        download_dir = getattr(args, 'download_dir', None)
+        if download_dir and result.get("remake") and not result.get("error"):
+            remake = result["remake"]
+            out_path = remake.get("output_object_path", "")
+            out_storage = remake.get("output_storage") or {}
+            out_type = out_storage.get("Type", "")
+            if out_type == "COS" and out_path:
+                cos_out = out_storage.get("CosOutputStorage", {}) or {}
+                bucket = cos_out.get("Bucket", "")
+                region = cos_out.get("Region", "")
+                if bucket and region:
+                    import os as _os
+                    _os.makedirs(download_dir, exist_ok=True)
+                    filename = _os.path.basename(out_path.lstrip("/"))
+                    local_path = _os.path.join(download_dir, filename)
+                    print(f"\n📥 下载输出视频到: {local_path}")
+                    try:
+                        from qcloud_cos import CosConfig as _CosConfig, CosS3Client as _CosClient
+                        import os as _os2
+                        _sid = _os2.environ.get("TENCENTCLOUD_SECRET_ID", "")
+                        _skey = _os2.environ.get("TENCENTCLOUD_SECRET_KEY", "")
+                        _cfg = _CosConfig(Region=region, SecretId=_sid, SecretKey=_skey)
+                        _client = _CosClient(_cfg)
+                        _client.download_file(Bucket=bucket, Key=out_path.lstrip("/"), DestFilePath=local_path)
+                        size = _os.path.getsize(local_path)
+                        print(f"   ✅ 下载成功 ({size / 1024 / 1024:.2f} MB): {local_path}")
+                    except Exception as e:
+                        print(f"   ❌ 下载失败: {e}")
         if result.get("status") == "FAIL":
             sys.exit(1)
     except TencentCloudSDKException as e:

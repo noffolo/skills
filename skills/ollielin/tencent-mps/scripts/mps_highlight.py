@@ -28,10 +28,10 @@ COS 存储约定：
 
 用法：
   # 足球赛事精彩集锦
-  python mps_highlight.py --cos-object /input/football.mp4 --scene football
+  python mps_highlight.py --cos-input-key /input/football.mp4 --scene football
 
   # 短剧影视高光
-  python mps_highlight.py --cos-object /input/drama.mp4 --scene short-drama
+  python mps_highlight.py --cos-input-key /input/drama.mp4 --scene short-drama
 
   # VLOG 全景相机
   python mps_highlight.py --url https://example.com/vlog.mp4 --scene vlog-panorama
@@ -41,10 +41,10 @@ COS 存储约定：
       --scene custom --prompt "滑雪场景，输出人物高光" --scenario "滑雪"
 
   # 篮球赛事
-  python mps_highlight.py --cos-object /input/basketball.mp4 --scene basketball
+  python mps_highlight.py --cos-input-key /input/basketball.mp4 --scene basketball
 
   # Dry Run（仅打印请求参数，不实际调用 API）
-  python mps_highlight.py --cos-object /input/game.mp4 --scene football --dry-run
+  python mps_highlight.py --cos-input-key /input/game.mp4 --scene football --dry-run
 
 环境变量：
   TENCENTCLOUD_SECRET_ID   - 腾讯云 SecretId
@@ -62,12 +62,12 @@ import sys
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _SCRIPT_DIR)
 try:
-    from load_env import ensure_env_loaded as _ensure_env_loaded
+    from mps_load_env import ensure_env_loaded as _ensure_env_loaded
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
 try:
-    from poll_task import poll_video_task
+    from mps_poll_task import poll_video_task, auto_upload_local_file, auto_download_outputs
     _POLL_AVAILABLE = True
 except ImportError:
     _POLL_AVAILABLE = False
@@ -202,7 +202,7 @@ def get_credentials():
             secret_key = os.environ.get("TENCENTCLOUD_SECRET_KEY", "")
         if not secret_id or not secret_key:
             if _LOAD_ENV_AVAILABLE:
-                from load_env import _print_setup_hint, _TARGET_VARS
+                from mps_load_env import _print_setup_hint, _TARGET_VARS
                 _print_setup_hint(["TENCENTCLOUD_SECRET_ID", "TENCENTCLOUD_SECRET_KEY"])
             else:
                 print(
@@ -231,10 +231,9 @@ def build_input_info(args):
     """
     构建输入信息。
 
-    支持三种输入方式：
+    支持两种输入方式：
     1. URL 输入：--url
-    2. COS 对象路径（兼容旧版）：--cos-object（配合 --cos-bucket/--cos-region 或环境变量）
-    3. COS 完整路径（新版，推荐）：--cos-input-bucket + --cos-input-region + --cos-input-key
+    2. COS 路径输入：--cos-input-key（配合 --cos-input-bucket/--cos-input-region 或环境变量）
     """
     # 方式1: URL 输入
     if args.url:
@@ -250,46 +249,25 @@ def build_input_info(args):
     cos_input_region = getattr(args, 'cos_input_region', None)
     cos_input_key = getattr(args, 'cos_input_key', None)
 
-    if cos_input_bucket and cos_input_region and cos_input_key:
-        return {
-            "Type": "COS",
-            "CosInputInfo": {
-                "Bucket": cos_input_bucket,
-                "Region": cos_input_region,
-                "Object": cos_input_key
-            }
-        }
-
-    # 方式2: COS 对象路径（兼容旧版）
-    if args.cos_object:
-        bucket = args.cos_bucket or get_cos_bucket()
-        region = args.cos_region or get_cos_region()
-
+    if cos_input_key:
+        bucket = cos_input_bucket or get_cos_bucket()
+        region = cos_input_region or get_cos_region()
         if not bucket:
-            print("错误：COS 输入需要指定 Bucket。请通过 --cos-bucket 参数或 TENCENTCLOUD_COS_BUCKET 环境变量设置",
+            print("错误：COS 输入需要指定 Bucket。请通过 --cos-input-bucket 参数或 TENCENTCLOUD_COS_BUCKET 环境变量设置",
                   file=sys.stderr)
             sys.exit(1)
-        if not region:
-            print("错误：COS 输入需要指定 Region。请通过 --cos-region 参数或 TENCENTCLOUD_COS_REGION 环境变量设置",
-                  file=sys.stderr)
-            sys.exit(1)
-
-        if not args.cos_object.startswith("/input/"):
-            print(f"提示：输入文件对象路径建议以 /input/ 开头（当前为 {args.cos_object}）", file=sys.stderr)
-
         return {
             "Type": "COS",
             "CosInputInfo": {
                 "Bucket": bucket,
                 "Region": region,
-                "Object": args.cos_object
+                "Object": cos_input_key if cos_input_key.startswith("/") else f"/{cos_input_key}"
             }
         }
 
     print("错误：请指定输入源：\n"
           "  - URL: --url <URL>\n"
-          "  - COS路径(推荐): --cos-input-bucket <bucket> --cos-input-region <region> --cos-input-key <key>\n"
-          "  - COS对象(旧版): --cos-object <key>（配合环境变量或--cos-bucket/--cos-region）",
+          "  - COS路径: --cos-input-key <key>（配合环境变量或 --cos-input-bucket/--cos-input-region）",
           file=sys.stderr)
     sys.exit(1)
 
@@ -443,7 +421,7 @@ def get_scene_summary(args):
 
 def process_media(args):
     """发起精彩集锦任务。"""
-    region = args.region or "ap-guangzhou"
+    region = args.region or os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
 
     # 1. 获取凭证和客户端
     cred = get_credentials()
@@ -497,8 +475,12 @@ def process_media(args):
         if not no_wait and _POLL_AVAILABLE and task_id != 'N/A':
             poll_interval = getattr(args, 'poll_interval', 10)
             max_wait = getattr(args, 'max_wait', 1800)  # 精彩集锦耗时较长，默认30分钟
-            poll_video_task(task_id, region=region, interval=poll_interval,
+            task_result = poll_video_task(task_id, region=region, interval=poll_interval,
                             max_wait=max_wait, verbose=args.verbose)
+            # 自动下载结果
+            download_dir = getattr(args, 'download_dir', None)
+            if download_dir and task_result and _POLL_AVAILABLE:
+                auto_download_outputs(task_result, download_dir=download_dir)
         else:
             print(f"\n提示：任务在后台处理中，可使用以下命令查询进度：")
             print(f"  python scripts/mps_get_video_task.py --task-id {task_id}")
@@ -517,10 +499,10 @@ def main():
         epilog="""
 示例：
   # 足球赛事精彩集锦
-  python mps_highlight.py --cos-object /input/football.mp4 --scene football
+  python mps_highlight.py --cos-input-key /input/football.mp4 --scene football
 
   # 短剧影视高光
-  python mps_highlight.py --cos-object /input/drama.mp4 --scene short-drama
+  python mps_highlight.py --cos-input-key /input/drama.mp4 --scene short-drama
 
   # VLOG 全景相机
   python mps_highlight.py --url https://example.com/vlog.mp4 --scene vlog-panorama
@@ -530,13 +512,13 @@ def main():
       --scene custom --prompt "滑雪场景，输出人物高光" --scenario "滑雪"
 
   # 篮球赛事
-  python mps_highlight.py --cos-object /input/basketball.mp4 --scene basketball
+  python mps_highlight.py --cos-input-key /input/basketball.mp4 --scene basketball
 
   # 指定输出片段数（仅 vlog/vlog-panorama/custom 支持）
-  python mps_highlight.py --cos-object /input/vlog.mp4 --scene vlog --top-clip 10
+  python mps_highlight.py --cos-input-key /input/vlog.mp4 --scene vlog --top-clip 10
 
   # Dry Run（仅打印请求参数）
-  python mps_highlight.py --cos-object /input/game.mp4 --scene football --dry-run
+  python mps_highlight.py --cos-input-key /input/game.mp4 --scene football --dry-run
 
 预设场景（--scene）：
   vlog          VLOG、风景、无人机视频（大模型版）
@@ -561,7 +543,9 @@ def main():
     )
 
     # ---- 输入源 ----
-    input_group = parser.add_argument_group("输入源（三选一）")
+    input_group = parser.add_argument_group("输入源（四选一）")
+    input_group.add_argument("--local-file", type=str,
+                             help="本地文件路径，自动上传到 COS 后处理（需配置 TENCENTCLOUD_COS_BUCKET）")
     input_group.add_argument("--url", type=str, help="视频 URL 地址")
 
     # COS 路径输入（新版，推荐）
@@ -572,13 +556,6 @@ def main():
     input_group.add_argument("--cos-input-key", type=str,
                              help="输入 COS 对象 Key（如 /input/video.mp4）")
 
-    # COS 对象输入（旧版，兼容）
-    input_group.add_argument("--cos-bucket", type=str,
-                             help="COS Bucket 名称（默认取 TENCENTCLOUD_COS_BUCKET 环境变量）")
-    input_group.add_argument("--cos-region", type=str,
-                             help="COS Bucket 区域（默认取 TENCENTCLOUD_COS_REGION 环境变量）")
-    input_group.add_argument("--cos-object", type=str,
-                             help="COS 对象路径，建议以 /input/ 开头")
 
     # ---- 场景选择（必填）----
     scene_group = parser.add_argument_group("场景选择（必填）")
@@ -632,19 +609,47 @@ def main():
                              help="最长等待时间（秒），默认 1800（30分钟）")
     other_group.add_argument("--verbose", "-v", action="store_true", help="输出详细信息")
     other_group.add_argument("--dry-run", action="store_true", help="仅打印参数，不调用 API")
+    other_group.add_argument("--download-dir", type=str, default=None,
+                             help="任务完成后自动下载结果到指定目录（默认：不下载；指定路径后自动下载）")
 
     args = parser.parse_args()
+    # --url 本地路径自动转换为本地上传模式
+    if getattr(args, 'url', None) and not getattr(args, 'local_file', None):
+        _val = args.url
+        if not _val.startswith('http://') and not _val.startswith('https://'):
+            print(f"提示：'{_val}' 未指定来源，默认按本地文件处理", file=sys.stderr)
+            args.local_file = _val
+            args.url = None
+
+    # --local-file 与 COS 输入参数互斥
+    if getattr(args, 'local_file', None):
+        cos_conflicts = [x for x in [
+            getattr(args, 'cos_input_bucket', None), getattr(args, 'cos_input_key', None)
+        ] if x]
+        if cos_conflicts:
+            parser.error("--local-file 不能与 --cos-input-bucket / --cos-input-key 同时使用")
+
+    # 本地文件自动上传
+    if getattr(args, 'local_file', None):
+        if not _POLL_AVAILABLE:
+            print("错误：--local-file 需要 mps_poll_task 模块支持", file=sys.stderr)
+            sys.exit(1)
+        upload_result = auto_upload_local_file(args.local_file)
+        if not upload_result:
+            sys.exit(1)
+        args.cos_input_key = upload_result["Key"]
+        args.cos_input_bucket = upload_result["Bucket"]
+        args.cos_input_region = upload_result["Region"]
 
     # ---- 校验 ----
     # 1. 输入源
     has_url = bool(args.url)
-    has_cos_object = bool(args.cos_object)
     has_cos_path = bool(getattr(args, 'cos_input_bucket', None) and
                         getattr(args, 'cos_input_region', None) and
                         getattr(args, 'cos_input_key', None))
 
-    if not has_url and not has_cos_object and not has_cos_path:
-        parser.error("请指定输入源：--url、--cos-object 或 --cos-input-bucket/--cos-input-region/--cos-input-key")
+    if not has_url and not has_cos_path:
+        parser.error("请指定输入源：--url 或 --cos-input-key（配合 --cos-input-bucket/--cos-input-region 或环境变量）")
 
     # 2. --top-clip 仅允许在特定场景下使用
     if args.top_clip is not None:
@@ -676,9 +681,9 @@ def main():
     elif getattr(args, 'cos_input_bucket', None):
         print(f"输入: COS - {args.cos_input_bucket}:{args.cos_input_key} (region: {args.cos_input_region})")
     else:
-        bucket_display = args.cos_bucket or cos_bucket_env or "未设置"
-        region_display = args.cos_region or cos_region_env
-        print(f"输入: COS - {bucket_display}:{args.cos_object} (region: {region_display})")
+        bucket_display = getattr(args, 'cos_input_bucket', None) or cos_bucket_env or "未设置"
+        region_display = getattr(args, 'cos_input_region', None) or cos_region_env
+        print(f"输入: COS - {bucket_display}:{args.cos_input_key} (region: {region_display})")
 
     # 输出信息
     out_bucket = args.output_bucket or cos_bucket_env or "未设置"

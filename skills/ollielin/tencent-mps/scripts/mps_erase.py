@@ -41,7 +41,7 @@ COS 存储约定：
   - 输入文件默认路径：{TENCENTCLOUD_COS_BUCKET}/input/   （即 COS Object 以 /input/ 开头）
   - 输出文件默认路径：{TENCENTCLOUD_COS_BUCKET}/output/erase/  （即输出目录为 /output/erase/）
 
-  当使用 COS 输入时，如果未显式指定 --cos-bucket，自动使用 TENCENTCLOUD_COS_BUCKET。
+  当使用 COS 输入时，bucket/region 自动从 TENCENTCLOUD_COS_BUCKET/TENCENTCLOUD_COS_REGION 环境变量读取。
   当未显式指定 --output-bucket，自动使用 TENCENTCLOUD_COS_BUCKET 作为输出 Bucket。
   当未显式指定 --output-dir，自动使用 /output/erase/ 作为输出目录。
 
@@ -52,8 +52,8 @@ COS 存储约定：
   # COS路径输入（推荐，本地上传后使用）
   python mps_erase.py --cos-input-bucket mybucket-125xxx --cos-input-region ap-guangzhou --cos-input-key /input/video/test.mp4
 
-  # COS对象输入（自动使用 TENCENTCLOUD_COS_BUCKET）
-  python mps_erase.py --cos-object /input/video/test.mp4
+  # COS输入（bucket 和 region 自动从环境变量获取）
+  python mps_erase.py --cos-input-key /input/video/test.mp4
 
   # 去字幕并提取OCR字幕（模板 102）
   python mps_erase.py --url https://example.com/video.mp4 --template 102
@@ -130,12 +130,12 @@ import sys
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _SCRIPT_DIR)
 try:
-    from load_env import ensure_env_loaded as _ensure_env_loaded
+    from mps_load_env import ensure_env_loaded as _ensure_env_loaded
     _LOAD_ENV_AVAILABLE = True
 except ImportError:
     _LOAD_ENV_AVAILABLE = False
 try:
-    from poll_task import poll_video_task
+    from mps_poll_task import poll_video_task, auto_upload_local_file, auto_download_outputs
     _POLL_AVAILABLE = True
 except ImportError:
     _POLL_AVAILABLE = False
@@ -229,7 +229,7 @@ def get_credentials():
             secret_key = os.environ.get("TENCENTCLOUD_SECRET_KEY", "")
         if not secret_id or not secret_key:
             if _LOAD_ENV_AVAILABLE:
-                from load_env import _print_setup_hint, _TARGET_VARS
+                from mps_load_env import _print_setup_hint, _TARGET_VARS
                 _print_setup_hint(["TENCENTCLOUD_SECRET_ID", "TENCENTCLOUD_SECRET_KEY"])
             else:
                 print(
@@ -258,10 +258,9 @@ def build_input_info(args):
     """
     构建输入信息。
 
-    支持三种输入方式：
+    支持两种输入方式：
     1. URL 输入：--url
-    2. COS 对象路径（兼容旧版）：--cos-object（配合 --cos-bucket/--cos-region 或环境变量）
-    3. COS 完整路径（新版，推荐）：--cos-input-bucket + --cos-input-region + --cos-input-key
+    2. COS 路径输入：--cos-input-key（配合 --cos-input-bucket/--cos-input-region 或环境变量）
     """
     # 方式1: URL 输入
     if args.url:
@@ -277,46 +276,25 @@ def build_input_info(args):
     cos_input_region = getattr(args, 'cos_input_region', None)
     cos_input_key = getattr(args, 'cos_input_key', None)
     
-    if cos_input_bucket and cos_input_region and cos_input_key:
-        return {
-            "Type": "COS",
-            "CosInputInfo": {
-                "Bucket": cos_input_bucket,
-                "Region": cos_input_region,
-                "Object": cos_input_key
-            }
-        }
-    
-    # 方式2: COS 对象路径（兼容旧版）
-    if args.cos_object:
-        bucket = args.cos_bucket or get_cos_bucket()
-        region = args.cos_region or get_cos_region()
-
+    if cos_input_key:
+        bucket = cos_input_bucket or get_cos_bucket()
+        region = cos_input_region or get_cos_region()
         if not bucket:
-            print("错误：COS 输入需要指定 Bucket。请通过 --cos-bucket 参数或 TENCENTCLOUD_COS_BUCKET 环境变量设置",
+            print("错误：COS 输入需要指定 Bucket。请通过 --cos-input-bucket 参数或 TENCENTCLOUD_COS_BUCKET 环境变量设置",
                   file=sys.stderr)
             sys.exit(1)
-        if not region:
-            print("错误：COS 输入需要指定 Region。请通过 --cos-region 参数或 TENCENTCLOUD_COS_REGION 环境变量设置",
-                  file=sys.stderr)
-            sys.exit(1)
-
-        if not args.cos_object.startswith("/input/"):
-            print(f"提示：输入文件对象路径建议以 /input/ 开头（当前为 {args.cos_object}）", file=sys.stderr)
-
         return {
             "Type": "COS",
             "CosInputInfo": {
                 "Bucket": bucket,
                 "Region": region,
-                "Object": args.cos_object
+                "Object": cos_input_key if cos_input_key.startswith("/") else f"/{cos_input_key}"
             }
         }
     
     print("错误：请指定输入源：\n"
           "  - URL: --url <URL>\n"
-          "  - COS路径(推荐): --cos-input-bucket <bucket> --cos-input-region <region> --cos-input-key <key>\n"
-          "  - COS对象(旧版): --cos-object <key>（配合环境变量或--cos-bucket/--cos-region）",
+          "  - COS路径: --cos-input-key <key>（配合环境变量或 --cos-input-bucket/--cos-input-region）",
           file=sys.stderr)
     sys.exit(1)
 
@@ -641,13 +619,48 @@ def get_erase_summary(args):
     return items
 
 
+def query_task_result(args, client):
+    """查询已有任务结果。"""
+    task_id = args.task_id
+    print(f"查询任务结果: {task_id}")
+    
+    try:
+        req = models.DescribeTaskDetailRequest()
+        req.TaskId = task_id
+        resp = client.DescribeTaskDetail(req)
+        result = json.loads(resp.to_json_string())
+        
+        status = result.get('Status', 'UNKNOWN')
+        print(f"任务状态: {status}")
+        
+        if args.verbose:
+            print("\n完整响应：")
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        
+        # 自动下载结果
+        if status == 'FINISH' and _POLL_AVAILABLE:
+            download_dir = getattr(args, 'download_dir', None)
+            if download_dir:
+                auto_download_outputs(result, download_dir=download_dir)
+        
+        return result
+        
+    except TencentCloudSDKException as e:
+        print(f"❌ 查询失败: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def process_media(args):
-    """发起去字幕任务。"""
-    region = args.region or "ap-guangzhou"
+    """发起去字幕任务或查询已有任务。"""
+    region = args.region or os.environ.get("TENCENTCLOUD_API_REGION", "ap-guangzhou")
 
     # 1. 获取凭证和客户端
     cred = get_credentials()
     client = create_mps_client(cred, region)
+
+    # 如果指定了 --task-id，查询已有任务结果
+    if getattr(args, 'task_id', None):
+        return query_task_result(args, client)
 
     # 2. 构建请求
     params = build_request_params(args)
@@ -704,8 +717,12 @@ def process_media(args):
         if not no_wait and _POLL_AVAILABLE and task_id != 'N/A':
             poll_interval = getattr(args, 'poll_interval', 10)
             max_wait = getattr(args, 'max_wait', 1800)
-            poll_video_task(task_id, region=region, interval=poll_interval,
+            task_result = poll_video_task(task_id, region=region, interval=poll_interval,
                             max_wait=max_wait, verbose=args.verbose)
+            # 自动下载结果
+            download_dir = getattr(args, 'download_dir', None)
+            if download_dir and task_result and _POLL_AVAILABLE:
+                auto_download_outputs(task_result, download_dir=download_dir)
         else:
             print(f"\n提示：任务在后台处理中，可使用以下命令查询进度：")
             print(f"  python scripts/mps_get_video_task.py --task-id {task_id}")
@@ -727,7 +744,7 @@ def main():
   python mps_erase.py --url https://example.com/video.mp4
 
   # COS输入（bucket 和 region 自动从环境变量获取）
-  python mps_erase.py --cos-object /input/video/test.mp4
+  python mps_erase.py --cos-input-key /input/video/test.mp4
 
   # 去字幕并提取OCR字幕（模板 102）
   python mps_erase.py --url https://example.com/video.mp4 --template 102
@@ -823,7 +840,9 @@ def main():
     )
 
     # ---- 输入源 ----
-    input_group = parser.add_argument_group("输入源（三选一）")
+    input_group = parser.add_argument_group("输入源（四选一）")
+    input_group.add_argument("--local-file", type=str,
+                             help="本地文件路径，自动上传到 COS 后处理（需配置 TENCENTCLOUD_COS_BUCKET）")
     input_group.add_argument("--url", type=str, help="视频 URL 地址")
     
     # COS 路径输入（新版，推荐）- 用于本地上传后直接使用COS路径
@@ -834,13 +853,6 @@ def main():
     input_group.add_argument("--cos-input-key", type=str,
                              help="输入 COS 对象 Key（如 /input/video.mp4）")
     
-    # COS 对象输入（旧版，兼容）
-    input_group.add_argument("--cos-bucket", type=str,
-                             help="COS Bucket 名称（默认取 TENCENTCLOUD_COS_BUCKET 环境变量）")
-    input_group.add_argument("--cos-region", type=str,
-                             help="COS Bucket 区域（默认取 TENCENTCLOUD_COS_REGION 环境变量，默认 ap-guangzhou）")
-    input_group.add_argument("--cos-object", type=str,
-                             help="COS 对象路径，建议以 /input/ 开头，如 /input/video/test.mp4")
 
     # ---- 输出 ----
     output_group = parser.add_argument_group("输出配置（可选，默认输出到 TENCENTCLOUD_COS_BUCKET/output/erase/）")
@@ -917,6 +929,7 @@ def main():
     other_group = parser.add_argument_group("其他配置")
     other_group.add_argument("--region", type=str, help="MPS 服务区域（默认 ap-guangzhou）")
     other_group.add_argument("--notify-url", type=str, help="任务完成回调 URL")
+    other_group.add_argument("--task-id", type=str, help="查询已有任务结果（跳过创建）")
     other_group.add_argument("--no-wait", action="store_true",
                              help="仅提交任务，不等待结果（默认会自动轮询直到完成）")
     other_group.add_argument("--poll-interval", type=int, default=10,
@@ -925,19 +938,45 @@ def main():
                              help="最长等待时间（秒），默认 1800（30分钟）")
     other_group.add_argument("--verbose", "-v", action="store_true", help="输出详细信息")
     other_group.add_argument("--dry-run", action="store_true", help="仅打印请求参数，不实际调用 API")
+    other_group.add_argument("--download-dir", type=str, default=None,
+                             help="任务完成后自动下载结果到指定目录（默认：不下载；指定路径后自动下载）")
 
     args = parser.parse_args()
+    # --url 本地路径自动转换为本地上传模式
+    if getattr(args, 'url', None) and not getattr(args, 'local_file', None):
+        _val = args.url
+        if not _val.startswith('http://') and not _val.startswith('https://'):
+            print(f"提示：'{_val}' 未指定来源，默认按本地文件处理", file=sys.stderr)
+            args.local_file = _val
+            args.url = None
 
-    # ---- 校验 ----
-    # 1. 输入源
-    has_url = bool(args.url)
-    has_cos_object = bool(args.cos_object)
-    has_cos_path = bool(getattr(args, 'cos_input_bucket', None) and 
-                        getattr(args, 'cos_input_region', None) and 
-                        getattr(args, 'cos_input_key', None))
-    
-    if not has_url and not has_cos_object and not has_cos_path:
-        parser.error("请指定输入源：--url、--cos-object 或 --cos-input-bucket/--cos-input-region/--cos-input-key")
+    # --local-file 与 COS 输入参数互斥
+    if getattr(args, 'local_file', None):
+        cos_conflicts = [x for x in [
+            getattr(args, 'cos_input_bucket', None), getattr(args, 'cos_input_key', None)
+        ] if x]
+        if cos_conflicts:
+            parser.error("--local-file 不能与 --cos-input-bucket / --cos-input-key 同时使用")
+
+    # 本地文件自动上传
+    if getattr(args, 'local_file', None):
+        if not _POLL_AVAILABLE:
+            print("错误：--local-file 需要 mps_poll_task 模块支持", file=sys.stderr)
+            sys.exit(1)
+        upload_result = auto_upload_local_file(args.local_file)
+        if not upload_result:
+            sys.exit(1)
+        args.cos_input_key = upload_result["Key"]
+        args.cos_input_bucket = upload_result["Bucket"]
+        args.cos_input_region = upload_result["Region"]
+
+    # 1. 输入源检查（--task-id 查询模式不需要输入源）
+    if not getattr(args, 'task_id', None):
+        has_url = bool(args.url)
+        has_cos_path = bool(getattr(args, 'cos_input_key', None))
+        
+        if not has_url and not has_cos_path:
+            parser.error("请指定输入源：--url 或 --cos-input-key（配合 --cos-input-bucket/--cos-input-region 或环境变量）")
 
     # 2. 非去字幕模板不支持擦除方式/模型/区域/OCR等参数
     if not is_subtitle_template(args):
@@ -1002,9 +1041,9 @@ def main():
         # 新版COS路径输入
         print(f"输入: COS - {args.cos_input_bucket}:{args.cos_input_key} (region: {args.cos_input_region})")
     else:
-        bucket_display = args.cos_bucket or cos_bucket_env or "未设置"
-        region_display = args.cos_region or cos_region_env
-        print(f"输入: COS - {bucket_display}:{args.cos_object} (region: {region_display})")
+        bucket_display = getattr(args, 'cos_input_bucket', None) or cos_bucket_env or "未设置"
+        region_display = getattr(args, 'cos_input_region', None) or cos_region_env
+        print(f"输入: COS - {bucket_display}:{args.cos_input_key} (region: {region_display})")
 
     # 输出信息
     out_bucket = args.output_bucket or cos_bucket_env or "未设置"
