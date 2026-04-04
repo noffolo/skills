@@ -3,11 +3,16 @@
   "slug": "anygen-deep-research",
   "displayName": "Deep Research",
   "latest": {
-    "version": "1.3.4",
-    "publishedAt": 1773249936530,
-    "commit": "https://github.com/openclaw/skills/commit/5fd9194bb357669ea5e65fa18fc891539545dbc7"
+    "version": "3.0.0",
+    "publishedAt": 1774865666646,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.3.4",
+      "publishedAt": 1773249936530,
+      "commit": "https://github.com/openclaw/skills/commit/5fd9194bb357669ea5e65fa18fc891539545dbc7"
+    },
     {
       "version": "1.3.2",
       "publishedAt": 1773167989459,
