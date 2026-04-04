@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-DeepSafe Scan — Preflight security scanner for OpenClaw.
+DeepSafe Scan — Preflight security scanner for AI coding agents.
 
-Scans deployment config (posture), installed skills, and memory/session data
-for secrets, PII, prompt injection, and dangerous patterns.
+Scans deployment config (posture), installed skills/MCP servers, and
+memory/session data for secrets, PII, prompt injection, and dangerous
+patterns. Supports LLM-enhanced semantic analysis and 4 model safety probes.
+
+Works with: OpenClaw, Claude Code, Cursor, Codex, and any AI agent.
 """
 
 import argparse
 import hashlib
 import json
-import math
 import os
 import re
 import subprocess
@@ -18,14 +20,10 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
-from urllib.error import HTTPError, URLError
-from urllib import request as urllib_request
 
-try:
-    from html_template import generate_full_html_report as _full_html_report
-    _HAS_FULL_HTML = True
-except ImportError:
-    _HAS_FULL_HTML = False
+# LLM client lives in the same scripts/ directory
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from llm_client import LLMClient, resolve_llm_client
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Data types
@@ -64,31 +62,12 @@ def compute_module_score(findings: list[Finding]) -> int:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# LLM helper — calls OpenClaw Gateway via urllib (zero external deps)
+# LLM helper — thin wrapper around LLMClient for use inside this module
 # ──────────────────────────────────────────────────────────────────────────────
 
-def llm_chat(gateway_url: str, gateway_token: str, messages: list[dict],
+def llm_chat(client: LLMClient, messages: list[dict],
              max_tokens: int = 2048, temperature: float = 0.2) -> str:
-    url = gateway_url.rstrip("/") + "/v1/chat/completions"
-    payload = json.dumps({
-        "model": "openclaw:main",
-        "messages": messages,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-    }).encode("utf-8")
-    req = urllib_request.Request(url, data=payload, method="POST")
-    req.add_header("Content-Type", "application/json")
-    req.add_header("Authorization", f"Bearer {gateway_token}")
-    try:
-        with urllib_request.urlopen(req, timeout=120) as resp:
-            body = json.loads(resp.read().decode("utf-8"))
-    except (HTTPError, URLError, Exception):
-        return ""
-    choices = body.get("choices", [])
-    if choices and isinstance(choices[0], dict):
-        msg = choices[0].get("message", {})
-        return (msg.get("content") or "").strip()
-    return ""
+    return client.chat(messages, max_tokens=max_tokens, temperature=temperature)
 
 
 def llm_parse_findings(response: str, category: str, source: str = "") -> list[Finding]:
@@ -164,14 +143,15 @@ def save_cache(cache_dir: str, fingerprint: str, report: dict, report_path: str)
 # Model probe runner — orchestrates 4 Python probes
 # ──────────────────────────────────────────────────────────────────────────────
 
-def run_model_probes(gateway_url: str, gateway_token: str, profile: str = "quick",
+def run_model_probes(client: Optional[LLMClient], profile: str = "quick",
                      run_dir: str = "/tmp/deepsafe-model", debug: bool = False) -> ModuleResult:
-    if not gateway_url or not gateway_token:
-        return ModuleResult(name="model", status="error", score=0,
-                            error="Model scan requires gateway URL and token.")
+    if client is None:
+        return ModuleResult(name="model", status="skipped", score=0,
+                            error="Model probes skipped — no API credentials found.\n"
+                                  "Set ANTHROPIC_API_KEY or OPENAI_API_KEY to enable.")
 
     os.makedirs(run_dir, exist_ok=True)
-    api_base = gateway_url.rstrip("/") + "/v1"
+    api_base = client.api_base
     mode_flag = "full" if profile == "full" else "fast"
     probes_dir = SCRIPT_DIR / "probes"
 
@@ -202,8 +182,8 @@ def run_model_probes(gateway_url: str, gateway_token: str, profile: str = "quick
         cmd = [
             sys.executable, str(script),
             "--api-base", api_base,
-            "--api-key", gateway_token,
-            "--model", "openclaw:main",
+            "--api-key", client.api_key,
+            "--model", client.model,
             "--mode", mode_flag,
             "--output", output_path,
         ]
@@ -340,15 +320,54 @@ def _interpret_probe(name: str, metrics: dict) -> tuple:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Posture scan — openclaw.json config checks
+# Posture scan — openclaw.json config checks + generic env/config checks
 # ──────────────────────────────────────────────────────────────────────────────
 
-def run_posture_scan(openclaw_root: str) -> ModuleResult:
+_ENV_SECRET_RE = re.compile(
+    r"(OPENAI_API_KEY|ANTHROPIC_API_KEY|GITHUB_TOKEN|AWS_SECRET|SLACK_TOKEN|"
+    r"DATABASE_URL|REDIS_URL|SECRET_KEY|JWT_SECRET)\s*=\s*[\"']?[A-Za-z0-9+/._\-]{16,}",
+    re.I,
+)
+
+def _run_generic_posture_scan(scan_dir: str) -> ModuleResult:
+    """Posture checks for non-OpenClaw environments (checks .env, config files)."""
+    findings: list[Finding] = []
+    check_files = [".env", ".env.local", ".env.production", ".env.development",
+                   "config.json", "config.yaml", "config.yml", "settings.json"]
+    for fname in check_files:
+        fpath = os.path.join(scan_dir, fname)
+        if not os.path.isfile(fpath):
+            continue
+        try:
+            with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read(64 * 1024)
+        except OSError:
+            continue
+        if _ENV_SECRET_RE.search(content):
+            ctx = get_match_line(content, _ENV_SECRET_RE)
+            findings.append(Finding(
+                id=f"posture-env-secret-{fname}", category="posture", severity="HIGH",
+                title=f"API key / secret found in {fname}",
+                warning="Secrets in config files can leak through version control or backups.",
+                evidence=ctx or f"Secret pattern matched in {fname}",
+                remediation="Move secrets to environment variables and add the file to .gitignore.",
+                source=fpath,
+            ))
+    score = compute_module_score(findings)
+    return ModuleResult(name="posture", status="warn" if findings else "ok",
+                        score=score, findings=findings)
+
+
+def run_posture_scan(openclaw_root: str, scan_dir: str = "") -> ModuleResult:
     config_path = os.path.join(openclaw_root, "openclaw.json")
     findings: list[Finding] = []
 
     if not os.path.isfile(config_path):
-        return ModuleResult(name="posture", status="error", score=0, error=f"Config not found: {config_path}")
+        if not scan_dir:
+            return ModuleResult(name="posture", status="skipped", score=100,
+                                error="No openclaw.json found — posture checks skipped.")
+        # Non-OpenClaw environment: only check generic config files in scan_dir
+        return _run_generic_posture_scan(scan_dir)
 
     try:
         with open(config_path, "r", encoding="utf-8") as f:
@@ -593,7 +612,7 @@ def get_match_line(content: str, pattern: re.Pattern, max_len: int = 120) -> str
     return ""
 
 
-def run_skill_scan(openclaw_root: str) -> ModuleResult:
+def run_skill_scan(openclaw_root: str, scan_dir: str = "") -> ModuleResult:
     workspace = os.path.join(openclaw_root, "workspace")
     scan_roots = [
         os.path.join(workspace, "skills"),
@@ -602,6 +621,8 @@ def run_skill_scan(openclaw_root: str) -> ModuleResult:
         os.path.join(openclaw_root, "mcp-servers"),
         os.path.join(workspace, "mcp"),
     ]
+    if scan_dir and os.path.isdir(scan_dir):
+        scan_roots.append(scan_dir)
 
     files: list[str] = []
     for root in scan_roots:
@@ -701,7 +722,7 @@ def run_skill_scan(openclaw_root: str) -> ModuleResult:
     return ModuleResult(name="skill", status="warn" if findings else "ok", score=score, findings=findings)
 
 
-def run_skill_scan_llm(openclaw_root: str, gateway_url: str, gateway_token: str,
+def run_skill_scan_llm(openclaw_root: str, client: LLMClient,
                        debug: bool = False) -> list[Finding]:
     """LLM-enhanced semantic analysis of skill files. Returns additional findings."""
     workspace = os.path.join(openclaw_root, "workspace")
@@ -745,13 +766,151 @@ def run_skill_scan_llm(openclaw_root: str, gateway_url: str, gateway_token: str,
             f'Return a JSON array of findings. Each finding: {{"id": "llm-skill-...", "severity": "CRITICAL|HIGH|MEDIUM|LOW", "title": "...", "warning": "...", "evidence": "...", "remediation": "..."}}\n'
             f"Return [] if no issues found. Only return the JSON array, no other text."
         )
-        resp = llm_chat(gateway_url, gateway_token,
-                        [{"role": "user", "content": prompt}], max_tokens=2048)
+        resp = llm_chat(client, [{"role": "user", "content": prompt}], max_tokens=2048)
         if resp:
             parsed = llm_parse_findings(resp, "skill-llm", source=f"SKILL.md ({skill_name})")
             llm_findings.extend(parsed)
 
     return llm_findings
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Hooks scan — AI coding assistant config file injection detection
+# ──────────────────────────────────────────────────────────────────────────────
+
+HOOKS_PATTERNS: list[tuple[str, re.Pattern, str, str, str]] = [
+    ("hooks-reverse-shell", re.compile(
+        r"\b(nc|ncat|netcat)\s+-[elp]|\bbash\s+-i\s*[>&/]|/dev/tcp/|mkfifo\s+/tmp|\bsocat\b.*\bexec\b",
+        re.I),
+     "CRITICAL", "Reverse shell pattern in AI agent config",
+     "A reverse shell gives an attacker interactive remote access to your machine."),
+    ("hooks-curl-pipe-sh", re.compile(
+        r"curl\s+[^\n|]*\|\s*(bash|sh|zsh|python3?|node|perl)|wget\s+[^\n|]*\|\s*(bash|sh|zsh|python3?|node)",
+        re.I),
+     "CRITICAL", "Remote code execution via curl|sh in config",
+     "Downloads and executes arbitrary remote code without inspection."),
+    ("hooks-exfil-env", re.compile(
+        r"(curl|wget|fetch|nc|socat)\s+[^\n]*\$\{?\w*(KEY|TOKEN|SECRET|PASS(?:WORD)?|CRED)",
+        re.I),
+     "CRITICAL", "Credential exfiltration in agent config",
+     "Sends environment secrets (API keys, tokens) to a remote server."),
+    ("hooks-base64-exec", re.compile(
+        r"(echo|printf)\s+[^\n]*\|\s*base64\s+-d\s*\|\s*(bash|sh|eval)|base64\s+-d\s*<<<",
+        re.I),
+     "HIGH", "Base64-encoded command execution",
+     "Obfuscated command execution hides malicious intent from reviewers."),
+    ("hooks-chmod-tmp", re.compile(
+        r"chmod\s+\+?[0-7]*x\s+/tmp/|chmod\s+777\s+/tmp/",
+        re.I),
+     "HIGH", "Making temp files executable",
+     "Creating executable files in /tmp is a common attack staging technique."),
+    ("hooks-persistence", re.compile(
+        r"crontab\s+-[el]|/etc/cron\.|systemctl\s+enable\s|launchctl\s+load\s|~/.bashrc|~/.zshrc|~/.profile",
+        re.I),
+     "HIGH", "Persistence mechanism in agent config",
+     "Installs a backdoor that survives reboots or new terminal sessions."),
+    ("hooks-env-dump", re.compile(
+        r"\benv\b\s*[|>]|\bprintenv\b\s*[|>]|\bset\b\s*[|>]|export\s+-p\s*[|>]",
+        re.I),
+     "HIGH", "Environment variable dump",
+     "Captures all environment variables including API keys and tokens."),
+    ("hooks-ssh-key-access", re.compile(
+        r"cat\s+~?/?\.ssh/|cp\s+.*\.ssh/|scp\s+.*\.ssh/|tar\s+.*\.ssh",
+        re.I),
+     "CRITICAL", "SSH key access in agent config",
+     "Reads or copies SSH private keys, enabling lateral movement."),
+    ("hooks-dns-exfil", re.compile(
+        r"dig\s+[^\n]*\$\{?|nslookup\s+[^\n]*\$\{?|host\s+[^\n]*\$\{?",
+        re.I),
+     "HIGH", "DNS exfiltration pattern",
+     "Leaks data through DNS queries to bypass network firewalls."),
+    ("hooks-pre-auth-exec", re.compile(
+        r"preSessionCommand|pre_session_command|PreSession|beforeSession|before_session",
+        re.I),
+     "MEDIUM", "Pre-authentication command execution hook",
+     "Runs commands before user authorization/trust confirmation — classic 'race the trust' vector."),
+    ("hooks-rm-rf", re.compile(
+        r"rm\s+-[a-z]*r[a-z]*f|rm\s+-[a-z]*f[a-z]*r",
+        re.I),
+     "HIGH", "Recursive force-delete in agent config",
+     "Can wipe entire directories without confirmation."),
+    ("hooks-process-injection", re.compile(
+        r"ptrace\s*\(|/proc/[0-9]+/mem|LD_PRELOAD\s*=",
+        re.I),
+     "CRITICAL", "Process injection technique",
+     "Injects code into running processes, bypassing security controls."),
+]
+
+# Config files checked by the hooks scanner
+HOOKS_CONFIG_PATHS = {
+    ".claude/settings.json",
+    ".claude/settings.local.json",
+    ".cursorrules",
+    ".cursor/rules.md",
+    ".vscode/tasks.json",
+    ".vscode/settings.json",
+    ".github/copilot-instructions.md",
+    "CLAUDE.md",
+    "AGENTS.md",
+}
+
+
+_HOOKS_BASENAMES = {os.path.basename(p) for p in HOOKS_CONFIG_PATHS}
+_HOOKS_RELPATHS = set(HOOKS_CONFIG_PATHS)
+
+
+def run_hooks_scan(scan_dir: str) -> ModuleResult:
+    """Scan AI coding assistant config files for hooks injection patterns.
+
+    Recursively walks scan_dir so nested configs (e.g. inside cloned rule
+    collections) are also caught.
+    """
+    if not scan_dir or not os.path.isdir(scan_dir):
+        return ModuleResult(name="hooks", status="skipped", score=100,
+                            error="No scan directory provided — hooks scan skipped.")
+
+    findings: list[Finding] = []
+    scanned: set[str] = set()
+
+    for dirpath, dirs, filenames in os.walk(scan_dir):
+        dirs[:] = [d for d in dirs
+                   if d in (".claude", ".vscode", ".github", ".cursor")
+                   or not d.startswith(".")]
+        for fname in filenames:
+            fpath = os.path.join(dirpath, fname)
+            rel = os.path.relpath(fpath, scan_dir)
+            if rel not in _HOOKS_RELPATHS and fname not in _HOOKS_BASENAMES:
+                continue
+            if fpath in scanned:
+                continue
+            scanned.add(fpath)
+            try:
+                with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read(MAX_FILE_BYTES)
+            except (PermissionError, OSError):
+                continue
+
+            for pat_id, pattern, severity, title, warning in HOOKS_PATTERNS:
+                if not pattern.search(content):
+                    continue
+                ctx = get_match_line(content, pattern)
+                findings.append(Finding(
+                    id=f"hooks-{pat_id}-{rel.replace(os.sep, '-')}",
+                    category="hooks", severity=severity,
+                    title=f"{title} ({rel})",
+                    warning=warning,
+                    evidence=ctx or "Pattern matched in file.",
+                    remediation=(
+                        "Remove or carefully review the flagged command. "
+                        "Never trust pre-configured hooks from unknown sources. "
+                        "Consider running 'deepsafe-scan' before cloning new projects."
+                    ),
+                    source=fpath,
+                ))
+
+    score = compute_module_score(findings)
+    return ModuleResult(name="hooks", status="warn" if findings else "ok",
+                        score=score, findings=findings)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1196,49 +1355,70 @@ document.querySelectorAll('[id]').forEach(function(el){{observer.observe(el)}});
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="DeepSafe Scan — OpenClaw Security Scanner")
+    parser = argparse.ArgumentParser(
+        description="DeepSafe Scan — Preflight security scanner for AI coding agents",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Works with: OpenClaw, Claude Code, Cursor, Codex, and any AI agent.\n\n"
+            "LLM features auto-detect credentials in this order:\n"
+            "  1. --api-base / --api-key flags\n"
+            "  2. OpenClaw Gateway (reads ~/.openclaw/openclaw.json)\n"
+            "  3. ANTHROPIC_API_KEY environment variable\n"
+            "  4. OPENAI_API_KEY environment variable\n"
+            "  5. No API → static analysis only (posture, skill, memory, hooks)\n"
+        ),
+    )
     parser.add_argument("--openclaw-root", default=os.path.expanduser("~/.openclaw"),
-                        help="Path to OpenClaw root directory (default: ~/.openclaw)")
+                        help="OpenClaw root directory (default: ~/.openclaw)")
+    parser.add_argument("--scan-dir", default="",
+                        help="Extra directory to scan for skills/code (default: auto-detect)")
     parser.add_argument("--modules", default="posture,skill,memory,model",
-                        help="Comma-separated modules to scan (default: posture,skill,memory,model)")
+                        help="Comma-separated modules: posture,skill,memory,hooks,model")
     parser.add_argument("--format", choices=["json", "markdown", "html"], default="json",
                         help="Output format (default: json)")
     parser.add_argument("--output", help="Write report to file instead of stdout")
     parser.add_argument("--profile", choices=["quick", "standard", "full"], default="quick",
-                        help="Scan profile: quick (fast, small dataset), standard, full (comprehensive)")
-    parser.add_argument("--gateway-url", default="",
-                        help="OpenClaw Gateway URL for LLM features and model probes")
-    parser.add_argument("--gateway-token", default="",
-                        help="Gateway auth token (also reads $OPENCLAW_GATEWAY_TOKEN)")
+                        help="Probe profile: quick / standard / full")
+    parser.add_argument("--api-base", default="",
+                        help="OpenAI-compatible API base URL for LLM features")
+    parser.add_argument("--api-key", default="",
+                        help="API key (also reads ANTHROPIC_API_KEY / OPENAI_API_KEY)")
+    parser.add_argument("--provider", choices=["auto", "openai", "anthropic"], default="auto",
+                        help="API provider (default: auto-detect)")
+    parser.add_argument("--model", default="",
+                        help="Model name override (default: auto-detect per provider)")
+    # Legacy aliases for backward compatibility with OpenClaw plugin
+    parser.add_argument("--gateway-url", default="", help=argparse.SUPPRESS)
+    parser.add_argument("--gateway-token", default="", help=argparse.SUPPRESS)
     parser.add_argument("--ttl-days", type=int, default=7,
                         help="Cache TTL in days (default: 7, 0 = no cache)")
     parser.add_argument("--no-cache", action="store_true", help="Skip cache entirely")
     parser.add_argument("--no-llm", action="store_true", help="Skip LLM-enhanced analysis")
-    parser.add_argument("--open", action="store_true", help="Auto-open HTML report in browser after generation")
-    parser.add_argument("--debug", action="store_true", help="Print debug info to stderr")
+    parser.add_argument("--debug", action="store_true", help="Verbose debug output to stderr")
     args = parser.parse_args()
 
+    # Resolve OpenClaw root (optional — used for posture scan and gateway auto-detect)
     openclaw_root = os.path.expanduser(args.openclaw_root)
-    if not os.path.isdir(openclaw_root):
-        print(json.dumps({"error": f"OpenClaw root not found: {openclaw_root}"}), file=sys.stderr)
-        sys.exit(1)
 
-    gateway_url = args.gateway_url or os.environ.get("OPENCLAW_GATEWAY_URL", "")
-    gateway_token = args.gateway_token or os.environ.get("OPENCLAW_GATEWAY_TOKEN", "")
+    # Resolve LLM client — supports explicit flags, legacy gateway flags, and env vars
+    explicit_base = args.api_base or args.gateway_url or os.environ.get("OPENCLAW_GATEWAY_URL", "")
+    explicit_key = args.api_key or args.gateway_token or os.environ.get("OPENCLAW_GATEWAY_TOKEN", "")
+    explicit_provider = "" if args.provider == "auto" else args.provider
 
-    # Auto-resolve from openclaw.json if not explicitly provided
-    if not gateway_url or not gateway_token:
-        auto_url, auto_token = resolve_gateway_from_config(openclaw_root, args.debug)
-        if not gateway_url:
-            gateway_url = auto_url
-        if not gateway_token:
-            gateway_token = auto_token
-
-    # Auto-enable chatCompletions endpoint if gateway is available
-    if gateway_url and gateway_token:
-        ensure_chat_completions_enabled(openclaw_root, args.debug)
+    if args.no_llm:
+        llm_client = None
+    else:
+        llm_client = resolve_llm_client(
+            explicit_base=explicit_base,
+            explicit_key=explicit_key,
+            explicit_model=args.model,
+            explicit_provider=explicit_provider,
+            openclaw_root=openclaw_root,
+            debug=args.debug,
+        )
 
     requested = set(m.strip() for m in args.modules.split(","))
+    scan_dir = os.path.expanduser(args.scan_dir) if args.scan_dir else ""
 
     # Cache check
     cache_dir = os.path.join(openclaw_root, ".deepsafe-cache")
@@ -1246,53 +1426,28 @@ def main():
     if not args.no_cache and args.ttl_days > 0:
         fp_data = {
             "openclaw_root": openclaw_root,
+            "scan_dir": scan_dir,
             "modules": sorted(requested),
             "profile": args.profile,
-            "has_llm": bool(gateway_url and not args.no_llm),
+            "has_llm": bool(llm_client and not args.no_llm),
         }
         cache_fp = compute_fingerprint(fp_data)
         cached = try_load_cache(cache_dir, cache_fp, args.ttl_days)
         if cached:
             if args.debug:
                 print(f"[cache] HIT — using cached report (fingerprint={cache_fp[:12]}...)", file=sys.stderr)
-            cache_fmt = "html" if args.open else args.format
-            if cache_fmt == "json":
+            if args.format == "json":
                 output = json.dumps(cached, indent=2, ensure_ascii=False)
-            elif cache_fmt == "markdown":
+            elif args.format == "markdown":
                 output = generate_markdown_report(
                     _rebuild_modules(cached), cached.get("total_score", 0))
             else:
-                _cached_mods = _rebuild_modules(cached)
-                _cached_score = cached.get("total_score", 0)
-                _cached_at = cached.get("generated_at", "")
-                if _HAS_FULL_HTML:
-                    output = _full_html_report(_cached_mods, _cached_score, _cached_at)
-                else:
-                    output = generate_html_report(_cached_mods, _cached_score)
-
-            cache_output_path = args.output
-            if args.open and not cache_output_path:
-                report_dir = os.path.join(openclaw_root, "deepsafe", "reports")
-                os.makedirs(report_dir, exist_ok=True)
-                ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-                cache_output_path = os.path.join(report_dir, f"deepsafe-{ts}.html")
-
-            if cache_output_path:
-                os.makedirs(os.path.dirname(os.path.abspath(cache_output_path)), exist_ok=True)
-                with open(cache_output_path, "w", encoding="utf-8") as f:
+                output = generate_html_report(
+                    _rebuild_modules(cached), cached.get("total_score", 0))
+            if args.output:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(output)
-                print(f"Report saved to {cache_output_path} (cached)", file=sys.stderr)
-                if args.open and cache_fmt == "html":
-                    import platform
-                    try:
-                        system = platform.system()
-                        if system == "Darwin":
-                            subprocess.Popen(["open", cache_output_path])
-                        elif system == "Linux":
-                            subprocess.Popen(["xdg-open", cache_output_path])
-                        print(f"Opened report in browser.", file=sys.stderr)
-                    except Exception:
-                        print(f"Could not auto-open. Open manually: {cache_output_path}", file=sys.stderr)
+                print(f"Report saved to {args.output} (cached)", file=sys.stderr)
             else:
                 print(output)
             return
@@ -1302,16 +1457,16 @@ def main():
     if "posture" in requested:
         if args.debug:
             print("[scan] running posture module...", file=sys.stderr)
-        modules.append(run_posture_scan(openclaw_root))
+        modules.append(run_posture_scan(openclaw_root, scan_dir))
 
     if "skill" in requested:
         if args.debug:
             print("[scan] running skill module...", file=sys.stderr)
-        skill_result = run_skill_scan(openclaw_root)
-        if gateway_url and gateway_token and not args.no_llm:
+        skill_result = run_skill_scan(openclaw_root, scan_dir)
+        if llm_client and not args.no_llm:
             if args.debug:
                 print("[scan] running LLM-enhanced skill analysis...", file=sys.stderr)
-            llm_findings = run_skill_scan_llm(openclaw_root, gateway_url, gateway_token, args.debug)
+            llm_findings = run_skill_scan_llm(openclaw_root, llm_client, args.debug)
             skill_result.findings.extend(llm_findings)
             skill_result.score = compute_module_score(skill_result.findings)
             if skill_result.findings:
@@ -1323,65 +1478,44 @@ def main():
             print("[scan] running memory module...", file=sys.stderr)
         modules.append(run_memory_scan(openclaw_root))
 
+    if "hooks" in requested:
+        if args.debug:
+            print("[scan] running hooks module...", file=sys.stderr)
+        hooks_dir = scan_dir or os.getcwd()
+        modules.append(run_hooks_scan(hooks_dir))
+
     if "model" in requested:
         if args.debug:
             print("[scan] running model probes...", file=sys.stderr)
-        model_result = run_model_probes(gateway_url, gateway_token, args.profile,
-                                        debug=args.debug)
+        model_result = run_model_probes(llm_client, args.profile, debug=args.debug)
         modules.append(model_result)
 
-    all_module_names = {"posture", "skill", "memory", "model"}
-    contributions = [max(1, min(25, m.score // 4)) for m in modules]
-    active_names = {m.name for m in modules}
-    for missing in all_module_names - active_names:
-        contributions.append(25)
-    total_score = sum(contributions)
+    # Score: each requested module contributes equally up to 100 total
+    active_modules = [m for m in modules if m.status != "skipped"]
+    n = max(len(active_modules), 1)
+    per_module_max = 100 // n
+    contributions = [max(1, min(per_module_max, m.score * per_module_max // 100))
+                     for m in active_modules]
+    total_score = min(100, sum(contributions))
 
-    # Auto-set format to html and generate output path when --open is used
-    fmt = args.format
-    output_path = args.output
-    if args.open:
-        fmt = "html"
-        if not output_path:
-            report_dir = os.path.join(openclaw_root, "deepsafe", "reports")
-            os.makedirs(report_dir, exist_ok=True)
-            ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-            output_path = os.path.join(report_dir, f"deepsafe-{ts}.html")
-
-    if fmt == "markdown":
+    if args.format == "markdown":
         output = generate_markdown_report(modules, total_score)
-    elif fmt == "html":
-        if _HAS_FULL_HTML:
-            output = _full_html_report(modules, total_score)
-        else:
-            output = generate_html_report(modules, total_score)
+    elif args.format == "html":
+        output = generate_html_report(modules, total_score)
     else:
         report = generate_json_report(modules, total_score)
         output = json.dumps(report, indent=2, ensure_ascii=False)
 
-    if output_path:
-        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
+    if args.output:
+        os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
+        with open(args.output, "w", encoding="utf-8") as f:
             f.write(output)
-        print(f"Report saved to {output_path}", file=sys.stderr)
+        print(f"Report saved to {args.output}", file=sys.stderr)
 
+        # Save cache
         if cache_fp and not args.no_cache:
             json_report = generate_json_report(modules, total_score)
-            save_cache(cache_dir, cache_fp, json_report, os.path.abspath(output_path))
-
-        if args.open and fmt == "html":
-            import platform
-            system = platform.system()
-            try:
-                if system == "Darwin":
-                    subprocess.Popen(["open", output_path])
-                elif system == "Linux":
-                    subprocess.Popen(["xdg-open", output_path])
-                elif system == "Windows":
-                    os.startfile(output_path)
-                print(f"Opened report in browser.", file=sys.stderr)
-            except Exception:
-                print(f"Could not auto-open. Open manually: {output_path}", file=sys.stderr)
+            save_cache(cache_dir, cache_fp, json_report, os.path.abspath(args.output))
     else:
         print(output)
         if cache_fp and not args.no_cache:
@@ -1392,83 +1526,6 @@ def main():
                 json.dump(json_report, f, indent=2, ensure_ascii=False)
             save_cache(cache_dir, cache_fp, json_report, default_path)
 
-
-def resolve_gateway_from_config(openclaw_root: str, debug: bool = False) -> tuple[str, str]:
-    """Auto-detect gateway URL and token from openclaw.json, matching plugin behavior."""
-    config_path = os.path.join(openclaw_root, "openclaw.json")
-    if not os.path.isfile(config_path):
-        if debug:
-            print(f"[gateway] openclaw.json not found at {config_path}", file=sys.stderr)
-        return "", ""
-
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-    except (json.JSONDecodeError, OSError):
-        return "", ""
-
-    gateway = cfg.get("gateway", {})
-    port = gateway.get("port")
-    if not port:
-        if debug:
-            print("[gateway] no gateway.port in config", file=sys.stderr)
-        return "", ""
-
-    auth = gateway.get("auth", {})
-    auth_mode = str(auth.get("mode", "")).lower()
-    token = ""
-    if auth_mode == "token":
-        token = str(auth.get("token", ""))
-    elif auth_mode == "password":
-        token = str(auth.get("password", ""))
-
-    if not token:
-        token = os.environ.get("OPENCLAW_GATEWAY_TOKEN", "")
-
-    if not token:
-        if debug:
-            print("[gateway] no auth token found in config or env", file=sys.stderr)
-        return "", ""
-
-    gateway_url = f"http://localhost:{port}"
-    if debug:
-        print(f"[gateway] resolved from config: {gateway_url} (auth={auth_mode})", file=sys.stderr)
-    return gateway_url, token
-
-
-def ensure_chat_completions_enabled(openclaw_root: str, debug: bool = False):
-    """Auto-enable gateway chatCompletions endpoint if not already, matching plugin behavior."""
-    config_path = os.path.join(openclaw_root, "openclaw.json")
-    if not os.path.isfile(config_path):
-        return
-
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            raw = f.read()
-        cfg = json.loads(raw)
-    except (json.JSONDecodeError, OSError):
-        return
-
-    gw = cfg.get("gateway", {})
-    http = gw.get("http", {})
-    endpoints = http.get("endpoints", {})
-    cc = endpoints.get("chatCompletions", {})
-
-    if cc.get("enabled") is True:
-        return
-
-    cfg.setdefault("gateway", {}).setdefault("http", {}).setdefault(
-        "endpoints", {}).setdefault("chatCompletions", {})["enabled"] = True
-
-    try:
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2, ensure_ascii=False)
-        if debug:
-            print("[gateway] auto-enabled gateway.http.endpoints.chatCompletions", file=sys.stderr)
-        print("  [deepsafe] Enabled OpenClaw Gateway Chat Completions endpoint.", file=sys.stderr)
-        print("             Please restart your OpenClaw Gateway for this to take effect.", file=sys.stderr)
-    except OSError:
-        pass
 
 
 def _rebuild_modules(cached_report: dict) -> list[ModuleResult]:

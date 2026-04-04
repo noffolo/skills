@@ -1,6 +1,6 @@
 ---
 name: deepsafe-scan
-description: "Preflight security scanner for OpenClaw — scans deployment config, skills, memory/sessions for secrets, PII, prompt injection, and dangerous patterns. Runs 4 model behavior probes (persuasion, sandbagging, deception, hallucination). Supports LLM-enhanced semantic analysis. Use when a user asks for a security audit, health check, or wants to scan their OpenClaw setup for vulnerabilities."
+description: "Preflight security scanner for AI coding agents — scans deployment config, skills/MCP servers, memory/sessions, and AI agent config files (hooks injection) for secrets, PII, prompt injection, and dangerous patterns. Runs 4 model behavior probes (persuasion, sandbagging, deception, hallucination). Supports LLM-enhanced semantic analysis. Works with OpenClaw, Claude Code, Cursor, and Codex. Use when a user asks for a security audit, health check, or wants to scan their AI agent setup for vulnerabilities."
 metadata:
   {
     "openclaw":
@@ -22,75 +22,65 @@ metadata:
 allowed-tools: Bash(python3:*), Bash(cat:*), Read
 ---
 
-# DeepSafe Scan — OpenClaw Security Scanner
+# DeepSafe Scan — Preflight Security Scanner for AI Coding Agents
 
-Full-featured preflight security scanner across **4 dimensions**:
-**Posture** (deployment config), **Skill** (installed skills & MCP), **Memory** (sessions & stored data), **Model** (behavioral safety probes).
+Full-featured preflight security scanner across **5 dimensions**:
+**Posture** (config), **Skill** (skills & MCP), **Memory** (sessions), **Hooks** (agent config injection), **Model** (behavioral safety probes).
 
-Optionally uses **LLM-enhanced semantic analysis** for deeper skill code inspection.
+Works with **OpenClaw, Claude Code, Cursor, and Codex**. LLM features auto-detect credentials — no manual configuration needed.
 
 ## When to Use
 
-- User asks to "scan", "audit", "check security", or "health check" their OpenClaw setup
-- User installs a new skill and wants to verify it's safe
+- User asks to "scan", "audit", "check security", or "health check" their AI setup
+- User installs a new skill, MCP server, or clones a project with agent configs
 - User wants to know if any secrets or PII are leaked in session history
-- User asks about the security posture of their deployment
+- User asks about hooks injection risks (Claude Code settings.json, .cursorrules, etc.)
 - User wants to probe model behavior for manipulation, deception, or hallucination risks
 
 ## How to Run
 
-**IMPORTANT: Always use `--open` flag by default.** This generates an HTML report and auto-opens it in the user's browser — this is the expected default experience.
-
-### Default scan (recommended — always use this unless user asks otherwise)
+### Quick static scan (no API key needed)
 
 ```bash
-python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --open
+python3 {baseDir}/scripts/scan.py --modules posture,skill,memory,hooks --scan-dir . --no-llm --format markdown
 ```
 
-This auto-reads gateway config from `openclaw.json`, runs all 4 modules, generates a full HTML report, saves it to `~/.openclaw/deepsafe/reports/`, and opens it in the browser. No extra flags needed.
-
-### Scan specific modules only
+### Full scan (auto-detects API credentials)
 
 ```bash
-python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --modules posture,skill --open
-python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --modules memory --open
-python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --modules model --open
+# OpenClaw (reads gateway config automatically)
+python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --format html --output /tmp/deepsafe-report.html
+
+# Claude Code / Cursor / Codex (uses ANTHROPIC_API_KEY or OPENAI_API_KEY)
+python3 {baseDir}/scripts/scan.py --modules posture,skill,memory,hooks,model --scan-dir . --format html --output /tmp/deepsafe-report.html
 ```
 
-### Static-only scan (no LLM, no model probes)
+### Targeted scans
 
 ```bash
-python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --modules posture,skill,memory --no-llm --open
+# Hooks injection only (fastest — checks .claude/settings.json, .cursorrules, etc.)
+python3 {baseDir}/scripts/scan.py --modules hooks --scan-dir . --no-llm --format markdown
+
+# Memory scan only (check for leaked secrets/PII)
+python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --modules memory --no-llm
+
+# Model behavior probes only
+python3 {baseDir}/scripts/scan.py --openclaw-root ~/.openclaw --modules model --profile quick
 ```
 
-### Profile options
+### Output options
 
 ```bash
-# Quick scan (small probe datasets, fast) — default
-python3 {baseDir}/scripts/scan.py --profile quick --open
-
-# Full comprehensive scan (complete datasets, thorough)
-python3 {baseDir}/scripts/scan.py --profile full --open
-```
-
-### Output to chat instead of browser (only if user specifically asks)
-
-```bash
-# JSON output to stdout
-python3 {baseDir}/scripts/scan.py --format json
-
-# Markdown summary to stdout
-python3 {baseDir}/scripts/scan.py --format markdown
+python3 {baseDir}/scripts/scan.py --format json      # machine-readable
+python3 {baseDir}/scripts/scan.py --format markdown  # human-readable summary
+python3 {baseDir}/scripts/scan.py --format html --output /tmp/report.html  # visual report
 ```
 
 ### Cache control
 
 ```bash
-# Reports are cached for 7 days by default (by fingerprint)
-python3 {baseDir}/scripts/scan.py --ttl-days 3 --open
-
-# Force fresh scan (skip cache)
-python3 {baseDir}/scripts/scan.py --no-cache --open
+python3 {baseDir}/scripts/scan.py --ttl-days 3   # cache for 3 days
+python3 {baseDir}/scripts/scan.py --no-cache      # always fresh scan
 ```
 
 ## Interpreting Results

