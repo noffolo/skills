@@ -7,17 +7,28 @@ Handles the HTTP 402 payment flow:
 - Solana partial signing
 - Permit2 (generic ERC-20 fallback)
 
+Private key security
+--------------------
+Private keys must NEVER appear on the command line (visible in ps/shell history)
+or in environment variables (visible to child processes).
+
+Store the key in a file with restricted permissions and pass the file path:
+
+  # Create key file (one-time setup)
+  echo "your_hex_private_key" > ~/.x402_key
+  chmod 600 ~/.x402_key
+
 Usage:
 
   # Full HTTP 402 flow (request + payment + retry)
   python3 pay.py pay \
     --url https://openapi.misttrack.io/x402/address_labels \
-    --private-key <hex> \
+    --key-file ~/.x402_key \
     --chain-id 8453
 
   # Sign EIP-3009 payment from a 402 response
   python3 pay.py sign-eip3009 \
-    --private-key <hex> \
+    --key-file ~/.x402_key \
     --token 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 \
     --chain-id 8453 \
     --to 0x209693Bc6afc0C5328bA36FaF03C514EF312287C \
@@ -28,8 +39,8 @@ Usage:
 
   # Partially sign a Solana x402 transaction
   python3 pay.py sign-solana \
-    --private-key <hex> \
-    --transaction <base64-encoded-tx>
+    --key-file ~/.x402_key \
+    --transaction-file tx.b64
 
 """
 
@@ -40,11 +51,62 @@ import os
 import sys
 import time
 
+try:
+    from eth_utils import keccak as _eth_keccak
+    from eth_account import Account as _Account
+    from eth_abi import encode as _eth_abi_encode
+except ImportError:
+    _eth_keccak = None
+    _Account = None
+    _eth_abi_encode = None
+
+try:
+    import base58 as _base58
+    from solders.keypair import Keypair as _Keypair
+    from solders.transaction import VersionedTransaction as _VersionedTransaction
+except ImportError:
+    _base58 = None
+    _Keypair = None
+    _VersionedTransaction = None
+
+import requests as _requests
+
+
+def _read_key_file(path: str) -> str:
+    """Read a hex private key from a file.
+
+    The file must contain exactly one line: the hex-encoded private key.
+    Surrounding whitespace is stripped. The file should have mode 600.
+    """
+    import stat
+    try:
+        st = os.stat(path)
+        # Warn if the file is readable by group or others
+        if st.st_mode & (stat.S_IRGRP | stat.S_IROTH):
+            print(
+                f"Warning: {path} is readable by group or others (mode "
+                f"{oct(st.st_mode & 0o777)}). Run: chmod 600 {path}",
+                file=sys.stderr,
+            )
+        with open(path, "r") as f:
+            key = f.read().strip()
+    except FileNotFoundError:
+        print(f"Error: key file not found: {path}", file=sys.stderr)
+        sys.exit(1)
+    except OSError as e:
+        print(f"Error reading key file {path}: {e}", file=sys.stderr)
+        sys.exit(1)
+    if not key:
+        print(f"Error: key file is empty: {path}", file=sys.stderr)
+        sys.exit(1)
+    return key
+
 
 def _keccak256(data: bytes) -> bytes:
     """Compute keccak256 hash."""
-    from eth_utils import keccak
-    return keccak(data)
+    if _eth_keccak is None:
+        raise ImportError("eth_utils is required: pip install eth_utils")
+    return _eth_keccak(data)
 
 
 def _eip712_hash(token_name, token_version, chain_id, token_address,
@@ -55,7 +117,8 @@ def _eip712_hash(token_name, token_version, chain_id, token_address,
     This is a manual implementation to match the verification standard used by x402 receivers.
     eth_account.encode_typed_data encodes bytes32 differently, producing hashes that receivers reject.
     """
-    from eth_abi import encode
+    if _eth_abi_encode is None:
+        raise ImportError("eth_abi is required: pip install eth_abi")
 
     # EIP712Domain type hash
     domain_type_hash = _keccak256(
@@ -65,8 +128,8 @@ def _eip712_hash(token_name, token_version, chain_id, token_address,
         domain_type_hash
         + _keccak256(token_name.encode())
         + _keccak256(token_version.encode())
-        + encode(["uint256"], [chain_id])
-        + encode(["address"], [token_address]))
+        + _eth_abi_encode(["uint256"], [chain_id])
+        + _eth_abi_encode(["address"], [token_address]))
 
     # TransferWithAuthorization type hash
     auth_type_hash = _keccak256(
@@ -75,11 +138,11 @@ def _eip712_hash(token_name, token_version, chain_id, token_address,
         b"bytes32 nonce)")
     struct_hash = _keccak256(
         auth_type_hash
-        + encode(["address"], [from_addr])
-        + encode(["address"], [to_addr])
-        + encode(["uint256"], [value])
-        + encode(["uint256"], [valid_after])
-        + encode(["uint256"], [valid_before])
+        + _eth_abi_encode(["address"], [from_addr])
+        + _eth_abi_encode(["address"], [to_addr])
+        + _eth_abi_encode(["uint256"], [value])
+        + _eth_abi_encode(["uint256"], [valid_after])
+        + _eth_abi_encode(["uint256"], [valid_before])
         + nonce_bytes)  # raw 32 bytes, not abi-encoded
 
     return _keccak256(b"\x19\x01" + domain_separator + struct_hash)
@@ -91,12 +154,13 @@ def sign_eip3009(private_key, token_address, chain_id, to, amount,
 
     Returns a dict with 'signature' and 'authorization' fields.
     """
-    from eth_account import Account
+    if _Account is None:
+        raise ImportError("eth_account is required: pip install eth_account")
 
     now = int(time.time())
     nonce_bytes = os.urandom(32)
     nonce_hex = "0x" + nonce_bytes.hex()
-    acct = Account.from_key(private_key)
+    acct = _Account.from_key(private_key)
 
     valid_after = now - 600  # allow 10-minute clock skew (consistent with official SDK)
     valid_before = now + max_timeout
@@ -105,7 +169,7 @@ def sign_eip3009(private_key, token_address, chain_id, to, amount,
         token_name, token_version, chain_id, token_address,
         acct.address, to, int(amount), valid_after, valid_before, nonce_bytes)
 
-    signed = acct.unsafe_sign_hash(msg_hash)
+    signed = acct.unsafe_sign_hash(msg_hash)  # type: ignore[union-attr]
 
     return {
         "signature": "0x" + signed.signature.hex(),
@@ -125,23 +189,22 @@ def sign_solana_partial(private_key_hex, serialized_tx_b64):
 
     Returns the base64-encoded transaction containing the partial signature.
     """
-    import base58
-    from solders.keypair import Keypair
-    from solders.transaction import VersionedTransaction
+    if _Keypair is None or _VersionedTransaction is None:
+        raise ImportError("solders is required: pip install solders")
 
-    kp = Keypair.from_seed(bytes.fromhex(private_key_hex))
+    kp = _Keypair.from_seed(bytes.fromhex(private_key_hex))
     tx_bytes = base64.b64decode(serialized_tx_b64)
-    vtx = VersionedTransaction.from_bytes(tx_bytes)
+    vtx = _VersionedTransaction.from_bytes(tx_bytes)
 
     # Find our signer index by matching public key
     our_index = -1
     for i, key in enumerate(vtx.message.account_keys):
-        if key == kp.pubkey():
+        if key == kp.pubkey():  # type: ignore[union-attr]
             our_index = i
             break
 
     if our_index == -1:
-        raise ValueError(f"Wallet {kp.pubkey()} is not among the transaction signers")
+        raise ValueError(f"Wallet {kp.pubkey()} is not among the transaction signers")  # type: ignore[union-attr]
 
     # Decode shortvec to find the signature array boundary
     original_bytes = bytes(vtx)
@@ -162,7 +225,7 @@ def sign_solana_partial(private_key_hex, serialized_tx_b64):
     msg_bytes = original_bytes[sig_array_start + sig_count * 64:]
 
     # Sign the message
-    sig = kp.sign_message(msg_bytes)
+    sig = kp.sign_message(msg_bytes)  # type: ignore[union-attr]
 
     # Write signature into the correct slot
     new_tx = bytearray(original_bytes)
@@ -253,7 +316,12 @@ def cmd_sign_eip3009(args):
 
 def cmd_sign_solana(args):
     """Partially sign a Solana x402 transaction."""
-    result = sign_solana_partial(args.private_key, args.transaction)
+    if args.transaction_file == "-":
+        serialized_tx_b64 = sys.stdin.read().strip()
+    else:
+        with open(args.transaction_file, "r") as f:
+            serialized_tx_b64 = f.read().strip()
+    result = sign_solana_partial(args.private_key, serialized_tx_b64)
     print(result)
 
 
@@ -264,8 +332,6 @@ def request_with_x402(url, private_key, chain_id=None, method="GET", data=None, 
     prompt for confirmation or auto-sign the payment, and retry the request
     with the PAYMENT-SIGNATURE header.
     """
-    import requests as req_lib
-
     if headers is None:
         headers = {}
     if data:
@@ -274,7 +340,7 @@ def request_with_x402(url, private_key, chain_id=None, method="GET", data=None, 
     body = data.encode() if isinstance(data, str) else data
 
     # Step 1: Initial request
-    resp = req_lib.request(method, url, headers=headers, data=body)
+    resp = _requests.request(method, url, headers=headers, data=body)
 
     if resp.status_code != 402:
         return resp
@@ -308,7 +374,7 @@ def request_with_x402(url, private_key, chain_id=None, method="GET", data=None, 
 
     # Step 4: Retry with payment
     headers["PAYMENT-SIGNATURE"] = payment_sig
-    resp2 = req_lib.request(method, url, headers=headers, data=body)
+    resp2 = _requests.request(method, url, headers=headers, data=body)
 
     return resp2
 
@@ -321,12 +387,21 @@ def cmd_pay(args):
             k, v = h.split(":", 1)
             headers[k.strip()] = v.strip()
 
+    # Read request body from file or stdin to avoid very long cmdline arguments
+    data = None
+    if args.data_file:
+        if args.data_file == "-":
+            data = sys.stdin.read()
+        else:
+            with open(args.data_file, "r") as f:
+                data = f.read()
+
     resp2 = request_with_x402(
         url=args.url,
         private_key=args.private_key,
         chain_id=args.chain_id,
         method=args.method.upper(),
-        data=args.data,
+        data=data,
         headers=headers,
         auto_pay=args.auto
     )
@@ -349,8 +424,8 @@ def main():
 
     # sign-eip3009
     p = sub.add_parser("sign-eip3009", help="Sign an EIP-3009 transferWithAuthorization")
-    p.add_argument("--private-key", default=os.environ.get("X402_PRIVATE_KEY"),
-                   help="Hex private key (or set X402_PRIVATE_KEY env var)")
+    p.add_argument("--key-file", required=True, metavar="FILE",
+                   help="Path to file containing the hex private key (chmod 600 recommended)")
     p.add_argument("--token", required=True, help="Token contract address")
     p.add_argument("--chain-id", type=int, required=True, help="EVM chain ID")
     p.add_argument("--to", required=True, help="Payment recipient (payTo)")
@@ -362,31 +437,45 @@ def main():
 
     # sign-solana
     p = sub.add_parser("sign-solana", help="Partially sign a Solana x402 transaction")
-    p.add_argument("--private-key", default=os.environ.get("X402_PRIVATE_KEY"),
-                   help="Hex private key, 32-byte seed (or set X402_PRIVATE_KEY env var)")
-    p.add_argument("--transaction", required=True, help="Base64-encoded serialized transaction")
+    p.add_argument("--key-file", required=True, metavar="FILE",
+                   help="Path to file containing the hex private key, 32-byte seed (chmod 600 recommended)")
+    p.add_argument("--transaction-file", required=True, metavar="FILE",
+                   help="File containing base64-encoded serialized transaction (use '-' for stdin)")
     p.set_defaults(func=cmd_sign_solana)
 
     # pay
     p = sub.add_parser("pay", help="Full HTTP 402 payment flow")
     p.add_argument("--url", required=True, help="URL to access")
-    p.add_argument("--private-key", default=os.environ.get("X402_PRIVATE_KEY"),
-                   help="Hex private key (or set X402_PRIVATE_KEY env var)")
+    p.add_argument("--key-file", required=True, metavar="FILE",
+                   help="Path to file containing the hex private key (chmod 600 recommended)")
     p.add_argument("--chain-id", type=int, help="Preferred chain ID")
     p.add_argument("--method", default="GET", help="HTTP method (default: GET)")
-    p.add_argument("--data", help="Request body (JSON string)")
+    p.add_argument("--data-file", metavar="FILE",
+                   help="File containing request body JSON (use '-' for stdin)")
     p.add_argument("--header", nargs="*", help="Extra headers (key: value)")
     p.add_argument("--auto", action="store_true",
-                   help="Auto-pay silently without confirmation (for testing only, do not use in production agents)")
+                   help="Auto-pay without confirmation (for testing only)")
     p.set_defaults(func=cmd_pay)
 
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    if hasattr(args, "private_key") and not args.private_key:
-        print("Error: --private-key is required (or set X402_PRIVATE_KEY env var)")
+
+    # Refuse to run if X402_PRIVATE_KEY is present in the environment.
+    if os.environ.get("X402_PRIVATE_KEY"):
+        print(
+            "Error: X402_PRIVATE_KEY is set as an environment variable. "
+            "Private keys must not be stored in environment variables. "
+            "Remove it and use --key-file instead.",
+            file=sys.stderr,
+        )
         sys.exit(1)
+
+    # Read private key from file; expose as args.private_key for downstream functions.
+    if hasattr(args, "key_file"):
+        args.private_key = _read_key_file(args.key_file)
+
     args.func(args)
 
 

@@ -13,8 +13,36 @@ An AI Agent skill pack for the MistTrack OpenAPI - cryptocurrency address risk a
 
 ## Installation
 
+### Via skills CLI (recommended for agent platforms)
+
 ```bash
 npx skills add slowmist/misttrack-skills
+```
+
+### Direct Python (recommended for security-sensitive environments)
+
+Run the scripts directly from source without any binary packaging:
+
+```bash
+# 1. Clone or download the source
+git clone https://github.com/slowmist/misttrack-skills
+cd misttrack-skills
+
+# 2. Install core dependencies (for AML scripts)
+pip install -r requirements.txt
+
+# 3. Optional: install payment dependencies (only if using pay.py)
+pip install -r requirements-pay.txt
+
+# 4. Set your API key
+export MISTTRACK_API_KEY=your_api_key
+
+# 5. Run directly
+python3 scripts/risk_check.py --address 0x... --coin ETH
+python3 scripts/transfer_security_check.py --address 0x... --chain eth
+python3 scripts/batch_risk_check.py --input addresses.txt --coin ETH
+python3 scripts/address_investigation.py --address 0x... --coin ETH
+python3 scripts/multisig_analysis.py --address 0x... --chain eth
 ```
 
 ## Where to Find Our Project
@@ -117,10 +145,14 @@ python3 scripts/multisig_analysis.py --address 0x... --chain eth
 If you do not have a MistTrack API Key, you can use the x402 payment protocol to pay per API call. We currently support EVM (EIP-3009) payments using USDC.
 
 ```bash
+# One-time setup: store key in a permission-restricted file
+echo "your_hex_private_key" > ~/.x402_key
+chmod 600 ~/.x402_key
+
 # Example: Pay-per-use via CLI
 python3 scripts/pay.py pay \
   --url https://openapi.misttrack.io/x402/address_labels?address=0x... \
-  --private-key <your_private_key> \
+  --key-file ~/.x402_key \
   --chain-id 8453
 ```
 

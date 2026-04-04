@@ -6,16 +6,15 @@ disable_model_calls: true
 
 # MistTrack x402 Payment
 
-> **This sub-skill requires explicit user invocation.** Autonomous agent calls are disabled (`disable_model_calls: true`) because this skill can sign and broadcast on-chain transactions.
+> **This sub-skill requires explicit user invocation.** Autonomous agent calls are disabled (`disable_model_calls: true`) because this skill can sign and broadcast on-chain transactions. Note that `disable_model_calls` is a documentation-level hint; platforms may not enforce it. The runtime guards below are enforced in code.
 
 > When the user does not have a MistTrack API Key, the Agent can use the x402 protocol to pay per API call with USDC via EVM (EIP-3009) or Solana partial signing. Base chain is used by default.
 
-> **SECURITY — Read before use:**
+> **SECURITY — Runtime protections enforced in code:**
 > - This skill signs on-chain USDC transactions using a private key.
-> - A hard cap of **$1.00 USDC per call** is enforced in code to limit exposure.
-> - The `--auto` flag (or `auto_pay=True`) bypasses per-call confirmation — do **not** use in production agent pipelines.
-> - Pass the private key via `--private-key` at invocation time; do **not** store it permanently in `X402_PRIVATE_KEY`.
-> - Environment variables are visible to all child processes of the current session.
+> - A hard cap of **$1.00 USDC per call** is enforced in code; amounts above this are rejected.
+> - **Private keys must be supplied via `--key-file <path>`** — stored in a `chmod 600` file, never on the command line or in environment variables.
+> - **`X402_PRIVATE_KEY` environment variable is refused** — `pay.py` exits with an error if this variable is set.
 
 ## Supported APIs and Pricing (USDC per call)
 
@@ -48,28 +47,36 @@ disable_model_calls: true
 
 ### 1. CLI
 
+Private keys must never appear on the command line or in environment variables.
+Store the key in a permission-restricted file and pass the file path:
+
 ```bash
+# One-time setup: create key file
+echo "your_hex_private_key" > ~/.x402_key
+chmod 600 ~/.x402_key
+
 # Full x402 payment flow (request → parse 402 → sign → retry)
 python3 scripts/pay.py pay \
   --url "https://openapi.misttrack.io/x402/address_labels?address=0x..." \
-  --private-key <hex_private_key> \
+  --key-file ~/.x402_key \
   --chain-id 8453
 
 # Manually sign EIP-3009
 python3 scripts/pay.py sign-eip3009 \
-  --private-key <hex> \
+  --key-file ~/.x402_key \
   --token 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 \
   --chain-id 8453 \
   --to 0x209693Bc6afc0C5328bA36FaF03C514EF312287C \
   --amount 10000
 
 # Sign a Solana partial transaction
+echo "<base64_encoded_tx>" > tx.b64
 python3 scripts/pay.py sign-solana \
-  --private-key <hex_32byte_seed> \
-  --transaction <base64_encoded_tx>
+  --key-file ~/.x402_key \
+  --transaction-file tx.b64
 ```
 
-Environment variable: `X402_PRIVATE_KEY` can be used in place of the `--private-key` argument.
+**`X402_PRIVATE_KEY` environment variable is not supported.** `pay.py` exits with an error if this variable is set.
 
 ### 2. Inline Code Usage
 
@@ -92,7 +99,7 @@ print(response.json())
 ## Security Limits
 
 - Per-call payment cap: **$1.00 USDC (1,000,000 smallest units)**. Amounts exceeding this are automatically rejected to prevent a malicious server from draining the wallet.
-- The private key can be passed via the `--private-key` argument or the `X402_PRIVATE_KEY` environment variable. **It is recommended to use `--private-key` on demand (one-time use)** rather than storing the private key as a long-lived environment variable — environment variables are visible to all child processes of the current process and carry a risk of leakage.
+- Private keys must be supplied via `--key-file <path>`. The file is read at invocation time; the key never appears on the command line or in environment variables. Use `chmod 600` on the key file. `X402_PRIVATE_KEY` environment variable is not accepted.
 
 ---
 

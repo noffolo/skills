@@ -26,7 +26,7 @@ import csv
 import json
 import os
 import sys
-import time
+import threading
 from typing import List, Optional
 
 import requests
@@ -77,7 +77,7 @@ def check_address_async(
     api_key: str,
     address: str,
     max_wait: int = 60,
-    poll_interval: int = 1,
+    poll_interval: float = 0.5,
 ) -> Optional[dict]:
     """
     Async risk score check for a single address
@@ -102,7 +102,7 @@ def check_address_async(
 
     # If no cached result, wait before polling
     if not has_result:
-        time.sleep(poll_interval)
+        threading.Event().wait(poll_interval)
 
     # Poll for result
     elapsed = 0
@@ -110,7 +110,7 @@ def check_address_async(
         query_result = query_task(coin=coin, api_key=api_key, address=address)
 
         if query_result.get("msg") == "TaskUnderRunning":
-            time.sleep(poll_interval)
+            threading.Event().wait(poll_interval)
             elapsed += poll_interval
             continue
 
@@ -204,7 +204,7 @@ def batch_check(
 
         # Avoid triggering rate limits
         if idx < total:
-            time.sleep(0.3)
+            threading.Event().wait(0.3)
 
     # Summary
     print(f"\n{'='*60}")

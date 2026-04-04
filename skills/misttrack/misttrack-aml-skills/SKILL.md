@@ -5,11 +5,7 @@ optional_env_vars:
   - name: MISTTRACK_API_KEY
     required: false
     sensitive: true
-    description: "MistTrack API key for authenticating all script requests (recommended). Required for standard API usage; if absent, configure X402_PRIVATE_KEY for x402 pay-per-use instead. Obtain at https://dashboard.misttrack.io/apikeys"
-  - name: X402_PRIVATE_KEY
-    required: false
-    sensitive: true
-    description: "Hex-encoded EVM/Solana private key for x402 pay-per-use. WARNING: grants the agent ability to sign on-chain transactions. See Security section below."
+    description: "MistTrack API key for authenticating all script requests (recommended). If absent, use scripts/pay.py with --key-file for x402 pay-per-use instead. Obtain at https://dashboard.misttrack.io/apikeys"
 ---
 
 # MistTrack Skills
@@ -33,23 +29,25 @@ This skill pack contains two functional modules, each defined under the `skills/
 
 A standard API key for read-only AML queries. No on-chain access. Set via environment variable or `--api-key` flag.
 
-### X402_PRIVATE_KEY - High Sensitivity
+### x402 Private Key — High Sensitivity
 
-`X402_PRIVATE_KEY` enables the x402 pay-per-use flow in `scripts/pay.py`. This key can **sign and broadcast on-chain USDC transactions**.
+`scripts/pay.py` can **sign and broadcast on-chain USDC transactions** when a private key is supplied via `--key-file`.
 
-Safeguards in code:
-- Hard cap: **$1.00 USDC per call** - amounts above this are rejected automatically.
-- `--auto` flag is off by default; without it, every payment requires explicit CLI confirmation.
+**Enforced in code (runtime, unconditional):**
+- Hard cap: **$1.00 USDC per call** — amounts above this are rejected before signing, regardless of flags.
+- **`X402_PRIVATE_KEY` environment variable is refused** — `pay.py` exits with an error if this variable is set in the environment.
+- **Private keys must be supplied via `--key-file <path>`** — the key is read from a permission-restricted file at invocation time and never appears on the command line.
+
+**Advisory only (harness-dependent, not enforced by this package):**
+- `skills/payment.md` sets `disable_model_calls: true` — signals agent platforms to block autonomous invocation. Platforms such as OpenClaw/skills.sh enforce this field; on other platforms it is advisory only.
 
 Remaining risks:
-- Any agent with access to this key and the `--auto` flag can transfer funds without further human confirmation.
-- Long-lived environment variables are visible to all child processes of the current session.
+- An operator who supplies `--key-file` and adds `--auto` can trigger unattended payments (intentional for testing; do not use in production).
 
 Recommended practice:
-1. **Prefer `MISTTRACK_API_KEY`** for normal usage - it never touches on-chain state.
-2. If you must use x402, **pass the private key via `--private-key` at invocation time** rather than storing it as a permanent environment variable.
-3. **Never enable `--auto` in production agent pipelines** unless you have reviewed and accept the risk.
-4. The payment sub-skill (`skills/payment.md`) sets `disable_model_calls: true` to signal that autonomous agent invocation should be blocked. **Enforcement is harness-dependent**: platforms such as OpenClaw/skills.sh enforce this field; on other platforms (e.g., raw Claude Code) it is advisory only. In either case, do not pass `--auto` in automated pipelines.
+1. **Prefer `MISTTRACK_API_KEY`** for all normal usage — it is read-only and never touches on-chain state.
+2. If x402 is needed, store the key in a `chmod 600` file and pass it via `--key-file` at invocation time.
+3. **Never pass `--auto` in production agent pipelines.**
 
 ---
 
@@ -78,6 +76,13 @@ python3 scripts/address_investigation.py --address 0x... --coin ETH
 ### x402 Pay-per-Use
 
 When no API Key is available, use `scripts/pay.py` to pay per call with USDC.
+Private keys must be stored in a permission-restricted file and passed via `--key-file`:
+
+```bash
+echo "your_hex_private_key" > ~/.x402_key && chmod 600 ~/.x402_key
+python3 scripts/pay.py pay --url "..." --key-file ~/.x402_key --chain-id 8453
+```
+
 See [skills/payment.md](skills/payment.md) for details and security considerations.
 
 ---
@@ -86,32 +91,32 @@ See [skills/payment.md](skills/payment.md) for details and security consideratio
 
 | Variable | Required | Sensitive | Description |
 |----------|----------|-----------|-------------|
-| `MISTTRACK_API_KEY` | No (recommended) | Yes | MistTrack API key - all scripts read this first; x402 is the alternative if absent |
-| `X402_PRIVATE_KEY` | No | **High** | EVM/Solana private key (hex) for x402 payments - see Security section |
+| `MISTTRACK_API_KEY` | No (recommended) | Yes | MistTrack API key — all scripts read this first; x402 is the alternative if absent |
 
 > When `MISTTRACK_API_KEY` is set, all scripts use API Key mode (read-only, no on-chain access).
-> When not set, configure `X402_PRIVATE_KEY` to pay per call via `scripts/pay.py`.
+> For x402 pay-per-use, store the private key in a `chmod 600` file and pass it via `--key-file` at invocation time. `X402_PRIVATE_KEY` environment variable is not supported and causes `pay.py` to exit with an error.
 
 ---
 
 ## Python Dependencies
 
-Install before use:
-
 ```bash
-pip install requests eth-account eth-abi eth-utils
-# For x402 Solana payments only:
-pip install solders base58
+# Core AML scripts (risk_check, batch_risk_check, transfer_security_check,
+#                   address_investigation, multisig_analysis)
+pip install -r requirements.txt
+
+# pay.py only (x402 EVM + Solana payments)
+pip install -r requirements-pay.txt
 ```
 
 | Package | Required for |
 |---------|-------------|
-| `requests` | All scripts |
-| `eth-account` | `pay.py` (EIP-3009 signing) |
-| `eth-abi` | `pay.py` (EIP-712 encoding) |
-| `eth-utils` | `pay.py` (keccak256) |
-| `solders` | `pay.py` (Solana partial signing) |
-| `base58` | `pay.py` (Solana partial signing) |
+| `requests` | All scripts (`requirements.txt`) |
+| `eth-account` | `pay.py` EIP-3009 signing (`requirements-pay.txt`) |
+| `eth-abi` | `pay.py` EIP-712 encoding (`requirements-pay.txt`) |
+| `eth-utils` | `pay.py` keccak256 (`requirements-pay.txt`) |
+| `solders` | `pay.py` Solana partial signing (`requirements-pay.txt`) |
+| `base58` | `pay.py` Solana partial signing (`requirements-pay.txt`) |
 
 ---
 

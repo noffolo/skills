@@ -3,11 +3,16 @@
   "slug": "misttrack-aml-skills",
   "displayName": "MistTrack Skills",
   "latest": {
-    "version": "0.2.5",
-    "publishedAt": 1774596350217,
-    "commit": "https://github.com/openclaw/skills/commit/30659f5bd7dddb00e4ca5a010323aa20d19b83c7"
+    "version": "0.2.12",
+    "publishedAt": 1774867017119,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.5",
+      "publishedAt": 1774596350217,
+      "commit": "https://github.com/openclaw/skills/commit/30659f5bd7dddb00e4ca5a010323aa20d19b83c7"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1773376982040,
