@@ -3,9 +3,15 @@
   "slug": "box-integration",
   "displayName": "Box",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772603744306,
-    "commit": "https://github.com/openclaw/skills/commit/4238c0199c57df6cc4697db70cea8ace152d102d"
+    "version": "1.0.2",
+    "publishedAt": 1775161538035,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772603744306,
+      "commit": "https://github.com/openclaw/skills/commit/4238c0199c57df6cc4697db70cea8ace152d102d"
+    }
+  ]
 }
