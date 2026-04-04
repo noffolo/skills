@@ -3,11 +3,16 @@
   "slug": "gws-people",
   "displayName": "Gws People",
   "latest": {
-    "version": "1.0.11",
-    "publishedAt": 1774551029159,
-    "commit": "https://github.com/openclaw/skills/commit/018c4e517026cc2e2378e1f7c85cbbb075c0ea30"
+    "version": "1.0.13",
+    "publishedAt": 1774982075894,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.11",
+      "publishedAt": 1774551029159,
+      "commit": "https://github.com/openclaw/skills/commit/018c4e517026cc2e2378e1f7c85cbbb075c0ea30"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1774300496541,
