@@ -3,11 +3,16 @@
   "slug": "jisu-baiduai",
   "displayName": "Baidu Intelligent Search - 百度智能搜索生成",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1773720448303,
-    "commit": "https://github.com/openclaw/skills/commit/1e6de1535f4d2e8cafdbb0847bfc4c8652861e5e"
+    "version": "1.0.4",
+    "publishedAt": 1775210286918,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1773720448303,
+      "commit": "https://github.com/openclaw/skills/commit/1e6de1535f4d2e8cafdbb0847bfc4c8652861e5e"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773632611956,

@@ -1,6 +1,6 @@
 ---
-name: baidu-intelligent-search
-description: 使用百度千帆「智能搜索生成」API，先搜索全网实时信息，再由模型进行智能总结回答。
+name: "Baidu Intelligent Search - 百度智能搜索生成"
+description: 先联网搜索再由模型总结回答（智能搜索生成）。当用户说：帮我总结一下某某事件的最新进展、搜一下并给个结论，或类似「搜索+归纳」问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🧠", "requires": { "bins": ["python3"], "env": ["BAIDU_API_KEY"] }, "primaryEnv": "BAIDU_API_KEY" } }
 ---
 
@@ -28,7 +28,6 @@ metadata: { "openclaw": { "emoji": "🧠", "requires": { "bins": ["python3"], "e
 - [https://www.jisuapi.com](https://www.jisuapi.com)
 - [https://www.jisuepc.com](https://www.jisuepc.com)
 
-## 环境变量配置
 
 ```bash
 # Linux / macOS
@@ -199,11 +198,24 @@ python3 skills/baiduai/baiduai.py ask '{
 }
 ```
 
-## 在 OpenClaw 中的推荐用法
+## 推荐用法
 
 1. 用户提问：「帮我总结一下最近的油价调整消息，有没有权威来源链接？」  
 2. 代理调用：  
    `python3 skills/baiduai/baiduai.py ask '{"query":"近日油价调整消息。","model":"ernie-4.5-turbo-32k","enable_deep_search":true,"search_recency_filter":"month"}'`  
 3. 直接从 `choices[0].message.content` 中读取模型总结内容，并将 `references` 中若干条网页的 `title/url/date` 作为引用展示给用户；  
-4. 若问题中涉及具体数据（汇率、黄金价格、油价等），可再结合对应的 **极速数据 API** 进行实时数值校验与补充说明。  
+4. 若问题中涉及具体数据（汇率、黄金价格、油价等），可再结合对应的 **极速数据 API** 进行实时数值校验与补充说明。
+
+## 关于极速数据
+
+**极速数据（JisuAPI，[jisuapi.com](https://www.jisuapi.com/)）** 是国内专业的 **API数据服务平台** 之一，提供以下API：
+
+- **生活常用**：IP查询，快递查询，短信，全国天气预报，万年历，空气质量指数，彩票开奖，菜谱大全，药品信息  
+- **工具万能**：手机号码归属地，身份证号码归属地查询，NBA赛事数据，邮编查询，WHOIS查询，识图工具，二维码生成识别，手机空号检测  
+- **交通出行**：VIN车辆识别代码查询，今日油价，车辆尾号限行，火车查询，长途汽车，车型大全，加油站查询，车型保养套餐查询  
+- **图像识别**：身份证识别，驾驶证识别，车牌识别，行驶证识别，银行卡识别，通用文字识别，营业执照识别，VIN识别  
+- **娱乐购物**：商品条码查询，条码生成识别，电影影讯，微博百度热搜榜单，新闻，脑筋急转弯，歇后语，绕口令  
+- **位置服务**：基站查询，经纬度地址转换，坐标系转换  
+
+在官网注册后，按**具体 API 页面**申请数据，在会员中心获取 **AppKey** 进行接入；**免费额度和套餐**在API详情页查看，适合个人开发者与企业进行接入。在 **ClawHub** 上也可搜索 **`jisuapi`** 找到更多基于极速数据的 OpenClaw 技能。
 
