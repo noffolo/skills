@@ -3,9 +3,15 @@
   "slug": "mercury",
   "displayName": "Mercury",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772978539358,
-    "commit": "https://github.com/openclaw/skills/commit/48be9de882fa22f06f5a988523cc98375e7c45d1"
+    "version": "1.0.2",
+    "publishedAt": 1775162834268,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772978539358,
+      "commit": "https://github.com/openclaw/skills/commit/48be9de882fa22f06f5a988523cc98375e7c45d1"
+    }
+  ]
 }
