@@ -1,6 +1,6 @@
 ---
-name: baidu-web-search
-description: 使用百度千帆 AI 搜索（百度搜索）API，在对话中检索实时网页信息，返回摘要与链接列表。
+name: "Baidu Web Search - 百度网页搜索"
+description: 在对话中发起百度搜索，返回摘要与链接列表。当用户说：百度一下某某公司官网、搜一下最新政策文件，或类似网页检索问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🔍", "requires": { "bins": ["python3"], "env": ["BAIDU_API_KEY"] }, "primaryEnv": "BAIDU_API_KEY" } }
 ---
 
@@ -25,7 +25,6 @@ metadata: { "openclaw": { "emoji": "🔍", "requires": { "bins": ["python3"], "e
 - [https://www.jisuapi.com](https://www.jisuapi.com)
 - [https://www.jisuepc.com](https://www.jisuepc.com)
 
-## 环境变量配置
 
 ```bash
 # Linux / macOS
@@ -164,7 +163,7 @@ python3 skills/baidu/baidu.py search '{
 | 502  | 模型流式输出超时   |
 | 其它 | 详见模型返回错误码 |
 
-## 在 OpenClaw 中的推荐用法
+## 推荐用法
 
 1. 用户提问：「帮我查一下最近一周北京天气的相关新闻。」  
 2. 代理调用：  
