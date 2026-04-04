@@ -3,11 +3,16 @@
   "slug": "moses-modes",
   "displayName": "Moses Modes",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773666866170,
-    "commit": "https://github.com/openclaw/skills/commit/90a2f0302cb28c9131116d902cdbb6e924c86368"
+    "version": "1.0.3",
+    "publishedAt": 1774980978030,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773666866170,
+      "commit": "https://github.com/openclaw/skills/commit/90a2f0302cb28c9131116d902cdbb6e924c86368"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773428262362,
