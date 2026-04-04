@@ -3,11 +3,16 @@
   "slug": "recipe-find-large-files",
   "displayName": "Recipe Find Large Files",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551152541,
-    "commit": "https://github.com/openclaw/skills/commit/eaf47a22b103f9fae2cd1f60b1025bc162e58ca4"
+    "version": "1.0.12",
+    "publishedAt": 1774982191632,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551152541,
+      "commit": "https://github.com/openclaw/skills/commit/eaf47a22b103f9fae2cd1f60b1025bc162e58ca4"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774300612102,
