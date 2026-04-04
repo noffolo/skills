@@ -3,11 +3,16 @@
   "slug": "recipe-create-gmail-filter",
   "displayName": "Recipe Create Gmail Filter",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551129376,
-    "commit": "https://github.com/openclaw/skills/commit/9ac7c934e18b11c15ded47027c542e660c5a5d39"
+    "version": "1.0.12",
+    "publishedAt": 1774982167778,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551129376,
+      "commit": "https://github.com/openclaw/skills/commit/9ac7c934e18b11c15ded47027c542e660c5a5d39"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774300586645,
