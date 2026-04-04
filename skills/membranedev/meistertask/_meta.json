@@ -3,9 +3,15 @@
   "slug": "meistertask",
   "displayName": "Meistertask",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772960531934,
-    "commit": "https://github.com/openclaw/skills/commit/4b6b9f03ccab701ac6af6c8dbc6843c870db3d60"
+    "version": "1.0.2",
+    "publishedAt": 1775162805380,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772960531934,
+      "commit": "https://github.com/openclaw/skills/commit/4b6b9f03ccab701ac6af6c8dbc6843c870db3d60"
+    }
+  ]
 }
