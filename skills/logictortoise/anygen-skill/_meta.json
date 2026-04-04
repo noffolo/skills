@@ -1,13 +1,18 @@
 {
   "owner": "logictortoise",
   "slug": "anygen-skill",
-  "displayName": "Anygen Suite",
+  "displayName": "AnyGen Suite",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1774423406800,
-    "commit": "https://github.com/openclaw/skills/commit/55db99c25782ea31d6fdade033ad4a16b6027c28"
+    "version": "2.0.1",
+    "publishedAt": 1774865553930,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1774423406800,
+      "commit": "https://github.com/openclaw/skills/commit/55db99c25782ea31d6fdade033ad4a16b6027c28"
+    },
     {
       "version": "1.3.4",
       "publishedAt": 1773250800650,
