@@ -3,11 +3,16 @@
   "slug": "aerobase-travel-lounges",
   "displayName": "Aerobase Travel Lounges",
   "latest": {
-    "version": "3.2.0",
-    "publishedAt": 1773946205102,
-    "commit": "https://github.com/openclaw/skills/commit/4fe367622db96816a73f72f9a645144685dc106a"
+    "version": "3.3.1",
+    "publishedAt": 1775274360997,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.2.0",
+      "publishedAt": 1773946205102,
+      "commit": "https://github.com/openclaw/skills/commit/4fe367622db96816a73f72f9a645144685dc106a"
+    },
     {
       "version": "3.0.9",
       "publishedAt": 1773443426759,
