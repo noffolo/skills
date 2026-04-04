@@ -3,9 +3,15 @@
   "slug": "agile-crm",
   "displayName": "Agile Crm",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772668953850,
-    "commit": "https://github.com/openclaw/skills/commit/5e91afd96c614a805ea9e48ba78707d4648e951f"
+    "version": "1.0.2",
+    "publishedAt": 1775161624146,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772668953850,
+      "commit": "https://github.com/openclaw/skills/commit/5e91afd96c614a805ea9e48ba78707d4648e951f"
+    }
+  ]
 }
