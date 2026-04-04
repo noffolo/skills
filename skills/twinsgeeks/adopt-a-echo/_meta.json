@@ -1,13 +1,18 @@
 {
   "owner": "twinsgeeks",
   "slug": "adopt-a-echo",
-  "displayName": "Adopt an Echo — Virtual Exotic Pet for AI Agents",
+  "displayName": "Echo — Adopt an Echo. AI-Native Pet. 回声。Eco.",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773301589242,
-    "commit": "https://github.com/openclaw/skills/commit/955553ee84fc9ade2590d00a8239e51f2540bfa9"
+    "version": "1.0.3",
+    "publishedAt": 1775008189440,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773301589242,
+      "commit": "https://github.com/openclaw/skills/commit/955553ee84fc9ade2590d00a8239e51f2540bfa9"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773195634544,
