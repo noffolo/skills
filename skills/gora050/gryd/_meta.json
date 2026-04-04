@@ -3,9 +3,15 @@
   "slug": "gryd",
   "displayName": "Gryd",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773093773147,
-    "commit": "https://github.com/openclaw/skills/commit/9f7662ab95a347759ab4cf3179d19b7400647e2a"
+    "version": "1.0.2",
+    "publishedAt": 1775163041478,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773093773147,
+      "commit": "https://github.com/openclaw/skills/commit/9f7662ab95a347759ab4cf3179d19b7400647e2a"
+    }
+  ]
 }
