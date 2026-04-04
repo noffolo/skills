@@ -3,11 +3,16 @@
   "slug": "gws-slides",
   "displayName": "Gws Slides",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551051306,
-    "commit": "https://github.com/openclaw/skills/commit/6490b6b75613371a6cd874977b262f8ffcba9e66"
+    "version": "1.0.12",
+    "publishedAt": 1774982093957,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551051306,
+      "commit": "https://github.com/openclaw/skills/commit/6490b6b75613371a6cd874977b262f8ffcba9e66"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774300508491,
