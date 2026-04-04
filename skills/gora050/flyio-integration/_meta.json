@@ -3,9 +3,15 @@
   "slug": "flyio-integration",
   "displayName": "Flyio",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773097401759,
-    "commit": "https://github.com/openclaw/skills/commit/0a5c1be12153fa9bc6b1bc3485dde57b8aa2552c"
+    "version": "1.0.2",
+    "publishedAt": 1775163097577,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773097401759,
+      "commit": "https://github.com/openclaw/skills/commit/0a5c1be12153fa9bc6b1bc3485dde57b8aa2552c"
+    }
+  ]
 }
