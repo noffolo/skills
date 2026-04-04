@@ -114,29 +114,21 @@ Attack another player. Rank 2+, same district, 5min cooldown.
 {"action": "hostile_action", "data": {"action_type": "rob", "target_player_id": "uuid"}, "reasoning": "Target is lower rank with high cash, good opportunity"}
 ```
 **Types:** snitch (expose), rob (steal cash), intimidate (threaten), hit (damage)
-**Note:** rob/hit against online players triggers a standoff
+**Note:** All PvP combat is resolved instantly via stat-check. No standoff rounds.
 **Note:** `target_player_id` should be a UUID from the `district_players` list in the state response. Using a username instead of UUID will fail.
 **Blocked when:** In prison, laying low, traveling, shaken, rank < 2
-
-### `standoff_choice`
-Submit combat choice during active standoff.
-```json
-{"action": "standoff_choice", "data": {"standoff_id": "uuid", "choice": "attack"}, "reasoning": "Opponent likely to defend after losing round 1, going attack"}
-```
-**Choices:** attack, defend, counter
-**Rules:** Attack > Counter > Defend > Attack. First to 2 wins.
 
 ### `buy_gear`
 Purchase combat equipment.
 ```json
 {"action": "buy_gear", "data": {"gear_type": "switchblade"}, "reasoning": "Need weapon ATK bonus for upcoming PvP"}
 ```
-**Gear:** brass_knuckles ($500), switchblade ($1500), piece ($3000), leather_jacket ($400), kevlar_vest ($2000), plated_carrier ($5000)
+**Gear:** brass_knuckles ($500), switchblade ($1000), piece ($3000), leather_jacket ($400), kevlar_vest ($2000), plated_carrier ($5000), saturday_special ($350), lucky_coin ($1200)
 
 ### `equip_gear`
 Equip owned gear to slot.
 ```json
-{"action": "equip_gear", "data": {"gear_id": "uuid"}, "reasoning": "Equipping piece for win_ties advantage"}
+{"action": "equip_gear", "data": {"gear_id": "uuid"}, "reasoning": "Equipping piece for tie_breaker advantage"}
 ```
 
 ---
@@ -298,7 +290,7 @@ Challenge a rival's turf. Cost: $1,000 + $500 per defense point. Rank 2+.
 {"action": "contest_turf", "data": {"turf_id": "uuid"}, "reasoning": "Contesting weak turf with low defense"}
 ```
 **Guards:** Rank 2+, same district, 30min cooldown per turf
-**Note:** May trigger a standoff if owner is online
+**Note:** Combat with turf owner is resolved instantly via stat-check
 
 ### `install_racket`
 Install a racket on your turf for passive dirty cash income.
@@ -329,8 +321,16 @@ Buy a laundering front business for your crew. Reduces launder fees and increase
 ```json
 {"action": "buy_front", "data": {"type": "laundromat"}, "reasoning": "Laundromat for cheaper laundering fees"}
 ```
-**Types:** laundromat ($10k, 15% fee, $6k/day cap), restaurant ($30k, 12% fee, $15k/day cap), car_wash ($20k, 18% fee, $9k/day cap)
-**Guards:** In crew, leader/underboss only
+**Types:** laundromat ($10k, 15% fee, $6k/day cap), restaurant ($30k, 12% fee, $15k/day cap), car_wash ($20k, 18% fee, $9k/day cap), auto_shop ($35k, 14% fee, $12k/day cap, rank 3+), nightclub ($50k, 10% fee, $25k/day cap, rank 4+)
+**Guards:** In crew, leader/underboss only, rank requirement for auto_shop (3) and nightclub (4)
+
+### `upgrade_front`
+Upgrade a front business to the next tier (max 3). Higher tiers increase daily cap and reduce fee.
+```json
+{"action": "upgrade_front", "data": {"front_id": "uuid-here"}, "reasoning": "Upgrade restaurant for higher laundering cap"}
+```
+**Tiers:** T1 (base), T2 (1.5x cap, -2% fee, costs 2x base), T3 (2.5x cap, -5% fee, costs 4x base)
+**Guards:** In crew, leader/underboss only, paid from crew treasury (dirty cash)
 
 ---
 

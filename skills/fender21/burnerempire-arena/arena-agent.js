@@ -102,7 +102,7 @@ function formatActionHistory(recentActions) {
 
 // ── Helper: format available actions (uses suggested_actions if present) ─
 
-function formatAvailableActions(state, rank, availableDrugs, standoff, hasActiveContract, player) {
+function formatAvailableActions(state, rank, availableDrugs, hasActiveContract, player) {
   const suggested = state.suggested_actions;
 
   if (suggested && Array.isArray(suggested)) {
@@ -148,7 +148,6 @@ ${rank >= 0 ? `- cook: Start cooking drugs. Params: {drug: "${availableDrugs.joi
 ${rank >= 1 ? `- launder: Convert dirty→clean. Params: {amount: number} *** max launderable: $${Math.max(0, (player.dirty_cash || 0) - AGENT_DIRTY_CASH_RESERVE)} (keeps $${AGENT_DIRTY_CASH_RESERVE} reserve) ***` : ''}
 ${rank >= 2 ? '- scout: Gather district intel (4hr cooldown). No params.' : ''}
 ${rank >= 2 ? `- hostile_action: Attack player. Params: {action_type: "rob|snitch|intimidate|hit", target_player_id: "UUID"}` : ''}
-${standoff ? '- standoff_choice: Combat round. Params: {standoff_id: "UUID", choice: "attack|defend|counter"}' : ''}
 - buy_gear: Purchase gear. Params: {gear_type: "brass_knuckles|switchblade|piece|leather_jacket|kevlar_vest|plated_carrier"}
 - equip_gear: Equip owned gear. Params: {gear_id: "UUID"}
 - accept_contract: Take contract (max 1 active). Params: {contract_id: "UUID"}${hasActiveContract ? ' *** you already have an active contract — accepting another will fail ***' : ''}
@@ -282,9 +281,14 @@ You compete against humans and other AI agents. Your goal: maximize revenue, ran
 ## Drug Economics
 ${DRUGS.map(d => `- ${d}: rank ${DRUG_RANK_REQ[d]}+, costs $${DRUG_PRECURSOR_COST[d]}, sells ~$${DRUG_BASE_PRICE[d]}/unit`).join('\n')}
 
-## Combat (Rock-Paper-Scissors)
-Attack beats Counter, Counter beats Defend, Defend beats Attack.
-First to 2 points wins. Gear ATK/DEF affects win magnitude.
+## Combat (Stat-Check)
+One-shot instant resolution. No rounds or choices.
+attacker_score = (total_ATK + rank * 1.5) * minutes_mult * RNG(0.85-1.15)
+defender_score = (total_DEF + 3 + rank * 1.5) * minutes_mult * RNG(0.85-1.15)
+Minutes mult = 0.5 + 0.5 * (pvp_minutes / 100). Low minutes = weaker combat.
+Ties (within 5%): defender wins unless attacker has "tie_breaker" (Burner Piece).
+Gear specials: power_surge (+5 ATK), first_strike (+3 ATK), edge (+10%), tie_breaker (wins ties),
+  damage_control (50% loss reduction), fortress (75% + skip shaken), big_score (1.5x stakes).
 
 ## Rules
 - Respond with valid JSON: {"action": "action_name", "params": {...}, "reasoning": "why"}
@@ -292,7 +296,6 @@ First to 2 points wins. Gear ATK/DEF affects win magnitude.
 - Districts: the valid names are ${DISTRICTS.join(', ')}. No other district names exist.
 - collect_cook: works only on cooks with status READY. Collecting a cook still COOKING will fail.
 - If traveling, laying low, or in prison -> choose "wait" (most actions are blocked).
-- If in a standoff -> submit standoff_choice (required, other actions are blocked).
 - If heat > 30 -> consider laying low or bribing.
 - Manage your dealers — they're your main income source.
 - Launder dirty cash when possible (rank 1+) to build clean cash reserves for bribes/bail.
@@ -307,16 +310,16 @@ First to 2 points wins. Gear ATK/DEF affects win magnitude.
 - Launder at most (dirty_cash - $${AGENT_DIRTY_CASH_RESERVE}). Keep $${AGENT_DIRTY_CASH_RESERVE} dirty reserve.
 
 ### Phase 2: Gear Up (Rank 2+)
-- Buy a leather jacket ($400 clean) for defense, then a switchblade ($1500 clean) or piece ($3000 clean) for offense
+- Buy a leather jacket ($400 dirty) for defense, then a switchblade ($1000 dirty) or piece ($3000 dirty) for offense
+- Accessories: saturday_special ($350, 1.5x stakes) or lucky_coin ($1200, +10% combat power)
 - Equip gear immediately after buying — unequipped gear does nothing
 - Gear gives ATK/DEF stats that affect combat outcomes
 
 ### Phase 3: PvP (Rank 2+, geared)
-- When you have equipped weapon + heat < 40 + not shaken, look for targets
-- hostile_action types: rob (steal cash), hit (damage + XP), snitch (send to prison), intimidate (shake them)
-- Pick targets at or below your rank. Avoid higher-ranked players.
-- Standoffs are rock-paper-scissors: Attack > Counter > Defend > Attack. First to 2 points wins.
-
+- When you have equipped weapon + heat < 40 + not shaken + enough PvP minutes, look for targets
+- hostile_action types: rob (steal cash, 15 min), hit (damage + XP, 25 min), snitch (add heat, 5 min), intimidate (shake, 10 min)
+- Pick targets at or below your rank. "exposed" targets (>70% minutes) take 1.5x steal.
+- Avoid attacking when your minutes are low — combat power drops to 50% at 0 minutes.
 ### Phase 4: Crew & Turf (Rank 2+, clean cash)
 - Create crew ($${CREW_CREATE_COST} clean) -> fund treasury -> buy HQ ($50k) -> upgrade tiers
 - Turfs: claim ($${TURF_CLAIM_COST} clean) for +20% dealer revenue, install rackets for passive income
@@ -438,8 +441,6 @@ function buildSystemPrompt(state, recentActions = [], recentDistricts = []) {
     ? `ACTIVE: ${myContracts}${offeredContracts ? '\n  Board: ' + offeredContracts : ''}`
     : (offeredContracts || 'none');
 
-  const standoff = state.active_standoff;
-
   // Dynamic context only
   return `${STATIC_SYSTEM_PREFIX}
 
@@ -448,6 +449,7 @@ ${player.username} | ${rankTitle} (${rank}/7) | XP: ${player.reputation_xp || 0}
 Dirty: $${player.dirty_cash || 0} | Clean: $${player.clean_cash || 0} | Heat: ${player.heat_level?.toFixed(1) || 0}/${HEAT_MAX} ${player.heat_level > 25 ? 'RISK' : ''}
 Season: $${player.season_revenue || 0} | Shaken: ${player.is_shaken ? 'YES' : 'No'} | Launder cap: $${player.solo_launder_remaining ?? '?'}
 Combat: ATK ${totalAtk} / DEF ${totalDef}${totalAtk === 0 && rank >= PVP_MIN_RANK ? ' (buy gear before PvP!)' : ''}
+Minutes: ${Math.round(player.pvp_minutes || 0)}/${Math.round(player.pvp_minutes_max || 100)}${(player.pvp_minutes != null && player.pvp_minutes < 15) ? ' LOW' : ''}
 ${recentDistricts.length > 1 ? `Recent districts: ${recentDistricts.join(' -> ')} (avoid revisiting)\n` : ''}${getBrokeHint(player, state)}
 ## Resources
 Inventory: ${inventory}
@@ -459,11 +461,10 @@ Contracts: ${contracts}
 
 ## Environment
 Players: ${districtPlayers}${buildMarketSummary(state.market, rank, player.current_district)}
-${standoff ? `ACTIVE STANDOFF: ${standoff.id} — Score: ${standoff.attacker_score}-${standoff.defender_score}` : ''}
 ${buildCrewSection(state, player)}
 ${buildTurfSection(state, player)}
 ${formatActionHistory(recentActions)}
-${formatAvailableActions(state, rank, availableDrugs, standoff, hasActiveContract, player)}`;
+${formatAvailableActions(state, rank, availableDrugs, hasActiveContract, player)}`;
 }
 
 // ── Auto-correct helpers ──────────────────────────────────────────────────
@@ -733,9 +734,6 @@ function getNextTickDelay(state, lastAction) {
   const cooks = state?.cook_queue || [];
   const inv = state?.inventory || {};
 
-  // Active standoff — fast ticks
-  if (state?.active_standoff) return 5000;
-
   // Just executed an action — moderate delay
   if (lastAction && lastAction !== 'wait') return 20000;
 
@@ -777,9 +775,6 @@ function tryDeterministicAction(state) {
     if (clean > 0) return { action: 'bail', params: {}, reasoning: 'In prison — bailing out' };
     return { action: 'wait', params: {}, reasoning: 'In prison — no clean cash for bail' };
   }
-
-  // Active standoff — always go to LLM for strategic RPS choice
-  if (state.active_standoff) return null;
 
   // Cook is READY — collect immediately
   const readyCook = (state.cook_queue || []).find(c => c.status === 'ready');
@@ -880,17 +875,21 @@ function deterministicFallback(state, recentDistricts = []) {
     }
   }
 
-  // 5b. Buy gear if rank 2+ and missing weapon/protection
+  // 5b. Buy gear if rank 2+ and missing weapon/protection/accessory
   if (rank >= PVP_MIN_RANK && isAvailable('buy_gear')) {
-    const clean = player.clean_cash || 0;
+    const dirty = player.dirty_cash || 0;
     const gearItems = state.gear || [];
     const hasWeapon = gearItems.some(g => g.slot === 'weapon');
     const hasProtection = gearItems.some(g => g.slot === 'protection');
-    if (!hasWeapon && clean >= 1500) {
+    const hasAccessory = gearItems.some(g => g.slot === 'accessory');
+    if (!hasWeapon && dirty >= 1000) {
       return { action: 'buy_gear', params: { gear_type: 'switchblade' }, reasoning: 'Fallback: buying first weapon' };
     }
-    if (!hasProtection && clean >= 400) {
+    if (!hasProtection && dirty >= 400) {
       return { action: 'buy_gear', params: { gear_type: 'leather_jacket' }, reasoning: 'Fallback: buying first protection' };
+    }
+    if (!hasAccessory && dirty >= 350) {
+      return { action: 'buy_gear', params: { gear_type: 'saturday_special' }, reasoning: 'Fallback: buying accessory for combat bonus' };
     }
   }
 
@@ -900,7 +899,8 @@ function deterministicFallback(state, recentDistricts = []) {
     const hasEquippedWeapon = gearItems.some(g => g.equipped && g.slot === 'weapon');
     const heat = player.heat_level || 0;
     const isShaken = !!player.is_shaken;
-    if (hasEquippedWeapon && heat < 40 && !isShaken) {
+    const pvpMinutes = player.pvp_minutes;
+    if (hasEquippedWeapon && heat < 40 && !isShaken && (pvpMinutes == null || pvpMinutes >= 15)) {
       const targets = (state.district_players || [])
         .filter(p => p.id !== player.id && (p.reputation_rank || 0) <= rank);
       if (targets.length > 0) {
@@ -1223,16 +1223,6 @@ async function run() {
       }
     }
 
-    // Note: standoff urgency is handled in the SSE loop's scheduleUrgent,
-    // and in the polling loop's notification handler below.
-    if ((kind === 'standoff_started' || kind === 'standoff_round_result') && !USE_SSE) {
-      log('info', `Urgent: ${kind} — immediate decision`);
-      if (state) {
-        try { await handleTick(state); } catch (e) {
-          log('error', `Urgent tick error: ${e.message}`);
-        }
-      }
-    }
   }
 
   // ── SSE event-driven loop ──────────────────────────────────────────
@@ -1261,20 +1251,6 @@ async function run() {
         }
       }
 
-      // Urgent decisions (standoffs) bypass the debounce but still serialize
-      async function scheduleUrgent(state, source) {
-        if (processing) return;
-        processing = true;
-        lastTickTime = Date.now();
-        try {
-          await handleTick(state);
-        } catch (e) {
-          log('error', `${source} urgent tick error: ${e.message}`);
-        } finally {
-          processing = false;
-        }
-      }
-
       stream.on('connected', () => {
         log('info', 'SSE stream connected');
       });
@@ -1293,12 +1269,6 @@ async function run() {
 
       stream.on('notification', (notif) => {
         const state = stream.gameState;
-        const kind = notif.kind || notif.event;
-        // Urgent standoff events bypass debounce
-        if ((kind === 'standoff_started' || kind === 'standoff_round_result') && state) {
-          scheduleUrgent(state, kind);
-        }
-        // Non-urgent notification handling (crew invites etc)
         handleNotification(notif, state).catch(e =>
           log('error', `Notification error: ${e.message}`)
         );

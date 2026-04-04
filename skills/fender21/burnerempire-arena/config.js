@@ -27,7 +27,7 @@ export const ARENA_API_KEY = process.env.ARENA_API_KEY || '';
 // LLM
 export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 export const OPENROUTER_BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
-export const ARENA_LLM_MODEL = process.env.ARENA_LLM_MODEL || 'qwen/qwen3-32b';
+export const ARENA_LLM_MODEL = process.env.ARENA_LLM_MODEL || 'qwen/qwen3.5-9b';
 export const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS || '384');
 export const LLM_TEMPERATURE = parseFloat(process.env.LLM_TEMPERATURE || '0.4');
 
@@ -62,12 +62,14 @@ export const DRUG_BASE_PRICE = { weed: 50, coke: 200, meth: 150, heroin: 300, pi
 export const QUALITY_TIERS = ['cut', 'standard', 'pure'];
 
 export const GEAR_CATALOG = [
-  { type: 'brass_knuckles', name: 'Brass Knuckles', slot: 'weapon', cost: 500, atk: 10, def: 0, consumable: true, special: 'press_double' },
-  { type: 'switchblade', name: 'Switchblade', slot: 'weapon', cost: 1500, atk: 5, def: 2, consumable: false },
-  { type: 'piece', name: 'Burner Piece', slot: 'weapon', cost: 3000, atk: 8, def: 0, consumable: false, special: 'win_ties' },
-  { type: 'leather_jacket', name: 'Leather Jacket', slot: 'protection', cost: 400, atk: 0, def: 6, consumable: false },
-  { type: 'kevlar_vest', name: 'Kevlar Vest', slot: 'protection', cost: 2000, atk: 0, def: 12, consumable: true, special: 'survive_loss' },
-  { type: 'plated_carrier', name: 'Plated Carrier', slot: 'protection', cost: 5000, atk: 0, def: 15, consumable: true, special: 'survive_loss' },
+  { type: 'brass_knuckles', name: 'Brass Knuckles', slot: 'weapon', cost: 500, atk: 10, def: 0, consumable: true, special: 'power_surge', special_desc: '+5 ATK when attacking (1-use)' },
+  { type: 'switchblade', name: 'Switchblade', slot: 'weapon', cost: 1000, atk: 7, def: 3, consumable: false, special: 'first_strike', special_desc: '+3 ATK when initiating attack' },
+  { type: 'piece', name: 'Burner Piece', slot: 'weapon', cost: 3000, atk: 8, def: 0, consumable: false, special: 'tie_breaker', special_desc: 'Win close fights, no PvP heat' },
+  { type: 'leather_jacket', name: 'Leather Jacket', slot: 'protection', cost: 400, atk: 0, def: 6, consumable: false, special: null, special_desc: null },
+  { type: 'kevlar_vest', name: 'Kevlar Vest', slot: 'protection', cost: 2000, atk: 0, def: 12, consumable: true, special: 'damage_control', special_desc: 'Reduce losses by 50% (1-use)' },
+  { type: 'plated_carrier', name: 'Plated Carrier', slot: 'protection', cost: 5000, atk: 0, def: 15, consumable: true, special: 'fortress', special_desc: 'Reduce losses by 75%, skip shaken (1-use)' },
+  { type: 'saturday_special', name: 'Saturday Night Special', slot: 'accessory', cost: 350, atk: 3, def: 0, consumable: true, special: 'big_score', special_desc: '1.5x stakes on win (1-use)' },
+  { type: 'lucky_coin', name: 'Lucky Coin', slot: 'accessory', cost: 1200, atk: 2, def: 2, consumable: false, special: 'edge', special_desc: '+10% combat power' },
 ];
 
 // Heat
@@ -78,7 +80,12 @@ export const BRIBE_COST_PER_HEAT = 50;
 
 // PvP
 export const PVP_MIN_RANK = 2;
-export const STANDOFF_MAX_ROUNDS = 5;
+export const PVP_ACTION_COSTS = { snitch: 0, rob: 200, hit: 0, intimidate: 100 };
+
+// PvP Minutes
+export const MINUTES_MAX = 100;
+export const MINUTES_COST = { snitch: 5, rob: 15, intimidate: 10, hit: 25 };
+export const MINUTES_COMBAT_FLOOR = 0.5;
 
 // Cash reserve — never launder below this amount of dirty cash
 export const AGENT_DIRTY_CASH_RESERVE = 250;

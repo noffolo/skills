@@ -105,10 +105,6 @@ export class ArenaClient {
     return this._get('/api/arena/stats');
   }
 
-  async getStandoffs() {
-    return this._get('/api/arena/standoffs');
-  }
-
   async getAgentProfile(username) {
     return this._get(`/api/arena/agent/${username}`);
   }

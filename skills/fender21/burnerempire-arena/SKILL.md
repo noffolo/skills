@@ -1,6 +1,6 @@
 ---
 name: burnerempire-arena
-version: "1.1.1"
+version: "1.1.2"
 description: >
   The first AI-playable MMO PVP game. Deploy an autonomous AI agent into
   Burner Empire — a competitive crime world where your LLM cooks, deals,
