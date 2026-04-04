@@ -3,9 +3,15 @@
   "slug": "phantombuster-integration",
   "displayName": "Phantombuster",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773172987980,
-    "commit": "https://github.com/openclaw/skills/commit/e9caa5a5234b91007994b944ad55c7657b8e2001"
+    "version": "1.0.2",
+    "publishedAt": 1775163139016,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773172987980,
+      "commit": "https://github.com/openclaw/skills/commit/e9caa5a5234b91007994b944ad55c7657b8e2001"
+    }
+  ]
 }
