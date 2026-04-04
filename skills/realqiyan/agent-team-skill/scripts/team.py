@@ -7,6 +7,7 @@ Data is stored in ~/.agent-team/team.json by default, or a custom path via --dat
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -23,10 +24,18 @@ def set_data_file(path: str | None) -> None:
 
 def get_data_file() -> Path:
     """Get the path to the team data file."""
+    # 1. Check environment variable (for test isolation)
+    env_path = os.environ.get("AGENT_TEAM_DATA_FILE")
+    if env_path:
+        return Path(env_path)
+
+    # 2. Check global override (--data-file CLI arg)
     if _data_file_path:
         data_file = _data_file_path
         data_file.parent.mkdir(parents=True, exist_ok=True)
         return data_file
+
+    # 3. Default production path
     data_dir = Path.home() / ".agent-team"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir / "team.json"
@@ -73,33 +82,52 @@ def list_members() -> None:
     print("## Team Members")
     print()
 
+    # Group members by 'group' field
+    grouped: dict[str, list] = {}
     for member_id, member in team.items():
-        name = member.get("name", "")
-        role = member.get("role", "")
-        is_leader = member.get("is_leader", False)
-        tags = member.get("tags", [])
-        expertise = member.get("expertise", [])
-        not_good_at = member.get("not_good_at", [])
+        group_name = member.get("group", "")
+        if group_name not in grouped:
+            grouped[group_name] = []
+        grouped[group_name].append((member_id, member))
 
-        # First line: name, role, tags
-        tags_str = ",".join(tags)
-        if is_leader:
-            print(f"**{name}** ⭐ {role} - {tags_str}")
-        else:
-            print(f"**{name}** - {role} - {tags_str}")
+    # Display grouped members
+    for group_name, members in grouped.items():
+        if group_name:
+            print(f"### Group: {group_name}")
+            print()
 
-        # agent_id line
-        print(f"- agent_id: {member_id}")
+        for member_id, member in members:
+            name = member.get("name", "")
+            role = member.get("role", "")
+            is_leader = member.get("is_leader", False)
+            tags = member.get("tags", [])
+            expertise = member.get("expertise", [])
+            not_good_at = member.get("not_good_at", [])
+            load_workflow = member.get("load_workflow")
 
-        # expertise line
-        if expertise:
-            print(f"- expertise: {','.join(expertise)}")
+            # First line: name, role, tags
+            tags_str = ",".join(tags)
+            if is_leader:
+                print(f"**{name}** ⭐ {role} - {tags_str}")
+            else:
+                print(f"**{name}** - {role} - {tags_str}")
 
-        # not_good_at line
-        if not_good_at:
-            print(f"- not_good_at: {','.join(not_good_at)}")
+            # agent_id line
+            print(f"- agent_id: {member_id}")
 
-        print()
+            # expertise line
+            if expertise:
+                print(f"- expertise: {','.join(expertise)}")
+
+            # not_good_at line
+            if not_good_at:
+                print(f"- not_good_at: {','.join(not_good_at)}")
+
+            # load_workflow line
+            if load_workflow is not None:
+                print(f"- load_workflow: {load_workflow}")
+
+            print()
 
     # Find leader for summary
     leader = next((m for m in team.values() if m.get("is_leader")), None)
@@ -116,17 +144,22 @@ def update_member(
     tags: str,
     expertise: str,
     not_good_at: str,
+    load_workflow: str | None = None,
+    group: str | None = None,
 ) -> None:
     """Add or update a team member."""
     data = load_data()
     is_new = agent_id not in data["team"]
 
+    # Get existing member data for merge behavior
+    existing_member = data["team"].get(agent_id, {})
+
     # If setting this member as leader, remove leader status from others
     if is_leader:
-        for existing_id, existing_member in data["team"].items():
-            if existing_id != agent_id and existing_member.get("is_leader"):
-                existing_member["is_leader"] = False
-                print(f"Note: Removed leader status from {existing_member.get('name', existing_id)}")
+        for existing_id, existing_member_data in data["team"].items():
+            if existing_id != agent_id and existing_member_data.get("is_leader"):
+                existing_member_data["is_leader"] = False
+                print(f"Note: Removed leader status from {existing_member_data.get('name', existing_id)}")
 
     member = {
         "agent_id": agent_id,
@@ -138,6 +171,18 @@ def update_member(
         "expertise": [e.strip() for e in expertise.split(",") if e.strip()],
         "not_good_at": [n.strip() for n in not_good_at.split(",") if n.strip()],
     }
+
+    # Preserve or update load_workflow
+    if load_workflow is not None:
+        member["load_workflow"] = load_workflow == "true"
+    elif "load_workflow" in existing_member:
+        member["load_workflow"] = existing_member["load_workflow"]
+
+    # Preserve or update group
+    if group is not None and group.strip():
+        member["group"] = group.strip()
+    elif "group" in existing_member:
+        member["group"] = existing_member["group"]
 
     data["team"][agent_id] = member
     save_data(data)
@@ -183,6 +228,13 @@ def main():
     update_parser.add_argument(
         "--not-good-at", required=True, help="Weak areas (comma separated)"
     )
+    update_parser.add_argument(
+        "--load-workflow", choices=["true", "false"],
+        help="Whether to load workflow prompts (default: true for leader, false for others)"
+    )
+    update_parser.add_argument(
+        "--group", help="Group name for categorization"
+    )
 
     args = parser.parse_args()
 
@@ -207,6 +259,8 @@ def main():
             tags=args.tags,
             expertise=args.expertise,
             not_good_at=args.not_good_at,
+            load_workflow=args.load_workflow,
+            group=args.group,
         )
 
 

@@ -15,11 +15,10 @@ The plugin provides these advantages over manually calling the skill:
 The plugin injects:
 
 - **Team Members**: Names, roles, expertise, and weaknesses
-- **Leader Responsibilities**: No blind forwarding, critical thinking, drive improvements, take responsibility
-- **Task Execution Flow**: SEARCH → RECORD → ORIENT → DISPATCH → REVIEW → UPDATE
-- **Complex Task Rules**: Plan file workflow for tasks with >3 tool calls
-- **Templates**: Progress log and plan file templates
-- **Delegation Rules**: When and how to delegate tasks
+- **Leader Authority**: Approve task completion, reassign when delegation fails
+- **Task Processing Flow**: Plan → Do → Check → Act (PDCA cycle)
+- **Recording Rules**: Progress tracking in `memory/YYYY-MM-DD.md`
+- **Task Delegation Rules**: Timing and process for delegating tasks to teammates
 
 ## Installation
 
@@ -102,18 +101,44 @@ Team data is stored in JSON format:
       "enabled": true,
       "tags": ["backend", "database"],
       "expertise": ["python", "postgresql"],
-      "not_good_at": ["frontend", "design"]
+      "not_good_at": ["frontend", "design"],
+      "load_workflow": true,
+      "group": "backend-team"
     }
   }
 }
 ```
 
+### New Fields (Optional)
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `load_workflow` | boolean | `true` for leader, `false` for others | Whether to inject PDCA workflow prompts |
+| `group` | string | `null` | Group name for categorizing members |
+
+These fields are optional and backward compatible with older data files.
+
 ## How It Works
 
 1. Plugin loads when OpenClaw Gateway starts
 2. Every time AI prompt is built, `before_prompt_build` event triggers
-3. Plugin reads team data file and formats as Markdown
-4. Team information is appended to system context via `appendSystemContext`
+3. Plugin receives `agentId` from OpenClaw context to identify current agent
+4. Plugin reads team data file and formats as Markdown
+5. **Leader Responsibilities section is only injected if current agent is the team leader**
+6. Team information is appended to system context via `appendSystemContext`
+
+### Context-Aware Injection
+
+The plugin uses `PluginHookAgentContext.agentId` to determine which agent is running:
+
+- **If current agent is the leader** (matches `team[id].is_leader === true`):
+  - Injects full Team Members + Leader Authority
+  - Injects Task Processing Flow only if `load_workflow` is true (default)
+
+- **If current agent is NOT the leader**:
+  - No team context is injected (plugin returns empty)
+
+This ensures only the designated leader receives leadership-related prompts, and the PDCA workflow can be disabled per-member using `load_workflow: false`.
 
 ## Relationship with Skill
 
@@ -139,8 +164,20 @@ python3 scripts/team.py update \
   --enabled true \
   --tags "backend,database" \
   --expertise "python,postgresql" \
-  --not-good-at "frontend,design"
+  --not-good-at "frontend,design" \
+  --load-workflow true \
+  --group "backend-team"
 
 # Reset data
 python3 scripts/team.py reset
 ```
+
+## Slash Command
+
+The plugin registers a `/agent-team` command that displays current team members:
+
+```
+/agent-team
+```
+
+This command returns a formatted list of all team members with their roles, expertise, and other details. It's useful for quickly checking the team configuration without invoking the AI agent.

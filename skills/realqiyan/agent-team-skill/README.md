@@ -13,15 +13,17 @@ The skill consists of two components that work together:
 
 The plugin reads team data from `~/.agent-team/team.json` and injects it into the AI agent's context, enabling:
 - Team member awareness
+- Leader authority (approve completion, reassign tasks)
+- PDCA workflow: Plan → Do → Check → Act
 - Task delegation rules
-- Six-phase workflow: SEARCH → RECORD → ORIENT → DISPATCH → REVIEW → UPDATE
+- Progress recording in `memory/YYYY-MM-DD.md`
 
 ## Features
 
 - 👥 **Member Management** - Manage team member information including skills, roles, and task assignment
-- 👑 **Leader Identification** - Support for team Leader marking (only one Leader per team)
-- 🔍 **Smart Routing** - Match tasks based on member expertise
-- 📊 **Capability Assessment** - Understand each member's strengths and weaknesses
+- 👑 **Leader Authority** - Leader can approve task completion and reassign when delegation fails
+- 🔄 **PDCA Workflow** - Plan → Do → Check → Act task processing cycle
+- 📝 **Progress Recording** - Track task progress in `memory/YYYY-MM-DD.md`
 - ⚡ **Auto Injection** - Plugin automatically loads team information at session start
 - 🌐 **Global Sharing** - Team data is globally shared across sessions
 
@@ -167,10 +169,8 @@ Data is stored in JSON format:
 
 ## Use Cases
 
-- **Team Building**: Record all team members and their skill information
+- **Team Maintenance**: Record all members and their skill information
 - **Task Assignment**: Assign tasks based on member expertise and tags
-- **Capability Assessment**: Understand each member's strengths and weaknesses
-- **Team Collaboration**: Quickly find members with specific skills
 
 ## Testing
 

@@ -19,6 +19,8 @@ interface TeamMember {
   tags: string[];
   expertise: string[];
   not_good_at: string[];
+  load_workflow?: boolean;
+  group?: string;
 }
 
 interface TeamData {
@@ -30,11 +32,22 @@ interface PluginConfig {
   enabled?: boolean;
 }
 
-interface BeforePromptBuildContext {
-  messages?: unknown[];
+interface PluginHookAgentContext {
+  agentId?: string;
+  sessionKey?: string;
+  sessionId?: string;
+  workspaceDir?: string;
+  messageProvider?: string;
+  trigger?: string;
+  channelId?: string;
 }
 
-interface BeforePromptBuildResult {
+interface PluginHookBeforePromptBuildEvent {
+  prompt: string;
+  messages: unknown[];
+}
+
+interface PluginHookBeforePromptBuildResult {
   prependContext?: string;
   systemPrompt?: string;
   prependSystemContext?: string;
@@ -45,9 +58,26 @@ interface PluginApi {
   config: PluginConfig;
   on: (
     event: "before_prompt_build",
-    handler: (event: string, ctx: BeforePromptBuildContext) => BeforePromptBuildResult,
+    handler: (
+      event: PluginHookBeforePromptBuildEvent, 
+      ctx: PluginHookAgentContext
+    ) => PluginHookBeforePromptBuildResult | void,
     options?: { priority?: number }
   ) => void;
+  registerCommand: (command: {
+    name: string;
+    description?: string;
+    acceptsArgs?: boolean;
+    requireAuth?: boolean;
+    handler: (ctx: {
+      senderId?: string;
+      channel?: string;
+      isAuthorizedSender?: boolean;
+      args?: string;
+      commandBody?: string;
+      config?: unknown;
+    }) => { text: string } | Promise<{ text: string }>;
+  }) => void;
 }
 
 // Default data file path
@@ -74,17 +104,72 @@ function loadTeamData(dataFilePath: string): TeamData | null {
 }
 
 /**
- * Format team data as markdown for system context
+ * Format a single team member as markdown line
+ * @param member Team member to format
+ * @param options Formatting options
  */
-function formatTeamContext(teamData: TeamData): string {
+function formatMember(member: TeamMember, options: { compact?: boolean } = {}): string[] {
+  const { compact = false } = options;
+  const tagsStr = compact ? member.tags.join(",") : member.tags.join(", ");
+  const expertiseStr = member.expertise.join(compact ? "," : ", ");
+  const notGoodAtStr = member.not_good_at.join(compact ? "," : ", ");
+
+  const lines: string[] = [];
+
+  if (member.is_leader) {
+    if (compact) {
+      lines.push(`**${member.name}** ⭐ ${member.role} - ${tagsStr}`);
+    } else {
+      lines.push(`**${member.name}** ⭐ ${member.role} (Leader)`);
+    }
+  } else {
+    if (compact) {
+      lines.push(`**${member.name}** - ${member.role} - ${tagsStr}`);
+    } else {
+      lines.push(`**${member.name}** - ${member.role}`);
+    }
+  }
+
+  if (compact) {
+    lines.push(`- agent_id: ${member.agent_id}`);
+  } else {
+    lines.push(`- agent_id: \`${member.agent_id}\``);
+  }
+
+  if (tagsStr && !compact) {
+    lines.push(`- tags: ${tagsStr}`);
+  }
+
+  if (expertiseStr) {
+    lines.push(`- expertise: ${expertiseStr}`);
+  }
+
+  if (notGoodAtStr) {
+    lines.push(`- not_good_at: ${notGoodAtStr}`);
+  }
+
+  // Show load_workflow if set
+  if (member.load_workflow !== undefined) {
+    lines.push(`- load_workflow: ${member.load_workflow}`);
+  }
+
+  return lines;
+}
+
+/**
+ * Format team data as markdown for system context
+ * @param teamData Team data from JSON file
+ * @param currentAgentId The agent ID of the current session (used to determine leader role)
+ */
+function formatTeamContext(teamData: TeamData, currentAgentId: string): string {
   const members = Object.values(teamData.team).filter((m) => m.enabled !== false);
 
   if (members.length === 0) {
     return "";
   }
 
-  // Find leader
   const leader = members.find((m) => m.is_leader);
+  const isCurrentAgentLeader = leader?.agent_id === currentAgentId;
 
   const lines: string[] = [
     "",
@@ -93,130 +178,37 @@ function formatTeamContext(teamData: TeamData): string {
     "",
   ];
 
+  // Group members by 'group' field
+  const grouped: Record<string, TeamMember[]> = {};
   for (const member of members) {
-    const name = member.name;
-    const role = member.role;
-    const isLeader = member.is_leader;
-    const tagsStr = member.tags.join(",");
-    const expertiseStr = member.expertise.join(",");
-    const notGoodAtStr = member.not_good_at.join(",");
-
-    // First line: name, role, tags
-    if (isLeader) {
-      lines.push(`**${name}** ⭐ ${role} - ${tagsStr}`);
-    } else {
-      lines.push(`**${name}** - ${role} - ${tagsStr}`);
+    const groupKey = member.group ?? "";
+    if (!grouped[groupKey]) {
+      grouped[groupKey] = [];
     }
+    grouped[groupKey].push(member);
+  }
 
-    // agent_id line
-    lines.push(`- agent_id: ${member.agent_id}`);
+  // Display grouped members (ungrouped first, then grouped)
+  const ungrouped = grouped[""] || [];
+  const groupedKeys = Object.keys(grouped).filter((k) => k !== "").sort();
 
-    // expertise line
-    if (expertiseStr) {
-      lines.push(`- expertise: ${expertiseStr}`);
-    }
-
-    // not_good_at line
-    if (notGoodAtStr) {
-      lines.push(`- not_good_at: ${notGoodAtStr}`);
-    }
-
+  // Ungrouped members
+  for (const member of ungrouped) {
+    lines.push(...formatMember(member, { compact: true }));
     lines.push("");
   }
 
-  // Add team collaboration rules
-  lines.push("## 🤝 Team Collaboration Rules (Highest Priority - Violation = Critical Error)");
-  lines.push("");
-  lines.push("### 🎯 Leader Responsibilities");
-  lines.push("");
-  if (leader) {
-    lines.push(`**Current Leader: ${leader.name} (${leader.agent_id})**`);
+  // Grouped members
+  for (const groupKey of groupedKeys) {
+    lines.push(`### Group: ${groupKey}`);
     lines.push("");
+    for (const member of grouped[groupKey]) {
+      lines.push(...formatMember(member, { compact: true }));
+      lines.push("");
+    }
   }
-  lines.push("**Communication is basic, but you are responsible for results:**");
-  lines.push("");
-  lines.push("1. **No blind forwarding**");
-  lines.push("   - Receive task → Assess responsibility → Delegate to the right person");
-  lines.push("   - Clarify requirements before delegating, check output after");
-  lines.push("");
-  lines.push("2. **Critical thinking**");
-  lines.push("   - Challenge problems and results");
-  lines.push("   - If it doesn't meet requirements → Request improvements, don't just pass it along");
-  lines.push("");
-  lines.push("3. **Drive improvements**");
-  lines.push("   - Identify problems and risks");
-  lines.push("   - Proactively discover and solve issues");
-  lines.push("");
-  lines.push("4. **Take responsibility for results**");
-  lines.push("   - Team member's output = Your responsibility");
-  lines.push("   - Quality not up to standard → Provide feedback and iterate until it is");
-  lines.push("");
-  lines.push("## 🔄 Task Execution Rules (Highest Priority - Violation = Critical Error)");
-  lines.push("");
-  lines.push("**SEARCH → RECORD → ORIENT → PLAN → DISPATCH → REVIEW → UPDATE**");
-  lines.push("");
-  lines.push("**IMPORTANT: All tasks must follow this flow without exception.**");
-  lines.push("");
-  lines.push("### 1. SEARCH — Context Search");
-  lines.push("- Do NOT reply immediately");
-  lines.push("- Search historical memory for relevant context first");
-  lines.push("");
-  lines.push("### 2. RECORD — Progress Logging");
-  lines.push("- Record to `memory/YYYY-MM-DD.md`:");
-  lines.push("  ```");
-  lines.push("  ## In Progress");
-  lines.push("  ### [Task Name] (HH:MM start)");
-  lines.push("  - Progress: xxx");
-  lines.push("  ```");
-  lines.push("- Upon completion, update to:");
-  lines.push("  ```");
-  lines.push("  ### [Task Name] (HH:MM start) ✅");
-  lines.push("  - End time: HH:MM | Result: xxx");
-  lines.push("  ```");
-  lines.push("");
-  lines.push("### 3. ORIENT — Orientation Phase");
-  lines.push("- **Understand Requirements**: What does the user really want?");
-  lines.push("- **Interview**: Clarify unclear requirements (max 5 questions / 2 rounds, prefer multiple choice)");
-  lines.push("- **Clarify Goals**: What's the deliverable? Success criteria?");
-  lines.push("- **Identify Risks**: What could go wrong?");
-  lines.push("- **Determine Responsibility**: Who's best suited to execute?");
-  lines.push("");
-  lines.push("### 4. PLAN — Create Execution Plan");
-  lines.push("- Create `work/task-name-plan.md`:");
-  lines.push("  ```");
-  lines.push("  # [Task Name] Plan");
-  lines.push("  Created: YYYY-MM-DD HH:MM");
-  lines.push("");
-  lines.push("  ## Goal");
-  lines.push("  [One-line description of deliverable]");
-  lines.push("");
-  lines.push("  ## Steps");
-  lines.push("  - [ ] Step 1: xxx");
-  lines.push("  - [ ] Step 2: xxx");
-  lines.push("");
-  lines.push("  ## Current Progress");
-  lines.push("  Executing: Step 1");
-  lines.push("  ```");
-  lines.push("- After each step: Check off `[x]` and update \"Current Progress\"");
-  lines.push("- When context fills up: Ensure plan file is updated before compression");
-  lines.push("");
-  lines.push("### 5. DISPATCH — Delegate/Execute");
-  lines.push("- Determine task ownership (self or team member)");
-  lines.push("- **Belongs to team member** → Delegate with full context (SEARCH history + original requirements)");
-  lines.push("- **Belongs to self** → Execute directly");
-  lines.push("- After each Phase: Create checkpoint:");
-  lines.push("  ```bash");
-  lines.push("  git add -A && git commit -m \"checkpoint: [Task Name] Phase X complete\"");
-  lines.push("  ```");
-  lines.push("");
-  lines.push("### 6. REVIEW — Check Task Results");
-  lines.push("- Review completed work against requirements");
-  lines.push("- If task incomplete → Loop back to SEARCH");
-  lines.push("");
-  lines.push("### 7. UPDATE — Update Progress Status");
-  lines.push("- Delete plan file or move to `archive/`");
-  lines.push("- Update final status in `memory/YYYY-MM-DD.md`");
-  lines.push("");
+
+  // Task Delegation Rules - always show after Team Members
   lines.push("### ⚡ Task Delegation Rules (Core Principle)");
   lines.push("");
   lines.push("**Delegation Timing:**");
@@ -224,6 +216,61 @@ function formatTeamContext(teamData: TeamData): string {
   lines.push("2. When entering implementation: identify the best person for execution, delegate to them");
   lines.push("3. Follow up after delegation: check output quality, ensure requirements are met");
   lines.push("");
+  lines.push("**Delegation Context (what to pass):**");
+  lines.push("When delegating, always provide:");
+  lines.push("- Original requirements and success criteria");
+  lines.push("- Relevant background and context");
+  lines.push("- Your execution plan and any constraints");
+  lines.push("- Expected output format");
+  lines.push("");
+  lines.push("**Delegation Failover:**");
+  lines.push("If teammate fails to complete:");
+  lines.push("1. First attempt: Send back with specific feedback for revision");
+  lines.push("2. Second attempt: Reassign to another teammate with adjusted context");
+  lines.push("3. Third attempt: Escalate to leader OR execute yourself");
+  lines.push("");
+
+  // Add PDCA workflow if load_workflow is true (default true for leader)
+  const shouldLoadWorkflow = leader?.load_workflow ?? true;
+  if (shouldLoadWorkflow) {
+    lines.push("## 🔄 Task Processing Flow (Highest Priority)");
+    lines.push("");
+    lines.push("**Plan → Do → Check → Act**");
+    lines.push("");
+    lines.push("**IMPORTANT: This is a continuous improvement cycle. If task is incomplete in Act phase, loop back to Plan.**");
+    lines.push("");
+    lines.push("### 1. Plan — Planning Phase");
+    lines.push("");
+    lines.push("**Goal: Prepare thoroughly, avoid blind execution**");
+    lines.push("");
+    lines.push("- Understand requirements and clarify questions");
+    lines.push("- Define goals and success criteria");
+    lines.push("- Identify risks and determine ownership");
+    lines.push("- Create execution plan");
+    lines.push("");
+    lines.push("### 2. Do — Execution Phase");
+    lines.push("");
+    lines.push("**Goal: Execute the plan while maintaining progress**");
+    lines.push("");
+    lines.push("- Execute or delegate based on ownership");
+    lines.push("- Track progress and key decisions");
+    lines.push("");
+    lines.push("### 3. Check — Checking Phase");
+    lines.push("");
+    lines.push("**Goal: Verify results against requirements**");
+    lines.push("");
+    lines.push("- Verify completeness and quality");
+    lines.push("- Check compliance with standards");
+    lines.push("");
+    lines.push("### 4. Act — Acting Phase");
+    lines.push("");
+    lines.push("**Goal: Summarize and decide next steps**");
+    lines.push("");
+    lines.push("- ✅ Task complete → End");
+    lines.push("- ❌ Task incomplete → Loop back to Plan");
+    lines.push("");
+  }
+
   lines.push("</agent_team>");
 
   return lines.join("\n");
@@ -241,10 +288,29 @@ export default function register(api: PluginApi): void {
     return;
   }
 
+  // Register /agent-team command
+  api.registerCommand({
+    name: "agent-team",
+    description: "Show current team members",
+    handler: (ctx) => {
+      const dataFile = config.dataFile || DEFAULT_DATA_FILE;
+      const teamData = loadTeamData(dataFile);
+
+      if (!teamData) {
+        return { text: `No team data found at ${dataFile}` };
+      }
+
+      // Use senderId to determine what would be injected
+      const senderId = ctx.senderId || "main";
+      const text = formatTeamContext(teamData, senderId);
+      return { text };
+    },
+  });
+
   // Register before_prompt_build hook
   api.on(
     "before_prompt_build",
-    (_event: string, _ctx: BeforePromptBuildContext) => {
+    (_event: PluginHookBeforePromptBuildEvent, ctx: PluginHookAgentContext) => {
       const dataFile = config.dataFile || DEFAULT_DATA_FILE;
       const teamData = loadTeamData(dataFile);
 
@@ -253,13 +319,25 @@ export default function register(api: PluginApi): void {
         return {};
       }
 
-      const context = formatTeamContext(teamData);
-      if (!context) {
+      const members = Object.values(teamData.team).filter((m) => m.enabled !== false);
+      if (members.length === 0) {
         console.log("[agent-team] No enabled team members");
         return {};
       }
 
-      console.log(`[agent-team] Injecting team context (${Object.keys(teamData.team).length} members)`);
+      // Get current agent ID from context, default to "main"
+      const currentAgentId = ctx.agentId || "main";
+      const leader = members.find((m) => m.is_leader);
+      const isCurrentAgentLeader = leader?.agent_id === currentAgentId;
+
+      // Only inject team context for leader
+      if (!isCurrentAgentLeader) {
+        console.log(`[agent-team] Agent "${currentAgentId}" is not leader, skipping team context injection`);
+        return {};
+      }
+
+      const context = formatTeamContext(teamData, currentAgentId);
+      console.log(`[agent-team] Injecting team context for leader "${currentAgentId}" (${members.length} members)`);
 
       return {
         appendSystemContext: context,

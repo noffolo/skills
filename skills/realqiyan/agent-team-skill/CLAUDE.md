@@ -9,7 +9,7 @@ An AI agent team collaboration tool consisting of two components:
 1. **Plugin** (`integrations/openclaw/agent-team/`) - OpenClaw native plugin that auto-injects team information and collaboration rules into system context
 2. **Skill** (`scripts/team.py`) - CLI tool for managing team member data (CRUD operations)
 
-The plugin must be installed for the skill to work properly. It injects the six-phase task execution flow: SEARCH → RECORD → ORIENT → DISPATCH → REVIEW → UPDATE.
+The plugin must be installed for the skill to work properly. It injects the PDCA workflow: Plan → Do → Check → Act, with leader-specific authority rules.
 
 ## Commands
 
@@ -21,7 +21,16 @@ python3 scripts/team.py reset
 
 # Run tests
 python3 -m pytest tests/ -v
+
+# Run specific test
+python3 -m pytest tests/test_team.py::test_list_empty -v
 ```
+
+## Key Patterns
+
+- **Context-Aware Injection**: Plugin checks `ctx.agentId` and only injects "Leader Authority" section to the designated leader
+- **Single-Leader Constraint**: Setting a new leader automatically removes leader status from all others
+- **Graceful Degradation**: Both components handle missing/invalid data files gracefully (return empty state)
 
 ## Architecture
 
