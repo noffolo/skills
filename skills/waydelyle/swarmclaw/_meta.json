@@ -1,11 +1,17 @@
 {
   "owner": "waydelyle",
   "slug": "swarmclaw",
-  "displayName": "Swarmclaw",
+  "displayName": "Swarmclaw Skill",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1773763887833,
-    "commit": "https://github.com/openclaw/skills/commit/f8592406c00c7363f2c7af493ce0f42f8a768482"
+    "version": "2.3.0",
+    "publishedAt": 1775231095825,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1773763887833,
+      "commit": "https://github.com/openclaw/skills/commit/f8592406c00c7363f2c7af493ce0f42f8a768482"
+    }
+  ]
 }
