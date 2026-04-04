@@ -3,11 +3,16 @@
   "slug": "moneyclaw",
   "displayName": "MoneyClaw",
   "latest": {
-    "version": "5.5.2",
-    "publishedAt": 1774750968273,
-    "commit": "https://github.com/openclaw/skills/commit/0c49a820c03582f950c48711cc8084b49eeb8589"
+    "version": "5.5.3",
+    "publishedAt": 1774835525973,
+    "commit": null
   },
   "history": [
+    {
+      "version": "5.5.2",
+      "publishedAt": 1774750968273,
+      "commit": "https://github.com/openclaw/skills/commit/0c49a820c03582f950c48711cc8084b49eeb8589"
+    },
     {
       "version": "5.2.1",
       "publishedAt": 1774258613938,
