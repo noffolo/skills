@@ -3,9 +3,15 @@
   "slug": "baserow-integration",
   "displayName": "Baserow",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773191024201,
-    "commit": "https://github.com/openclaw/skills/commit/4c78403257db03974d210549da3f7aec124d01e7"
+    "version": "1.0.3",
+    "publishedAt": 1775163296896,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773191024201,
+      "commit": "https://github.com/openclaw/skills/commit/4c78403257db03974d210549da3f7aec124d01e7"
+    }
+  ]
 }
