@@ -253,7 +253,8 @@ Each cycle compounds: more alpha = more capacity = more energy to sell = more to
 
 ### Provider Management
 
-- Grant guild access: Use `permission-guild-rank-set [provider-id] [guild-id] [rank] PermProviderOpen` — `provider-guild-grant`/`provider-guild-revoke` removed in v0.15/111
+- Grant guild members access (for `guild-market` providers): `permission-guild-rank-set [provider-id] [guild-id] 262144 [rank]` (PermProviderOpen -- guild members at or above the specified rank can open agreements)
+- Revoke guild access: `permission-guild-rank-revoke [provider-id] [guild-id] 262144`
 - Update terms: `provider-update-capacity-maximum`, `provider-update-duration-minimum`, etc.
 - Delete provider: `provider-delete [provider-id]` (close agreements first)
 

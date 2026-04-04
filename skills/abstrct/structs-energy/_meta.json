@@ -3,11 +3,16 @@
   "slug": "structs-energy",
   "displayName": "Structs Energy",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1774718057314,
-    "commit": "https://github.com/openclaw/skills/commit/ed016cb2d1bb74168e298497938c70246e53c8f9"
+    "version": "1.2.0",
+    "publishedAt": 1774840316832,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1774718057314,
+      "commit": "https://github.com/openclaw/skills/commit/ed016cb2d1bb74168e298497938c70246e53c8f9"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1772479236751,
