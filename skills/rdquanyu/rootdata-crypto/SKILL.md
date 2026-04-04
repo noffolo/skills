@@ -1,8 +1,8 @@
 ---
 name: "rootdata-crypto"
-version: "1.0.2"
-description: "Query crypto project details, Web3 investor info, funding rounds, and trending projects from RootData. Use this skill when the user asks about blockchain projects, crypto investors, Web3 funding history, investment rounds, or trending crypto projects."
-tags: ["crypto", "web3", "blockchain", "investors", "funding", "projects", "defi"]
+version: "1.0.3"
+description: "Query crypto project details, Web3 investor info, funding rounds, trending projects, and personnel job changes from RootData. Use this skill when the user asks about blockchain projects, crypto investors, Web3 funding history, investment rounds, trending crypto projects, or personnel movements in the crypto industry."
+tags: ["crypto", "web3", "blockchain", "investors", "funding", "projects", "defi", "personnel", "jobs"]
 requires:
   env:
     - ROOTDATA_SKILL_KEY
@@ -10,7 +10,7 @@ requires:
 
 # RootData Crypto Intelligence
 
-RootData is a leading Web3 data platform covering crypto projects, investors, and funding data.
+RootData is a leading Web3 data platform covering crypto projects, investors, funding data, and personnel movements.
 
 ## First-Time Setup
 
@@ -126,7 +126,9 @@ Or query by contract address:
 
 **When to use**: User asks about funding history, investment rounds, "how much did XX raise", or "who invested in XX".
 
-**Data range**: Covers funding rounds from 2018 onwards. If user asks about data before 2018, inform them that the earliest available data starts from 2018-01.
+**Data range**: Covers funding rounds from the **past 365 days only**. If user requests data older than one year, the API will automatically return only the most recent 365 days of data.
+
+**Investor limit**: Each funding round returns a maximum of **3 investors** (prioritized by lead investors first).
 
 **Request**:
 
@@ -137,8 +139,8 @@ Body:
   "page": 1,
   "page_size": 20,
   "project_id": <optional, filter by specific project>,
-  "start_time": "<optional, format: yyyy-MM, e.g. 2024-01>",
-  "end_time": "<optional, format: yyyy-MM, e.g. 2025-12>",
+  "start_time": "<optional, format: yyyy-MM-dd or yyyy-MM, e.g. 2025-01-01>",
+  "end_time": "<optional, format: yyyy-MM-dd or yyyy-MM, e.g. 2026-03-30>",
   "min_amount": <optional, minimum funding amount in USD>,
   "max_amount": <optional, maximum funding amount in USD>
 }
@@ -150,16 +152,24 @@ All fields are optional. Omit any field not specified by the user.
 - `total` — total number of matching records
 - `items` — list of funding rounds, each containing:
   - `name` — project name
+  - `logo` — project logo
   - `rounds` — round type (Seed / Series A / Series B / etc.)
   - `published_time` — announcement date
   - `amount` — funding amount (USD)
-  - `valuation` — post-money valuation (USD)
+  - `project_id` — project ID
+  - `data_status` — data verification status
   - `source_url` — original news source link
-  - `invests` — list of investors, each with:
+  - `X` — project's X (Twitter) URL
+  - `one_liner` — project brief description
+  - `invests` — list of investors (max 3), each with:
     - `name` — investor name
-    - `lead_investor` — whether lead investor
-    - `type` — 1=Institution, 2=Project, 3=Person
+    - `logo` — investor logo
+    - `lead_investor` — whether lead investor (1=yes, 0=no)
+    - `type` — 1=Project, 2=Institution, 3=Person
+    - `invest_id` — investor ID
     - `rootdataurl` — investor detail page
+
+**Note**: The `valuation` field has been removed from the response.
 
 ---
 
@@ -187,8 +197,95 @@ Body:
 
 ---
 
+## Skill 6: Personnel Job Changes
+
+**When to use**: User asks about recent job changes in crypto, "who joined which project", "who left which company", personnel movements, or executive changes in the Web3 industry.
+
+**Data limit**: Returns a maximum of **20 recent entries** for each category (joinees and resignations).
+
+**Request**:
+
+```
+POST https://api.rootdata.com/open/skill/job_changes
+Body:
+{
+  "recent_joinees": true,
+  "recent_resignations": true
+}
+```
+
+**Parameters**:
+- `recent_joinees` — set to `true` to get recent hires/joiners
+- `recent_resignations` — set to `true` to get recent departures/resignations
+- Both can be `true` simultaneously to get both types of data
+- If both are `false` or omitted, returns empty data
+
+**Key response fields**:
+- `recent_joinees` — array of recent hires (max 20), each containing:
+  - `people_id` — person ID
+  - `people_name` — person's name
+  - `head_img` — person's profile photo
+  - `company_type` — 1=Project, 2=Institution, 3=Person
+  - `company_id` — company/project/institution ID
+  - `company` — company/project name
+  - `position` — job title/position
+
+- `recent_resignations` — array of recent departures (max 20), same structure as above
+
+**Example use cases**:
+- "Who recently joined major crypto projects?"
+- "Show me recent executive changes in Web3"
+- "Which companies did people leave recently?"
+- "Latest personnel movements in the crypto industry"
+
+---
+
+## Multi-Language Support
+
+Add header `language: cn` for Chinese responses, or `language: en` for English (default).
+
+All name fields, descriptions, and position titles will be returned in the requested language.
+
+---
+
 ## Rate Limits
 
 - 200 requests per minute per API key
 - If you receive HTTP 429, wait for the number of seconds in the `Retry-After` response header, then retry
 - Check `X-RateLimit-Remaining` header to monitor remaining quota in current minute
+
+---
+
+## Error Codes
+
+- `200` — Success
+- `400` — Bad Request (invalid parameters)
+- `401` — Invalid API key
+- `404` — Not Found (entity does not exist)
+- `429` — Rate limit exceeded
+- `500` — Internal Server Error
+
+---
+
+## Best Practices
+
+1. **Always initialize first**: Check for `ROOTDATA_SKILL_KEY` before making any requests
+2. **Cache results**: Responses are cached for 5-10 minutes, repeated queries will be faster
+3. **Use specific queries**: More specific search keywords yield better results
+4. **Follow rate limits**: Monitor `X-RateLimit-Remaining` header to avoid hitting limits
+5. **Handle errors gracefully**: Check `result` field in response (200 = success)
+6. **Provide context**: When showing funding data, mention it covers the past 365 days only
+7. **Investor limit**: When showing funding rounds, note that only top 3 investors are displayed per round
+
+---
+
+## Version History
+
+### v1.0.3 (2026-03-30)
+- **Updated**: `/get_fac` now returns only past 365 days of funding data (previously from 2018)
+- **Updated**: `/get_fac` now returns max 3 investors per funding round (previously unlimited)
+- **Removed**: `valuation` field from `/get_fac` response
+- **Added**: New `/job_changes` endpoint for personnel movements (max 20 entries per category)
+
+### v1.0.2
+- Initial release with 5 core skills
