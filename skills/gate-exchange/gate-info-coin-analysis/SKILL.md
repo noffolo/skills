@@ -1,17 +1,69 @@
 ---
 name: gate-info-coinanalysis
-version: "2026.3.12-2"
-updated: "2026-03-11"
-description: "Coin comprehensive analysis. Use this skill whenever the user asks to analyze a single coin. Trigger phrases include: analyze, how is, worth buying, look at. MCP tools: info_coin_get_coin_info, info_marketsnapshot_get_market_snapshot, info_markettrend_get_technical_analysis, news_feed_search_news, news_feed_get_social_sentiment."
+version: "2026.4.1-1"
+updated: "2026-04-01"
+description: "Single-coin comprehensive analysis. Use this skill ONLY when the user asks to analyze one coin with no additional explicit dimension (e.g., no separate risk check, no separate trend-only request). Trigger phrases: analyze SOL, how is BTC, is ETH worth buying. If the query ALSO mentions security/risk, event attribution, multi-coin comparison, or any other analysis dimension beyond single-coin comprehensive, use gate-info-research instead — it handles multi-dimension queries in a single unified report."
+required_credentials: []
+required_env_vars: []
+required_permissions: []
 ---
 
 # gate-info-coinanalysis
+
+## General Rules
+
+⚠️ STOP — You MUST read and strictly follow the shared runtime rules before proceeding.
+Do NOT select or call any tool until all rules are read. These rules have the highest priority.
+→ Read [gate-runtime-rules.md](https://github.com/gate/gate-skills/blob/master/skills/gate-runtime-rules.md)
+→ Also read [info-news-runtime-rules.md](https://github.com/gate/gate-skills/blob/master/skills/info-news-runtime-rules.md) for **gate-info** / **gate-news**-specific rules (tool degradation, report standards, security, routing degradation, and per-skill version checks when `scripts/` is present).
+- **Only call MCP tools explicitly listed in this skill.** Tools not documented here must NOT be called, even if they
+  exist in the MCP server.
 
 > The most frequently used Skill. The user inputs a coin name, the system calls 5 MCP Tools in parallel to fetch fundamentals + market data + technicals + news + social sentiment, then the LLM aggregates the results into a structured analysis report.
 
 **Trigger Scenarios**: User mentions a specific coin + keywords like analyze, how is, worth, look at, fundamentals, market analysis.
 
+**Per-skill updates:** This skill may include `scripts/update-skill.sh` and, in full source trees, `scripts/update-skill.ps1` for optional maintenance checks against the official Gate Skills repository. The shared policy is defined in [info-news-runtime-rules.md](https://github.com/gate/gate-skills/blob/master/skills/info-news-runtime-rules.md).
+
+**Maintenance flow:**
+- Use `check` only when you need to compare the installed skill with the official repo.
+- In interactive sessions, `check` never rewrites files.
+- If `update_available`, ask the user before `apply`.
+- If update scripts are unavailable or the version check cannot run, continue with the current installed version.
+- `apply` rewrites only this skill's local directory under the active skills root.
+- Do not download replacement updater scripts during the session; use the official repo for manual repair when needed.
+
 ---
+
+## MCP Dependencies
+
+### Required MCP Servers
+| MCP Server | Status |
+|------------|--------|
+| Gate-Info | ✅ Required |
+
+### MCP Tools Used
+
+**Query Operations (Read-only)**
+
+- info_coin_get_coin_info
+- info_coin_search_coins
+- info_marketsnapshot_get_market_snapshot
+- info_markettrend_get_technical_analysis
+- news_feed_get_social_sentiment
+- news_feed_search_news
+
+### Authentication
+- API Key Required: No
+- Credentials Source: None; this skill uses read-only Gate Info / Gate News MCP access only.
+
+### Installation Check
+- Required: Gate-Info
+- Install: Run installer skill for your IDE
+  - Cursor: `gate-mcp-cursor-installer`
+  - Codex: `gate-mcp-codex-installer`
+  - Claude: `gate-mcp-claude-installer`
+  - OpenClaw: `gate-mcp-openclaw-installer`
 
 ## Routing Rules
 
@@ -26,6 +78,13 @@ description: "Coin comprehensive analysis. Use this skill whenever the user asks
 ---
 
 ## Execution Workflow
+
+### Step 0: Multi-Dimension Intent Check
+
+Before executing this Skill, check if the user's query involves multiple analysis dimensions:
+
+- If the query is a standard single-coin analysis (e.g., "analyze SOL", "how is BTC"), proceed with this Skill.
+- If the query **also** mentions security/risk check, event attribution, multi-coin comparison, or any other analysis dimension beyond single-coin comprehensive, route to `gate-info-research` — it handles multi-dimension queries with unified tool deduplication and coherent report aggregation.
 
 ### Step 1: Intent Recognition & Parameter Extraction
 
