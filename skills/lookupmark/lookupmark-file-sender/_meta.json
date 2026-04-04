@@ -1,0 +1,11 @@
+{
+  "owner": "lookupmark",
+  "slug": "lookupmark-file-sender",
+  "displayName": "LookupMark File Sender",
+  "latest": {
+    "version": "1.9.0",
+    "publishedAt": 1775325787423,
+    "commit": null
+  },
+  "history": []
+}
