@@ -3,11 +3,16 @@
   "slug": "futures",
   "displayName": "Futures Inquiry - 期货查询",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1774585377030,
-    "commit": "https://github.com/openclaw/skills/commit/5eb7516ae16abd45f455d975305e364b05f966e4"
+    "version": "1.0.6",
+    "publishedAt": 1775207420607,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1774585377030,
+      "commit": "https://github.com/openclaw/skills/commit/5eb7516ae16abd45f455d975305e364b05f966e4"
+    },
     {
       "version": "1.0.4",
       "publishedAt": 1774349263694,

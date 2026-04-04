@@ -1,6 +1,6 @@
 ---
-name: jisu-futures
-description: 使用极速数据期货查询 API 获取上海、大连、郑州、中国金融、广州等交易所的期货价格行情。
+name: "Futures Inquiry - 期货查询"
+description: 查询上期所、大商所、郑商所、中金所、广期所等期货品种价格行情。当用户说：螺纹钢主力什么价？豆粕期货涨了吗？或类似期货行情问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "📉", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
@@ -13,7 +13,7 @@ metadata: { "openclaw": { "emoji": "📉", "requires": { "bins": ["python3"], "e
 ## 前置配置：获取 API Key
 
 1. 前往 [极速数据官网](https://www.jisuapi.com/) 注册账号
-2. 进入 [对应接口页面](https://www.jisuapi.com/api/futures/) 页面，点击「申请数据」
+2. 进入 [期货查询 API](https://www.jisuapi.com/api/futures/) 页面，点击「申请数据」
 3. 在会员中心获取 **AppKey**
 4. 配置 Key：
 
