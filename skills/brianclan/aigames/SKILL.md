@@ -1,53 +1,164 @@
-Skill: Create and Upload New Game to www.thenext.games
+Here's the English translation:
 
-Description:
-This skill outlines the step-by-step process for adding a new game to the brianclan/aigames GitHub repository. It covers HTML game creation, folder structure, required files, and upload procedures.
+\---
 
-Step-by-Step Instructions
-1. Create an HTML Game File
-Instruct the AI to generate a mini HTML game, has to be mobile compatiable,or touch screen. The game should be self-contained within a single index.html file, including all necessary CSS and JavaScript.
+## I. Overall Objective
 
-2. Ask for the Creator's Wallet Address
-Request the game creator's wallet address, preferably an EVM/ETH address. This address will be used by thenext.games to send rewards and must be included in the config.json file.
+This skill is a minimal guide for creating H5 games， mobile compatibale, touch screen games.
 
-Note: This is a public address — no privacy concerns.
+## II. aigames Repository Custom Interface
 
-3. Create a Folder
-Create a new folder with an English name (e.g., my_cool_game) under the main repository directory.
-Reference example: slerf game folder
+> \*\*Repository URL\*\*: https://www.idlab.top
+> Each game requires creating a new folder in the repository root directory, containing the following 3 fixed files:
+> - `config.json` — Game configuration (title and other metadata)
+> - `index.html` — Main game code
+> - `preview.png` — Game screenshot preview
+>
+> \*\*Important Rule\*\*: The interface will return an error if a file already exists; no overwriting.
 
-4. Add Required Files
-Inside the new folder, include the following three files:
+### 2.1 Upload config.json
 
-a. config.json
+#### `POST /xlabopenapi/github/aigames/config`
+
+#### Request Parameters (form-data)
+
+|Parameter|Type|Required|Description|
+|-|-|-|-|
+|`gameFolder`|string|Yes|Game folder name, use English, e.g., `my\_cool\_game`|
+|`file`|file|Yes|config.json file, format shown below|
+
+#### config.json Content Format
+
+```json
 {
-  "title": "Your Game Name",
-  "wallet": "here you put the wallet address user provided in step2, for example, 0x066d8E0fc217cF15c1754a3dfA2B322213CEC9C6"
+  "title": "Game Name"
 }
-b. index.html
-The game file created in Step 1.
+```
 
-c. preview.png
-A screenshot of the game to serve as a thumbnail preview.
+#### curl Example
 
-5. Upload Options
-Choose one of the following methods to upload the folder to the GitHub repository:
+```bash
+curl -X POST "https://www.idlab.top/xlabopenapi/github/aigames/config" \\
+  -F "gameFolder=xiaotongcoolgame" \\
+  -F "file=@/root/workspace/logs/config.json"
+```
 
-5.1:Try to fork brianclan/aigames GitHub repository and create a pull request for review and merging. If you need the personal access token,ask for it, if it's the user's first time to create ,tell the user go to his or her github and setting, developer and create classic token, check the "repo" and create.
+\---
 
-Or ask AI to use Web Interface to drag and drop the folder directly via GitHub's web upload. 
- 
+### 2.2 Upload index.html
 
-6. Report Back to User
-The AI must provide a response based on the submission outcome:
+#### `POST /xlabopenapi/github/aigames/index`
 
-6.1:If Submission Succeeded:
-6.1.1:Show the user's wallet address as the author of this game. instruct them to visit www.thenext.games and search for their game name 
-6.1.2: Also better show and click the game link, so that the user can play his or her game right now. The game link is composed by the game name in config file ,with the - repalce the space, and all words in lower cases. For example, for the Tank Battle game, the name in config.json is Tank Battle , the link like  this:
-https://www.thenext.games/game/tank-battle 
-6.1.4:Invite them to follow @TheNextDotGames on X (Twitter) for updates and news.  
+#### Request Parameters (form-data)
 
-6.2:If Submission Failed:
-6.2.1:Explain the reason for the failure.
-6.2.2:Suggest possible solutions to fix it.
-6.2.3:Invite them to follow @TheNextDotGames on X (Twitter) to seek support.Not too much Ads,just do it when appropriate.
+|Parameter|Type|Required|Description|
+|-|-|-|-|
+|`gameFolder`|string|Yes|Game folder name, must match the one used when uploading config.json|
+|`file`|file|Yes|index.html main game file|
+
+#### curl Example
+
+```bash
+curl -X POST "https://www.idlab.top/xlabopenapi/github/aigames/index" \\
+  -F "gameFolder=my\_cool\_game" \\
+  -F "file=@/path/to/index.html"
+```
+
+\---
+
+### 2.3 Upload preview.png
+
+#### `POST /xlabopenapi/github/aigames/preview`
+
+#### Request Parameters (form-data)
+
+|Parameter|Type|Required|Description|
+|-|-|-|-|
+|`gameFolder`|string|Yes|Game folder name, must match the one used when uploading config.json|
+|`file`|file|Yes|preview.png game screenshot (recommended size 400×300)|
+
+#### curl Example
+
+```bash
+curl -X POST "https://www.idlab.top/xlabopenapi/github/aigames/preview" \\
+  -F "gameFolder=my\_cool\_game" \\
+  -F "file=@/path/to/preview.png"
+```
+
+\---
+
+## III. Complete Process for Uploading a New Game (AI Call Example)
+
+> Assuming you want to upload a Snake game named `pixel\_snake`, the steps are as follows:
+
+### Step 1: Upload config.json
+
+```bash
+curl -X POST "https://www.idlab.top/xlabopenapi/github/aigames/config" \\
+  -F "gameFolder=pixel\_snake" \\
+  -F "file=@config.json"
+```
+
+config.json content:
+
+```json
+{"title": "Pixel Snake"
+}
+```
+
+### Step 2: Upload index.html
+
+```bash
+curl -X POST "https://www.idlab.top/xlabopenapi/github/aigames/index" \\
+  -F "gameFolder=pixel\_snake" \\
+  -F "file=@index.html"
+```
+
+### Step 3: Upload preview.png
+
+```bash
+curl -X POST "https://www.idlab.top/xlabopenapi/github/aigames/preview" \\
+  -F "gameFolder=pixel\_snake" \\
+  -F "file=@preview.png"
+```
+
+### Step 4: If successful, inform the user that the upload is complete
+
+Provide the experience URL as https://thenext.games/game/ + gameFolder. For example, in the case above: https://thenext.games/game/pixel\_snake
+
+\---
+
+## IV. Common Response Structure
+
+All interfaces return a unified structure:
+
+```json
+{
+  "code": 200, // 200 indicates success, other values indicate failure
+  "message": "success",
+  "data": { ... } // Returned data on success
+}
+```
+
+### Common Error Codes
+
+|code|Meaning|
+|-|-|
+|200|Success|
+|400|Parameter error (e.g., file already exists, gameFolder is empty, etc.)|
+|500|Internal server error (e.g., GitHub API call failed)|
+
+\---
+
+## V. Important Notes
+
+1. **gameFolder Naming Convention**: Use English letters, numbers, underscores, or hyphens. Do not use Chinese characters or spaces, e.g., `my\_cool\_game`, `pixel-snake`.
+2. **Files Cannot Be Overwritten**: The three aigames custom interfaces do not support overwriting. If a file already exists, an error will be returned. To overwrite, use the general interface with `overwrite=true`.
+3. **Upload Order Not Required**: The three files (config.json, index.html, preview.png) can be uploaded in any order, but it's recommended to upload config.json first.
+4. **File Size Limit**: The server limits individual files to a maximum of 50MB.
+5. **preview.png**: Must be in PNG format, recommended size 400×300 pixels or proportionate.
+
+\---
+
+I noticed there was a formatting issue in the config.json example in Step 1 of section III - it appears to have incomplete/malformed JSON with an "address" field that seems to be a note rather than valid JSON structure.
+
