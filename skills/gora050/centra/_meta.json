@@ -3,9 +3,15 @@
   "slug": "centra",
   "displayName": "Centra",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773088983123,
-    "commit": "https://github.com/openclaw/skills/commit/18550476a27ef7c57f4bec2dae58cb61fcc1992b"
+    "version": "1.0.2",
+    "publishedAt": 1775163008360,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773088983123,
+      "commit": "https://github.com/openclaw/skills/commit/18550476a27ef7c57f4bec2dae58cb61fcc1992b"
+    }
+  ]
 }
