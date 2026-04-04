@@ -3,11 +3,16 @@
   "slug": "gws-workflow-file-announce",
   "displayName": "Gws Workflow File Announce",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551060883,
-    "commit": "https://github.com/openclaw/skills/commit/d033f427abb99af9f6acecc9a251c3b4a56a0d0f"
+    "version": "1.0.12",
+    "publishedAt": 1774982104438,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551060883,
+      "commit": "https://github.com/openclaw/skills/commit/d033f427abb99af9f6acecc9a251c3b4a56a0d0f"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1774300518896,
