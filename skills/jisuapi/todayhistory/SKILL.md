@@ -1,6 +1,6 @@
 ---
-name: jisu-todayhistory
-description: 使用极速数据历史上的今天 API 按月份和日期查询历史上的大事、诞辰与逝世等事件。
+name: "Today in History - 历史上的今天"
+description: 按月日查询历史上同日大事、诞辰与逝世等。当用户说：历史上的今天发生了什么？3 月 15 日有什么大事？或类似历史纪事问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "📜", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 

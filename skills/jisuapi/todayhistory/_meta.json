@@ -3,11 +3,16 @@
   "slug": "todayhistory",
   "displayName": "Today in History - 历史上的今天",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1774592928179,
-    "commit": "https://github.com/openclaw/skills/commit/6edb781334dd5dc2df247e7314d620cc72917db3"
+    "version": "1.0.4",
+    "publishedAt": 1775208007787,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1774592928179,
+      "commit": "https://github.com/openclaw/skills/commit/6edb781334dd5dc2df247e7314d620cc72917db3"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773727588119,
