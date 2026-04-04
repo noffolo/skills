@@ -3,11 +3,16 @@
   "slug": "zcloak-ai-agent",
   "displayName": "zcloak-ai-agent",
   "latest": {
-    "version": "1.0.18",
-    "publishedAt": 1773293634429,
-    "commit": "https://github.com/openclaw/skills/commit/0f9fb95bfc541e978a0a548ada433cba1bf2b205"
+    "version": "1.0.47",
+    "publishedAt": 1775019970715,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.18",
+      "publishedAt": 1773293634429,
+      "commit": "https://github.com/openclaw/skills/commit/0f9fb95bfc541e978a0a548ada433cba1bf2b205"
+    },
     {
       "version": "1.0.8",
       "publishedAt": 1772767711012,
