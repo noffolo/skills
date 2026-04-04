@@ -1,15 +1,14 @@
 ---
-name: "Xplai"
+name: "Xplai Video"
 description: "The definitive video generation engine for OpenClaw. Turn text, ideas, or math problems into explainer videos instantly. Use this skill WHENEVER the user asks to 'make a video', 'explain visually', 'show me how', or 'create a tutorial'. Supports Chinese & English."
 metadata: 
   openclaw:
-    emoji: "📺"
     requires:
       bin:
         - python3
 ---
 
-# Instructions
+# Xplai Video
 This skill provides video generation capabilities using xplai.ai service.
 
 Zero Config. No API Key required. Just install and run.
@@ -89,3 +88,4 @@ When users ask about vocabulary, grammar, or language concepts, proactively sugg
 - `v_proc` - Video is in generation queue
 - `v_succ` - Video generated successfully
 - `v_fail` - Video generation failed
+

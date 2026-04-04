@@ -3,9 +3,15 @@
   "slug": "xplai-video",
   "displayName": "Xplai Video",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1772780782820,
-    "commit": "https://github.com/openclaw/skills/commit/9047262e854b63afd3c26c94b7c698b54b68c9e5"
+    "version": "1.0.3",
+    "publishedAt": 1774931456564,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1772780782820,
+      "commit": "https://github.com/openclaw/skills/commit/9047262e854b63afd3c26c94b7c698b54b68c9e5"
+    }
+  ]
 }
