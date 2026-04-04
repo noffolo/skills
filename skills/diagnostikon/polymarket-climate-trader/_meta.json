@@ -1,13 +1,18 @@
 {
   "owner": "diagnostikon",
   "slug": "polymarket-climate-trader",
-  "displayName": "Climate & Weather Trader",
+  "displayName": "Polymarket Climate Trader",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773779031698,
-    "commit": "https://github.com/openclaw/skills/commit/123dc31a677738ca1530b413f386590326e05045"
+    "version": "1.0.2",
+    "publishedAt": 1775317100855,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773779031698,
+      "commit": "https://github.com/openclaw/skills/commit/123dc31a677738ca1530b413f386590326e05045"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773429346169,

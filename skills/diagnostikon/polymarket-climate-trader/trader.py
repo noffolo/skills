@@ -52,7 +52,10 @@ def get_client(live: bool = False) -> SimmerClient:
             venue=venue,
         )
         # Load tunable overrides set via the Simmer UI (SIMMER_* vars only).
-        _client.apply_skill_config(SKILL_SLUG)
+        try:
+            _client.apply_skill_config(SKILL_SLUG)
+        except AttributeError:
+            pass  # apply_skill_config only available in Simmer runtime
         # Re-read params in case apply_skill_config updated os.environ.
         MAX_POSITION   = float(os.environ.get("SIMMER_MAX_POSITION",  str(MAX_POSITION)))
         MIN_VOLUME     = float(os.environ.get("SIMMER_MIN_VOLUME",    str(MIN_VOLUME)))
