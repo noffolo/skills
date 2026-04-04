@@ -3,11 +3,16 @@
   "slug": "structs-mining",
   "displayName": "Structs Mining",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1774718084515,
-    "commit": "https://github.com/openclaw/skills/commit/b32e5f5e0e02b2881e021208537e4fe323febf67"
+    "version": "1.2.0",
+    "publishedAt": 1774840358521,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1774718084515,
+      "commit": "https://github.com/openclaw/skills/commit/b32e5f5e0e02b2881e021208537e4fe323febf67"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1772479249247,
