@@ -1,46 +1,49 @@
 # Felo SuperAgent Skill for Claude Code
 
-**AI 对话与流式输出，支持连续会话。**
+**AI conversation with real-time streaming output, supporting continuous multi-turn conversation.**
 
-通过 Felo Open Platform 的 SuperAgent API，在 Claude Code 中发起与 SuperAgent 的对话、接收 SSE 流式回复，并可查询会话详情。
-
----
-
-## 功能
-
-- **流式对话**：创建会话后通过 SSE 实时接收 AI 回复
-- **LiveDoc 关联**：每次会话对应一个 LiveDoc，可后续查看资源
-- **连续对话**：通过 `--thread-id` 在已有会话上继续提问
-- **LiveDoc 管理**：列举 LiveDoc 列表、查看指定 LiveDoc 下的资源
-- **多语言**：支持 `accept_language`（如 zh / en）
-- **工具调用**：支持生图、研究报告、文档、PPT、HTML、Twitter 搜索等工具
-
-**适用场景：**
-
-- 需要 SuperAgent 流式回答
-- 需要与 LiveDoc 关联、可追溯资源的对话
-- 多轮/连续对话（复用同一 LiveDoc）
-
-**不适用：**
-
-- 仅需单次实时信息检索 → 使用 `felo-search`
-- 仅需抓取网页正文 → 使用 `felo-web-fetch`
-- 仅需生成 PPT → 使用 `felo-slides`
-- 需要 LiveDoc 知识库功能 → 使用 `felo-livedoc`
+Use the Felo Open Platform SuperAgent API in Claude Code to initiate conversations with SuperAgent, receive real-time SSE streaming responses, and manage conversation state across turns.
 
 ---
 
-## 快速开始
+## Features
 
-### 1. 安装
+- **Streaming conversation** — create a conversation and receive AI responses in real-time via SSE
+- **LiveDoc association** — each conversation is linked to a LiveDoc for resource tracking
+- **Continuous conversation** — continue asking questions in an existing thread using `--thread-id`
+- **Brand style support** — pass a writing style via `--ext` to guide output (used by `felo-twitter-writer` and other skills)
+- **Style library** — fetch saved brand styles from the API with `run_style_library.mjs`
+- **LiveDoc management** — list LiveDocs and view resources within a specific LiveDoc
+- **Multi-language** — supports `--accept-language` (e.g., zh, en, ja, ko)
+- **Tool invocation** — image generation, research reports, documents, PPT, HTML, Twitter/X search, and more
 
-**一键安装（推荐）：**
+**Use cases:**
+
+- Need SuperAgent streaming answers
+- Need conversation associated with LiveDoc for traceable resources
+- Multi-turn/continuous conversation (reuse the same LiveDoc)
+- Tweet writing, logo design, or e-commerce product images with brand style guidance
+
+**Not suitable for:**
+
+- Simple one-off real-time information retrieval → use `felo-search`
+- Only need to fetch webpage content → use `felo-web-fetch`
+- Only need to generate PPT → use `felo-slides`
+- Need LiveDoc knowledge base features → use `felo-livedoc`
+
+---
+
+## Quick Start
+
+### 1. Installation
+
+**Via ClawHub:**
 
 ```bash
-npx skills add Felo-Inc/felo-skills --skill felo-superAgent
+clawhub install felo-superAgent
 ```
 
-**手动安装：** 若上述命令不可用，从本仓库复制到 Claude Code 的 skills 目录：
+**Manual install:**
 
 ```bash
 # Linux/macOS
@@ -50,15 +53,11 @@ cp -r felo-superAgent ~/.claude/skills/
 Copy-Item -Recurse felo-superAgent "$env:USERPROFILE\.claude\skills\"
 ```
 
-（若为本地 skill，确保 Cursor/Claude Code 已配置该 skill 路径。）
+### 2. Configure API Key
 
-### 2. 配置 API Key
-
-与其它 Felo skills 相同，使用同一 API Key：
-
-1. 打开 [felo.ai](https://felo.ai) 登录
-2. 头像 → **Settings** → **API Keys** → 创建并复制 Key
-3. 设置环境变量：
+1. Open [felo.ai](https://felo.ai) and log in
+2. Avatar → **Settings** → **API Keys** → Create and copy key
+3. Set environment variable:
 
 ```bash
 # Linux/macOS
@@ -68,114 +67,332 @@ export FELO_API_KEY="your-api-key-here"
 $env:FELO_API_KEY="your-api-key-here"
 ```
 
-### 3. 使用方式
+For permanent configuration, add to your shell profile (`~/.bashrc`, `~/.zshrc`) or system environment variables.
 
-**在对话中触发：**
+### 3. Usage
 
-- 明确指令：`/felo-superagent`、"use felo super agent"
-- 描述意图：SuperAgent 对话、流式对话、LiveDoc 对话、连续对话
+**Trigger in Claude Code conversation:**
 
-**命令行直接跑脚本：**
-
-```bash
-node felo-superAgent/scripts/run_superagent.mjs --query "What is the latest news about AI?"
+```
+/felo-superagent What is the latest news about AI?
+/felo-superagent Tell me more
 ```
 
-输出为流式汇总后的完整回答正文。加 `--json` 可得到包含 `thread_short_id`、`live_doc_short_id` 的 JSON。
-
-**CLI 命令（安装后）：**
+**Run script directly:**
 
 ```bash
-# SuperAgent 对话
+node felo-superAgent/scripts/run_superagent.mjs --query "What is quantum computing?"
+node felo-superAgent/scripts/run_superagent.mjs --query "Tell me more" --thread-id <thread_short_id>
+```
+
+**CLI commands (after `npm install -g felo-ai`):**
+
+```bash
 felo superagent "What is the latest news about AI?"
-
-# 继续对话
 felo superagent "Tell me more" --thread-id <thread_short_id>
-
-# 列举 LiveDoc 列表
 felo livedocs
-felo livedocs --page 2 --size 10
-felo livedocs --keyword AI
-
-# 查看指定 LiveDoc 下的资源
 felo livedoc-resources <livedoc-id>
+felo style-library TWITTER --accept-language en
 ```
 
 ---
 
-## 脚本参数
+## Scripts
 
-### superagent
+This skill provides two scripts:
 
-| 参数                              | 说明                                                       |
-| --------------------------------- | ---------------------------------------------------------- |
-| `--query <text>`                  | 用户问题（必填，1–2000 字符）                              |
-| `--thread-id <id>`               | 已有会话 ID，用于继续对话                                  |
-| `--live-doc-id <id>`             | 复用已有 LiveDoc short_id（连续对话）                      |
-| `--skill-id <id>`                | Skill ID（仅新建会话时有效）                               |
-| `--selected-resource-ids <ids>`  | 逗号分隔的资源 ID（仅新建会话时有效）                      |
-| `--ext <json>`                   | 额外参数 JSON，如 `'{"style_id":"xxx"}'`（仅新建会话时有效）|
-| `--accept-language <lang>`       | 语言偏好，如 zh / en                                       |
-| `--timeout <seconds>`            | 请求/流超时，默认 60                                       |
-| `--json`                         | 输出 JSON（含 answer、thread_short_id、live_doc_short_id） |
-| `--verbose`                      | 将流连接信息打到 stderr                                    |
+| Script | Description |
+|---|---|
+| `run_superagent.mjs` | Create/continue a conversation and stream the answer |
+| `run_style_library.mjs` | Fetch brand styles from the style library API |
 
-### livedocs
+### run_superagent.mjs parameters
 
-| 参数                    | 说明                     |
-| ----------------------- | ------------------------ |
-| `-p, --page <number>`  | 页码，默认 1             |
-| `-s, --size <number>`  | 每页条数，默认 20        |
-| `-k, --keyword <text>` | 关键词过滤               |
-| `-j, --json`           | 输出原始 JSON            |
-| `-t, --timeout <seconds>` | 请求超时，默认 60     |
+| Parameter | Description |
+|---|---|
+| `--query <text>` | User question (required, 1–2000 characters) |
+| `--thread-id <id>` | Existing thread ID for follow-up conversations |
+| `--live-doc-id <id>` | Reuse existing LiveDoc short_id |
+| `--skill-id <id>` | Skill ID for new conversations (`twitter-writer`, `logo-and-branding`, `ecommerce-product-image`) |
+| `--selected-resource-ids <ids>` | Comma-separated resource IDs (new conversations only) |
+| `--ext <json>` | Extra parameters as JSON (new conversations only). Used for brand style — see below. |
+| `--accept-language <lang>` | Language preference: `en`, `zh`, `ja`, `ko`, etc. |
+| `--timeout <seconds>` | Request/stream timeout, default 60 |
+| `--json` | Output JSON with `answer`, `thread_short_id`, `live_doc_short_id` |
+| `--verbose` | Log stream connection details to stderr |
 
-### livedoc-resources
+### run_style_library.mjs parameters
 
-| 参数                       | 说明                     |
-| -------------------------- | ------------------------ |
-| `<livedoc-id>`            | LiveDoc short_id（必填） |
-| `-j, --json`              | 输出原始 JSON            |
-| `-t, --timeout <seconds>` | 请求超时，默认 60        |
+| Parameter | Description |
+|---|---|
+| `--category <category>` | Style category (required): `TWITTER`, `INSTAGRAM`, `LEMON8`, `NOTECOM`, `WEBSITE`, `IMAGE` |
+| `--accept-language <lang>` | Language for labels/tags (e.g. `en`, `zh-Hans`, `ja`). Default: `en` |
+| `--json` | Output raw JSON |
+| `--timeout <seconds>` | Request timeout, default 60 |
 
 ---
 
-## 输出格式
+## Brand Style (`--ext`)
 
-**默认（纯文本）：**  
-脚本 stdout 为完整回答内容（由 SSE `message` 事件拼接）。
+When starting a new conversation with a skill ID, you can pass a brand style via `--ext` to guide the output. The style is fetched from the style library and serialized as a JSON string.
 
-**`--json`：**  
-单行 JSON 对象，例如：
+### Fetch styles
+
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+
+Output (one block per style, blank line between):
+
+```
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
+...（full content）
+
+Style name: My Bold Voice
+Style labels: bold, provocative
+Style DNA: # My Bold Voice Style DNA
+...（full content）
+Cover file ID: file_abc123
+```
+
+Fields per entry:
+
+| Field | Source | Notes |
+|---|---|---|
+| `Style name` | `name` | Always present |
+| `Style labels` | `content.labels[lang]` or `content.tags[lang]` | Language-aware, comma-separated; omitted if absent |
+| `Style DNA` | `content.styleDna` | Full text (TWITTER type); omitted if absent |
+| `Cover file ID` | `coverFileId` | Omitted if null |
+
+User-created styles appear before recommended styles.
+
+### Pass style to SuperAgent
+
+Take the full text block for the chosen style and serialize it into `brand_style_requirement`. Pass the value **completely — do NOT truncate `Style DNA`**:
+
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Write a tweet about AI trends" \
+  --live-doc-id "LIVE_DOC_ID" \
+  --skill-id twitter-writer \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content）"}' \
+  --accept-language en
+```
+
+Category mapping for skill IDs:
+
+| Skill ID | Style category |
+|---|---|
+| `twitter-writer` | `TWITTER` |
+| `logo-and-branding` | `IMAGE` |
+| `ecommerce-product-image` | `IMAGE` |
+
+`--ext` is only valid for new conversations. Never pass it in follow-up mode (`--thread-id`).
+
+---
+
+## Using with Claude Code
+
+### Installation
+
+```bash
+# Via ClawHub
+clawhub install felo-superAgent
+
+# Manual
+cp -r felo-superAgent ~/.claude/skills/
+```
+
+### Triggering the skill
+
+Claude Code automatically triggers this skill for SuperAgent conversations. Explicit commands:
+
+```
+/felo-superagent What is the latest news about AI?
+/felo-superagent Write a tweet about AI trends
+/felo-superagent Create a logo for my coffee shop
+```
+
+### What Claude manages automatically
+
+- **LiveDoc reuse** — reuses the same LiveDoc across the session; only fetches the list when no ID is available
+- **Thread continuity** — passes `--thread-id` for all follow-up messages; only starts a new thread when the user explicitly requests it or a different skill ID is needed
+- **Style selection** — for skill-based new conversations (`twitter-writer`, `logo-and-branding`, `ecommerce-product-image`), fetches the matching style library, presents options to the user, and passes the chosen style via `--ext`
+- **State extraction** — after every call, extracts `thread_short_id` and `live_doc_short_id` from the stderr `[state]` line for use in the next call
+
+### Example conversation
+
+```
+You:    Write a tweet about AI trends
+
+Claude: Here are the available Twitter writing styles — choosing one will make
+        the output more accurate:
+
+        [Your styles]
+        1. My Bold Voice
+
+        [Recommended styles]
+        2. darioamodei
+
+        0. No preference — use default style
+
+You:    2
+
+Claude: [streams the tweet in darioamodei style in real time]
+
+You:    Make it shorter
+
+Claude: [follow-up — no style re-selection, streams updated tweet]
+```
+
+---
+
+## Output Format
+
+**Default (streaming plain text):**
+Answer streams directly to stdout in real time. Do not summarize or re-output it.
+
+**`--json` (suppresses streaming):**
 
 ```json
 {
   "status": "ok",
   "data": {
-    "answer": "完整回答内容...",
+    "answer": "Complete answer content...",
     "thread_short_id": "TvyKouzJirXjFdst4uKRK3",
-    "live_doc_short_id": "PvyKouzJirXjFdst4uKRK3"
+    "live_doc_short_id": "PvyKouzJirXjFdst4uKRK3",
+    "live_doc_url": "https://felo.ai/livedoc/...",
+    "image_urls": [{"url": "...", "title": "..."}],
+    "discoveries": [{"title": "Research Report"}],
+    "documents": [{"title": "Generated Document"}],
+    "ppts": [{"title": "Presentation"}],
+    "htmls": [{"title": "HTML Page"}],
+    "search_x": [{"tweets": [...]}]
   }
 }
 ```
 
-可用 `thread_short_id` 调用「查询会话详情」接口，`live_doc_short_id` 可传入 `felo-livedoc` 查询相关资源。
+**State line (stderr):**
+
+```
+[state] thread_short_id=TvyKouzJirXjFdst4uKRK3 live_doc_short_id=PvyKouzJirXjFdst4uKRK3 live_doc_url=https://felo.ai/livedoc/...
+```
+
+Always extract `thread_short_id` and `live_doc_short_id` from this line for use in the next call.
 
 ---
 
-## 错误处理
+## Complete Examples
 
-常见错误码参见 [SuperAgent API 文档](https://openapi.felo.ai/docs/api-reference/v2/superagent.html)：
+### Example 1: Simple question
 
-- `INVALID_API_KEY` (401)：Key 无效或已撤销
-- `SUPER_AGENT_CONVERSATION_CREATE_FAILED` (502)：创建会话失败
-- 其它 502：下游服务异常，可重试或联系支持
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "What is quantum computing?" \
+  --accept-language en
+```
 
-若未配置 `FELO_API_KEY`，脚本会报错并提示配置方法。
+### Example 2: Follow-up in thread
+
+```bash
+# First question — capture thread_short_id from stderr [state]
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "What is machine learning?" \
+  --live-doc-id "PvyKouzJirXjFdst4uKRK3"
+
+# Follow-up
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Can you elaborate on neural networks?" \
+  --thread-id "TvyKouzJirXjFdst4uKRK3" \
+  --live-doc-id "PvyKouzJirXjFdst4uKRK3"
+```
+
+### Example 3: Tweet writing with brand style
+
+```bash
+# Fetch styles
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+
+# New conversation with chosen style
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Write a tweet about AI trends" \
+  --live-doc-id "PvyKouzJirXjFdst4uKRK3" \
+  --skill-id twitter-writer \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: ...（full content）"}' \
+  --accept-language en
+```
+
+### Example 4: Logo design with brand style
+
+```bash
+# Fetch IMAGE styles
+node felo-superAgent/scripts/run_style_library.mjs --category IMAGE --accept-language en
+
+# New conversation with chosen style
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Design a logo for my coffee shop called Bean & Brew" \
+  --live-doc-id "PvyKouzJirXjFdst4uKRK3" \
+  --skill-id logo-and-branding \
+  --ext '{"brand_style_requirement":"Style name: Minimalist Modern\nStyle labels: clean, monochrome\nStyle DNA: ...（full content）\nCover file ID: file_333"}' \
+  --accept-language en
+```
 
 ---
 
-## 参考链接
+## Tool Support
 
-- [SuperAgent API 文档](https://openapi.felo.ai/docs/api-reference/v2/superagent.html)
+SuperAgent may invoke tools during conversation. The script automatically extracts and displays:
+
+| Tool | Output |
+|---|---|
+| `generate_images` | Image URLs and titles |
+| `generate_discovery` | Research report titles |
+| `generate_document` | Document titles |
+| `generate_ppt` | PPT titles |
+| `generate_html` | HTML page titles |
+| `search_x` | Tweet content, author info, metrics |
+
+---
+
+## Error Handling
+
+| Error | Cause | Solution |
+|---|---|---|
+| `FELO_API_KEY not set` | Missing API key | Set `FELO_API_KEY` env var |
+| `HTTP 401: INVALID_API_KEY` | Invalid or revoked key | Generate a new key at felo.ai |
+| `SUPER_AGENT_CONVERSATION_CREATE_FAILED` (502) | Upstream error | Retry; contact support if persistent |
+| Stream idle timeout | No data for 2 hours | Retry the query |
+| Connection hangs | Firewall blocking SSE | Try `--verbose`; check proxy settings |
+
+---
+
+## Advanced Usage
+
+### Custom API base URL
+
+```bash
+export FELO_API_BASE="https://custom-api.example.com"
+node felo-superAgent/scripts/run_superagent.mjs --query "test"
+```
+
+### Resource selection
+
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Summarize these documents" \
+  --live-doc-id "PvyKouzJirXjFdst4uKRK3" \
+  --selected-resource-ids "res1,res2,res3"
+```
+
+---
+
+## References
+
+- [SKILL.md](SKILL.md) — full agent instructions, decision logic, and style library format
+- [SuperAgent API Documentation](https://openapi.felo.ai/docs/api-reference/v2/superagent.html)
 - [Felo Open Platform](https://openapi.felo.ai/docs/)
+- [Get API Key](https://felo.ai) (Settings → API Keys)
+- [GitHub Repository](https://github.com/Felo-Inc/felo-skills)
+
