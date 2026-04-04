@@ -1,6 +1,6 @@
 ---
-name: jisu-invoiceverify
-description: 使用极速数据发票查验 API，根据发票代码、号码、日期和金额等信息查询发票详情，并获取可用的发票类型列表。
+name: "Invoice Verification - 发票查验"
+description: 按发票代码、号码、日期、金额等查验发票真伪与详情。当用户说：帮我验一下这张增值税发票、这张票能不能报销查验？或类似发票查验时，使用本技能。
 metadata: { "openclaw": { "emoji": "🧾", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 

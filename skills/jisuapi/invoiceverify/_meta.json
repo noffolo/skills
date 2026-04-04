@@ -3,11 +3,16 @@
   "slug": "invoiceverify",
   "displayName": "Invoice Verification - 发票查验",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1774592625055,
-    "commit": "https://github.com/openclaw/skills/commit/cc22bcafa0c11c56764ee0f5e868d59c9f4870eb"
+    "version": "1.0.4",
+    "publishedAt": 1775210473538,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1774592625055,
+      "commit": "https://github.com/openclaw/skills/commit/cc22bcafa0c11c56764ee0f5e868d59c9f4870eb"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773728786109,
