@@ -3,9 +3,15 @@
   "slug": "clicksend-sms",
   "displayName": "Clicksend Sms",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773266546453,
-    "commit": "https://github.com/openclaw/skills/commit/4d019f58dfe66c21e2453f3bb2ef67a10864d4c9"
+    "version": "1.0.2",
+    "publishedAt": 1775163369461,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773266546453,
+      "commit": "https://github.com/openclaw/skills/commit/4d019f58dfe66c21e2453f3bb2ef67a10864d4c9"
+    }
+  ]
 }
