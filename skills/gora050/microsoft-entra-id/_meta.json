@@ -3,9 +3,15 @@
   "slug": "microsoft-entra-id",
   "displayName": "Microsoft Entra Id",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772812950321,
-    "commit": "https://github.com/openclaw/skills/commit/59e102a34fef041938ebd0fed096330b321fd22a"
+    "version": "1.0.2",
+    "publishedAt": 1775162525067,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772812950321,
+      "commit": "https://github.com/openclaw/skills/commit/59e102a34fef041938ebd0fed096330b321fd22a"
+    }
+  ]
 }
