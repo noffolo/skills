@@ -3,9 +3,15 @@
   "slug": "athenahealth",
   "displayName": "Athenahealth",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772978543890,
-    "commit": "https://github.com/openclaw/skills/commit/08507ad7cfd885aaec7337469a911144840c826a"
+    "version": "1.0.2",
+    "publishedAt": 1775162838315,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772978543890,
+      "commit": "https://github.com/openclaw/skills/commit/08507ad7cfd885aaec7337469a911144840c826a"
+    }
+  ]
 }
