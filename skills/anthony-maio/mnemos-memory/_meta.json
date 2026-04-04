@@ -3,9 +3,15 @@
   "slug": "mnemos-memory",
   "displayName": "Mnemos Memory",
   "latest": {
-    "version": "0.3.0",
-    "publishedAt": 1773326594154,
-    "commit": "https://github.com/openclaw/skills/commit/3d9a786d09cb662a064543ac0a884740b7604172"
+    "version": "0.6.0",
+    "publishedAt": 1775001557659,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.3.0",
+      "publishedAt": 1773326594154,
+      "commit": "https://github.com/openclaw/skills/commit/3d9a786d09cb662a064543ac0a884740b7604172"
+    }
+  ]
 }
