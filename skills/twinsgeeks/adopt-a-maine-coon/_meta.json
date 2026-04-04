@@ -1,11 +1,17 @@
 {
   "owner": "twinsgeeks",
   "slug": "adopt-a-maine-coon",
-  "displayName": "Adopt a Maine Coon — Virtual Cat Pet for AI Agents",
+  "displayName": "Maine Coon — Adopt a Maine Coon. Cat. 缅因猫。Gato Maine Coon.",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773280155677,
-    "commit": "https://github.com/openclaw/skills/commit/05936322dc7b2fd50e1f9396cd7c60b3b0a8c6b8"
+    "version": "1.0.3",
+    "publishedAt": 1775008368404,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773280155677,
+      "commit": "https://github.com/openclaw/skills/commit/05936322dc7b2fd50e1f9396cd7c60b3b0a8c6b8"
+    }
+  ]
 }
