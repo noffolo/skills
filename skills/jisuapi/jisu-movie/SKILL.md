@@ -1,6 +1,6 @@
 ---
-name: jisu-movie
-description: 使用极速数据电影影讯 API 查询当前城市上映电影、电影放映的电影院、电影院放映的电影、电影详情、按城市获取电影院以及电影城市列表。
+name: "Movie & News Inquiry - 电影影讯查询"
+description: 查上映影片、影院排片、影片详情与城市影院列表等。当用户说：最近有什么好看的电影？附近哪家影院放映《xxx》？或类似电影影讯问题时，使用本技能。
 metadata: { "openclaw": { "emoji": "🎬", "requires": { "bins": ["python3"], "env": ["JISU_API_KEY"] }, "primaryEnv": "JISU_API_KEY" } }
 ---
 
