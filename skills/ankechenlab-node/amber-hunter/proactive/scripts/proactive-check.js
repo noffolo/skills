@@ -22,7 +22,8 @@ const http = require('http');
 const HOME = os.homedir();
 const SESSIONS_DIR = path.join(HOME, '.openclaw', 'agents', 'main', 'sessions');
 const PENDING_FILE = path.join(HOME, '.amber-hunter', 'pending_extract.jsonl');
-const CONFIG_PATH = path.join(HOME, '.amber-hunter', 'config.json');
+const CONFIG_PATH   = path.join(HOME, '.amber-hunter', 'config.json');
+const OPENCLAW_CONFIG = path.join(HOME, '.openclaw', 'openclaw.json');
 const LOG_PATH = path.join(HOME, '.amber-hunter', 'amber-proactive.log');
 
 const AMBER_PORT = 18998;
@@ -45,56 +46,75 @@ function getConfig() {
 }
 
 function getApiKey() {
-  const cfg = getConfig();
-  return cfg.api_key || cfg.apiToken || '';
+  // Read from OpenClaw config: models.providers['minimax-cn'].apiKey
+  try {
+    const openclawConfig = JSON.parse(fs.readFileSync(OPENCLAW_CONFIG, 'utf8'));
+    return openclawConfig?.models?.providers?.['minimax-cn']?.apiKey || '';
+  } catch { return ''; }
 }
 
-// ── MiniMax LLM Call ─────────────────────────────────────────────────
+// ── v1.2.8: Amber /extract endpoint (Proactive V4) ───────────────────
 
-function callMinimaxLLM(prompt, apiKey) {
-  return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({
-      model: 'minimax-cn/MiniMax-M2.1-flash',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    const url = new URL('https://api.minimaxi.com/anthropic/v1/messages');
+/**
+ * Call amber-hunter's /extract endpoint to get structured memories.
+ * Falls back to writing pending_extract.jsonl on failure (compat).
+ */
+function callExtractEndpoint(conversation, sessionId, amberToken) {
+  return new Promise((resolve) => {
+    const bodyObj = { text: conversation, source: sessionId };
+    const bodyStr = JSON.stringify(bodyObj);
     const opts = {
-      hostname: url.hostname,
-      port: url.port || 443,
-      path: url.pathname,
+      hostname: 'localhost',
+      port: AMBER_PORT,
+      path: '/extract',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${amberToken}`,
         'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(bodyStr),
       },
     };
-
-    const req = https.request(opts, (res) => {
+    const req = http.request(opts, (res) => {
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => {
+        if (res.statusCode !== 200) {
+          log(`[extract] HTTP ${res.statusCode}, falling back to pending file`);
+          // Fallback: write pending_extract.jsonl for later processing
+          try {
+            fs.mkdirSync(path.dirname(PENDING_FILE), { recursive: true });
+            fs.appendFileSync(PENDING_FILE, JSON.stringify({
+              session_id: sessionId,
+              text: conversation.slice(0, 4000),
+              message_count: (conversation.match(/\n/g) || []).length,
+              queued_at: new Date().toISOString(),
+            }) + '\n');
+          } catch (e2) { /* ignore */ }
+          resolve([]);
+          return;
+        }
         try {
           const parsed = JSON.parse(data);
-          const items = parsed.content || [];
-          let text = '';
-          for (const item of items) {
-            if (item.type === 'text') { text = item.text; break; }
-          }
-          // 去掉可能的markdown包裹
-          text = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-          const result = JSON.parse(text);
-          resolve(result.facts || []);
+          resolve(parsed.memories || []);
         } catch (e) {
-          log(`[llm] Parse error: ${e.message}, raw: ${data.slice(0, 100)}`);
-          resolve([]); // 失败不阻断
+          log(`[extract] Parse error: ${e.message}, raw: ${data.slice(0, 100)}`);
+          resolve([]);
         }
       });
     });
-    req.on('error', e => { log(`[llm] API error: ${e.message}`); resolve([]); });
+    req.on('error', e => {
+      log(`[extract] Connection error: ${e.message}, falling back to pending file`);
+      try {
+        fs.mkdirSync(path.dirname(PENDING_FILE), { recursive: true });
+        fs.appendFileSync(PENDING_FILE, JSON.stringify({
+          session_id: sessionId,
+          text: conversation.slice(0, 4000),
+          message_count: (conversation.match(/\n/g) || []).length,
+          queued_at: new Date().toISOString(),
+        }) + '\n');
+      } catch (e2) { /* ignore */ }
+      resolve([]);
+    });
     req.write(bodyStr);
     req.end();
   });
@@ -136,9 +156,10 @@ function extractMessages(sessionPath) {
         text = parts;
       }
       text = text.trim();
-      if (text && text.length > 10) {
-        messages.push({ role: raw.role || '?', text });
-      }
+      if (!text || text.length < 10) continue;
+      // 过滤掉日志行（时间戳格式 [HH:MM:SS] 或 ❌ 开头）
+      if (/^\[\d{2}:\d{2}:\d{2}\]/.test(text) || text.startsWith('❌')) continue;
+      messages.push({ role: raw.role || '?', text });
     }
     return messages;
   } catch { return []; }
@@ -152,9 +173,23 @@ function buildConversationText(messages, maxChars = 8000) {
 
 // ── Amber API ────────────────────────────────────────────────────────
 
+function getAmberToken() {
+  return new Promise(resolve => {
+    http.get({ hostname: 'localhost', port: AMBER_PORT, path: '/token' }, res => {
+      let data = '';
+      res.on('data', d => data += d);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data).api_key); } catch { resolve(''); }
+      });
+    }).on('error', () => resolve(''));
+  });
+}
+
 function writeCapsule(token, memo, content, tags) {
   return new Promise(resolve => {
-    const capsule = { memo: memo.slice(0, 60), content, tags };
+    // memo 最多80字符，整句不断词
+    const memoText = memo.length > 80 ? memo.slice(0, 77) + '…' : memo;
+    const capsule = { memo: memoText, content, tags };
     const bodyStr = JSON.stringify(capsule);
     const opts = {
       hostname: 'localhost', port: AMBER_PORT, path: '/capsules',
@@ -179,10 +214,11 @@ function writeCapsule(token, memo, content, tags) {
 
 async function main() {
   const isManual = process.argv.includes('--manual');
-  const apiKey = getApiKey();
 
-  if (!apiKey) {
-    log('[main] No API key found in config, skipping');
+  // v1.2.8: Get amber-hunter token first (needed for /extract endpoint)
+  const amberToken = await getAmberToken();
+  if (!amberToken) {
+    log('[main] No amber-hunter token found, skipping');
     return;
   }
 
@@ -219,37 +255,30 @@ async function main() {
 
   const conversation = buildConversationText(messages);
 
-  // 构建提取 prompt
-  const prompt = `从以下对话中提取关键事实。只返回纯JSON，不要markdown，不要思考过程。
+  // v1.2.8: Call amber-hunter /extract endpoint (Proactive V4)
+  log('[extract] Calling amber-hunter /extract endpoint...');
+  const memories = await callExtractEndpoint(conversation, sessionId, amberToken);
 
-对话：
-${conversation}
-
-输出格式：
-{"facts": [{"fact": "具体描述这个事实", "worth": true}]}`;
-
-  log(`[llm] Calling MiniMax API...`);
-  const facts = await callMinimaxLLM(prompt, apiKey);
-
-  if (!facts || facts.length === 0) {
-    log('[llm] No facts extracted, skipping');
+  if (!memories || memories.length === 0) {
+    log('[extract] No memories extracted, skipping');
     return;
   }
 
-  const worthIt = facts.filter(f => f.worth);
-  log(`[llm] Extracted ${facts.length} facts, ${worthIt.length} worth saving`);
+  log(`[extract] Extracted ${memories.length} memories`);
 
-  const token = getApiKey();
+  // Write capsules for each memory
   let written = 0;
-
-  for (const { fact, worth } of facts) {
-    if (!worth) continue;
-    const ok = await writeCapsule(token, fact, fact, 'auto-extract');
+  for (const mem of memories) {
+    const summary = (mem.summary || '').trim();
+    if (!summary) continue;
+    const tags = ['auto-extract', mem.type || 'fact'].concat(mem.tags || []).slice(0, 5);
+    const content = JSON.stringify(mem, null, 2);
+    const ok = await writeCapsule(amberToken, summary, content, tags.join(','));
     if (ok) written++;
-    log(`[capsule] ${ok ? '✅' : '❌'} ${fact.slice(0, 50)}`);
+    log(`[capsule] ${ok ? '✅' : '❌'} [${mem.type}] ${summary.slice(0, 50)}`);
   }
 
-  log(`[done] Wrote ${written}/${worthIt.length} capsules from ${messages.length} messages`);
+  log(`[done] Wrote ${written}/${memories.length} capsules from ${messages.length} messages`);
 }
 
 main().catch(e => log('[error] ' + e.message));

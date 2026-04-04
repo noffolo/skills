@@ -15,6 +15,14 @@ class CapsuleIn(BaseModel):
     url: Optional[str] = None
 
 
+class CapsuleUpdate(BaseModel):
+    """Fields that can be updated via PATCH."""
+    memo: Optional[str] = None
+    tags: Optional[str] = None
+    category: Optional[str] = None
+    category_path: Optional[str] = None
+
+
 class CapsuleRecord(BaseModel):
     id: str
     memo: str
