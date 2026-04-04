@@ -3,9 +3,15 @@
   "slug": "agencyzoom",
   "displayName": "Agencyzoom",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772938961461,
-    "commit": "https://github.com/openclaw/skills/commit/b4d8b852a59df992773db44c64bdc4a8cdd41be5"
+    "version": "1.0.2",
+    "publishedAt": 1775162782239,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772938961461,
+      "commit": "https://github.com/openclaw/skills/commit/b4d8b852a59df992773db44c64bdc4a8cdd41be5"
+    }
+  ]
 }
