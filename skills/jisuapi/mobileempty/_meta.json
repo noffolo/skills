@@ -3,11 +3,16 @@
   "slug": "mobileempty",
   "displayName": "Mobile Phone Number Undeliverable or Empty Detection - 手机空号检测",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773727725599,
-    "commit": "https://github.com/openclaw/skills/commit/c90c6b1c860ae496d4e59989da6d303ce18cede0"
+    "version": "1.0.2",
+    "publishedAt": 1775210321070,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773727725599,
+      "commit": "https://github.com/openclaw/skills/commit/c90c6b1c860ae496d4e59989da6d303ce18cede0"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1772604257936,
