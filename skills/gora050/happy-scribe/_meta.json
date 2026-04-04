@@ -3,9 +3,15 @@
   "slug": "happy-scribe",
   "displayName": "Happy Scribe",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773280987034,
-    "commit": "https://github.com/openclaw/skills/commit/902f512ae621d7d956ce3a2a5fa64cd2058062d4"
+    "version": "1.0.2",
+    "publishedAt": 1775163430544,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773280987034,
+      "commit": "https://github.com/openclaw/skills/commit/902f512ae621d7d956ce3a2a5fa64cd2058062d4"
+    }
+  ]
 }
