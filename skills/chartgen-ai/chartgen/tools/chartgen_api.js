@@ -20,7 +20,7 @@ const os = require("os");
 const path = require("path");
 const { URL } = require("url");
 
-const TOOL_VERSION = "1.0.21";
+const TOOL_VERSION = "1.0.22";
 
 const BASE_URL = process.env.CHARTGEN_API_URL || "https://chartgen.ai";
 const POLL_INTERVAL_MS = 20_000;
@@ -569,10 +569,10 @@ async function main() {
   if (!apiKey && cmd && cmd !== "help" && cmd !== "version") {
     fail(
       "api_key_not_configured. " +
-        "Please set your ChartGen API key: " +
-        'export CHARTGEN_API_KEY="your-key" ' +
-        "or save it to ~/.chartgen/api_key . " +
-        "Get a key at https://chartgen.ai/chat → Menu → API",
+      "Please set your ChartGen API key: " +
+      'export CHARTGEN_API_KEY="your-key" ' +
+      "or save it to ~/.chartgen/api_key . " +
+      "Get a key at https://chartgen.ai/chat → Menu → API",
     );
   }
 
@@ -636,20 +636,20 @@ async function main() {
     default:
       process.stderr.write(
         `ChartGen AI API Tool v${TOOL_VERSION}  (${BASE_URL})\n\n` +
-          "Commands:\n" +
-          '  submit  "<query>" <channel> [file1 file2 ...]   Submit task\n' +
-          "  poll    <task_id>                                Single status check\n" +
-          "  wait    <task_id>                                Poll until done (~25 min max)\n" +
-          '  run     "<query>" <channel> [file1 file2 ...]   submit + wait\n' +
-          "  version                                          Print tool version\n\n" +
-          "Supported file types: " +
-          [...ALLOWED_EXTENSIONS].join(", ") +
-          "\n\n" +
-          "API key is read automatically from:\n" +
-          "  1. CHARTGEN_API_KEY environment variable\n" +
-          "  2. ~/.openclaw/skills/chartgen/config.json\n" +
-          "  3. ~/.chartgen/api_key\n\n" +
-          "Get a key: https://chartgen.ai/chat → Menu → API\n",
+        "Commands:\n" +
+        '  submit  "<query>" <channel> [file1 file2 ...]   Submit task\n' +
+        "  poll    <task_id>                                Single status check\n" +
+        "  wait    <task_id>                                Poll until done (~25 min max)\n" +
+        '  run     "<query>" <channel> [file1 file2 ...]   submit + wait\n' +
+        "  version                                          Print tool version\n\n" +
+        "Supported file types: " +
+        [...ALLOWED_EXTENSIONS].join(", ") +
+        "\n\n" +
+        "API key is read automatically from:\n" +
+        "  1. CHARTGEN_API_KEY environment variable\n" +
+        "  2. ~/.openclaw/skills/chartgen/config.json\n" +
+        "  3. ~/.chartgen/api_key\n\n" +
+        "Get a key: https://chartgen.ai/chat → Menu → API\n",
       );
       process.exit(1);
   }
