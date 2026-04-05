@@ -1,13 +1,18 @@
 {
   "owner": "mocoap-wang",
   "slug": "equal-data-skill",
-  "displayName": "看究竟API查询",
+  "displayName": "equaldata: A-Share Financial Data API",
   "latest": {
-    "version": "0.0.11",
-    "publishedAt": 1774247995948,
-    "commit": "https://github.com/openclaw/skills/commit/2a465cce6e1f4d9a422ff34f032694ac67cf3653"
+    "version": "0.0.21",
+    "publishedAt": 1775206187858,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.0.11",
+      "publishedAt": 1774247995948,
+      "commit": "https://github.com/openclaw/skills/commit/2a465cce6e1f4d9a422ff34f032694ac67cf3653"
+    },
     {
       "version": "0.0.6",
       "publishedAt": 1773978754329,

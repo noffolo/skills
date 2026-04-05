@@ -1,15 +1,15 @@
 {
   "name": "equal-data",
-  "version": "0.0.2",
-  "description": "专业级金融数据服务解决方案，提供A股/基金/指数实时与历史数据、财报及三大报表、基金画像等金融数据查询服务",
-  "author": "看究竟",
-  "tags": ["金融数据", "A股", "量化", "股票", "基金", "Tushare", "游资"],
+  "version": "0.0.6",
+  "description": "EuqalData提供A股专业级金融数据服务解决方案，提供A股/基金/指数实时与历史数据、财报及三大报表、基金画像等金融数据查询服务",
+  "author": "EuqalData",
+  "tags": ["金融数据", "A股", "财务指标", "股票行情", "究竟特色", "龙虎榜", "打板专题数据", "上市公司股东", "金融资讯信息"],
   "repository": "https://github.com/mocoap-wang/equal-data-skill",
   "license": "Apache-2.0",
-  "config_paths": ["~/.kjiujing/config.yaml"],
+  "config_paths": ["~/.openclaw/openclaw.json"],
   "install_spec": {
     "type": "pip",
-    "package": "equal-data==0.0.2"
+    "package": "equal-data>=0.0.6"
   },
-  "required_env_vars": ["KJJ_API_TOKEN"]
+  "required_env_vars": ["EQUAL_DATA_API_KEY"]
 }
