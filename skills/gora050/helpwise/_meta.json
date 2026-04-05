@@ -3,9 +3,15 @@
   "slug": "helpwise",
   "displayName": "Helpwise",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773615824807,
-    "commit": "https://github.com/openclaw/skills/commit/8d2dc41331e5b0dfb8ed3dbb64c6952a3d0e1169"
+    "version": "1.0.2",
+    "publishedAt": 1775164167051,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773615824807,
+      "commit": "https://github.com/openclaw/skills/commit/8d2dc41331e5b0dfb8ed3dbb64c6952a3d0e1169"
+    }
+  ]
 }
