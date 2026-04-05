@@ -3,9 +3,15 @@
   "slug": "centralstationcrm",
   "displayName": "Centralstationcrm",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773529396842,
-    "commit": "https://github.com/openclaw/skills/commit/2040e3e74abe8a15936c0c76741959c155efafb3"
+    "version": "1.0.2",
+    "publishedAt": 1775163965069,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773529396842,
+      "commit": "https://github.com/openclaw/skills/commit/2040e3e74abe8a15936c0c76741959c155efafb3"
+    }
+  ]
 }
