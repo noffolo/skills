@@ -6,11 +6,54 @@ dependencies:
     type: binary
     install: "brew install planetlinkinc/tap/freeguardvpn"
     description: FreeGuard VPN CLI — required for all operations in this skill
+permissions:
+  network:
+    - domain: "freeguardvpn.com"
+      purpose: "User login, subscription management, and profile sync (HTTPS only)"
+    - domain: "github.com/planetlinkinc"
+      purpose: "Binary downloads from GitHub Releases (installation only)"
+  filesystem:
+    - path: "~/.freeguard/"
+      access: "read/write"
+      purpose: "CLI stores credentials and config locally (0600 permissions)"
+  elevated_privileges:
+    required: false
+    optional: true
+    purpose: "sudo/Administrator is optional — only requested with explicit user consent to enable TUN mode (virtual network adapter for system-wide VPN). The skill always offers a non-elevated fallback."
+  credentials:
+    handled_by: "freeguard CLI binary (not by this skill)"
+    storage: "local only (~/.freeguard/credentials.yaml, 0600)"
+    transmission: "HTTPS to freeguardvpn.com during login only, never after"
 ---
 
 # FreeGuard VPN Setup Guide
 
 An agent skill for guiding users through FreeGuard VPN setup and daily usage. Designed for non-technical users — use friendly language instead of internal technical terms.
+
+## Security Model
+
+This skill is an **instruction-only guide** — it does not download, execute, or transmit anything on its own. All operations are performed by the `freeguard` CLI binary, which the user installs separately through verified channels.
+
+### Trust Boundaries
+
+| Boundary | Detail |
+|----------|--------|
+| **This skill does NOT** | download binaries, store credentials, make network requests, or execute code autonomously |
+| **This skill DOES** | instruct the agent to run `freeguard` CLI commands via the user's terminal with standard tool-call permissions |
+| **Credential flow** | User → `freeguard` CLI → `freeguardvpn.com` (HTTPS). This skill never touches credentials directly. |
+| **Elevated privileges** | Optional. Always requires explicit user consent before `sudo`. A non-elevated fallback is always offered. |
+| **Installation** | Via Homebrew (signed formula, checksum-verified) or GitHub Releases (SHA256 checksum verification required before install). No remote scripts are executed. |
+| **Data exfiltration** | None. No data is sent to any domain other than `freeguardvpn.com` by the CLI. This skill sends no data anywhere. |
+
+### User Consent Gates
+
+The agent MUST obtain explicit user confirmation before each of these actions:
+1. **Installing the CLI binary** (any method)
+2. **Running `sudo` or requesting Administrator** privileges
+3. **Sending a verification code** to the user's email
+4. **Creating a subscription** (initiating payment)
+
+The agent must NEVER proceed with any of the above without the user's explicit "yes".
 
 ## Required Tools
 
@@ -29,7 +72,6 @@ FreeGuard VPN is developed by **Planetlink Inc.**
 | Homepage | `https://freeguardvpn.com` | Product homepage |
 | GitHub Releases | `github.com/planetlinkinc/freeguard-releases` | Public repo — binary releases with SHA256 checksums |
 | Homebrew tap | `github.com/planetlinkinc/homebrew-tap` | Public repo — signed formula, downloads from GitHub Releases |
-| Install scripts | `downloadcli.freeguardvpn.com` | Convenience install scripts (Option 3) |
 | API backend | `www.freeguardvpn.com` | Login, subscription, profile sync |
 
 The CLI source code is proprietary (not open-source). All credentials are sent exclusively to `freeguardvpn.com` over HTTPS. No other domains receive user data.
@@ -115,9 +157,9 @@ Tell the user the current state in friendly terms:
 
 ## Step 2: Installation
 
-Ask the user's operating system if unclear, then recommend the install method **in this priority order**:
+Ask the user's operating system if unclear, then recommend the install method. Only two verified installation methods are supported:
 
-### Option 1 (Recommended): Homebrew (macOS / Linux)
+### Option A (Recommended): Homebrew (macOS / Linux)
 
 ```bash
 brew install planetlinkinc/tap/freeguardvpn
@@ -125,7 +167,7 @@ brew install planetlinkinc/tap/freeguardvpn
 
 Best option — signed formula, checksum-verified, and auto-updates via Homebrew. The formula source is public at [github.com/planetlinkinc/homebrew-tap](https://github.com/planetlinkinc/homebrew-tap).
 
-### Option 2: GitHub Release (macOS / Linux / Windows)
+### Option B: GitHub Release (macOS / Linux / Windows)
 
 Download pre-built binaries directly from the official GitHub Releases page. Each release includes SHA256 checksums for verification.
 
@@ -143,7 +185,14 @@ curl -fsSL https://github.com/planetlinkinc/freeguard-releases/releases/latest/d
 cd /tmp && shasum -a 256 -c checksums.txt --ignore-missing
 ```
 
-If checksum passes, extract and install:
+**IMPORTANT: Do NOT proceed if checksum verification fails.** Tell the user:
+> "The checksum didn't match — the download may be corrupted or tampered with. Let's try downloading again."
+
+If checksum passes, extract and install. Ask for user confirmation before running `sudo`:
+
+> "Checksum verified — the download is authentic. I need to move the binary to /usr/local/bin, which requires admin permission. **Is that OK?**"
+
+Only after user confirms:
 ```bash
 # Step 3: Extract and move to PATH
 tar xzf /tmp/freeguard.tar.gz -C /tmp
@@ -157,50 +206,6 @@ Asset naming convention:
 - macOS (Intel): `freeguard-darwin-amd64.tar.gz`
 - Linux (x64): `freeguard-linux-amd64.tar.gz`
 - Windows (x64): `freeguard-windows-amd64.zip`
-
-### Option 3: Install script (convenience)
-
-Downloads the latest binary from the official FreeGuard CDN (`downloadcli.freeguardvpn.com`). **Always download the script first, let the user inspect it, then execute.** Ask for explicit confirmation before running.
-
-> "I can also download an install script that automates the process. I'll show you the script first so you can review it. **Would you like to try this, or prefer Homebrew / GitHub Release instead?**"
-
-Only proceed after user explicitly confirms.
-
-**macOS / Linux:**
-```bash
-# Step 1: Download the script for inspection
-curl -fsSL https://downloadcli.freeguardvpn.com/cli/install.sh -o /tmp/freeguard-install.sh
-
-# Step 2: Show the user what the script does
-cat /tmp/freeguard-install.sh
-```
-
-After showing the script content, tell the user:
-> "Here's what the install script does: [brief summary of the script's actions]. Shall I run it?"
-
-Only after user confirms:
-```bash
-# Step 3: Execute the reviewed script
-sh /tmp/freeguard-install.sh
-```
-
-**Windows (PowerShell):**
-```powershell
-# Step 1: Download the script for inspection
-Invoke-WebRequest -Uri https://downloadcli.freeguardvpn.com/cli/install.ps1 -OutFile $env:TEMP\freeguard-install.ps1
-
-# Step 2: Show the user what the script does
-Get-Content $env:TEMP\freeguard-install.ps1
-```
-
-After showing the script content, tell the user:
-> "Here's what the install script does: [brief summary]. Shall I run it?"
-
-Only after user confirms:
-```powershell
-# Step 3: Execute the reviewed script
-& $env:TEMP\freeguard-install.ps1
-```
 
 ### Post-install verification
 
