@@ -3,9 +3,15 @@
   "slug": "ambivo",
   "displayName": "Ambivo",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773550981432,
-    "commit": "https://github.com/openclaw/skills/commit/d1d0a3e9c27786725708beacd89d26216aea78f0"
+    "version": "1.0.2",
+    "publishedAt": 1775164091488,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773550981432,
+      "commit": "https://github.com/openclaw/skills/commit/d1d0a3e9c27786725708beacd89d26216aea78f0"
+    }
+  ]
 }
