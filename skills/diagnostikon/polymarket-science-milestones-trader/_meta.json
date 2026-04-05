@@ -1,13 +1,18 @@
 {
   "owner": "diagnostikon",
   "slug": "polymarket-science-milestones-trader",
-  "displayName": "Science Milestones & Research Trader",
+  "displayName": "Polymarket Science Milestones Trader",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773859418168,
-    "commit": "https://github.com/openclaw/skills/commit/00fddc22b66a2423d0bc65568c9ac4d6ee667967"
+    "version": "1.0.2",
+    "publishedAt": 1775317330669,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773859418168,
+      "commit": "https://github.com/openclaw/skills/commit/00fddc22b66a2423d0bc65568c9ac4d6ee667967"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773568554564,
