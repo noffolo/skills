@@ -1,7 +1,7 @@
 {
   "emoji": "🪙📈",
   "requires": {
-    "env": ["SIMMERAPIKEY"],
+    "env": ["SIMMER_API_KEY"],
     "pip": ["simmer-sdk"]
   },
   "cron": null,
@@ -12,7 +12,7 @@
   },
   "tunables": [
     {
-      "env": "SIMMERMAXPOSITION",
+      "env": "SIMMER_MAX_POSITION",
       "type": "number",
       "default": 30,
       "range": [1, 200],
@@ -20,7 +20,7 @@
       "label": "Max position size USD"
     },
     {
-      "env": "SIMMERMINVOLUME",
+      "env": "SIMMER_MIN_VOLUME",
       "type": "number",
       "default": 20000,
       "range": [0, 500000],
@@ -28,7 +28,7 @@
       "label": "Min market volume USD"
     },
     {
-      "env": "SIMMERMAXSPREAD",
+      "env": "SIMMER_MAX_SPREAD",
       "type": "number",
       "default": 0.08,
       "range": [0.01, 0.5],
@@ -36,7 +36,7 @@
       "label": "Max bid-ask spread"
     },
     {
-      "env": "SIMMERMINDAYS",
+      "env": "SIMMER_MIN_DAYS",
       "type": "number",
       "default": 5,
       "range": [1, 180],
@@ -44,7 +44,7 @@
       "label": "Min days until resolution"
     },
     {
-      "env": "SIMMERMAXPOSITIONS",
+      "env": "SIMMER_MAX_POSITIONS",
       "type": "number",
       "default": 6,
       "range": [1, 20],
