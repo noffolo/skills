@@ -1,6 +1,6 @@
 ---
 name: ai-automation-consulting
-version: 1.0.3
+version: 1.0.4
 description: AI 自动化咨询服务 - 帮你用 AI 省时省钱。适合：中小企业、自由职业者、想提效的人。
 metadata:
   openclaw:
