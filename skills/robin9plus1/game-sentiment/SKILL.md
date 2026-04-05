@@ -1,13 +1,21 @@
 ---
 name: game-sentiment
 description: >
-  Automated game sentiment monitoring skill for mobile games. Scans public feedback across
-  multiple channels (Weibo, Bilibili, Zhihu, Tieba, NGA, Reddit, game media, etc.), classifies
-  issues, assesses severity, assigns ownership, and generates actionable reports with P1 alerts.
+  Automated game sentiment monitoring skill for mobile/PC games. Scans public feedback across
+  multiple channels (Weibo, Bilibili, Zhihu, Tieba, NGA, TapTap, Reddit, X/Twitter, YouTube,
+  Discord, game media, etc.), classifies issues, assesses severity, assigns ownership, and
+  generates actionable reports with P1 alerts.
+
   Use when: user asks to monitor game sentiment, create daily sentiment reports, analyze post-update
-  player feedback, scan for negative sentiment spikes, or do game industry sentiment analysis.
+  player feedback, scan for negative sentiment spikes, do game industry sentiment analysis,
+  track player complaints, monitor game reviews, watch for PR crises, check game community health,
+  monitor game reputation (游戏口碑), game sentiment monitoring (游戏舆情监测),
+  or says things like "帮我看看XX游戏的口碑", "跑一下舆情", "游戏评价怎么样", "玩家在骂什么",
+  "游戏口碑怎么样", "做个游戏舆情监测", "monitor game feedback", "what are players saying about",
+  "run sentiment scan".
+
   NOT for: generic brand PR writing, broad industry news without a specific game, one-off web searches
-  without structured output, or customer service scripting.
+  without structured output, customer service scripting, or non-game product sentiment.
 ---
 
 # Game Sentiment Monitoring
@@ -43,10 +51,20 @@ Scan configured game's public feedback across channels, produce an **actionable 
 
 ## First Run — Configuration
 
-If no `config.json` exists in this skill directory, execute the following interactive flow: <!-- [2026-04-05] #23 新用户交互流程重构 -->
+**每次触发此 skill 都必须走交互流程**，不得跳过直接使用上次配置运行。 <!-- [2026-04-05] #33 每次执行必须走交互确认 -->
+
+如果已有 `{WORKSPACE}/game-sentiment-data/{slug}/config.json`，展示上次配置摘要让用户确认或修改：
+> 📋 上次配置（{游戏名}）：
+> - 渠道：{渠道列表}
+> - 关键词：{关键词列表}
+> - 频率：{频率}
+>
+> 用这个配置跑？还是要调整？（回"跑"直接开始，或告诉我要改什么）
+
+如果无 config.json（首次），执行完整交互流程：
 
 ### Step 1: 识别意图 + 游戏名（唯一必填项）
-检测到无 config.json 时，发送：
+首次配置时，发送：
 > 👋 游戏舆情监控已就绪。我来帮你配置：
 > **你要监控哪个游戏？** 告诉我游戏名就行，中英文都可以。
 
