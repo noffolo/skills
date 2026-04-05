@@ -3,9 +3,15 @@
   "slug": "followup",
   "displayName": "Followup",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773817350099,
-    "commit": "https://github.com/openclaw/skills/commit/eee32a33b48ded26dda39c46f721fdaadacce2ca"
+    "version": "1.0.2",
+    "publishedAt": 1775164656845,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773817350099,
+      "commit": "https://github.com/openclaw/skills/commit/eee32a33b48ded26dda39c46f721fdaadacce2ca"
+    }
+  ]
 }
