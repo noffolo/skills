@@ -3,11 +3,16 @@
   "slug": "kai-html-export",
   "displayName": "Kai Html Export",
   "latest": {
-    "version": "1.1.7",
-    "publishedAt": 1774342959313,
-    "commit": "https://github.com/openclaw/skills/commit/acf272aa4fe1d02e244fe3bbdf85cae37b93f335"
+    "version": "1.2.0",
+    "publishedAt": 1775272697725,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.7",
+      "publishedAt": 1774342959313,
+      "commit": "https://github.com/openclaw/skills/commit/acf272aa4fe1d02e244fe3bbdf85cae37b93f335"
+    },
     {
       "version": "1.1.2",
       "publishedAt": 1773925581911,
