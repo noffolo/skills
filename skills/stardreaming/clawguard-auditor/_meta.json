@@ -1,11 +1,17 @@
 {
   "owner": "stardreaming",
   "slug": "clawguard-auditor",
-  "displayName": "ClawGuard",
+  "displayName": "ClawGuard-Auditor",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773816637171,
-    "commit": "https://github.com/openclaw/skills/commit/6b9bcd62d91512a430916c904a8a5f8ca67c19e4"
+    "version": "3.0.0",
+    "publishedAt": 1775293706892,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773816637171,
+      "commit": "https://github.com/openclaw/skills/commit/6b9bcd62d91512a430916c904a8a5f8ca67c19e4"
+    }
+  ]
 }
