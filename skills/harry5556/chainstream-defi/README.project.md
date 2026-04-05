@@ -9,13 +9,17 @@ On-chain data intelligence and DeFi execution for AI agents across Solana, BSC, 
 | Skill | Coverage | Pattern |
 |-------|----------|---------|
 | [chainstream-data](chainstream-data/) | Token search, market trending, wallet PnL, WebSocket | Tool |
+| [chainstream-graphql](chainstream-graphql/) | Custom GraphQL queries, cross-cube JOINs, aggregations, 17 on-chain cubes | Tool |
 | [chainstream-defi](chainstream-defi/) | Token swap, cross-chain bridge, launchpad, transaction broadcast | Process |
 
 ## When to Use Which
 
 ```
 User intent involves reading data?
-  → chainstream-data (token info, market trends, wallet analysis)
+  Standard queries (token info, market trends, wallet analysis)?
+    → chainstream-data (REST API / MCP — pre-built endpoints)
+  Custom analytics (cross-cube JOIN, aggregation, complex filters)?
+    → chainstream-graphql (GraphQL — flexible queries on 17 cubes)
 
 User intent involves executing a transaction?
   → chainstream-defi (swap, bridge, create token, send tx)
@@ -62,8 +66,8 @@ gemini extensions install https://github.com/chainstream-io/skills
 | Email login | `chainstream login --email user@example.com` | Recover wallet on new device |
 | Bind email | `chainstream bind-email user@example.com` | Optional, for account recovery |
 | API Key | `chainstream config set --key apiKey --value <key>` | Read-only, dashboard users |
-| x402 (USDC) | Auto on 402 response | CLI auto-purchases quota with USDC |
-| x402 → API Key | Auto on 402 response | CLI auto-purchases quota, **returns API Key** for MCP/SDK use |
+| x402 (USDC) | Interactive on 402 | CLI prompts for plan selection, pays with USDC (Base/Solana). Quota is in **CU (Compute Units)**, not call count |
+| x402 → API Key | Interactive on 402 | Same as above — also returns API Key for MCP/SDK use |
 
 ## Usage Examples
 
@@ -75,9 +79,12 @@ is <token_address> safe to buy?
 show top holders of <token_address>
 what tokens are trending on SOL right now?
 show my wallet PnL on Solana
+check my current subscription status
 swap 0.1 SOL for <token_address>
 check job status <job_id>
 show K-line chart for <token_address>
+what cubes are available in the GraphQL schema?
+query the top 50 tokens by 24h volume using GraphQL
 ```
 
 ## CLI
@@ -89,6 +96,8 @@ npx @chainstream-io/cli token search --keyword PUMP --chain sol
 npx @chainstream-io/cli market trending --chain sol --duration 1h
 npx @chainstream-io/cli wallet pnl --chain sol --address <addr>
 npx @chainstream-io/cli dex route --chain sol --from <wallet> --input-token SOL --output-token <addr> --amount 1000000
+npx @chainstream-io/cli graphql schema --summary
+npx @chainstream-io/cli graphql query --query 'query { DEXTradeByTokens(network: sol, tokenAddress: {is: "TOKEN_ADDRESS"}, limit: {count: 10}, orderBy: Block_Time_DESC) { Block { Time } Trade { Currency { Symbol } Amount AmountInUSD Side { Type } } } }'
 ```
 
 ## MCP Server

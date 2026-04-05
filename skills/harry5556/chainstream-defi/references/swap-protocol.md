@@ -42,6 +42,29 @@ Step 5: chainstream job status --id JOB_ID --wait
 
 ChainStream does NOT hold wallet keys. The API returns **unsigned transactions** that must be signed locally via `wallet sign`.
 
+**IMPORTANT: The CLI `wallet sign` command IS IMPLEMENTED and WORKING.** It supports both Turnkey (TEE-backed) and raw private key wallets.
+
+### CLI Signing Command
+
+```bash
+# Sign a transaction using the configured wallet
+npx @chainstream-io/cli wallet sign --chain sol --tx <base64-serializedTx> --json
+
+# Output: { "signedTx": "<base64-signed-transaction>" }
+```
+
+The CLI automatically:
+1. Detects wallet type (Turnkey or raw key) from `~/.config/chainstream/config.json`
+2. Selects the correct signing method based on `--chain` (Solana vs EVM)
+3. Returns the signed transaction in base64 format
+
+### Wallet Types Supported
+
+| Type | Setup | Signing Method |
+|------|-------|----------------|
+| Turnkey (TEE) | `chainstream login` | Remote signing via Turnkey API |
+| Raw Key | `chainstream wallet set-raw --chain sol` | Local signing with private key |
+
 ### Solana
 
 Server returns: `serializedTx` = base64-encoded `VersionedTransaction` with placeholder signatures.

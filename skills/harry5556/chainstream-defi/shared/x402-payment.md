@@ -29,8 +29,8 @@ npx @chainstream-io/cli wallet pricing
 When a user needs to purchase a subscription:
 
 1. **Fetch available plans**: call `GET /x402/pricing` or `GET /mpp/pricing`
-2. **Present ALL plans to the user** with name, price, quota, and duration — let them choose. **NEVER auto-select a plan. NEVER default to any plan. The user MUST explicitly choose.**
-3. **Explain what it means**: "A subscription gives you a pool of compute units (CU). Each API call consumes CU from the pool — the amount varies by endpoint and response size. The quota is valid for 30 days."
+2. **Present ALL plans to the user** with name, price, quota (CU), and duration — let them choose. **NEVER auto-select a plan. NEVER default to any plan. The user MUST explicitly choose.**
+3. **Explain what it means**: "A subscription gives you a pool of **Compute Units (CU)**. Each API call consumes CU from the pool — the amount varies by endpoint complexity and response size. CU is NOT the same as API call count. The quota is valid for 30 days." **Always use "CU" as the unit — NEVER say "calls" or "requests" when describing quota.**
 4. **Ask which payment method the user has**:
    - USDC on Base or Solana → use x402
    - USDC.e on Tempo → use MPP
@@ -186,10 +186,42 @@ Compatible wallets: Tempo Wallet, MetaMask (custom network), Coinbase CDP, Turnk
 
 If unsure, ask the user which chain their wallet is on. If they say "Tempo" or "Stripe" → MPP. If they say "Base", "Solana", or "USDC" → x402.
 
+## Check Current Subscription
+
+To check whether a wallet has an active subscription and view quota usage:
+
+```bash
+# CLI (auto-detects wallet from config)
+npx @chainstream-io/cli plan status
+
+# CLI with explicit chain/address
+npx @chainstream-io/cli plan status --chain evm --address 0x...
+
+# API (no auth required)
+curl "https://api.chainstream.io/x402/status?chain=evm&address=0x..."
+```
+
+Response:
+
+```json
+{
+  "plan": "pro",
+  "quota": { "used": 12500, "total": 500000 },
+  "expiresAt": "2026-05-01T00:00:00.000Z",
+  "active": true
+}
+```
+
+- `plan`: current plan name (null if no subscription)
+- `quota.used` / `quota.total`: compute units consumed / total (total = -1 means unlimited)
+- `expiresAt`: subscription expiry (ISO 8601)
+- `active`: whether the subscription is currently valid
+
 ## Error Recovery
 
 - If payment fails (insufficient funds): tell user how much is needed and on which network, show wallet address
 - If 402 persists after payment: wait 5s for settlement, then retry
 - To check available plans: `GET /x402/pricing` or `GET /mpp/pricing` (no auth required)
+- To check current subscription: `GET /x402/status?chain=...&address=...` or `npx @chainstream-io/cli plan status`
 - x402-specific: ensure wallet has USDC on Base or Solana
 - MPP-specific: ensure Tempo Wallet has USDC.e (`tempo wallet balance` to check). Tempo uses USD stablecoins for gas — no separate gas token needed.

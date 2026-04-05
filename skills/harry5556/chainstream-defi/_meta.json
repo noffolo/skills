@@ -3,11 +3,16 @@
   "slug": "chainstream-defi",
   "displayName": "Chainstream Defi",
   "latest": {
-    "version": "1.1.1",
-    "publishedAt": 1774713352851,
-    "commit": "https://github.com/openclaw/skills/commit/e263b5b2801de28bc23693ed89c3ee3aad8bc446"
+    "version": "1.1.4",
+    "publishedAt": 1775071544165,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.1",
+      "publishedAt": 1774713352851,
+      "commit": "https://github.com/openclaw/skills/commit/e263b5b2801de28bc23693ed89c3ee3aad8bc446"
+    },
     {
       "version": "1.0.9",
       "publishedAt": 1774111002990,

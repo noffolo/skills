@@ -244,6 +244,65 @@ SDK/CLI automatically caches the token and refreshes before expiry. Agent never 
 
 Server checks in order: SIWX → API Key → JWT Bearer.
 
+## Check Current Subscription
+
+```bash
+# CLI (auto-detects wallet chain and address from config)
+npx @chainstream-io/cli plan status
+
+# With explicit parameters
+npx @chainstream-io/cli plan status --chain evm --address 0x...
+
+# API (no auth required)
+curl "https://api.chainstream.io/x402/status?chain=evm&address=0x..."
+```
+
+Returns current plan name, quota usage (used/total CU), expiry date, and active status. See [x402-payment.md](x402-payment.md#check-current-subscription) for full response format.
+
+## Address Linking (Cross-Chain SIWX)
+
+When a user has wallets on multiple chains (e.g., EVM + Solana via Turnkey embedded wallet), a single x402 payment only registers SIWX auth for the paying chain. **Address Linking** allows the user to associate additional chain addresses with the same subscription, so SIWX auth works regardless of which chain they sign with.
+
+**How it works:**
+
+- The paying chain's address is the **primary address** that determines the `orgId`
+- After payment, the CLI automatically links all other available wallet addresses to the same `orgId`
+- Each linked address gets its own `x402:access:{chain}:{address}` Redis record pointing to the same `orgId`
+- All addresses share the same subscription quota and expiry
+
+**Automatic linking (CLI):** After a successful x402 purchase, the CLI automatically detects other available wallet addresses (e.g., if payment was via EVM, it finds the Solana address) and calls `POST /x402/link-address` to link them. This is transparent to the user.
+
+**Manual linking:**
+
+```bash
+# Link your Solana address to an existing subscription
+npx @chainstream-io/cli wallet link --chain solana
+
+# Link your EVM address to an existing subscription
+npx @chainstream-io/cli wallet link --chain evm
+```
+
+Requires an active API Key (`chainstream config set --key apiKey --value <key>`).
+
+**API endpoint:** `POST /x402/link-address`
+
+```json
+{
+  "chain": "solana",
+  "address": "53LKjHoRGSi3...",
+  "message": "<SIWX message proving ownership>",
+  "signature": "<signature>"
+}
+```
+
+Header: `X-API-KEY: <your-api-key>`
+
+**Supported chains:** `evm` (all EVM-compatible chains), `solana`. More chains will be added as supported.
+
+**Storage:** Address-to-orgId mappings are stored in both Redis (hot path for auth-service) and PostgreSQL (`x402_address_link` table) for persistence. Redis can be rebuilt from DB if needed.
+
+**API Key is always chain-agnostic.** Once you have an API Key, it works regardless of which chain was used for payment or SIWX. Address linking is specifically for users who rely on SIWX authentication across multiple chains.
+
 ## NEVER Do
 
 - NEVER construct SIWX tokens manually — use SDK or CLI

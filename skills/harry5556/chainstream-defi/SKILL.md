@@ -48,6 +48,52 @@ For full auth guide with code examples, see [shared/authentication.md](../shared
 npx @chainstream-io/cli login
 ```
 
+## CLI Wallet & Signing Commands
+
+**The CLI has built-in wallet management and signing capabilities.** These commands are ALREADY IMPLEMENTED and WORKING:
+
+### Wallet Commands
+
+```bash
+# Show configured wallet addresses
+npx @chainstream-io/cli wallet address
+
+# Show wallet balance (native + tokens, supports sol/base)
+npx @chainstream-io/cli wallet balance --chain sol
+
+# Sign a transaction (uses configured Turnkey or raw wallet)
+npx @chainstream-io/cli wallet sign --chain sol --tx <base64-serializedTx>
+
+# Import raw private key (dev/testing only)
+npx @chainstream-io/cli wallet set-raw --chain sol
+```
+
+### Transaction Commands
+
+```bash
+# Broadcast a signed transaction
+npx @chainstream-io/cli tx send --chain sol --signed-tx <base64-signedTx>
+
+# Get gas price (EVM only)
+npx @chainstream-io/cli tx gas-price --chain eth
+
+# Estimate gas limit (EVM only)
+npx @chainstream-io/cli tx estimate-gas --chain eth --from 0x... --to 0x... --data 0x...
+```
+
+### DEX Commands
+
+```bash
+# Get best route + build unsigned tx (aggregator)
+npx @chainstream-io/cli dex route --chain sol --from <wallet> --input-token SOL --output-token <addr> --amount 1000000
+
+# Build unsigned swap tx (specific DEX)
+npx @chainstream-io/cli dex swap --chain sol --from <wallet> --input-token SOL --output-token <addr> --amount 1000000 --dex jupiter
+
+# Build unsigned token creation tx
+npx @chainstream-io/cli dex create --chain sol --from <wallet> --name MyToken --symbol MT --dex pumpfun
+```
+
 ## Endpoint Selector
 
 | Intent | CLI Command | MCP Tool | Safety | Reference |
@@ -158,7 +204,7 @@ For the full resolution table, see [references/currency-resolution.md](reference
 | Insufficient balance | Not enough funds | Show balance, suggest amount |
 | Job timeout | No confirmation in 60s | Show pending status + tx hash for manual check |
 | Stale transaction / expired blockhash / nonce too old | Transaction built too long ago | Rebuild from Step 1 (`dex route`), get fresh unsigned tx, re-confirm with user |
-| 402 | No quota | CLI auto-handles via x402 (do NOT manually curl). See [shared/x402-payment.md](../shared/x402-payment.md) |
+| 402 | No quota (CU) | Check `plan status` first. If no subscription, show plans and let user choose — CLI purchase is interactive. See [shared/x402-payment.md](../shared/x402-payment.md) |
 
 ## Rules
 
@@ -178,3 +224,4 @@ For the full resolution table, see [references/currency-resolution.md](reference
 ## Related Skills
 
 - [chainstream-data](../chainstream-data/) — Token research, market discovery, wallet analysis before trading
+- [chainstream-graphql](../chainstream-graphql/) — Custom GraphQL analytics: cross-cube JOINs, aggregations, flexible queries on 17 on-chain cubes
