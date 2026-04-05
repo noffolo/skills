@@ -3,11 +3,16 @@
   "slug": "recipe-post-mortem-setup",
   "displayName": "Recipe Post Mortem Setup",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1774551171759,
-    "commit": "https://github.com/openclaw/skills/commit/7de557d401c66f3c66a68ef2ce547dccc46976cc"
+    "version": "1.0.12",
+    "publishedAt": 1774982207759,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1774551171759,
+      "commit": "https://github.com/openclaw/skills/commit/7de557d401c66f3c66a68ef2ce547dccc46976cc"
+    },
     {
       "version": "1.0.9",
       "publishedAt": 1774540833433,
