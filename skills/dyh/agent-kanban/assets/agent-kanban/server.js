@@ -16,32 +16,7 @@ const app = express();
 const PORT = config.server.port || 3100;
 const HOST = config.server.host || '0.0.0.0';
 const GATEWAY_URL = config.gateway.url;
-
-// 获取 Gateway Token（优先使用配置文件，否则从 openclaw.json 读取）
-function getGatewayToken() {
-  if (config.gateway.token) {
-    return config.gateway.token;
-  }
-  // 自动从 openclaw.json 读取
-  try {
-    const openclawPath = path.join(
-      config.openclaw.homeDir.startsWith('/') 
-        ? '' 
-        : process.env.HOME, 
-      config.openclaw.homeDir.startsWith('/') 
-        ? '' 
-        : config.openclaw.homeDir,
-      config.openclaw.configFilename
-    );
-    const openclawConfig = JSON.parse(fs.readFileSync(openclawPath, 'utf8'));
-    return openclawConfig.gateway?.auth?.token || '';
-  } catch (err) {
-    console.error('Failed to read gateway token from openclaw.json:', err.message);
-    return '';
-  }
-}
-
-const GATEWAY_TOKEN = getGatewayToken();
+const GATEWAY_TOKEN = config.gateway.token;
 
 // 获取 OpenClaw 主目录
 function getOpenClawHome() {
@@ -83,34 +58,12 @@ function loadHeartbeatConfig() {
 // 启动时加载配置
 loadHeartbeatConfig();
 
-// 记录配置文件修改时间，用于检测变化
-let configMtime = 0;
-function checkConfigChange() {
-  try {
-    const configPath = path.join(OPENCLAW_HOME, config.openclaw.configFilename);
-    const stats = fs.statSync(configPath);
-    if (stats.mtimeMs > configMtime) {
-      if (configMtime > 0) {
-        console.log('Config file changed, reloading heartbeat config...');
-      }
-      configMtime = stats.mtimeMs;
-      loadHeartbeatConfig();
-    }
-  } catch (err) {
-    console.error('Failed to check config change:', err.message);
-  }
-}
-
 app.use(express.static('public'));
 app.use(express.json());
 
-// CORS - 只允许本地访问
+// CORS
 app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:3100', 'http://127.0.0.1:3100'];
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
@@ -119,13 +72,6 @@ app.use((req, res, next) => {
 
 // 调用 Gateway HTTP API
 async function gatewayInvoke(tool, args = {}) {
-  // 安全检查：只允许本地地址
-  const allowedHosts = ['127.0.0.1', 'localhost', '::1'];
-  const gatewayHost = new URL(GATEWAY_URL).hostname;
-  if (!allowedHosts.includes(gatewayHost)) {
-    throw new Error(`Security: Gateway URL must be localhost, got ${gatewayHost}`);
-  }
-  
   const response = await fetch(`${GATEWAY_URL}/tools/invoke`, {
     method: 'POST',
     headers: {
@@ -281,9 +227,6 @@ function getAgentJsonlSize(agentId) {
 // API: 获取所有 sessions
 app.get('/api/sessions', async (req, res) => {
   try {
-    // 检查配置文件是否有变化
-    checkConfigChange();
-    
     const result = await gatewayInvoke('sessions_list', {});
     const data = parseSessionsList(result);
     

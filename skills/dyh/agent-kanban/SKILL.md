@@ -15,9 +15,11 @@ OpenClaw Agent Dashboard - Bloomberg Terminal Style Interface.
 - **Session History** - Click cards to view recent conversation history
 - **File Viewer** - View Agent's OKR.md, SOUL.md, HEARTBEAT.md
 - **Session Size Monitor** - Display .jsonl file size with threshold warnings
+- **Send Message** - Send messages to agents directly from the UI
 - **Font Size Control** - 10px-24px with reset button (R)
 - **Bloomberg Style** - Bloomberg Terminal style interface
 - **Auto Config Reload** - Hot reload when openclaw.json changes
+- **Configurable Timeouts** - All timeouts and paths configurable via config.js
 
 ## Tech Stack
 
@@ -70,7 +72,22 @@ module.exports = {
     url: 'http://127.0.0.1:18789',
     token: ''  // Leave empty to auto-load from openclaw.json
   },
-  openclaw: { homeDir: '.openclaw', configFilename: 'openclaw.json' },
+  openclaw: {
+    homeDir: '.openclaw',
+    configFilename: 'openclaw.json',
+    binPath: '/home/dyh/.nvm/versions/node/v22.18.0/bin/openclaw',
+    nodePath: '/home/dyh/.nvm/versions/node/v22.18.0/bin'
+  },
+  timeout: {
+    gatewayHealth: 5000,
+    gatewayInvoke: 30000,
+    sendMessage: 120
+  },
+  frontend: {
+    refreshInterval: 30000,
+    highlightThreshold: 60000,
+    activeThreshold: 300000
+  },
   refreshInterval: 60000,
   sessionSizeThresholds: { warning: 500, danger: 1024 }
 };
@@ -91,6 +108,15 @@ module.exports = {
 | `R` button | Reset font size to 13px |
 | `CLOSE` button | Close agent + hide right panel |
 | `HIDE` button | Hide right panel |
+| Input box + SEND | Send message to selected agent |
+
+## Send Message to Agent
+
+Click on an agent card, then use the input box at the bottom of the right panel to send messages directly to the agent.
+
+- Uses `openclaw agent --agent <id> --message <msg>` CLI command
+- Message appears in agent's session history
+- Agent responds based on its role and context
 
 ## Error Handling
 
@@ -132,9 +158,11 @@ OpenClaw Agent 状态监控面板 - Bloomberg Terminal 风格界面。
 - **会话历史** - 点击卡片查看最近的对话记录
 - **文件查看** - 查看 Agent 的 OKR.md、SOUL.md、HEARTBEAT.md
 - **Session 大小监控** - 显示 .jsonl 文件大小，超过阈值高亮警告
+- **发送消息** - 直接从界面给 Agent 发送消息
 - **字号调节** - 10px-24px，带重置按钮
 - **彭博风格** - Bloomberg Terminal 风格界面
 - **配置热更新** - 自动检测 openclaw.json 变化并重新加载
+- **可配置超时** - 所有超时和路径可通过 config.js 配置
 
 ## 快速开始
 
@@ -161,6 +189,15 @@ npm start
 ```bash
 cat ~/.openclaw/openclaw.json | jq '.gateway.auth.token'
 ```
+
+## Changelog
+
+### 2026-03-31
+
+- **New Feature**: Send message to agent from UI
+- **New Feature**: `/api/config` endpoint for frontend configuration
+- **Improvement**: All hardcoded values moved to config.js
+- **Fix**: File expand height improved
 
 ---
 

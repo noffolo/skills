@@ -25,14 +25,14 @@ module.exports = {
   // 服务配置
   server: {
     port: 3100,
-    host: '127.0.0.1'  // 只监听本地，不暴露到局域网
+    host: '0.0.0.0'
   },
   
   // Gateway HTTP API 配置
-  // token 留空则自动从 ~/.openclaw/openclaw.json 读取
+  // 从 openclaw.json 获取：cat ~/.openclaw/openclaw.json | jq '.gateway.auth.token'
   gateway: {
     url: 'http://127.0.0.1:18789',
-    token: ''  // 留空自动读取，或手动填入
+    token: 'c80aa67f773b3045792ba7afbf2e22fc09cb7b37c63019e3'
   },
   
   // OpenClaw 配置
