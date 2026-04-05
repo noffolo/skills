@@ -3,11 +3,16 @@
   "slug": "moses-postures",
   "displayName": "Moses Postures",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773666867426,
-    "commit": "https://github.com/openclaw/skills/commit/1cc6c9f384536adc9094428b6fbfd48c5f23aa61"
+    "version": "1.0.2",
+    "publishedAt": 1774980732151,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773666867426,
+      "commit": "https://github.com/openclaw/skills/commit/1cc6c9f384536adc9094428b6fbfd48c5f23aa61"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773505916523,

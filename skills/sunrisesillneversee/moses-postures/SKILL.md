@@ -7,9 +7,11 @@ metadata:
     tags: [governance, postures, transactions, safety]
     stateDirs:
       - ~/.openclaw/governance
+    requires:
+      - moses-governance
 example: |
   # Set posture via operator command: /posture defense
-  # Or directly: python3 scripts/init_state.py set --posture defense
+  # Or directly: python3 ~/.openclaw/workspace/skills/moses-governance/scripts/init_state.py set --posture defense
 ---
 
 # MO§ES™ Posture Controls
@@ -17,6 +19,8 @@ example: |
 Posture is the throttle. Mode is the rulebook. Both always apply.
 
 Load active posture from `~/.openclaw/governance/state.json` before any action that touches state, executes a transaction, or makes an external call.
+
+> **Dependency:** This skill reads `~/.openclaw/governance/state.json` (declared in `stateDirs`) and invokes `init_state.py` from the **moses-governance** skill bundle (declared in `requires`). Install moses-governance alongside this skill. No secrets or credentials are required.
 
 ---
 
@@ -56,18 +60,3 @@ Load active posture from `~/.openclaw/governance/state.json` before any action t
 | Creative + OFFENSE | Experimental execution — audited. |
 | Research + SCOUT | Gather everything. Act on nothing. |
 | Unrestricted + OFFENSE | Full autonomy. Logged. Operator accepts all risk. |
-
----
-
-## /posture Command Handler
-
-When operator sends `/posture <posture>`:
-```
-python3 ~/.openclaw/workspace/skills/moses-governance/scripts/init_state.py set --posture <posture>
-```
-Then confirm: "Posture set: [posture]. [One-line policy summary]"
-
-Example confirmations:
-- SCOUT: "Read-only mode active. No transactions or state changes will execute."
-- DEFENSE: "Protection mode active. Outbound transfers require explicit confirmation."
-- OFFENSE: "Execution mode active. Operating within [mode] constraints."
