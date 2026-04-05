@@ -3,9 +3,15 @@
   "slug": "goverment-bidding-fetcher",
   "displayName": "goverment bidding fetcher",
   "latest": {
-    "version": "0.1.8",
-    "publishedAt": 1775016808063,
-    "commit": "https://github.com/openclaw/skills/commit/591991f0c6cdb519c02e702279ea1d6197feaf93"
+    "version": "0.1.9",
+    "publishedAt": 1775398481272,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.8",
+      "publishedAt": 1775016808063,
+      "commit": "https://github.com/openclaw/skills/commit/591991f0c6cdb519c02e702279ea1d6197feaf93"
+    }
+  ]
 }
