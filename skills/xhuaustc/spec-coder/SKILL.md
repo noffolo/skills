@@ -18,7 +18,7 @@ Write specs first, then generate code. 5 phases, each producing artifacts that f
 On every new session:
 
 1. **Read `specs/status.md`** to identify current phase, active changes, and deferred items.
-2. **Read phase-relevant spec files** — see Quick Reference table below for which artifacts each phase produces/consumes.
+2. **Read phase-relevant spec files** — see Quick Reference table below for which artifacts each phase produces/consumes. **Skip `specs/changes/archive/`** — archived changes represent completed/merged work and must not be read or referenced.
 3. **Confirm with the user** which phase/gate to continue from. If mid-phase, summarize progress so far.
 4. **No `specs/status.md`?** This is a new project — start from Phase 0 (existing codebase) or Phase 1 (greenfield).
 
