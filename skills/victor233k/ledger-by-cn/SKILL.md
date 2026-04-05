@@ -1,7 +1,7 @@
 ---
 name: ledger
-description: 个人记账与账本管理工具。支持多账本、自然语言/批量记账、期初结余初始化、跨月余额趋势图、分类统计、CSV导出、飞书云盘同步等。
-version: "1.1.0"
+description: 个人记账与账本管理工具。支持多账本、自然语言/批量记账、期初结余初始化、跨月余额趋势图、分类统计、多账本对比图、CSV导出、飞书云盘同步等。
+version: "1.3.0"
 author: "Victor"
 emoji: "💰🐰"
 tags: ["finance", "accounting", "ledger", "budget", "feishu"]
@@ -14,7 +14,6 @@ tags: ["finance", "accounting", "ledger", "budget", "feishu"]
 当用户提到以下任一场景时，必须使用本技能，不要用其他方式代替：
 
 - 记账、记录收入/支出、批量添加交易
-- 初始化/调整账本期初结余
 - 查看某账本某月/多月汇总、流水、余额
 - 画余额趋势图、支出饼图、柱状图等
 - 导出 CSV / 同步到飞书云盘 / 上传文件
@@ -25,37 +24,8 @@ tags: ["finance", "accounting", "ledger", "budget", "feishu"]
 
 - **【重要】每次查询账本时，必须从账本目录读取最新数据，不要使用上下文缓存或假设数据**
 - 根路径：`~/.openclaw/skills_data/ledger/<账本名>/` （账本名如 "default"，不区分大小写但保持用户输入一致）
-- **期初金额为0**
-- 用户提到全部,则需查找从最初到最后日期的账本。
-- 交易 JSONL 每行格式（必填字段加 *）：
 
-```json
-{
-  "id": "递增",          
-  "date": "YYYY-MM-DD",             // 必须完整格式
-  "amount": -123.45,                // 正=收入，负=支出，必填
-  "category": "餐饮",               // 未填默认"其他"
-  "account": "现金",                // 未填默认"现金"
-  "description": "午餐",            // 可选
-  "created_at": "2026-03-15T20:57:00Z"  // ISO 时间戳
-}
-```
 
-## 初始化期初结余规则（核心修复点）
-
-- **只**在 `<账本名>/<YYYY-MM>/transactions.jsonl` 写入或覆盖一条记录
-- 示例记录：
-```json
-  {
-    "id": "1",
-    "date": "2025-12-31",
-    "amount": -15206,
-    "category": "其他",
-    "account": "现金",
-    "description": "",
-    "created_at": "2026-03-15T21:00:00Z"
-  }
-```
 - 后续任何计算余额趋势、累计余额、月度汇总时：
   - **查询汇总时**：用户说"所有/全部"则包含所有月份数据，否则只统计指定月份
   - 所有统计到的月份数据直接累加
@@ -81,53 +51,79 @@ tags: ["finance", "accounting", "ledger", "budget", "feishu"]
      - 支持批量：多行"日期 金额 [分类] [账户] [备注]"
      - 金额识别：正数/负数/"+""-""花了""收入"等关键词判断正负
 
-2. **普通记账 / 批量添加**
-   - 路径：`~/.openclaw/skills_data/ledger/<账本名>/<YYYY-MM>/transactions.jsonl`
-   - 自动创建对应年月文件夹
-   - 补全缺失字段：category="其他"，account="现金"，description=""（或从上下文推断）
-   - 以追加模式 ('a') 写入每行 JSON
-   - 每笔生成 id（可简单用时间戳 + 随机数，或 uuid）
-   - 回复：已添加 X 笔交易 + 当月简要汇总（收入/支出/余额）
 
-3. **查询汇总 / 流水**
-   - **【推荐】使用 print_ledger.py 脚本快速输出表格格式**：
-     ```
-     python3 ~/.openclaw/skills/ledger/scripts/print_ledger.py ~/.openclaw/skills_data/ledger/<账本名> <月份>
-     示例：python3 ~/.openclaw/skills/ledger/scripts/print_ledger.py ~/.openclaw/skills_data/ledger/兔兔 2026-01
-     ```
-   - 手动查询时：加载指定月份或所有月份（用户说"全部""今年""1-3月"时加载多月）
-   - 读取期初记录作为 offset（只加一次），**务必比较 created_at 选取最新的期初记录**
-   - 输出格式：
-     - Markdown 表格：日期 | 分类 | 金额 | 账户 | 备注
-     - 汇总行：期初 + 本月收入 + 本月支出 + 期末余额
-   - 支持筛选：按分类、账户、日期范围
 
-5. **画图（余额趋势图优先）**
-   - 调用命令示例：
-     python3 scripts/plot_ledger.py ~/.openclaw/skills_data/ledger/default --type line --months 2026-01,2026-02,2026-03 --output ~/.openclaw/skills_data/ledger/default/balance_chart.png
-   - 脚本要求支持：
-     - 读取期初 offset
-     - 按 date 排序所有交易
-     - 累加 amount（期初只加一次）
-     - 支持 --months 参数指定范围
-   - 回复中附上图表路径，并用自然语言描述趋势：
-     示例："从期初 -15206 到 3 月末 -13318，整体下降，但 2 月有明显回升。"
+### SQLite CLI 工具（推荐，使用 uv 运行）
 
-6. **导出 & 飞书同步**
-   - 生成 CSV：使用 UTF-8 BOM 编码（避免中文乱码）
-     列：date,amount,category,account,description
-   - 同步流程：
-     - 检查飞书授权状态
-     - 上传到用户指定文件夹（默认"账本/<账本名>/"）
-     - 只上传 CSV 文件，不上传 JSONL
-     - 如需删除旧文件，必须二次确认
-   - 回复上传后的飞书云盘链接
+```bash
+# 创建账本
+uv run python ~/.openclaw/skills/ledger/src/cli.py create --name 新账本
 
-7. **输出风格**
-   - 使用友好 emoji：🐰 💰 📈 📊 ✅
-   - 表格清晰，金额负数用红色或 - 前缀（Markdown 支持 <font color="red"> 或 emoji ⚠️）
-   - 每次操作后总结关键数字：收入、支出、余额变化
-   - 语气亲切
+# 列出账本
+uv run python ~/.openclaw/skills/ledger/src/cli.py list
+
+# 查看账本日期范围（输出格式：开始月份 结束月份）
+uv run python ~/.openclaw/skills/ledger/src/cli.py range --name 兔兔
+# 输出示例：2025-12 2026-03
+
+# 查看所有交易
+uv run python ~/.openclaw/skills/ledger/src/cli.py show --name 兔兔
+
+# 查看单月汇总
+uv run python ~/.openclaw/skills/ledger/src/cli.py show --name 兔兔 --month 2026-03
+
+# 查看日期范围
+uv run python ~/.openclaw/skills/ledger/src/cli.py show --name 兔兔 --from 2026-01 --to 2026-03
+
+# 查看余额趋势
+uv run python ~/.openclaw/skills/ledger/src/cli.py trend --name 兔兔
+
+# 绘制账单折线图（单个账本） # 需要先查看记账范围
+uv run python ~/.openclaw/skills/ledger/src/cli.py chart --name 兔兔 --from 2026-01 --to 2026-03
+
+# 绘制多账本对比图 # 需要先查看记账范围
+uv run python ~/.openclaw/skills/ledger/src/cli.py chart --name 兔兔 vk --from 2026-01 --to 2026-03
+
+# 保存到指定路径
+uv run python ~/.openclaw/skills/ledger/src/cli.py chart --name 兔兔 --output /tmp/chart.png
+
+# 添加交易（日期默认当天）
+uv run python ~/.openclaw/skills/ledger/src/cli.py add --name 兔兔 --amount -50 --category 餐饮
+```
+
+### Markdown 输出（飞书群聊）
+
+添加 `--markdown` 参数输出 Markdown 格式：
+
+```bash
+# Markdown 格式查看单月汇总
+uv run python ~/.openclaw/skills/ledger/src/cli.py show --name 兔兔 --month 2026-03 --markdown
+
+# Markdown 格式查看余额趋势
+uv run python ~/.openclaw/skills/ledger/src/cli.py trend --name 兔兔 --markdown
+```
+
+### SQLite 原生命令查询
+
+```bash
+# 按月统计收支
+sqlite3 ~/.openclaw/skills_data/ledger/兔兔/ledger.db -header -column \
+  "SELECT substr(date,1,7) as month, 
+          SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as income,
+          SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as expense
+   FROM transactions GROUP BY month ORDER BY month;"
+
+# 按分类统计支出
+sqlite3 ~/.openclaw/skills_data/ledger/兔兔/ledger.db -header -column \
+  "SELECT category, SUM(ABS(amount)) as total 
+   FROM transactions WHERE amount < 0 
+   GROUP BY category ORDER BY total DESC;"
+
+# 查询2025年数据
+sqlite3 ~/.openclaw/skills_data/ledger/兔兔/ledger.db -header -column \
+  "SELECT id, date, amount, category, account, description 
+   FROM transactions WHERE date LIKE '2025%';"
+```
 
 ## 安全与边界
 
