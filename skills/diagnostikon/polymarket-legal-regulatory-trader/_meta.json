@@ -1,13 +1,18 @@
 {
   "owner": "diagnostikon",
   "slug": "polymarket-legal-regulatory-trader",
-  "displayName": "Legal & Regulatory Trader",
+  "displayName": "Polymarket Legal Regulatory Trader",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773782172489,
-    "commit": "https://github.com/openclaw/skills/commit/54a546028cc44c432603d2fba5cf69f11f97aa45"
+    "version": "1.0.3",
+    "publishedAt": 1775317220280,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773782172489,
+      "commit": "https://github.com/openclaw/skills/commit/54a546028cc44c432603d2fba5cf69f11f97aa45"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1773468861669,
