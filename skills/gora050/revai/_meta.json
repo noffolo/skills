@@ -3,9 +3,15 @@
   "slug": "revai",
   "displayName": "Revai",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773547358421,
-    "commit": "https://github.com/openclaw/skills/commit/66c9c8d8d9f531c2f656d0ad911d22b011a30a03"
+    "version": "1.0.2",
+    "publishedAt": 1775164046525,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773547358421,
+      "commit": "https://github.com/openclaw/skills/commit/66c9c8d8d9f531c2f656d0ad911d22b011a30a03"
+    }
+  ]
 }
