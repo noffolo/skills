@@ -3,9 +3,15 @@
   "slug": "xiaomi-any2speech-beyondtts",
   "displayName": "Xiaomi-any2speech",
   "latest": {
-    "version": "1.0.3",
-    "publishedAt": 1774610036055,
-    "commit": "https://github.com/openclaw/skills/commit/63ffa3f3724c472a11db75936a23e0a65fdde3cd"
+    "version": "1.0.5",
+    "publishedAt": 1775200628090,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.3",
+      "publishedAt": 1774610036055,
+      "commit": "https://github.com/openclaw/skills/commit/63ffa3f3724c472a11db75936a23e0a65fdde3cd"
+    }
+  ]
 }
