@@ -11,16 +11,9 @@
  * @packageDocumentation
  */
 
+import { SessionContext } from '@openclaw/core';
 import * as fs from 'fs';
 import * as path from 'path';
-
-// SessionContext 类型定义（由 OpenClaw 运行时提供）
-interface SessionContext {
-  reply: (message: string) => Promise<void>;
-  send: (message: string) => Promise<void>;
-  // 其他运行时提供的属性和方法
-  [key: string]: any;
-}
 
 // ============================================================================
 // 类型定义
@@ -57,8 +50,6 @@ interface OpenClawConfig {
   channels: {
     feishu: {
       enabled: boolean;
-      // 重要：accounts 必须是对象格式，key 为 accountId，不能是数组
-      // 格式：{ "accountId1": { appId, appSecret }, "accountId2": { ... } }
       accounts: Record<string, FeishuAccount>;
     };
   };
@@ -263,40 +254,7 @@ const AGENT_TEMPLATES: Record<string, AgentTemplate> = {
  */
 function readOpenClawConfig(configPath: string): OpenClawConfig {
   const content = fs.readFileSync(configPath, 'utf-8');
-  const config = JSON.parse(content);
-  
-  // 重要修复：确保 accounts 是对象格式，而不是数组
-  // 如果检测到 accounts 是数组，转换为对象格式
-  if (Array.isArray(config.channels?.feishu?.accounts)) {
-    console.warn('⚠️ 检测到 accounts 使用了数组格式，这是不被支持的！正在转换为对象格式...');
-    const accountsArray = config.channels.feishu.accounts;
-    const accountsObject: Record<string, FeishuAccount> = {};
-    
-    // 尝试从数组中提取第一个账号（如果有 accountId 字段）
-    if (accountsArray.length > 0 && accountsArray[0].accountId) {
-      accountsArray.forEach((account: any) => {
-        if (account.appId && account.appSecret) {
-          const accountId = account.accountId || account.appId.replace('cli_', '');
-          accountsObject[accountId] = {
-            appId: account.appId,
-            appSecret: account.appSecret
-          };
-        }
-      });
-    }
-    
-    config.channels.feishu.accounts = accountsObject;
-    console.log('✅ 已转换为对象格式：', Object.keys(accountsObject));
-  }
-  
-  // 确保 accounts 字段存在且为对象
-  if (!config.channels?.feishu?.accounts) {
-    if (!config.channels) config.channels = { feishu: { enabled: true, accounts: {} } };
-    if (!config.channels.feishu) config.channels.feishu = { enabled: true, accounts: {} };
-    config.channels.feishu.accounts = {};
-  }
-  
-  return config;
+  return JSON.parse(content);
 }
 
 /**
@@ -616,6 +574,8 @@ export async function main(ctx: SessionContext, args: Record<string, any>): Prom
         // 启动配置向导
         await ctx.reply(`🤖 **欢迎使用飞书多 Agent 配置助手！**
 
+> 💡 **兼容飞书插件 2026.4.1** | OpenClaw ≥ 2026.3.31
+
 我将引导你完成多个 Agent 的配置流程。
 
 ## 📋 配置流程
@@ -651,7 +611,17 @@ export async function main(ctx: SessionContext, args: Record<string, any>): Prom
 - \`6 个\` - 完整团队：全部 6 个角色
 - \`自定义\` - 你自由选择角色
 
-回复数字或"自定义"，我们开始吧！ 😊`);
+回复数字或"自定义"，我们开始吧！ 😊
+
+---
+
+## 📦 前置检查
+
+确保已安装：
+- ✅ OpenClaw ≥ 2026.3.31
+- ✅ 飞书官方插件 2026.4.1（\`npx -y @larksuite/openclaw-lark install\`）
+
+**检查命令：** \`/feishu start\``);
         break;
       }
       
@@ -781,9 +751,38 @@ openclaw restart
 ### 3. 测试 Bot
 在飞书中搜索 Bot 名称，发送消息测试
 
-### 4. 查看日志
+### 4. 批量授权（重要）
+在飞书对话中发送：
+\`\`\`
+/feishu auth
+\`\`\`
+
+完成用户授权，使 Agent 能访问你的飞书文档、日历等
+
+### 5. 查看日志
 \`\`\`bash
 tail -f /home/node/.openclaw/run.log
+\`\`\`
+
+---
+
+## 🚀 高级配置（可选）
+
+### 开启流式输出
+\`\`\`bash
+openclaw config set channels.feishu.streaming true
+\`\`\`
+
+### 开启话题模式（独立上下文）
+\`\`\`bash
+openclaw config set channels.feishu.threadSession true
+\`\`\`
+
+### 诊断命令
+\`\`\`
+/feishu start   # 检查插件状态
+/feishu doctor  # 深度诊断
+/feishu auth    # 批量授权
 \`\`\`
 
 ---
@@ -792,12 +791,14 @@ tail -f /home/node/.openclaw/run.log
 
 所有 Agent 的配置已保存到：
 - **配置文件：** \`/home/node/.openclaw/openclaw.json\`
-- **工作区：** \`/home/node/.openclaw/workspace/[agentId]/\`
+- **工作区：** \`/home/node/.openclaw/workspace-[agentId]/\`
 - **人设文件：** 每个工作区包含 SOUL.md、AGENTS.md、USER.md
 
 ---
 
-💡 **提示：** 如果有任何 Bot 显示 offline，请检查飞书应用配置是否正确（凭证、事件订阅、权限）。
+💡 **提示：** 
+- 如果有任何 Bot 显示 offline，请检查飞书应用配置（凭证、事件订阅、权限）
+- 飞书插件版本：2026.4.1 | OpenClaw 版本：≥ 2026.3.31
 
 需要帮助请回复 \`帮助\` 或 \`排查\`！`);
         } else {

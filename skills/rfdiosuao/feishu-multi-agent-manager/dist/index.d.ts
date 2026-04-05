@@ -10,11 +10,7 @@
  *
  * @packageDocumentation
  */
-interface SessionContext {
-    reply: (message: string) => Promise<void>;
-    send: (message: string) => Promise<void>;
-    [key: string]: any;
-}
+import { SessionContext } from '@openclaw/core';
 /**
  * Skill 主函数 - 交互式引导版本
  *
