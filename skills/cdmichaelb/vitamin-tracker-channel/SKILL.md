@@ -1,6 +1,6 @@
 ---
 name: vitamin-tracker-channel
-version: 1.0.0
+version: 1.0.1
 description: Manage vitamin/supplement reminders across configurable daily time slots via cron jobs. Use when adjusting supplement schedules, adding/removing supplements, or handling vitamin-related channel interactions. Triggers on "vitamin", "supplement", "vitamin reminder", "vitamin schedule".
 env:
   VITAMIN_CHANNEL_ID:
@@ -75,14 +75,20 @@ This reads `VITAMINS.md`, removes existing vitamin cron jobs, and recreates them
 
 Jobs are named `vitamins-{label}-reminder` (e.g. `vitamins-breakfast-reminder`, `vitamins-lunch-reminder`).
 
+## Runtime Requirements
+
+- `python3` — the update script is Python
+- `openclaw` CLI — the script calls `openclaw cron` to manage jobs
+
 ## Data Access
 
 This skill:
 - **Reads** `$WORKSPACE/VITAMINS.md` — your supplement schedule (user-created)
-- **Manages cron jobs** via the `openclaw cron` CLI — creates/removes reminder jobs
-- **Posts messages** to the configured channel via cron delivery
+- **Manages cron jobs** via the `openclaw cron` CLI — removes existing vitamin jobs, then recreates them
+- **Posts messages** to the configured channel via cron delivery (requires network when cron fires)
 - **No data files written** — schedule lives in VITAMINS.md, state is in the cron system
-- **No network calls** — fully local
+
+**Note:** The update script removes all existing `vitamins-*-reminder` cron jobs before recreating them. Back up existing jobs if needed.
 
 ## Required Files
 

@@ -3,9 +3,15 @@
   "slug": "vitamin-tracker-channel",
   "displayName": "Vitamin Tracker Channel",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1775367629200,
-    "commit": "https://github.com/openclaw/skills/commit/0377ef0bcde4c344c7f6f48927aea1019b373505"
+    "version": "1.0.1",
+    "publishedAt": 1775367788962,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1775367629200,
+      "commit": "https://github.com/openclaw/skills/commit/0377ef0bcde4c344c7f6f48927aea1019b373505"
+    }
+  ]
 }
