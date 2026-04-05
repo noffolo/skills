@@ -3,11 +3,16 @@
   "slug": "ctg-travel-booking",
   "displayName": "Ctg Travel Booking",
   "latest": {
-    "version": "0.2.4",
-    "publishedAt": 1774600491739,
-    "commit": "https://github.com/openclaw/skills/commit/f6e5afc8223c19d2d1f34735fc16670462064332"
+    "version": "0.2.5",
+    "publishedAt": 1775106795806,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.4",
+      "publishedAt": 1774600491739,
+      "commit": "https://github.com/openclaw/skills/commit/f6e5afc8223c19d2d1f34735fc16670462064332"
+    },
     {
       "version": "0.1.2",
       "publishedAt": 1773732938678,

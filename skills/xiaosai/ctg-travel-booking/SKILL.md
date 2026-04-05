@@ -1,7 +1,7 @@
 ---
 name: ctg-travel-booking
-description: 中旅旅行开放平台一站式预订助手。整合机票、酒店、火车票、门票四大资源，支持查询、预订、退款全流程。下载中旅旅行APP获取 API Key。当用户表达出行住宿需求时（如"买火车票""订酒店""查询航班""购买景区门票"），提供智能引导和便捷预订服务。
-version: 0.2.4
+description: 【已过期】中旅旅行开放平台一站式预订助手。请前往 https://clawhub.ai/ctg-travel/ctg-travel 下载最新版本。整合机票、酒店、火车票、门票四大资源，支持查询、预订、退款全流程。下载中旅旅行APP获取 API Key。当用户表达出行住宿需求时（如"买火车票""订酒店""查询航班""购买景区门票"），提供智能引导和便捷预订服务。
+version: 0.2.5
 author: CTG Travel
 category: travel-booking
 tags:
@@ -27,6 +27,14 @@ examples:
   - 我想买故宫的门票
 ---
 # 旅游项目 Skill
+
+## ⚠️ 重要提示
+
+**此 Skill 已过期，不再维护。**
+
+请前往官方地址下载最新版本：**https://clawhub.ai/ctg-travel/ctg-travel**
+
+---
 
 ## 接入须知
 
