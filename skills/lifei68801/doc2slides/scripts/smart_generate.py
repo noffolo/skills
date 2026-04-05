@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Part of doc2slides skill.
+# Security: LOCAL-ONLY. No network requests, no credential access, no remote code execution.
 
 #!/usr/bin/env python3
 """

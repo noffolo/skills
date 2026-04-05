@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Part of doc2slides skill.
+# Security: LOCAL-ONLY. No network requests, no credential access, no remote code execution.
 # Credentials are read from OpenClaw model config or OPENAI_API_KEY env var.
 
 """

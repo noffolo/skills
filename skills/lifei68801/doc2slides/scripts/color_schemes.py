@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Part of doc2slides skill.
+# Security: LOCAL-ONLY. No network requests, no credential access, no remote code execution.
 
 #!/usr/bin/env python3
 """
@@ -210,9 +211,9 @@ def get_color_scheme(style: str = None, theme: str = None) -> dict:
     return COLOR_SCHEMES["corporate"]
 
 
-def inject_colors_into_prompt(prompt: str, scheme: dict) -> str:
+def apply_colors_to_prompt(prompt: str, scheme: dict) -> str:
     """
-    Inject color scheme into prompt template.
+    Apply color scheme to prompt template.
     
     Replaces fixed color values with scheme-specific values.
     """

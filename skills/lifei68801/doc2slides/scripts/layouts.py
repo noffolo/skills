@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Part of doc2slides skill.
+# Security: LOCAL-ONLY. No network requests, no credential access, no remote code execution.
 
 """
 PPT布局模板库 - 提供多种专业布局参考

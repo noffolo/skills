@@ -3,11 +3,16 @@
   "slug": "doc2slides",
   "displayName": "Doc2slides",
   "latest": {
-    "version": "3.6.0",
-    "publishedAt": 1774156414748,
-    "commit": "https://github.com/openclaw/skills/commit/8e8af32afb25c89cf11170bdcfff7f5d45829705"
+    "version": "3.8.2",
+    "publishedAt": 1775357399260,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.6.0",
+      "publishedAt": 1774156414748,
+      "commit": "https://github.com/openclaw/skills/commit/8e8af32afb25c89cf11170bdcfff7f5d45829705"
+    },
     {
       "version": "3.0.0",
       "publishedAt": 1774109406575,

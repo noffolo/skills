@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Part of doc2slides skill.
+# Security: LOCAL-ONLY. No network requests, no credential access, no remote code execution.
 
 """
 LLM-based HTML Slide Generator (Strict Version)
@@ -126,7 +127,7 @@ except ImportError:
     print("Warning: smart_layout_matcher not found, using rule-based matching")
 
 try:
-    from color_schemes import get_color_scheme, inject_colors_into_prompt
+    from color_schemes import get_color_scheme, apply_colors_to_prompt
     HAS_COLOR_SCHEMES = True
 except ImportError:
     HAS_COLOR_SCHEMES = False
@@ -1054,14 +1055,14 @@ class LLMHTMLGenerator:
         # Prepare prompt with color scheme
         slide_json = json.dumps(slide_data, ensure_ascii=False, indent=2)
         
-        # --- Use build_prompt for dynamic color scheme + prev_layout injection ---
+        # --- Use build_prompt for dynamic color scheme + prev_layout insertion ---
         if HAS_BUILD_PROMPT:
             base_prompt = build_prompt(
                 scheme=self.color_scheme, 
                 prev_layout=self.prev_layouts[-2] if len(self.prev_layouts) >= 2 else None
             )
         elif HAS_COLOR_SCHEMES:
-            base_prompt = inject_colors_into_prompt(SLIDE_PROMPT, self.color_scheme)
+            base_prompt = apply_colors_to_prompt(SLIDE_PROMPT, self.color_scheme)
         else:
             base_prompt = SLIDE_PROMPT
         
@@ -1101,7 +1102,7 @@ class LLMHTMLGenerator:
 - 强调色 {accent1}
 """
         
-        # Inject user instruction (highest priority)
+        # Apply user instruction (highest priority)
         if self.instruction:
             prompt += f"""
 
