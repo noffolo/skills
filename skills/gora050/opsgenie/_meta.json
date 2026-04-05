@@ -3,9 +3,15 @@
   "slug": "opsgenie",
   "displayName": "Opsgenie",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773464567703,
-    "commit": "https://github.com/openclaw/skills/commit/480baf49064984ce9ae19a9099a194d2d317bfd6"
+    "version": "1.0.2",
+    "publishedAt": 1775163889205,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773464567703,
+      "commit": "https://github.com/openclaw/skills/commit/480baf49064984ce9ae19a9099a194d2d317bfd6"
+    }
+  ]
 }
