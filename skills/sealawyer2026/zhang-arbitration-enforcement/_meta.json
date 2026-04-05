@@ -1,13 +1,18 @@
 {
   "owner": "sealawyer2026",
   "slug": "zhang-arbitration-enforcement",
-  "displayName": "九章仲裁裁决执行专家 V1.4.0",
+  "displayName": "九章-仲裁裁决执行专家",
   "latest": {
-    "version": "1.4.0",
-    "publishedAt": 1774502168802,
-    "commit": "https://github.com/openclaw/skills/commit/ba6c81c91f587416381566eaff49c8636405b531"
+    "version": "1.5.0",
+    "publishedAt": 1775095014133,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.4.0",
+      "publishedAt": 1774502168802,
+      "commit": "https://github.com/openclaw/skills/commit/ba6c81c91f587416381566eaff49c8636405b531"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773682477792,
