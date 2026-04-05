@@ -3,9 +3,15 @@
   "slug": "grab-your-reviews",
   "displayName": "Grab Your Reviews",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773727344330,
-    "commit": "https://github.com/openclaw/skills/commit/ebee1b6024cfc0eb4500099a7d9bcdc3761ca46c"
+    "version": "1.0.2",
+    "publishedAt": 1775164459003,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773727344330,
+      "commit": "https://github.com/openclaw/skills/commit/ebee1b6024cfc0eb4500099a7d9bcdc3761ca46c"
+    }
+  ]
 }
