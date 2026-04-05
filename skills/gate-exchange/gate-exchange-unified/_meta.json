@@ -1,13 +1,18 @@
 {
   "owner": "gate-exchange",
   "slug": "gate-exchange-unified",
-  "displayName": "Gate Exchange Unified",
+  "displayName": "Gate Exchange Unified Account",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774616927108,
-    "commit": "https://github.com/openclaw/skills/commit/336af5a436f2a458bc502ed62022a12ec5cb52f3"
+    "version": "1.0.3",
+    "publishedAt": 1775184641502,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774616927108,
+      "commit": "https://github.com/openclaw/skills/commit/336af5a436f2a458bc502ed62022a12ec5cb52f3"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773490879817,

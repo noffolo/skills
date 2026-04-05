@@ -2,7 +2,16 @@
 name: gate-exchange-unified
 version: "2026.3.23-1"
 updated: "2026-03-23"
-description: "Gate unified account operations skill. Use this skill whenever the user asks to check unified account equity, query borrowable or transferable limits, borrow/repay funds, inspect loan or interest records, switch unified account mode, configure per-currency leverage, or manage collateral currencies. Trigger phrases include 'unified account', 'borrow limit', 'repay loan', 'switch mode', 'set leverage', 'set collateral', or any request that combines unified account risk status with funding actions."
+description: "Gate unified account operations skill. Use when the user asks about unified account equity, margin borrowing, or leverage modes. Triggers on 'unified account', 'borrow limit', 'repay loan', 'switch margin mode'."
+required_credentials:
+  - gate_api_key
+  - gate_api_secret
+required_env_vars:
+  - GATE_API_KEY
+  - GATE_API_SECRET
+required_permissions:
+  - Unified:Read
+  - Unified:Write
 ---
 
 # Gate Unified Account Assistant
@@ -26,7 +35,11 @@ Do NOT select or call any tool until all rules are read. These rules have the hi
 | Gate (main) | ✅ Required |
 
 ### Authentication
-- API Key Required: Yes (see skill doc/runtime MCP deployment)
+- Credentials Source: Local Gate MCP deployment (`GATE_API_KEY`, `GATE_API_SECRET`)
+- API Key Required: Yes
+- Permissions: Unified:Read, Unified:Write
+- Never ask the user to paste secrets into chat; rely on the configured MCP session only.
+- API Key Provisioning Reference: https://www.gate.com/myaccount/profile/api-key/manage (create or rotate keys outside the chat when the local MCP setup requires them).
 
 ### Installation Check
 - Required: Gate (main)
@@ -35,6 +48,13 @@ Do NOT select or call any tool until all rules are read. These rules have the hi
   - Codex: `gate-mcp-codex-installer`
   - Claude: `gate-mcp-claude-installer`
   - OpenClaw: `gate-mcp-openclaw-installer`
+
+## MCP Mode
+
+**Read and strictly follow** [`references/mcp.md`](./references/mcp.md), then execute this skill's unified-account routing.
+
+- `SKILL.md` keeps scenario routing and confirmation policy.
+- `references/mcp.md` is the authoritative MCP execution layer for limits checks, mutation drafts, and post-state verification.
 
 ## Domain Knowledge
 
