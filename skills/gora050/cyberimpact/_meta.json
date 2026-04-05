@@ -3,9 +3,15 @@
   "slug": "cyberimpact",
   "displayName": "Cyberimpact",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773900203664,
-    "commit": "https://github.com/openclaw/skills/commit/d2c68e67e9616de89661f85e54f7f9f46bb98f81"
+    "version": "1.0.2",
+    "publishedAt": 1775164825801,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773900203664,
+      "commit": "https://github.com/openclaw/skills/commit/d2c68e67e9616de89661f85e54f7f9f46bb98f81"
+    }
+  ]
 }
