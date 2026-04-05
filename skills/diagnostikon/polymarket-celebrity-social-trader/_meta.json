@@ -1,13 +1,18 @@
 {
   "owner": "diagnostikon",
   "slug": "polymarket-celebrity-social-trader",
-  "displayName": "Celebrity & Social Media Trader",
+  "displayName": "Polymarket Celebrity Social Trader",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773856254719,
-    "commit": "https://github.com/openclaw/skills/commit/88959f1fd7005815e6f5bd27cbf7eab541f3f63f"
+    "version": "1.0.2",
+    "publishedAt": 1775317088185,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773856254719,
+      "commit": "https://github.com/openclaw/skills/commit/88959f1fd7005815e6f5bd27cbf7eab541f3f63f"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773652374024,
