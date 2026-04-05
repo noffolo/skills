@@ -1,13 +1,18 @@
 {
   "owner": "ksky521",
   "slug": "daxiapi",
-  "displayName": "DaxiaPi  is a financial data API service for the Chinese stock market, providing market breadth, sector relative strength, valuation levels, and stock momentum rankings for bottom-up stock selection. Built on Mark Minervini's VCP, O'Neil's RPS, Wyckoff theory, and price action methodology. This skill should be triggered when users request stock data, market analysis, sector heatmap, momentum data, or other financial metrics.",
+  "displayName": "Daxiapi  is a financial data API service for the Chinese stock market, providing market breadth, sector relative strength, valuation levels, and stock momentum rankings for bottom-up stock selection. Built on Mark Minervini's VCP, O'Neil's RPS, Wyckoff theory, and price action methodology. This skill should be triggered when users request stock data, market analysis, sector heatmap, momentum data, or other financial metrics.",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1774179887987,
-    "commit": "https://github.com/openclaw/skills/commit/672c4eabdf072910c5b52a10fde7ac57cfd7b282"
+    "version": "2.1.0",
+    "publishedAt": 1774957636771,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1774179887987,
+      "commit": "https://github.com/openclaw/skills/commit/672c4eabdf072910c5b52a10fde7ac57cfd7b282"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773571112691,
