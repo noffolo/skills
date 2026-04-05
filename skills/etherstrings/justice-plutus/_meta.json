@@ -3,11 +3,16 @@
   "slug": "justice-plutus",
   "displayName": "Justice Plutus",
   "latest": {
-    "version": "2.0.5",
-    "publishedAt": 1773998637511,
-    "commit": "https://github.com/openclaw/skills/commit/f5c3082d3f66e1fc77283b2a596989182897b823"
+    "version": "2.1.0",
+    "publishedAt": 1774974509170,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.5",
+      "publishedAt": 1773998637511,
+      "commit": "https://github.com/openclaw/skills/commit/f5c3082d3f66e1fc77283b2a596989182897b823"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773766291697,
