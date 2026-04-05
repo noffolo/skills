@@ -1,13 +1,18 @@
 {
   "owner": "diagnostikon",
   "slug": "polymarket-catastrophe-trader",
-  "displayName": "Catastrophe & Extreme Risk Trade",
+  "displayName": "Polymarket Catastrophe Trader",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773868307330,
-    "commit": "https://github.com/openclaw/skills/commit/f1fd67af5b25d5770badb453e44d9dadd6e5b687"
+    "version": "1.0.2",
+    "publishedAt": 1775317081818,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773868307330,
+      "commit": "https://github.com/openclaw/skills/commit/f1fd67af5b25d5770badb453e44d9dadd6e5b687"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773652252821,
