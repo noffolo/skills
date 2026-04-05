@@ -3,9 +3,15 @@
   "slug": "relevance-ai",
   "displayName": "Relevance Ai",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773698546465,
-    "commit": "https://github.com/openclaw/skills/commit/fdade46bd8b2ae3a1ae73b8df53cc94dcf3d033d"
+    "version": "1.0.2",
+    "publishedAt": 1775164315304,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773698546465,
+      "commit": "https://github.com/openclaw/skills/commit/fdade46bd8b2ae3a1ae73b8df53cc94dcf3d033d"
+    }
+  ]
 }
